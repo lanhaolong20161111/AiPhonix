@@ -136,6 +136,13 @@ class ScoreClientTest {
     }
 
     @Test
+    fun `parse float pron_accuracy`() {
+        val json = """{"pron_accuracy": 85.5}""".trimIndent()
+        val result = ScoreClient.parseJsonResponse(json, "x")
+        assertEquals(85, result.totalScore) // 85.5 → 85 (toInt 截断)
+    }
+
+    @Test
     fun `score feedback boundaries`() {
         // 80+ → 很好
         assertEquals("读得很好！🎉", ScoreClient.parseJsonResponse("""{"pron_accuracy":80}""", "x").feedback)

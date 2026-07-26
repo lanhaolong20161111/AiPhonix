@@ -87,7 +87,7 @@ class ScoreClient(
         fun parseJsonResponse(jsonBodyStr: String, refText: String): PronunciationResult {
             val root = Json.parseToJsonElement(jsonBodyStr).jsonObject
 
-            val score = (root["pron_accuracy"]?.jsonPrimitive?.intOrNull ?: 0).coerceIn(0, 100)
+            val score = (root["pron_accuracy"]?.jsonPrimitive?.doubleOrNull?.toInt() ?: 0).coerceIn(0, 100)
             val fluency = root["pron_fluency"]?.jsonPrimitive?.doubleOrNull ?: 0.0
             val completion = root["pron_completion"]?.jsonPrimitive?.doubleOrNull ?: 0.0
             val suggested = root["suggested_score"]?.jsonPrimitive?.doubleOrNull ?: 0.0
