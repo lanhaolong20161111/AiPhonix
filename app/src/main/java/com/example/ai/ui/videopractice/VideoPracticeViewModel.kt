@@ -1,0 +1,67 @@
+package com.example.ai.ui.videopractice
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.ai.data.repository.SpeechRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import android.util.Log
+
+data class VideoPracticeState(
+    val isRecording: Boolean = false,
+    val score: Int? = null,
+    val wordScores: List<com.example.ai.data.model.WordScore> = emptyList(),
+    val resultText: String = "",
+    val error: String? = null,
+)
+
+class VideoPracticeViewModel(
+    private val speechRepository: SpeechRepository
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(VideoPracticeState())
+    val state: StateFlow<VideoPracticeState> = _state.asStateFlow()
+
+    fun startRecording(targetText: String) {
+        if (targetText.isBlank()) return
+        _state.value = VideoPracticeState(isRecording = true)
+
+        viewModelScope.launch {
+            try {
+                // 用 Word 对象包装文本传给现有评测管线
+                val word = com.example.ai.data.model.Word(
+                    text = targetText,
+                    ipa = "",
+                    letter = targetText.firstOrNull()?.toString() ?: "",
+                    phonemes = emptyList()
+                )
+                val result = speechRepository.startStreamingEvaluation(word)
+                _state.value = VideoPracticeState(
+                    isRecording = false,
+                    score = result.totalScore,
+                    wordScores = result.wordScores,
+                    resultText = "发音得分: ${result.totalScore}"
+                )
+            } catch (e: Exception) {
+                Log.e("VideoPractice", "评测失败", e)
+                _state.value = VideoPracticeState(
+                    error = "评测失败: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * 切换视频或重置 UI 时调用，清空旧评分/错误以免残留到新视频。
+     */
+    fun resetState() {
+        _state.value = VideoPracticeState()
+    }
+
+    fun stopRecording() {
+        speechRepository.stopStreamingEvaluation()
+        // 等协程返回结果后会自动更新 _state，这里不提前清空
+    }
+}

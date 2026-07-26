@@ -1,0 +1,29 @@
+{
+  "module": "dictation",
+  "records": [
+    {
+      "char": "?",
+      "module": "dictation",
+      "attempt_count": 1,
+      "first_try_correct": true,
+      "hint_used": false,
+      "correct": true,
+      "timestamp": "2026-07-26T14:06:44.1981752+08:00",
+      "date": "2026-07-26"
+    },
+    {
+      "char": "?",
+      "module": "dictation",
+      "attempt_count": 1,
+      "first_try_correct": true,
+      "hint_used": false,
+      "correct": true,
+      "timestamp": "2026-07-26T14:06:44.1987028+08:00",
+      "date": "2026-07-26"
+    }
+  ],
+  "total_score": 2,
+  "max_score": 2,
+  "timestamp": "2026-07-26T14:06:44+08:00",
+  "date": "2026-07-26"
+}

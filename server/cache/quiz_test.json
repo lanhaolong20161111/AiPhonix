@@ -1,0 +1,130 @@
+[
+  {
+    "english": "Hello.",
+    "chinese": "你好。",
+    "difficulty": 1
+  },
+  {
+    "english": "Nice to meet you.",
+    "chinese": "很高兴见到你。",
+    "difficulty": 1
+  },
+  {
+    "english": "How are you?",
+    "chinese": "你好吗？",
+    "difficulty": 1
+  },
+  {
+    "english": "I am fine.",
+    "chinese": "我很好。",
+    "difficulty": 1
+  },
+  {
+    "english": "Nice to meet you.",
+    "chinese": "很高兴见到你。",
+    "difficulty": 1,
+    "display": "___ to meet you.",
+    "blankAnswer": "Nice"
+  },
+  {
+    "english": "Nice to meet you.",
+    "chinese": "很高兴见到你。",
+    "difficulty": 1,
+    "display": "Nice ___ meet you.",
+    "blankAnswer": "to"
+  },
+  {
+    "english": "Nice to meet you.",
+    "chinese": "很高兴见到你。",
+    "difficulty": 1,
+    "display": "Nice to ___ you.",
+    "blankAnswer": "meet"
+  },
+  {
+    "english": "Nice to meet you.",
+    "chinese": "很高兴见到你。",
+    "difficulty": 1,
+    "display": "Nice to meet ___.",
+    "blankAnswer": "you"
+  },
+  {
+    "english": "How are you?",
+    "chinese": "你好吗？",
+    "difficulty": 1,
+    "display": "How ___ you?",
+    "blankAnswer": "are"
+  },
+  {
+    "english": "How are you?",
+    "chinese": "你好吗？",
+    "difficulty": 1,
+    "display": "___ are you?",
+    "blankAnswer": "How"
+  },
+  {
+    "english": "How are you?",
+    "chinese": "你好吗？",
+    "difficulty": 1,
+    "display": "How are ___?",
+    "blankAnswer": "you"
+  },
+  {
+    "english": "I am fine.",
+    "chinese": "我很好。",
+    "difficulty": 1,
+    "display": "I ___ fine.",
+    "blankAnswer": "am"
+  },
+  {
+    "english": "I am fine.",
+    "chinese": "我很好。",
+    "difficulty": 1,
+    "display": "___ am fine.",
+    "blankAnswer": "I"
+  },
+  {
+    "english": "I am fine.",
+    "chinese": "我很好。",
+    "difficulty": 1,
+    "display": "I am ___.",
+    "blankAnswer": "fine"
+  },
+  {
+    "english": "Hello, nice to meet you.",
+    "chinese": "你好，很高兴见到你。",
+    "difficulty": 1
+  },
+  {
+    "english": "How are you? I am fine.",
+    "chinese": "你好吗？我很好。",
+    "difficulty": 1
+  },
+  {
+    "english": "Hello, nice to meet you.",
+    "chinese": "你好，很高兴见到你。",
+    "difficulty": 1,
+    "display": "Hello, ___ to meet you.",
+    "blankAnswer": "nice"
+  },
+  {
+    "english": "Hello, nice to meet you.",
+    "chinese": "你好，很高兴见到你。",
+    "difficulty": 1,
+    "display": "Hello, nice ___ meet you.",
+    "blankAnswer": "to"
+  },
+  {
+    "english": "How are you? I am fine.",
+    "chinese": "你好吗？我很好。",
+    "difficulty": 1,
+    "display": "How ___ you? I am fine.",
+    "blankAnswer": "are"
+  },
+  {
+    "english": "How are you? I am fine.",
+    "chinese": "你好吗？我很好。",
+    "difficulty": 1,
+    "display": "How are you? I ___ fine.",
+    "blankAnswer": "am"
+  }
+]

@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "total": 51,
+  "units": [
+    {
+      "unit": "Unit 1",
+      "sentences": [
+        {
+          "english": "Hello! I'm Mike Black.",
+          "chinese": "你好！我是迈克・布莱克。"
+        },
+        {
+          "english": "Hi! My name is Wu Binbin.",
+          "chinese": "嗨！我叫吴斌斌。"
+        },
+        {
+          "english": "Nice to meet you.",
+          "chinese": "见到你很高兴。"
+        },
+        {
+          "english": "Nice to meet you too.",
+          "chinese": "见到你（我）也很高兴。"
+        },
+        {
+          "english": "Oh no!",
+          "chinese": "噢，不！"
+        },
+        {
+          "english": "It's OK, Chen Jie.",
+          "chinese": "没关系，陈杰。"
+        },
+        {
+          "english": "Hey, Sarah! We can share.",
+          "chinese": "嘿，萨拉！我们可以分享。"
+        },
+        {
+          "english": "Thanks, Sarah. / Thank you, Chen Jie.",
+          "chinese": "谢谢，萨拉。/ 谢谢你，陈杰。"
+        },
+        {
+          "english": "I am nice to my friends.",
+          "chinese": "我对我的朋友们很好。"
+        },
+        {
+          "english": "Yes, it is.",
+          "chinese": "对，是的。"
+        },
+        {
+          "english": "They love each other.",
+          "chinese": "他们相互关爱。"
+        }
+      ]
+    },
+    {
+      "unit": "Unit 2",
+      "sentences": [
+        {
+          "english": "This is my grandma.",
+          "chinese": "这是我的奶奶。"
+        },
+        {
+          "english": "Look! This is my family.",
+          "chinese": "看！这是我的家庭。"
+        },
+        {
+          "english": "Is that your brother?",
+          "chinese": "那是你弟弟吗？"
+        }
+      ]
+    },
+    {
+      "unit": "Unit 3",
+      "sentences": [
+        {
+          "english": "Good morning, Mike!",
+          "chinese": "早上好，迈克！"
+        },
+        {
+          "english": "Good morning! Come in.",
+          "chinese": "早上好！进来吧。"
+        },
+        {
+          "english": "Do you have a pet?",
+          "chinese": "你有宠物吗？"
+        },
+        {
+          "english": "No, I don't.",
+          "chinese": "不，我没有。"
+        },
+        {
+          "english": "Yes, I do. I have a cat.",
+          "chinese": "是的，我有。我有一只猫。"
+        },
+        {
+          "english": "Let's go to the zoo!",
+          "chinese": "我们一起去动物园吧！"
+        },
+        {
+          "english": "Great!",
+          "chinese": "太好了！"
+        },
+        {
+          "english": "What's this?",
+          "chinese": "这是什么？"
+        },
+        {
+          "english": "It's a fox.",
+          "chinese": "是只狐狸。"
+        },
+        {
+          "english": "Miss White, what's that?",
+          "chinese": "怀特老师，那是什么？"
+        },
+        {
+          "english": "It's a red panda.",
+          "chinese": "是只小熊猫。"
+        }
+      ]
+    },
+    {
+      "unit": "Unit 4",
+      "sentences": [
+        {
+          "english": "Mike, do you like apples?",
+          "chinese": "迈克，你喜欢苹果吗？"
+        },
+        {
+          "english": "Yes, I do. And you?",
+          "chinese": "是的，我喜欢。你呢？"
+        },
+        {
+          "english": "No, I don't.",
+          "chinese": "不，我不喜欢。"
+        },
+        {
+          "english": "Do you like the farm?",
+          "chinese": "你们喜欢农场吗？"
+        },
+        {
+          "english": "I like the fresh air.",
+          "chinese": "我喜欢新鲜的空气。"
+        },
+        {
+          "english": "We can plant new trees.",
+          "chinese": "我们可以新种些树。"
+        },
+        {
+          "english": "Plants can give us many things.",
+          "chinese": "植物能提供很多东西。"
+        },
+        {
+          "english": "Use again!",
+          "chinese": "再次利用！"
+        },
+        {
+          "english": "Be careful!",
+          "chinese": "小心！"
+        }
+      ]
+    },
+    {
+      "unit": "Unit 5",
+      "sentences": [
+        {
+          "english": "What colour is it?",
+          "chinese": "它是什么颜色？"
+        },
+        {
+          "english": "It's orange.",
+          "chinese": "它是橙红色。"
+        },
+        {
+          "english": "Red and blue make purple.",
+          "chinese": "红色加蓝色是紫色。"
+        },
+        {
+          "english": "What colours do you like?",
+          "chinese": "你喜欢什么颜色？"
+        },
+        {
+          "english": "I like red and pink.",
+          "chinese": "我喜欢红色和粉色。"
+        },
+        {
+          "english": "Let's draw some purple and brown birds.",
+          "chinese": "我们一起画一些紫色和棕色的鸟吧。"
+        }
+      ]
+    },
+    {
+      "unit": "Unit 6",
+      "sentences": [
+        {
+          "english": "How old are you?",
+          "chinese": "你几岁了？"
+        },
+        {
+          "english": "I'm five years old.",
+          "chinese": "我五岁了。"
+        },
+        {
+          "english": "Me too.",
+          "chinese": "我也是。"
+        },
+        {
+          "english": "How many apples?",
+          "chinese": "几个苹果？"
+        },
+        {
+          "english": "Two.",
+          "chinese": "两个。"
+        },
+        {
+          "english": "Great! Let's go to the shop!",
+          "chinese": "好极了！我们一起去商店吧！"
+        },
+        {
+          "english": "That's ten yuan, please.",
+          "chinese": "（共）十元，谢谢。"
+        },
+        {
+          "english": "Here you are.",
+          "chinese": "给您。"
+        },
+        {
+          "english": "It's seven o'clock. Hurry!",
+          "chinese": "七点了。快点！"
+        },
+        {
+          "english": "Happy birthday!",
+          "chinese": "生日快乐！"
+        },
+        {
+          "english": "Oh, one more cut for the dog.",
+          "chinese": "噢，再切一块给小狗。"
+        }
+      ]
+    }
+  ]
+}

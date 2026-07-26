@@ -1,0 +1,3724 @@
+{
+  "version": 3,
+  "description": "小学常见多音字（合并豆包数据，2026-07-26更新）",
+  "chars": {
+    "丧": {
+      "pronunciations": [
+        "sang1",
+        "sang4"
+      ],
+      "words": {
+        "sang4": [
+          "丧失",
+          "丧气"
+        ],
+        "sang1": [
+          "丧事",
+          "丧礼"
+        ]
+      },
+      "primary": "sang4"
+    },
+    "中": {
+      "pronunciations": [
+        "zhong1",
+        "zhong4"
+      ],
+      "words": {
+        "zhong1": [
+          "中间",
+          "中心",
+          "中午"
+        ],
+        "zhong4": [
+          "中奖",
+          "中毒",
+          "看中"
+        ]
+      },
+      "primary": "zhong1"
+    },
+    "为": {
+      "pronunciations": [
+        "wei2",
+        "wei4"
+      ],
+      "words": {
+        "wei2": [
+          "认为",
+          "成为"
+        ],
+        "wei4": [
+          "因为",
+          "为了"
+        ]
+      },
+      "primary": "wei2"
+    },
+    "乐": {
+      "pronunciations": [
+        "le4",
+        "yue4"
+      ],
+      "words": {
+        "le4": [
+          "快乐",
+          "欢乐",
+          "乐园"
+        ],
+        "yue4": [
+          "音乐",
+          "乐器",
+          "音乐"
+        ]
+      },
+      "primary": "le4"
+    },
+    "了": {
+      "pronunciations": [
+        "le",
+        "liao3"
+      ],
+      "words": {
+        "le": [
+          "好了",
+          "吃了"
+        ],
+        "liao3": [
+          "了解",
+          "了结"
+        ]
+      },
+      "primary": "le"
+    },
+    "任": {
+      "pronunciations": [
+        "ren2",
+        "ren4"
+      ],
+      "words": {
+        "ren4": [
+          "任务",
+          "任何",
+          "担任"
+        ],
+        "ren2": [
+          "任姓"
+        ]
+      },
+      "primary": "ren4"
+    },
+    "会": {
+      "pronunciations": [
+        "hui4",
+        "kuai4"
+      ],
+      "words": {
+        "hui4": [
+          "开会",
+          "会议",
+          "学会"
+        ],
+        "kuai4": [
+          "会计",
+          "财会"
+        ]
+      },
+      "primary": "hui4"
+    },
+    "传": {
+      "pronunciations": [
+        "chuan2",
+        "zhuan4"
+      ],
+      "words": {
+        "chuan2": [
+          "传说",
+          "传统",
+          "传播"
+        ],
+        "zhuan4": [
+          "自传",
+          "传记"
+        ]
+      },
+      "primary": "chuan2"
+    },
+    "似": {
+      "pronunciations": [
+        "shi4",
+        "si4"
+      ],
+      "words": {
+        "si4": [
+          "似乎",
+          "相似",
+          "类似"
+        ],
+        "shi4": [
+          "似的"
+        ]
+      },
+      "primary": "si4"
+    },
+    "佛": {
+      "pronunciations": [
+        "fo2",
+        "fu2"
+      ],
+      "words": {
+        "fo2": [
+          "佛像",
+          "佛教",
+          "佛祖"
+        ],
+        "fu2": [
+          "仿佛"
+        ]
+      },
+      "primary": "fo2"
+    },
+    "作": {
+      "pronunciations": [
+        "zuo1",
+        "zuo4"
+      ],
+      "words": {
+        "zuo4": [
+          "作业",
+          "工作",
+          "作文"
+        ],
+        "zuo1": [
+          "作坊"
+        ]
+      },
+      "primary": "zuo4"
+    },
+    "供": {
+      "pronunciations": [
+        "gong1",
+        "gong4"
+      ],
+      "words": {
+        "gong1": [
+          "提供",
+          "供应",
+          "供给"
+        ],
+        "gong4": [
+          "供品",
+          "供认",
+          "供奉"
+        ]
+      },
+      "primary": "gong1"
+    },
+    "便": {
+      "pronunciations": [
+        "bian4",
+        "pian2"
+      ],
+      "words": {
+        "bian4": [
+          "方便",
+          "便利",
+          "顺便"
+        ],
+        "pian2": [
+          "便宜"
+        ]
+      },
+      "primary": "bian4"
+    },
+    "俩": {
+      "pronunciations": [
+        "lia3",
+        "liang3"
+      ],
+      "words": {
+        "lia3": [
+          "他俩",
+          "咱俩",
+          "俩人"
+        ],
+        "liang3": [
+          "伎俩"
+        ]
+      },
+      "primary": "lia3"
+    },
+    "倒": {
+      "pronunciations": [
+        "dao3",
+        "dao4"
+      ],
+      "words": {
+        "dao3": [
+          "倒下",
+          "摔倒",
+          "打倒"
+        ],
+        "dao4": [
+          "倒车",
+          "倒影",
+          "倒水"
+        ]
+      },
+      "primary": "dao3"
+    },
+    "假": {
+      "pronunciations": [
+        "jia3",
+        "jia4"
+      ],
+      "words": {
+        "jia3": [
+          "真假",
+          "假装"
+        ],
+        "jia4": [
+          "放假",
+          "假期"
+        ]
+      },
+      "primary": "jia3"
+    },
+    "兴": {
+      "pronunciations": [
+        "xing1",
+        "xing4"
+      ],
+      "words": {
+        "xing1": [
+          "兴奋",
+          "兴起"
+        ],
+        "xing4": [
+          "高兴",
+          "兴趣"
+        ]
+      },
+      "primary": "xing1"
+    },
+    "冠": {
+      "pronunciations": [
+        "guan1",
+        "guan4"
+      ],
+      "words": {
+        "guan1": [
+          "皇冠",
+          "鸡冠"
+        ],
+        "guan4": [
+          "冠军",
+          "夺冠"
+        ]
+      },
+      "primary": "guan1"
+    },
+    "冲": {
+      "pronunciations": [
+        "chong1",
+        "chong4"
+      ],
+      "words": {
+        "chong1": [
+          "冲动",
+          "冲击",
+          "冲锋"
+        ],
+        "chong4": [
+          "冲床",
+          "冲劲儿"
+        ]
+      },
+      "primary": "chong1"
+    },
+    "凉": {
+      "pronunciations": [
+        "liang2",
+        "liang4"
+      ],
+      "words": {
+        "liang2": [
+          "凉快",
+          "清凉",
+          "凉爽"
+        ],
+        "liang4": [
+          "凉一凉"
+        ]
+      },
+      "primary": "liang2"
+    },
+    "几": {
+      "pronunciations": [
+        "ji1",
+        "ji3"
+      ],
+      "words": {
+        "ji3": [
+          "几个",
+          "几年",
+          "几次"
+        ],
+        "ji1": [
+          "几乎",
+          "茶几"
+        ]
+      },
+      "primary": "ji3"
+    },
+    "分": {
+      "pronunciations": [
+        "fen1",
+        "fen4"
+      ],
+      "words": {
+        "fen1": [
+          "分开",
+          "分数"
+        ],
+        "fen4": [
+          "本分",
+          "分量"
+        ]
+      },
+      "primary": "fen1"
+    },
+    "切": {
+      "pronunciations": [
+        "qie1",
+        "qie4"
+      ],
+      "words": {
+        "qie1": [
+          "切菜",
+          "切开"
+        ],
+        "qie4": [
+          "一切",
+          "亲切",
+          "密切"
+        ]
+      },
+      "primary": "qie4"
+    },
+    "划": {
+      "pronunciations": [
+        "hua2",
+        "hua4"
+      ],
+      "words": {
+        "hua2": [
+          "划船",
+          "划算"
+        ],
+        "hua4": [
+          "计划",
+          "规划"
+        ]
+      },
+      "primary": "hua2"
+    },
+    "创": {
+      "pronunciations": [
+        "chuang1",
+        "chuang4"
+      ],
+      "words": {
+        "chuang4": [
+          "创造",
+          "创新",
+          "创造"
+        ],
+        "chuang1": [
+          "创伤",
+          "创口"
+        ]
+      },
+      "primary": "chuang4"
+    },
+    "刨": {
+      "pronunciations": [
+        "bao4",
+        "pao2"
+      ],
+      "words": {
+        "pao2": [
+          "刨土",
+          "刨坑"
+        ],
+        "bao4": [
+          "刨子",
+          "刨床"
+        ]
+      },
+      "primary": "pao2"
+    },
+    "别": {
+      "pronunciations": [
+        "bie2",
+        "bie4"
+      ],
+      "words": {
+        "bie2": [
+          "分别",
+          "别人",
+          "告别"
+        ],
+        "bie4": [
+          "别扭"
+        ]
+      },
+      "primary": "bie2"
+    },
+    "刷": {
+      "pronunciations": [
+        "shua1",
+        "shua4"
+      ],
+      "words": {
+        "shua1": [
+          "刷牙",
+          "刷子"
+        ],
+        "shua4": [
+          "刷白"
+        ]
+      },
+      "primary": "shua1"
+    },
+    "削": {
+      "pronunciations": [
+        "xiao1",
+        "xue1"
+      ],
+      "words": {
+        "xiao1": [
+          "削皮",
+          "削铅笔"
+        ],
+        "xue1": [
+          "剥削",
+          "削减"
+        ]
+      },
+      "primary": "xiao1"
+    },
+    "劲": {
+      "pronunciations": [
+        "jin4",
+        "jing4"
+      ],
+      "words": {
+        "jin4": [
+          "使劲",
+          "干劲"
+        ],
+        "jing4": [
+          "强劲",
+          "刚劲"
+        ]
+      },
+      "primary": "jin4"
+    },
+    "勾": {
+      "pronunciations": [
+        "gou1",
+        "gou4"
+      ],
+      "words": {
+        "gou1": [
+          "勾画",
+          "勾引",
+          "勾销"
+        ],
+        "gou4": [
+          "勾当"
+        ]
+      },
+      "primary": "gou1"
+    },
+    "化": {
+      "pronunciations": [
+        "hua1",
+        "hua4"
+      ],
+      "words": {
+        "hua4": [
+          "变化",
+          "文化",
+          "化学"
+        ],
+        "hua1": [
+          "化钱",
+          "化斋"
+        ]
+      },
+      "primary": "hua4"
+    },
+    "匙": {
+      "pronunciations": [
+        "chi2",
+        "shi5"
+      ],
+      "words": {
+        "chi2": [
+          "汤匙",
+          "茶匙"
+        ],
+        "shi5": [
+          "钥匙"
+        ]
+      },
+      "primary": "chi2"
+    },
+    "华": {
+      "pronunciations": [
+        "hua2",
+        "hua4"
+      ],
+      "words": {
+        "hua2": [
+          "中华",
+          "华丽"
+        ],
+        "hua4": [
+          "华山"
+        ]
+      },
+      "primary": "hua2"
+    },
+    "单": {
+      "pronunciations": [
+        "dan1",
+        "shan4"
+      ],
+      "words": {
+        "dan1": [
+          "单位",
+          "简单",
+          "单独"
+        ],
+        "shan4": [
+          "姓单",
+          "单县"
+        ]
+      },
+      "primary": "dan1"
+    },
+    "占": {
+      "pronunciations": [
+        "zhan1",
+        "zhan4"
+      ],
+      "words": {
+        "zhan4": [
+          "占领",
+          "占用"
+        ],
+        "zhan1": [
+          "占卜",
+          "占卦"
+        ]
+      },
+      "primary": "zhan4"
+    },
+    "卡": {
+      "pronunciations": [
+        "ka3",
+        "qia3"
+      ],
+      "words": {
+        "ka3": [
+          "卡片",
+          "卡车",
+          "卡通"
+        ],
+        "qia3": [
+          "卡住",
+          "关卡"
+        ]
+      },
+      "primary": "ka3"
+    },
+    "卷": {
+      "pronunciations": [
+        "juan3",
+        "juan4"
+      ],
+      "words": {
+        "juan3": [
+          "卷起",
+          "卷尺"
+        ],
+        "juan4": [
+          "试卷",
+          "卷宗"
+        ]
+      },
+      "primary": "juan3"
+    },
+    "压": {
+      "pronunciations": [
+        "ya1",
+        "ya4"
+      ],
+      "words": {
+        "ya1": [
+          "压力",
+          "压迫",
+          "血压"
+        ],
+        "ya4": [
+          "压根儿"
+        ]
+      },
+      "primary": "ya1"
+    },
+    "厦": {
+      "pronunciations": [
+        "sha4",
+        "xia4"
+      ],
+      "words": {
+        "sha4": [
+          "大厦",
+          "广厦"
+        ],
+        "xia4": [
+          "厦门"
+        ]
+      },
+      "primary": "sha4"
+    },
+    "参": {
+      "pronunciations": [
+        "can1",
+        "cen1",
+        "shen1"
+      ],
+      "words": {
+        "can1": [
+          "参加",
+          "参观",
+          "参与"
+        ],
+        "shen1": [
+          "人参",
+          "海参"
+        ],
+        "cen1": [
+          "参差"
+        ]
+      },
+      "primary": "can1"
+    },
+    "发": {
+      "pronunciations": [
+        "fa1",
+        "fa4"
+      ],
+      "words": {
+        "fa1": [
+          "发现",
+          "发展",
+          "发明"
+        ],
+        "fa4": [
+          "头发",
+          "理发",
+          "散发"
+        ]
+      },
+      "primary": "fa1"
+    },
+    "只": {
+      "pronunciations": [
+        "zhi1",
+        "zhi3"
+      ],
+      "words": {
+        "zhi3": [
+          "只有",
+          "只要"
+        ],
+        "zhi1": [
+          "一只",
+          "只身"
+        ]
+      },
+      "primary": "zhi3"
+    },
+    "台": {
+      "pronunciations": [
+        "tai1",
+        "tai2"
+      ],
+      "words": {
+        "tai2": [
+          "台灯",
+          "平台",
+          "窗台"
+        ],
+        "tai1": [
+          "台州",
+          "天台"
+        ]
+      },
+      "primary": "tai2"
+    },
+    "号": {
+      "pronunciations": [
+        "hao2",
+        "hao4"
+      ],
+      "words": {
+        "hao4": [
+          "号码",
+          "记号",
+          "口号"
+        ],
+        "hao2": [
+          "号叫",
+          "哀号"
+        ]
+      },
+      "primary": "hao4"
+    },
+    "吐": {
+      "pronunciations": [
+        "tu3",
+        "tu4"
+      ],
+      "words": {
+        "tu3": [
+          "吐气",
+          "吐露"
+        ],
+        "tu4": [
+          "吐血",
+          "呕吐"
+        ]
+      },
+      "primary": "tu3"
+    },
+    "吓": {
+      "pronunciations": [
+        "he4",
+        "xia4"
+      ],
+      "words": {
+        "xia4": [
+          "吓人",
+          "吓唬"
+        ],
+        "he4": [
+          "恐吓",
+          "威吓"
+        ]
+      },
+      "primary": "xia4"
+    },
+    "吗": {
+      "pronunciations": [
+        "ma2",
+        "ma5"
+      ],
+      "words": {
+        "ma5": [
+          "好吗",
+          "是吗"
+        ],
+        "ma2": [
+          "干吗"
+        ]
+      },
+      "primary": "ma5"
+    },
+    "吧": {
+      "pronunciations": [
+        "ba1",
+        "ba5"
+      ],
+      "words": {
+        "ba5": [
+          "好吧",
+          "走吧"
+        ],
+        "ba1": [
+          "酒吧",
+          "吧台"
+        ]
+      },
+      "primary": "ba5"
+    },
+    "和": {
+      "pronunciations": [
+        "he2",
+        "he4",
+        "hu2",
+        "huo2",
+        "huo4"
+      ],
+      "words": {
+        "he2": [
+          "和平",
+          "温和",
+          "和谐"
+        ],
+        "he4": [
+          "附和",
+          "唱和"
+        ],
+        "huo2": [
+          "和面",
+          "和泥"
+        ],
+        "huo4": [
+          "暖和"
+        ],
+        "hu2": [
+          "和牌"
+        ]
+      },
+      "primary": "he2"
+    },
+    "咽": {
+      "pronunciations": [
+        "yan1",
+        "yan4",
+        "ye4"
+      ],
+      "words": {
+        "yan1": [
+          "咽喉",
+          "咽炎"
+        ],
+        "yan4": [
+          "吞咽",
+          "咽下"
+        ],
+        "ye4": [
+          "呜咽",
+          "哽咽"
+        ]
+      },
+      "primary": "yan1"
+    },
+    "喝": {
+      "pronunciations": [
+        "he1",
+        "he4"
+      ],
+      "words": {
+        "he1": [
+          "喝水",
+          "喝茶"
+        ],
+        "he4": [
+          "喝彩"
+        ]
+      },
+      "primary": "he1"
+    },
+    "圈": {
+      "pronunciations": [
+        "juan4",
+        "quan1"
+      ],
+      "words": {
+        "quan1": [
+          "圆圈",
+          "圈圈"
+        ],
+        "juan4": [
+          "猪圈",
+          "羊圈"
+        ]
+      },
+      "primary": "quan1"
+    },
+    "场": {
+      "pronunciations": [
+        "chang2",
+        "chang3"
+      ],
+      "words": {
+        "chang3": [
+          "场地",
+          "广场"
+        ],
+        "chang2": [
+          "场院"
+        ]
+      },
+      "primary": "chang3"
+    },
+    "坊": {
+      "pronunciations": [
+        "fang1",
+        "fang2"
+      ],
+      "words": {
+        "fang1": [
+          "牌坊",
+          "街坊"
+        ],
+        "fang2": [
+          "作坊",
+          "磨坊"
+        ]
+      },
+      "primary": "fang1"
+    },
+    "塞": {
+      "pronunciations": [
+        "sai1",
+        "sai4",
+        "se4"
+      ],
+      "words": {
+        "sai1": [
+          "塞子",
+          "塞满",
+          "堵塞"
+        ],
+        "sai4": [
+          "边塞",
+          "要塞"
+        ],
+        "se4": [
+          "阻塞",
+          "搪塞"
+        ]
+      },
+      "primary": "sai1"
+    },
+    "壳": {
+      "pronunciations": [
+        "ke2",
+        "qiao4"
+      ],
+      "words": {
+        "ke2": [
+          "贝壳",
+          "蛋壳"
+        ],
+        "qiao4": [
+          "地壳",
+          "甲壳"
+        ]
+      },
+      "primary": "ke2"
+    },
+    "处": {
+      "pronunciations": [
+        "chu3",
+        "chu4"
+      ],
+      "words": {
+        "chu4": [
+          "到处",
+          "处处"
+        ],
+        "chu3": [
+          "处理",
+          "相处"
+        ]
+      },
+      "primary": "chu4"
+    },
+    "大": {
+      "pronunciations": [
+        "da4",
+        "dai4"
+      ],
+      "words": {
+        "da4": [
+          "大小",
+          "大家"
+        ],
+        "dai4": [
+          "大夫"
+        ]
+      },
+      "primary": "da4"
+    },
+    "夹": {
+      "pronunciations": [
+        "jia1",
+        "jia2"
+      ],
+      "words": {
+        "jia1": [
+          "夹子",
+          "夹心"
+        ],
+        "jia2": [
+          "夹袄"
+        ]
+      },
+      "primary": "jia1"
+    },
+    "奇": {
+      "pronunciations": [
+        "ji1",
+        "qi2"
+      ],
+      "words": {
+        "qi2": [
+          "奇怪",
+          "奇妙",
+          "神奇"
+        ],
+        "ji1": [
+          "奇数"
+        ]
+      },
+      "primary": "qi2"
+    },
+    "奔": {
+      "pronunciations": [
+        "ben1",
+        "ben4"
+      ],
+      "words": {
+        "ben1": [
+          "奔跑",
+          "奔波",
+          "奔驰"
+        ],
+        "ben4": [
+          "投奔"
+        ]
+      },
+      "primary": "ben1"
+    },
+    "好": {
+      "pronunciations": [
+        "hao3",
+        "hao4"
+      ],
+      "words": {
+        "hao3": [
+          "美好",
+          "最好"
+        ],
+        "hao4": [
+          "爱好",
+          "好奇"
+        ]
+      },
+      "primary": "hao3"
+    },
+    "宁": {
+      "pronunciations": [
+        "ning2",
+        "ning4"
+      ],
+      "words": {
+        "ning2": [
+          "宁静",
+          "安宁"
+        ],
+        "ning4": [
+          "宁可"
+        ]
+      },
+      "primary": "ning2"
+    },
+    "宿": {
+      "pronunciations": [
+        "su4",
+        "xiu3",
+        "xiu4"
+      ],
+      "words": {
+        "su4": [
+          "住宿",
+          "宿舍"
+        ],
+        "xiu3": [
+          "一宿",
+          "两宿"
+        ],
+        "xiu4": [
+          "星宿"
+        ]
+      },
+      "primary": "su4"
+    },
+    "将": {
+      "pronunciations": [
+        "jiang1",
+        "jiang4"
+      ],
+      "words": {
+        "jiang1": [
+          "将来",
+          "将军"
+        ],
+        "jiang4": [
+          "大将",
+          "将士"
+        ]
+      },
+      "primary": "jiang1"
+    },
+    "少": {
+      "pronunciations": [
+        "shao3",
+        "shao4"
+      ],
+      "words": {
+        "shao3": [
+          "多少",
+          "少数"
+        ],
+        "shao4": [
+          "少年",
+          "少女"
+        ]
+      },
+      "primary": "shao3"
+    },
+    "尽": {
+      "pronunciations": [
+        "jin3",
+        "jin4"
+      ],
+      "words": {
+        "jin4": [
+          "尽力",
+          "尽头"
+        ],
+        "jin3": [
+          "尽管"
+        ]
+      },
+      "primary": "jin4"
+    },
+    "尾": {
+      "pronunciations": [
+        "wei3",
+        "yi3"
+      ],
+      "words": {
+        "wei3": [
+          "尾巴",
+          "末尾"
+        ],
+        "yi3": [
+          "马尾"
+        ]
+      },
+      "primary": "wei3"
+    },
+    "差": {
+      "pronunciations": [
+        "cha1",
+        "cha4",
+        "chai1"
+      ],
+      "words": {
+        "cha1": [
+          "差别",
+          "差异"
+        ],
+        "cha4": [
+          "差劲",
+          "差生"
+        ],
+        "chai1": [
+          "出差"
+        ]
+      },
+      "primary": "cha1"
+    },
+    "巷": {
+      "pronunciations": [
+        "hang4",
+        "xiang4"
+      ],
+      "words": {
+        "xiang4": [
+          "小巷",
+          "巷子"
+        ],
+        "hang4": [
+          "巷道"
+        ]
+      },
+      "primary": "xiang4"
+    },
+    "干": {
+      "pronunciations": [
+        "gan1",
+        "gan4"
+      ],
+      "words": {
+        "gan1": [
+          "干净",
+          "饼干"
+        ],
+        "gan4": [
+          "干活",
+          "树干"
+        ]
+      },
+      "primary": "gan1"
+    },
+    "应": {
+      "pronunciations": [
+        "ying1",
+        "ying4"
+      ],
+      "words": {
+        "ying1": [
+          "应该",
+          "应当"
+        ],
+        "ying4": [
+          "答应",
+          "回应"
+        ]
+      },
+      "primary": "ying1"
+    },
+    "度": {
+      "pronunciations": [
+        "du4",
+        "duo2"
+      ],
+      "words": {
+        "du4": [
+          "温度",
+          "长度",
+          "角度"
+        ],
+        "duo2": [
+          "揣度",
+          "度德量力"
+        ]
+      },
+      "primary": "du4"
+    },
+    "弄": {
+      "pronunciations": [
+        "long4",
+        "nong4"
+      ],
+      "words": {
+        "nong4": [
+          "玩弄",
+          "摆弄"
+        ],
+        "long4": [
+          "弄堂",
+          "里弄"
+        ]
+      },
+      "primary": "nong4"
+    },
+    "弹": {
+      "pronunciations": [
+        "dan4",
+        "tan2"
+      ],
+      "words": {
+        "dan4": [
+          "子弹",
+          "炮弹"
+        ],
+        "tan2": [
+          "弹琴",
+          "弹性"
+        ]
+      },
+      "primary": "dan4"
+    },
+    "强": {
+      "pronunciations": [
+        "jiang4",
+        "qiang2",
+        "qiang3"
+      ],
+      "words": {
+        "qiang2": [
+          "强大",
+          "坚强"
+        ],
+        "qiang3": [
+          "勉强"
+        ],
+        "jiang4": [
+          "倔强"
+        ]
+      },
+      "primary": "qiang2"
+    },
+    "当": {
+      "pronunciations": [
+        "dang1",
+        "dang4"
+      ],
+      "words": {
+        "dang1": [
+          "当然",
+          "当时"
+        ],
+        "dang4": [
+          "上当",
+          "恰当"
+        ]
+      },
+      "primary": "dang1"
+    },
+    "待": {
+      "pronunciations": [
+        "dai1",
+        "dai4"
+      ],
+      "words": {
+        "dai4": [
+          "等待",
+          "招待",
+          "对待"
+        ],
+        "dai1": [
+          "待一会儿"
+        ]
+      },
+      "primary": "dai4"
+    },
+    "得": {
+      "pronunciations": [
+        "de",
+        "de2",
+        "dei3"
+      ],
+      "words": {
+        "de2": [
+          "得到",
+          "懂得"
+        ],
+        "de": [
+          "跑得快"
+        ],
+        "dei3": [
+          "得努力"
+        ]
+      },
+      "primary": "de2"
+    },
+    "恶": {
+      "pronunciations": [
+        "e3",
+        "e4",
+        "wu4"
+      ],
+      "words": {
+        "e4": [
+          "凶恶",
+          "恶劣"
+        ],
+        "e3": [
+          "恶心"
+        ],
+        "wu4": [
+          "可恶",
+          "厌恶"
+        ]
+      },
+      "primary": "e4"
+    },
+    "悄": {
+      "pronunciations": [
+        "qiao1",
+        "qiao3"
+      ],
+      "words": {
+        "qiao1": [
+          "悄悄",
+          "静悄悄"
+        ],
+        "qiao3": [
+          "悄然",
+          "悄声"
+        ]
+      },
+      "primary": "qiao1"
+    },
+    "扁": {
+      "pronunciations": [
+        "bian3",
+        "pian1"
+      ],
+      "words": {
+        "bian3": [
+          "扁担",
+          "扁平"
+        ],
+        "pian1": [
+          "扁舟"
+        ]
+      },
+      "primary": "bian3"
+    },
+    "扇": {
+      "pronunciations": [
+        "shan1",
+        "shan4"
+      ],
+      "words": {
+        "shan4": [
+          "扇子",
+          "风扇"
+        ],
+        "shan1": [
+          "扇动"
+        ]
+      },
+      "primary": "shan4"
+    },
+    "扎": {
+      "pronunciations": [
+        "za1",
+        "zha1",
+        "zha2"
+      ],
+      "words": {
+        "zha1": [
+          "扎针",
+          "扎营"
+        ],
+        "zha2": [
+          "挣扎"
+        ],
+        "za1": [
+          "扎辫子",
+          "扎裤脚"
+        ]
+      },
+      "primary": "zha1"
+    },
+    "打": {
+      "pronunciations": [
+        "da2",
+        "da3"
+      ],
+      "words": {
+        "da3": [
+          "打球",
+          "打击"
+        ],
+        "da2": [
+          "一打铅笔"
+        ]
+      },
+      "primary": "da3"
+    },
+    "扫": {
+      "pronunciations": [
+        "sao3",
+        "sao4"
+      ],
+      "words": {
+        "sao3": [
+          "打扫",
+          "扫地"
+        ],
+        "sao4": [
+          "扫帚"
+        ]
+      },
+      "primary": "sao3"
+    },
+    "把": {
+      "pronunciations": [
+        "ba3",
+        "ba4"
+      ],
+      "words": {
+        "ba3": [
+          "把握",
+          "把手"
+        ],
+        "ba4": [
+          "刀把",
+          "话把儿"
+        ]
+      },
+      "primary": "ba3"
+    },
+    "折": {
+      "pronunciations": [
+        "she2",
+        "zhe1",
+        "zhe2"
+      ],
+      "words": {
+        "zhe2": [
+          "折断",
+          "曲折"
+        ],
+        "she2": [
+          "折本"
+        ],
+        "zhe1": [
+          "折腾"
+        ]
+      },
+      "primary": "zhe2"
+    },
+    "抹": {
+      "pronunciations": [
+        "ma1",
+        "mo3",
+        "mo4"
+      ],
+      "words": {
+        "mo3": [
+          "涂抹",
+          "抹杀"
+        ],
+        "mo4": [
+          "抹墙"
+        ],
+        "ma1": [
+          "抹桌子"
+        ]
+      },
+      "primary": "mo3"
+    },
+    "担": {
+      "pronunciations": [
+        "dan1",
+        "dan4"
+      ],
+      "words": {
+        "dan1": [
+          "担心",
+          "担当"
+        ],
+        "dan4": [
+          "重担"
+        ]
+      },
+      "primary": "dan1"
+    },
+    "拉": {
+      "pronunciations": [
+        "la1",
+        "la2"
+      ],
+      "words": {
+        "la1": [
+          "拉手",
+          "拉车"
+        ],
+        "la2": [
+          "拉家常"
+        ]
+      },
+      "primary": "la1"
+    },
+    "拾": {
+      "pronunciations": [
+        "she4",
+        "shi2"
+      ],
+      "words": {
+        "shi2": [
+          "拾起",
+          "收拾"
+        ],
+        "she4": [
+          "拾级而上"
+        ]
+      },
+      "primary": "shi2"
+    },
+    "挑": {
+      "pronunciations": [
+        "tiao1",
+        "tiao3"
+      ],
+      "words": {
+        "tiao1": [
+          "挑选",
+          "挑食",
+          "挑剔"
+        ],
+        "tiao3": [
+          "挑战",
+          "挑拨"
+        ]
+      },
+      "primary": "tiao1"
+    },
+    "挣": {
+      "pronunciations": [
+        "zheng1",
+        "zheng4"
+      ],
+      "words": {
+        "zheng4": [
+          "挣钱",
+          "挣开"
+        ],
+        "zheng1": [
+          "挣扎"
+        ]
+      },
+      "primary": "zheng4"
+    },
+    "挨": {
+      "pronunciations": [
+        "ai1",
+        "ai2"
+      ],
+      "words": {
+        "ai1": [
+          "挨着",
+          "挨近"
+        ],
+        "ai2": [
+          "挨打",
+          "挨饿"
+        ]
+      },
+      "primary": "ai1"
+    },
+    "提": {
+      "pronunciations": [
+        "di1",
+        "ti2"
+      ],
+      "words": {
+        "ti2": [
+          "提高",
+          "提问"
+        ],
+        "di1": [
+          "提防"
+        ]
+      },
+      "primary": "ti2"
+    },
+    "摩": {
+      "pronunciations": [
+        "ma1",
+        "mo2"
+      ],
+      "words": {
+        "mo2": [
+          "摩擦",
+          "按摩"
+        ],
+        "ma1": [
+          "摩平"
+        ]
+      },
+      "primary": "mo2"
+    },
+    "撒": {
+      "pronunciations": [
+        "sa1",
+        "sa3"
+      ],
+      "words": {
+        "sa1": [
+          "撒手",
+          "撒网"
+        ],
+        "sa3": [
+          "撒种"
+        ]
+      },
+      "primary": "sa1"
+    },
+    "教": {
+      "pronunciations": [
+        "jiao1",
+        "jiao4"
+      ],
+      "words": {
+        "jiao4": [
+          "教师",
+          "教育"
+        ],
+        "jiao1": [
+          "教书",
+          "教课"
+        ]
+      },
+      "primary": "jiao4"
+    },
+    "散": {
+      "pronunciations": [
+        "san3",
+        "san4"
+      ],
+      "words": {
+        "san4": [
+          "散步",
+          "散开"
+        ],
+        "san3": [
+          "散文",
+          "松散"
+        ]
+      },
+      "primary": "san4"
+    },
+    "数": {
+      "pronunciations": [
+        "shu3",
+        "shu4"
+      ],
+      "words": {
+        "shu4": [
+          "数学",
+          "数字"
+        ],
+        "shu3": [
+          "数数"
+        ]
+      },
+      "primary": "shu4"
+    },
+    "斗": {
+      "pronunciations": [
+        "dou3",
+        "dou4"
+      ],
+      "words": {
+        "dou4": [
+          "战斗",
+          "斗争"
+        ],
+        "dou3": [
+          "北斗"
+        ]
+      },
+      "primary": "dou4"
+    },
+    "旋": {
+      "pronunciations": [
+        "xuan2",
+        "xuan4"
+      ],
+      "words": {
+        "xuan2": [
+          "旋转",
+          "盘旋"
+        ],
+        "xuan4": [
+          "旋风"
+        ]
+      },
+      "primary": "xuan2"
+    },
+    "晕": {
+      "pronunciations": [
+        "yun1",
+        "yun4"
+      ],
+      "words": {
+        "yun1": [
+          "晕倒",
+          "晕车",
+          "头晕"
+        ],
+        "yun4": [
+          "晕船",
+          "日晕"
+        ]
+      },
+      "primary": "yun1"
+    },
+    "曲": {
+      "pronunciations": [
+        "qu1",
+        "qu3"
+      ],
+      "words": {
+        "qu3": [
+          "歌曲",
+          "乐曲",
+          "曲调"
+        ],
+        "qu1": [
+          "弯曲",
+          "曲线",
+          "曲折"
+        ]
+      },
+      "primary": "qu3"
+    },
+    "更": {
+      "pronunciations": [
+        "geng1",
+        "geng4"
+      ],
+      "words": {
+        "geng4": [
+          "更加",
+          "更好",
+          "更快"
+        ],
+        "geng1": [
+          "更改",
+          "更新",
+          "更正"
+        ]
+      },
+      "primary": "geng4"
+    },
+    "朝": {
+      "pronunciations": [
+        "chao2",
+        "zhao1"
+      ],
+      "words": {
+        "chao2": [
+          "朝代",
+          "朝向",
+          "朝前"
+        ],
+        "zhao1": [
+          "朝阳",
+          "朝霞",
+          "朝夕"
+        ]
+      },
+      "primary": "chao2"
+    },
+    "术": {
+      "pronunciations": [
+        "shu4",
+        "zhu2"
+      ],
+      "words": {
+        "shu4": [
+          "技术",
+          "美术",
+          "艺术"
+        ],
+        "zhu2": [
+          "苍术",
+          "白术"
+        ]
+      },
+      "primary": "shu4"
+    },
+    "杆": {
+      "pronunciations": [
+        "gan1",
+        "gan3"
+      ],
+      "words": {
+        "gan1": [
+          "旗杆",
+          "栏杆"
+        ],
+        "gan3": [
+          "笔杆",
+          "一杆枪"
+        ]
+      },
+      "primary": "gan1"
+    },
+    "杉": {
+      "pronunciations": [
+        "sha1",
+        "shan1"
+      ],
+      "words": {
+        "shan1": [
+          "水杉",
+          "杉树"
+        ],
+        "sha1": [
+          "杉木",
+          "杉篙"
+        ]
+      },
+      "primary": "shan1"
+    },
+    "柏": {
+      "pronunciations": [
+        "bai3",
+        "bo2"
+      ],
+      "words": {
+        "bai3": [
+          "柏树",
+          "松柏"
+        ],
+        "bo2": [
+          "柏林"
+        ]
+      },
+      "primary": "bai3"
+    },
+    "查": {
+      "pronunciations": [
+        "cha2",
+        "zha1"
+      ],
+      "words": {
+        "cha2": [
+          "检查",
+          "调查",
+          "查询"
+        ],
+        "zha1": [
+          "姓查"
+        ]
+      },
+      "primary": "cha2"
+    },
+    "校": {
+      "pronunciations": [
+        "jiao4",
+        "xiao4"
+      ],
+      "words": {
+        "xiao4": [
+          "学校",
+          "校园",
+          "校长"
+        ],
+        "jiao4": [
+          "校对",
+          "校订"
+        ]
+      },
+      "primary": "xiao4"
+    },
+    "模": {
+      "pronunciations": [
+        "mo2",
+        "mu2"
+      ],
+      "words": {
+        "mo2": [
+          "模范",
+          "模型"
+        ],
+        "mu2": [
+          "模样",
+          "模具"
+        ]
+      },
+      "primary": "mo2"
+    },
+    "横": {
+      "pronunciations": [
+        "heng2",
+        "heng4"
+      ],
+      "words": {
+        "heng2": [
+          "横线",
+          "横着"
+        ],
+        "heng4": [
+          "蛮横",
+          "横财"
+        ]
+      },
+      "primary": "heng2"
+    },
+    "正": {
+      "pronunciations": [
+        "zheng1",
+        "zheng4"
+      ],
+      "words": {
+        "zheng4": [
+          "正确",
+          "正好"
+        ],
+        "zheng1": [
+          "正月"
+        ]
+      },
+      "primary": "zheng4"
+    },
+    "没": {
+      "pronunciations": [
+        "mei2",
+        "mo4"
+      ],
+      "words": {
+        "mei2": [
+          "没有",
+          "没事"
+        ],
+        "mo4": [
+          "淹没",
+          "出没"
+        ]
+      },
+      "primary": "mei2"
+    },
+    "泊": {
+      "pronunciations": [
+        "bo2",
+        "po1"
+      ],
+      "words": {
+        "bo2": [
+          "停泊",
+          "漂泊"
+        ],
+        "po1": [
+          "湖泊",
+          "血泊"
+        ]
+      },
+      "primary": "bo2"
+    },
+    "泡": {
+      "pronunciations": [
+        "pao1",
+        "pao4"
+      ],
+      "words": {
+        "pao4": [
+          "水泡",
+          "泡泡"
+        ],
+        "pao1": [
+          "眼泡",
+          "泡桐"
+        ]
+      },
+      "primary": "pao4"
+    },
+    "涨": {
+      "pronunciations": [
+        "zhang3",
+        "zhang4"
+      ],
+      "words": {
+        "zhang3": [
+          "涨价",
+          "上涨"
+        ],
+        "zhang4": [
+          "涨红"
+        ]
+      },
+      "primary": "zhang3"
+    },
+    "淋": {
+      "pronunciations": [
+        "lin2",
+        "lin4"
+      ],
+      "words": {
+        "lin2": [
+          "淋雨",
+          "淋湿"
+        ],
+        "lin4": [
+          "淋盐"
+        ]
+      },
+      "primary": "lin2"
+    },
+    "溜": {
+      "pronunciations": [
+        "liu1",
+        "liu4"
+      ],
+      "words": {
+        "liu1": [
+          "溜走",
+          "溜冰"
+        ],
+        "liu4": [
+          "一溜烟"
+        ]
+      },
+      "primary": "liu1"
+    },
+    "漂": {
+      "pronunciations": [
+        "piao1",
+        "piao4"
+      ],
+      "words": {
+        "piao1": [
+          "漂流",
+          "漂浮"
+        ],
+        "piao4": [
+          "漂亮"
+        ]
+      },
+      "primary": "piao1"
+    },
+    "炮": {
+      "pronunciations": [
+        "pao2",
+        "pao4"
+      ],
+      "words": {
+        "pao4": [
+          "大炮",
+          "炮火"
+        ],
+        "pao2": [
+          "炮制"
+        ]
+      },
+      "primary": "pao4"
+    },
+    "炸": {
+      "pronunciations": [
+        "zha2",
+        "zha4"
+      ],
+      "words": {
+        "zha4": [
+          "爆炸",
+          "炸弹"
+        ],
+        "zha2": [
+          "炸油条",
+          "炸酱"
+        ]
+      },
+      "primary": "zha4"
+    },
+    "熟": {
+      "pronunciations": [
+        "shou2",
+        "shu2"
+      ],
+      "words": {
+        "shu2": [
+          "熟悉",
+          "成熟",
+          "熟练"
+        ],
+        "shou2": [
+          "熟了",
+          "熟透"
+        ]
+      },
+      "primary": "shu2"
+    },
+    "燕": {
+      "pronunciations": [
+        "yan1",
+        "yan4"
+      ],
+      "words": {
+        "yan4": [
+          "燕子",
+          "海燕"
+        ],
+        "yan1": [
+          "燕山",
+          "燕国"
+        ]
+      },
+      "primary": "yan4"
+    },
+    "爪": {
+      "pronunciations": [
+        "zhao3",
+        "zhua3"
+      ],
+      "words": {
+        "zhua3": [
+          "爪子",
+          "鸡爪"
+        ],
+        "zhao3": [
+          "爪牙",
+          "鹰爪"
+        ]
+      },
+      "primary": "zhua3"
+    },
+    "父": {
+      "pronunciations": [
+        "fu3",
+        "fu4"
+      ],
+      "words": {
+        "fu4": [
+          "父亲",
+          "父母",
+          "父子"
+        ],
+        "fu3": [
+          "渔父",
+          "田父"
+        ]
+      },
+      "primary": "fu4"
+    },
+    "片": {
+      "pronunciations": [
+        "pian1",
+        "pian4"
+      ],
+      "words": {
+        "pian4": [
+          "卡片",
+          "片段"
+        ],
+        "pian1": [
+          "片子"
+        ]
+      },
+      "primary": "pian4"
+    },
+    "率": {
+      "pronunciations": [
+        "lv4",
+        "shuai4"
+      ],
+      "words": {
+        "lv4": [
+          "效率",
+          "频率",
+          "概率"
+        ],
+        "shuai4": [
+          "率领",
+          "率队",
+          "直率"
+        ]
+      },
+      "primary": "lv4"
+    },
+    "瓦": {
+      "pronunciations": [
+        "wa3",
+        "wa4"
+      ],
+      "words": {
+        "wa3": [
+          "瓦片",
+          "砖瓦"
+        ],
+        "wa4": [
+          "瓦刀"
+        ]
+      },
+      "primary": "wa3"
+    },
+    "症": {
+      "pronunciations": [
+        "zheng1",
+        "zheng4"
+      ],
+      "words": {
+        "zheng4": [
+          "症状",
+          "病症",
+          "急症"
+        ],
+        "zheng1": [
+          "症结"
+        ]
+      },
+      "primary": "zheng4"
+    },
+    "的": {
+      "pronunciations": [
+        "de",
+        "di2",
+        "di4"
+      ],
+      "words": {
+        "de": [
+          "好的",
+          "我的"
+        ],
+        "di2": [
+          "的确"
+        ],
+        "di4": [
+          "目的"
+        ]
+      },
+      "primary": "de"
+    },
+    "监": {
+      "pronunciations": [
+        "jian1",
+        "jian4"
+      ],
+      "words": {
+        "jian1": [
+          "监督",
+          "监视",
+          "监考"
+        ],
+        "jian4": [
+          "太监",
+          "国子监"
+        ]
+      },
+      "primary": "jian1"
+    },
+    "盛": {
+      "pronunciations": [
+        "cheng2",
+        "sheng4"
+      ],
+      "words": {
+        "sheng4": [
+          "盛开",
+          "盛大"
+        ],
+        "cheng2": [
+          "盛饭",
+          "盛汤"
+        ]
+      },
+      "primary": "sheng4"
+    },
+    "相": {
+      "pronunciations": [
+        "xiang1",
+        "xiang4"
+      ],
+      "words": {
+        "xiang1": [
+          "相信",
+          "互相"
+        ],
+        "xiang4": [
+          "相片",
+          "长相"
+        ]
+      },
+      "primary": "xiang1"
+    },
+    "省": {
+      "pronunciations": [
+        "sheng3",
+        "xing3"
+      ],
+      "words": {
+        "sheng3": [
+          "省份",
+          "节省"
+        ],
+        "xing3": [
+          "反省",
+          "省亲"
+        ]
+      },
+      "primary": "sheng3"
+    },
+    "看": {
+      "pronunciations": [
+        "kan1",
+        "kan4"
+      ],
+      "words": {
+        "kan4": [
+          "看见",
+          "看书"
+        ],
+        "kan1": [
+          "看门"
+        ]
+      },
+      "primary": "kan4"
+    },
+    "着": {
+      "pronunciations": [
+        "zhao2",
+        "zhe",
+        "zhuo2"
+      ],
+      "words": {
+        "zhe": [
+          "看着",
+          "听着"
+        ],
+        "zhao2": [
+          "着急",
+          "着火"
+        ],
+        "zhuo2": [
+          "沉着",
+          "着陆"
+        ]
+      },
+      "primary": "zhe"
+    },
+    "石": {
+      "pronunciations": [
+        "dan4",
+        "shi2"
+      ],
+      "words": {
+        "shi2": [
+          "石头",
+          "石子",
+          "宝石"
+        ],
+        "dan4": [
+          "一石米"
+        ]
+      },
+      "primary": "shi2"
+    },
+    "研": {
+      "pronunciations": [
+        "yan2",
+        "yan4"
+      ],
+      "words": {
+        "yan2": [
+          "研究",
+          "钻研"
+        ],
+        "yan4": [
+          "研墨"
+        ]
+      },
+      "primary": "yan2"
+    },
+    "磨": {
+      "pronunciations": [
+        "mo2",
+        "mo4"
+      ],
+      "words": {
+        "mo2": [
+          "磨刀",
+          "折磨"
+        ],
+        "mo4": [
+          "磨坊"
+        ]
+      },
+      "primary": "mo2"
+    },
+    "禁": {
+      "pronunciations": [
+        "jin1",
+        "jin4"
+      ],
+      "words": {
+        "jin4": [
+          "禁止",
+          "严禁"
+        ],
+        "jin1": [
+          "不禁"
+        ]
+      },
+      "primary": "jin4"
+    },
+    "种": {
+      "pronunciations": [
+        "zhong3",
+        "zhong4"
+      ],
+      "words": {
+        "zhong3": [
+          "种子",
+          "种类",
+          "品种"
+        ],
+        "zhong4": [
+          "种树",
+          "种地",
+          "种田"
+        ]
+      },
+      "primary": "zhong3"
+    },
+    "秘": {
+      "pronunciations": [
+        "bi4",
+        "mi4"
+      ],
+      "words": {
+        "mi4": [
+          "秘密",
+          "神秘"
+        ],
+        "bi4": [
+          "秘鲁"
+        ]
+      },
+      "primary": "mi4"
+    },
+    "称": {
+      "pronunciations": [
+        "chen4",
+        "cheng1"
+      ],
+      "words": {
+        "cheng1": [
+          "称呼",
+          "称赞",
+          "名称"
+        ],
+        "chen4": [
+          "称心",
+          "对称",
+          "称职"
+        ]
+      },
+      "primary": "cheng1"
+    },
+    "空": {
+      "pronunciations": [
+        "kong1",
+        "kong4"
+      ],
+      "words": {
+        "kong1": [
+          "天空",
+          "空气"
+        ],
+        "kong4": [
+          "空闲",
+          "空地"
+        ]
+      },
+      "primary": "kong1"
+    },
+    "笼": {
+      "pronunciations": [
+        "long2",
+        "long3"
+      ],
+      "words": {
+        "long2": [
+          "笼子",
+          "鸟笼"
+        ],
+        "long3": [
+          "笼罩",
+          "笼统"
+        ]
+      },
+      "primary": "long2"
+    },
+    "答": {
+      "pronunciations": [
+        "da1",
+        "da2"
+      ],
+      "words": {
+        "da2": [
+          "回答",
+          "答案"
+        ],
+        "da1": [
+          "答应"
+        ]
+      },
+      "primary": "da2"
+    },
+    "粘": {
+      "pronunciations": [
+        "nian2",
+        "zhan1"
+      ],
+      "words": {
+        "zhan1": [
+          "粘贴",
+          "粘连"
+        ],
+        "nian2": [
+          "粘稠",
+          "粘液"
+        ]
+      },
+      "primary": "zhan1"
+    },
+    "糊": {
+      "pronunciations": [
+        "hu2",
+        "hu4"
+      ],
+      "words": {
+        "hu2": [
+          "糊涂",
+          "浆糊"
+        ],
+        "hu4": [
+          "糊弄"
+        ]
+      },
+      "primary": "hu2"
+    },
+    "系": {
+      "pronunciations": [
+        "ji4",
+        "xi4"
+      ],
+      "words": {
+        "xi4": [
+          "关系",
+          "系统"
+        ],
+        "ji4": [
+          "系鞋带"
+        ]
+      },
+      "primary": "xi4"
+    },
+    "累": {
+      "pronunciations": [
+        "lei2",
+        "lei3",
+        "lei4"
+      ],
+      "words": {
+        "lei4": [
+          "劳累",
+          "累人"
+        ],
+        "lei3": [
+          "积累",
+          "累计"
+        ],
+        "lei2": [
+          "累赘"
+        ]
+      },
+      "primary": "lei4"
+    },
+    "结": {
+      "pronunciations": [
+        "jie1",
+        "jie2"
+      ],
+      "words": {
+        "jie2": [
+          "结果",
+          "结束"
+        ],
+        "jie1": [
+          "结实"
+        ]
+      },
+      "primary": "jie2"
+    },
+    "给": {
+      "pronunciations": [
+        "gei3",
+        "ji3"
+      ],
+      "words": {
+        "gei3": [
+          "送给",
+          "交给"
+        ],
+        "ji3": [
+          "供给"
+        ]
+      },
+      "primary": "gei3"
+    },
+    "绿": {
+      "pronunciations": [
+        "lu4",
+        "lv4"
+      ],
+      "words": {
+        "lv4": [
+          "绿色",
+          "绿叶",
+          "绿草"
+        ],
+        "lu4": [
+          "绿林",
+          "鸭绿江"
+        ]
+      },
+      "primary": "lv4"
+    },
+    "缝": {
+      "pronunciations": [
+        "feng2",
+        "feng4"
+      ],
+      "words": {
+        "feng2": [
+          "缝补",
+          "缝纫"
+        ],
+        "feng4": [
+          "缝隙"
+        ]
+      },
+      "primary": "feng2"
+    },
+    "肚": {
+      "pronunciations": [
+        "du3",
+        "du4"
+      ],
+      "words": {
+        "du4": [
+          "肚子",
+          "肚皮"
+        ],
+        "du3": [
+          "猪肚",
+          "羊肚"
+        ]
+      },
+      "primary": "du4"
+    },
+    "背": {
+      "pronunciations": [
+        "bei1",
+        "bei4"
+      ],
+      "words": {
+        "bei4": [
+          "背诵",
+          "背后"
+        ],
+        "bei1": [
+          "背包",
+          "背负"
+        ]
+      },
+      "primary": "bei4"
+    },
+    "胖": {
+      "pronunciations": [
+        "pan2",
+        "pang4"
+      ],
+      "words": {
+        "pang4": [
+          "肥胖",
+          "胖子",
+          "胖瘦"
+        ],
+        "pan2": [
+          "心宽体胖"
+        ]
+      },
+      "primary": "pang4"
+    },
+    "脏": {
+      "pronunciations": [
+        "zang1",
+        "zang4"
+      ],
+      "words": {
+        "zang1": [
+          "脏话",
+          "脏乱",
+          "脏的"
+        ],
+        "zang4": [
+          "心脏",
+          "内脏",
+          "肝脏"
+        ]
+      },
+      "primary": "zang1"
+    },
+    "臂": {
+      "pronunciations": [
+        "bei5",
+        "bi4"
+      ],
+      "words": {
+        "bi4": [
+          "手臂",
+          "臂力",
+          "臂膀"
+        ],
+        "bei5": [
+          "胳臂"
+        ]
+      },
+      "primary": "bi4"
+    },
+    "舍": {
+      "pronunciations": [
+        "she3",
+        "she4"
+      ],
+      "words": {
+        "she3": [
+          "舍得",
+          "舍弃"
+        ],
+        "she4": [
+          "宿舍",
+          "房舍",
+          "校舍"
+        ]
+      },
+      "primary": "she4"
+    },
+    "色": {
+      "pronunciations": [
+        "se4",
+        "shai3"
+      ],
+      "words": {
+        "se4": [
+          "颜色",
+          "色彩",
+          "红色"
+        ],
+        "shai3": [
+          "色子",
+          "掉色"
+        ]
+      },
+      "primary": "se4"
+    },
+    "节": {
+      "pronunciations": [
+        "jie1",
+        "jie2"
+      ],
+      "words": {
+        "jie2": [
+          "节日",
+          "节约",
+          "春节"
+        ],
+        "jie1": [
+          "节骨眼"
+        ]
+      },
+      "primary": "jie2"
+    },
+    "荷": {
+      "pronunciations": [
+        "he2",
+        "he4"
+      ],
+      "words": {
+        "he2": [
+          "荷花",
+          "荷叶"
+        ],
+        "he4": [
+          "负荷"
+        ]
+      },
+      "primary": "he2"
+    },
+    "落": {
+      "pronunciations": [
+        "la4",
+        "lao4",
+        "luo4"
+      ],
+      "words": {
+        "luo4": [
+          "落下",
+          "降落",
+          "落后"
+        ],
+        "la4": [
+          "丢三落四"
+        ],
+        "lao4": [
+          "落枕"
+        ]
+      },
+      "primary": "luo4"
+    },
+    "蒙": {
+      "pronunciations": [
+        "meng1",
+        "meng2",
+        "meng3"
+      ],
+      "words": {
+        "meng2": [
+          "启蒙",
+          "蒙蔽"
+        ],
+        "meng3": [
+          "蒙古"
+        ],
+        "meng1": [
+          "蒙骗"
+        ]
+      },
+      "primary": "meng2"
+    },
+    "薄": {
+      "pronunciations": [
+        "bao2",
+        "bo2"
+      ],
+      "words": {
+        "bao2": [
+          "薄饼",
+          "薄片"
+        ],
+        "bo2": [
+          "薄弱"
+        ]
+      },
+      "primary": "bao2"
+    },
+    "藏": {
+      "pronunciations": [
+        "cang2",
+        "zang4"
+      ],
+      "words": {
+        "cang2": [
+          "躲藏",
+          "收藏"
+        ],
+        "zang4": [
+          "宝藏",
+          "西藏"
+        ]
+      },
+      "primary": "cang2"
+    },
+    "血": {
+      "pronunciations": [
+        "xie3",
+        "xue4"
+      ],
+      "words": {
+        "xue4": [
+          "血液",
+          "血管"
+        ],
+        "xie3": [
+          "流血",
+          "鸡血"
+        ]
+      },
+      "primary": "xue4"
+    },
+    "行": {
+      "pronunciations": [
+        "hang2",
+        "xing2"
+      ],
+      "words": {
+        "xing2": [
+          "行走",
+          "行动"
+        ],
+        "hang2": [
+          "银行",
+          "行列"
+        ]
+      },
+      "primary": "xing2"
+    },
+    "要": {
+      "pronunciations": [
+        "yao1",
+        "yao4"
+      ],
+      "words": {
+        "yao4": [
+          "重要",
+          "需要"
+        ],
+        "yao1": [
+          "要求"
+        ]
+      },
+      "primary": "yao4"
+    },
+    "观": {
+      "pronunciations": [
+        "guan1",
+        "guan4"
+      ],
+      "words": {
+        "guan1": [
+          "观察",
+          "观看"
+        ],
+        "guan4": [
+          "道观"
+        ]
+      },
+      "primary": "guan1"
+    },
+    "觉": {
+      "pronunciations": [
+        "jiao4",
+        "jue2"
+      ],
+      "words": {
+        "jue2": [
+          "觉得",
+          "感觉",
+          "知觉"
+        ],
+        "jiao4": [
+          "睡觉",
+          "午觉"
+        ]
+      },
+      "primary": "jue2"
+    },
+    "角": {
+      "pronunciations": [
+        "jiao3",
+        "jue2"
+      ],
+      "words": {
+        "jiao3": [
+          "角落",
+          "牛角",
+          "角度"
+        ],
+        "jue2": [
+          "角色",
+          "角逐"
+        ]
+      },
+      "primary": "jiao3"
+    },
+    "解": {
+      "pronunciations": [
+        "jie3",
+        "jie4",
+        "xie4"
+      ],
+      "words": {
+        "jie3": [
+          "解开",
+          "解答"
+        ],
+        "jie4": [
+          "解送",
+          "押解"
+        ],
+        "xie4": [
+          "解数",
+          "姓解"
+        ]
+      },
+      "primary": "jie3"
+    },
+    "论": {
+      "pronunciations": [
+        "lun2",
+        "lun4"
+      ],
+      "words": {
+        "lun4": [
+          "讨论",
+          "议论",
+          "评论"
+        ],
+        "lun2": [
+          "论语"
+        ]
+      },
+      "primary": "lun4"
+    },
+    "识": {
+      "pronunciations": [
+        "shi2",
+        "zhi4"
+      ],
+      "words": {
+        "shi2": [
+          "认识",
+          "知识",
+          "常识"
+        ],
+        "zhi4": [
+          "标识",
+          "款识"
+        ]
+      },
+      "primary": "shi2"
+    },
+    "说": {
+      "pronunciations": [
+        "shui4",
+        "shuo1"
+      ],
+      "words": {
+        "shuo1": [
+          "说话",
+          "说明",
+          "听说"
+        ],
+        "shui4": [
+          "游说",
+          "说客"
+        ]
+      },
+      "primary": "shuo1"
+    },
+    "读": {
+      "pronunciations": [
+        "dou4",
+        "du2"
+      ],
+      "words": {
+        "du2": [
+          "读书",
+          "阅读",
+          "朗读"
+        ],
+        "dou4": [
+          "句读"
+        ]
+      },
+      "primary": "du2"
+    },
+    "谁": {
+      "pronunciations": [
+        "shei2",
+        "shui2"
+      ],
+      "words": {
+        "shui2": [
+          "谁的",
+          "是谁"
+        ],
+        "shei2": [
+          "谁(口语)"
+        ]
+      },
+      "primary": "shui2"
+    },
+    "调": {
+      "pronunciations": [
+        "diao4",
+        "tiao2"
+      ],
+      "words": {
+        "diao4": [
+          "声调",
+          "调查",
+          "腔调"
+        ],
+        "tiao2": [
+          "调整",
+          "调节",
+          "调皮"
+        ]
+      },
+      "primary": "diao4"
+    },
+    "谷": {
+      "pronunciations": [
+        "gu3",
+        "yu4"
+      ],
+      "words": {
+        "gu3": [
+          "山谷",
+          "稻谷",
+          "峡谷"
+        ],
+        "yu4": [
+          "吐谷浑"
+        ]
+      },
+      "primary": "gu3"
+    },
+    "贴": {
+      "pronunciations": [
+        "tie1",
+        "tie4"
+      ],
+      "words": {
+        "tie1": [
+          "贴纸",
+          "贴近"
+        ],
+        "tie4": [
+          "字帖"
+        ]
+      },
+      "primary": "tie1"
+    },
+    "踏": {
+      "pronunciations": [
+        "ta1",
+        "ta4"
+      ],
+      "words": {
+        "ta4": [
+          "踏青",
+          "脚踏实地"
+        ],
+        "ta1": [
+          "踏实"
+        ]
+      },
+      "primary": "ta4"
+    },
+    "车": {
+      "pronunciations": [
+        "che1",
+        "ju1"
+      ],
+      "words": {
+        "che1": [
+          "汽车",
+          "火车",
+          "自行车"
+        ],
+        "ju1": [
+          "车(象棋)"
+        ]
+      },
+      "primary": "che1"
+    },
+    "转": {
+      "pronunciations": [
+        "zhuan3",
+        "zhuan4"
+      ],
+      "words": {
+        "zhuan3": [
+          "转身",
+          "转告"
+        ],
+        "zhuan4": [
+          "转动",
+          "旋转"
+        ]
+      },
+      "primary": "zhuan3"
+    },
+    "轴": {
+      "pronunciations": [
+        "zhou2",
+        "zhou4"
+      ],
+      "words": {
+        "zhou2": [
+          "车轴",
+          "轴心"
+        ],
+        "zhou4": [
+          "压轴"
+        ]
+      },
+      "primary": "zhou2"
+    },
+    "载": {
+      "pronunciations": [
+        "zai3",
+        "zai4"
+      ],
+      "words": {
+        "zai4": [
+          "载重",
+          "装载"
+        ],
+        "zai3": [
+          "记载",
+          "一年半载"
+        ]
+      },
+      "primary": "zai4"
+    },
+    "还": {
+      "pronunciations": [
+        "hai2",
+        "huan2"
+      ],
+      "words": {
+        "hai2": [
+          "还有",
+          "还是",
+          "还要"
+        ],
+        "huan2": [
+          "归还",
+          "还书",
+          "偿还"
+        ]
+      },
+      "primary": "hai2"
+    },
+    "迫": {
+      "pronunciations": [
+        "pai3",
+        "po4"
+      ],
+      "words": {
+        "po4": [
+          "压迫",
+          "迫使",
+          "急迫"
+        ],
+        "pai3": [
+          "迫击炮"
+        ]
+      },
+      "primary": "po4"
+    },
+    "通": {
+      "pronunciations": [
+        "tong1",
+        "tong4"
+      ],
+      "words": {
+        "tong1": [
+          "通过",
+          "交通",
+          "普通"
+        ],
+        "tong4": [
+          "一通电话"
+        ]
+      },
+      "primary": "tong1"
+    },
+    "那": {
+      "pronunciations": [
+        "na4",
+        "nei4"
+      ],
+      "words": {
+        "na4": [
+          "那里",
+          "那个",
+          "那么"
+        ],
+        "nei4": [
+          "那个",
+          "那些"
+        ]
+      },
+      "primary": "na4"
+    },
+    "都": {
+      "pronunciations": [
+        "dou1",
+        "du1"
+      ],
+      "words": {
+        "dou1": [
+          "都是",
+          "全都"
+        ],
+        "du1": [
+          "首都",
+          "都市"
+        ]
+      },
+      "primary": "dou1"
+    },
+    "重": {
+      "pronunciations": [
+        "chong2",
+        "zhong4"
+      ],
+      "words": {
+        "zhong4": [
+          "重要",
+          "重量",
+          "重大"
+        ],
+        "chong2": [
+          "重新",
+          "重复",
+          "重叠"
+        ]
+      },
+      "primary": "zhong4"
+    },
+    "量": {
+      "pronunciations": [
+        "liang2",
+        "liang4"
+      ],
+      "words": {
+        "liang4": [
+          "力量",
+          "数量"
+        ],
+        "liang2": [
+          "测量"
+        ]
+      },
+      "primary": "liang4"
+    },
+    "钉": {
+      "pronunciations": [
+        "ding1",
+        "ding4"
+      ],
+      "words": {
+        "ding1": [
+          "钉子",
+          "铁钉"
+        ],
+        "ding4": [
+          "钉扣子"
+        ]
+      },
+      "primary": "ding1"
+    },
+    "钻": {
+      "pronunciations": [
+        "zuan1",
+        "zuan4"
+      ],
+      "words": {
+        "zuan1": [
+          "钻研",
+          "钻洞"
+        ],
+        "zuan4": [
+          "钻石",
+          "钻头"
+        ]
+      },
+      "primary": "zuan1"
+    },
+    "铺": {
+      "pronunciations": [
+        "pu1",
+        "pu4"
+      ],
+      "words": {
+        "pu1": [
+          "铺路",
+          "铺床"
+        ],
+        "pu4": [
+          "店铺",
+          "床铺"
+        ]
+      },
+      "primary": "pu1"
+    },
+    "长": {
+      "pronunciations": [
+        "chang2",
+        "zhang3"
+      ],
+      "words": {
+        "chang2": [
+          "长城",
+          "长江",
+          "长短",
+          "长度"
+        ],
+        "zhang3": [
+          "长大",
+          "生长",
+          "成长"
+        ]
+      },
+      "primary": "chang2"
+    },
+    "间": {
+      "pronunciations": [
+        "jian1",
+        "jian4"
+      ],
+      "words": {
+        "jian1": [
+          "时间",
+          "房间"
+        ],
+        "jian4": [
+          "间隔"
+        ]
+      },
+      "primary": "jian1"
+    },
+    "闷": {
+      "pronunciations": [
+        "men1",
+        "men4"
+      ],
+      "words": {
+        "men4": [
+          "烦闷",
+          "纳闷",
+          "苦闷"
+        ],
+        "men1": [
+          "闷热",
+          "闷头"
+        ]
+      },
+      "primary": "men4"
+    },
+    "阿": {
+      "pronunciations": [
+        "a1",
+        "e1"
+      ],
+      "words": {
+        "a1": [
+          "阿姨",
+          "阿婆"
+        ],
+        "e1": [
+          "阿胶",
+          "阿谀"
+        ]
+      },
+      "primary": "a1"
+    },
+    "陆": {
+      "pronunciations": [
+        "liu4",
+        "lu4"
+      ],
+      "words": {
+        "lu4": [
+          "陆地",
+          "大陆"
+        ],
+        "liu4": [
+          "六(大写)"
+        ]
+      },
+      "primary": "lu4"
+    },
+    "降": {
+      "pronunciations": [
+        "jiang4",
+        "xiang2"
+      ],
+      "words": {
+        "jiang4": [
+          "下降",
+          "降落"
+        ],
+        "xiang2": [
+          "投降"
+        ]
+      },
+      "primary": "jiang4"
+    },
+    "难": {
+      "pronunciations": [
+        "nan2",
+        "nan4"
+      ],
+      "words": {
+        "nan2": [
+          "困难",
+          "难过"
+        ],
+        "nan4": [
+          "灾难"
+        ]
+      },
+      "primary": "nan2"
+    },
+    "雀": {
+      "pronunciations": [
+        "qiao3",
+        "que4"
+      ],
+      "words": {
+        "que4": [
+          "麻雀",
+          "孔雀"
+        ],
+        "qiao3": [
+          "家雀儿"
+        ]
+      },
+      "primary": "que4"
+    },
+    "露": {
+      "pronunciations": [
+        "lou4",
+        "lu4"
+      ],
+      "words": {
+        "lu4": [
+          "露水",
+          "露出"
+        ],
+        "lou4": [
+          "露面"
+        ]
+      },
+      "primary": "lu4"
+    },
+    "饮": {
+      "pronunciations": [
+        "yin3",
+        "yin4"
+      ],
+      "words": {
+        "yin3": [
+          "饮料",
+          "饮用"
+        ],
+        "yin4": [
+          "饮马"
+        ]
+      },
+      "primary": "yin3"
+    },
+    "骨": {
+      "pronunciations": [
+        "gu1",
+        "gu3"
+      ],
+      "words": {
+        "gu3": [
+          "骨头",
+          "骨骼"
+        ],
+        "gu1": [
+          "花骨朵",
+          "骨碌"
+        ]
+      },
+      "primary": "gu3"
+    },
+    "鲜": {
+      "pronunciations": [
+        "xian1",
+        "xian3"
+      ],
+      "words": {
+        "xian1": [
+          "新鲜",
+          "鲜花",
+          "鲜美"
+        ],
+        "xian3": [
+          "鲜见",
+          "鲜为人知"
+        ]
+      },
+      "primary": "xian1"
+    }
+  }
+}
