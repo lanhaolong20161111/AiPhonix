@@ -2,6 +2,7 @@ package com.example.ai.data.repository.deepseek
 
 import android.util.Log
 import com.example.ai.data.model.PronunciationResult
+import com.example.ai.di.NetworkModule
 import com.example.ai.data.repository.LLMRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +11,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 /**
  * LLM Repository — 通过服务端 /api/v1/llm/chat 代理调用，
@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
  */
 class DeepSeekLLMRepository(
     private val serverBase: String,
+    private val client: OkHttpClient = NetworkModule.httpClient,
 ) : LLMRepository {
 
     companion object {
@@ -25,11 +26,6 @@ class DeepSeekLLMRepository(
     }
 
     private val mediaType = "application/json".toMediaType()
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .build()
 
     /** 调用服务端 LLM 代理 */
     private suspend fun callChat(mode: String, message: String): String {

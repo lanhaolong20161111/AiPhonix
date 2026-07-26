@@ -17,7 +17,7 @@ class WordBankRepository(private val context: Context) {
                 .use { it.readText() }
             bank = Gson().fromJson(json, WordBank::class.java)
         }
-        return bank!!
+        return bank ?: throw IllegalStateException("WordBank not initialized — call loadAsync() first")
     }
 
     /** 根据标签过滤汉字 */

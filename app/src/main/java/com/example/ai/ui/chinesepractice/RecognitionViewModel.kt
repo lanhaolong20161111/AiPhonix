@@ -20,6 +20,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import com.example.ai.di.NetworkModule
 
 data class QuestionResult(
     val char: String,
@@ -89,10 +90,7 @@ class RecognitionViewModel(
         val primary: String
     )
 
-    private val apiClient = OkHttpClient.Builder()
-        .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
-        .build()
+    private val apiClient = NetworkModule.httpClient
     private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
     private fun serverBase() = com.example.ai.BuildConfig.TTS_SERVER_HOST.let {
         if (it.isNotBlank()) it else "http://192.168.1.7:8080"

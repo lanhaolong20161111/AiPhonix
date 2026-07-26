@@ -49,6 +49,13 @@ server/server_err.txt
 # Local secrets
 *.local.properties
 server/start.bat
+server/config.yaml
 
 # Practice data
 server/data/practice/
+
+# Server cache
+server/cache/
+
+# Temp scripts
+scripts/

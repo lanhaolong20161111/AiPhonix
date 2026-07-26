@@ -2,6 +2,7 @@ package com.example.ai.data.chinesepractice
 
 import android.content.Context
 import com.example.ai.BuildConfig
+import com.example.ai.di.NetworkModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -10,7 +11,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 /**
  * 语文练习数据仓库 — 本地 char_info.json + 服务端 LLM 代理
@@ -18,12 +18,10 @@ import java.util.concurrent.TimeUnit
  * getWordInfo 优先查本地静态数据（偏旁/笔画/结构/组词），
  * 仅造例句需要调服务端 LLM（可离线 fallback）
  */
-class WordInfoRepository(private val appContext: Context) {
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .build()
+class WordInfoRepository(
+    private val appContext: Context,
+    private val client: OkHttpClient = NetworkModule.httpClient,
+) {
 
     /** 本地汉字信息缓存：char -> JSONObject */
     private val localMap: MutableMap<String, JSONObject> = mutableMapOf()

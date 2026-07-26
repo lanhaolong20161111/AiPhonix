@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
 import com.example.ai.BuildConfig
+import com.example.ai.di.NetworkModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -14,7 +15,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.File
 import java.security.MessageDigest
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 
 /**
@@ -24,7 +24,10 @@ import kotlin.coroutines.resume
  * 2. 将音频文件缓存到本地
  * 3. 后续播放直接读缓存，无需再调用 API
  */
-class BaiduTtsCache(private val context: Context) {
+class BaiduTtsCache(
+    private val context: Context,
+    private val client: OkHttpClient = NetworkModule.httpClient,
+) {
 
     companion object {
         private const val TAG = "BaiduTtsCache"
@@ -35,11 +38,6 @@ class BaiduTtsCache(private val context: Context) {
     }
 
     private val cacheDir = File(context.cacheDir, CACHE_DIR).also { it.mkdirs() }
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
 
     // ---------- 对外 API ----------
 

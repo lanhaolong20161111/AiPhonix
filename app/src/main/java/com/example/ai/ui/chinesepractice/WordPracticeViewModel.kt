@@ -15,11 +15,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import com.example.ai.di.NetworkModule
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 data class WordPracticeItem(
     val entry: WordBankEntry,
@@ -58,10 +58,7 @@ class WordPracticeViewModel(
     private val _state = MutableStateFlow(WordPracticeUiState())
     val state: StateFlow<WordPracticeUiState> = _state.asStateFlow()
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .build()
+    private val client = NetworkModule.httpClient
 
     var onPlayTts: ((String) -> Unit) = {}
 

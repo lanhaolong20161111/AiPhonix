@@ -483,7 +483,7 @@ fun RecognitionScreen(
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        val hint = state.hintContent!!
+                        val hint = state.hintContent ?: return@Column
                         Text("相关词语:", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                         if (hint.words.isNotEmpty()) {

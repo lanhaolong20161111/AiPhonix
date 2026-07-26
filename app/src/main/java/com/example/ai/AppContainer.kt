@@ -1,48 +1,47 @@
 package com.example.ai
 
 import android.content.Context
-import android.util.Log
-import com.example.ai.data.quiz.QuizGenerator
+import com.example.ai.data.chinesepractice.WordInfoRepository
+import com.example.ai.data.repository.ContentRepository
 import com.example.ai.data.quiz.QuizRepository
-import com.example.ai.data.repository.*
-import com.example.ai.data.repository.deepseek.DeepSeekLLMRepository
+import com.example.ai.data.repository.ContentRepositoryImpl
+import com.example.ai.data.repository.SpeechRepository
+import com.example.ai.data.repository.ProxySpeechRepository
 import com.example.ai.data.tts.TtsEngine
 import com.example.ai.data.wordbank.WordBankRepository
-import com.example.ai.data.chinesepractice.WordInfoRepository
+import com.example.ai.di.NetworkModule
+import com.example.ai.di.ServiceModule
 
-/** 手动依赖注入容器 — Phase 1 简单实现，后续可迁移到 Hilt */
+/**
+ * 手动依赖注入容器 — 组合 NetworkModule / ServiceModule，保持与各 Screen 的 API 契约。
+ */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
+    // ── 网络层（模块复用） ──
+    val httpClient = NetworkModule.httpClient
+
+    // ── 内容/资源 ──
     val contentRepository: ContentRepository by lazy {
         ContentRepositoryImpl(appContext)
     }
 
+    // ── 评测/语音 ──
     val speechRepository: SpeechRepository by lazy {
-        Log.d("AppContainer", "使用 ProxySpeechRepository（服务端 SOE 代理）")
-        ProxySpeechRepository()
+        ProxySpeechRepository(httpClient)
     }
 
-    /** 服务端地址（优先从 BuildConfig 读取，否则默认局域网地址） */
-    private val serverBase: String by lazy {
-        val host = BuildConfig.TTS_SERVER_HOST
-        if (host.isNotBlank()) host else "http://192.168.1.7:8080"
+    val ttsEngine: TtsEngine by lazy {
+        TtsEngine(appContext)
     }
 
-    val llmRepository: LLMRepository by lazy {
-        Log.d("AppContainer", "使用 DeepSeekLLMRepository（服务端代理）")
-        DeepSeekLLMRepository(serverBase)
-    }
-
-    val ttsEngine: TtsEngine by lazy { TtsEngine(appContext) }
-
-    val quizGenerator: QuizGenerator by lazy { QuizGenerator(llmRepository) }
-
+    // ── 测验 ──
     val quizRepository: QuizRepository by lazy {
         val videoDir = "${appContext.getExternalFilesDir(null)?.absolutePath ?: appContext.filesDir.absolutePath}/videos"
-        QuizRepository(videoDir, quizGenerator)
+        QuizRepository(videoDir, ServiceModule.quizGenerator)
     }
 
+    // ── 语文练习 ──
     val wordBankRepository: WordBankRepository by lazy {
         WordBankRepository(appContext)
     }

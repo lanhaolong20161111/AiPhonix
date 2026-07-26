@@ -24493,6 +24493,33 @@
       ],
       "type": "word",
       "pinyin": ""
+    },
+    {
+      "text": "另外",
+      "tags": [
+        "LLM生成",
+        "词语"
+      ],
+      "type": "word",
+      "pinyin": ""
+    },
+    {
+      "text": "另样",
+      "tags": [
+        "LLM生成",
+        "词语"
+      ],
+      "type": "word",
+      "pinyin": ""
+    },
+    {
+      "text": "蛙泳",
+      "tags": [
+        "LLM生成",
+        "词语"
+      ],
+      "type": "word",
+      "pinyin": ""
     }
   ]
 }

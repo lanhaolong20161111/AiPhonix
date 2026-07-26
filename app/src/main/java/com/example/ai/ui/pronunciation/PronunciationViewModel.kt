@@ -76,7 +76,8 @@ class PronunciationViewModel(
                 _uiState.update { it.copy(step = PronunciationStep.RESULT, result = result) }
             } catch (e: Exception) {
                 Log.e("PronVm", "流式评测失败", e)
-                _uiState.update { it.copy(step = PronunciationStep.IDLE, error = "评测失败: ${e.message}") }
+                val msg = e.message ?: "${e::class.simpleName ?: "未知异常"}"
+                _uiState.update { it.copy(step = PronunciationStep.IDLE, error = "评测失败: $msg") }
             }
         }
     }

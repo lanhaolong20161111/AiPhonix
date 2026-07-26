@@ -15,11 +15,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import com.example.ai.di.NetworkModule
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 data class DictationItem(
     val entry: WordBankEntry,
@@ -57,10 +57,7 @@ class DictationViewModel(
     private val _state = MutableStateFlow(DictationUiState())
     val state: StateFlow<DictationUiState> = _state.asStateFlow()
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .build()
+    private val client = NetworkModule.httpClient
 
     // 多音字映射 {字 -> PolyphoneInfo}
     private data class PolyInfo(
@@ -79,11 +76,7 @@ class DictationViewModel(
             val req = Request.Builder()
                 .url("${getServerBase()}/api/v1/chinese/polyphone")
                 .build()
-            val resp = OkHttpClient.Builder()
-                .connectTimeout(5, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.SECONDS)
-                .build()
-                .newCall(req).execute()
+            val resp = NetworkModule.httpClient.newCall(req).execute()
             val body = resp.body?.string() ?: "{}"
             val json = JSONObject(body)
             val chars = json.optJSONObject("chars") ?: return
@@ -165,11 +158,7 @@ class DictationViewModel(
                 .url("${getServerBase()}/api/v1/llm/chat")
                 .post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .build()
-            val resp = OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(120, TimeUnit.SECONDS)
-                .build()
-                .newCall(req).execute()
+            val resp = NetworkModule.httpClient.newCall(req).execute()
             val json = JSONObject(resp.body?.string() ?: "{}")
             val reply = json.optString("reply", "")
             if (reply.isNotEmpty()) {

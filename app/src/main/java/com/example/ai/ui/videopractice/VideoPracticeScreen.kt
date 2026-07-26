@@ -498,7 +498,7 @@ fun VideoPracticeScreen(
                         val video = selectedVideo ?: return@IconButton
                         onNavigate(com.example.ai.Quiz(video.name, video.srtPath))
                     },
-                    enabled = selectedVideo != null && selectedVideo!!.srtPath.isNotBlank()
+                    enabled = selectedVideo?.srtPath?.isNotBlank() == true
                 ) {
                     Text("📝", fontSize = 22.sp)
                 }

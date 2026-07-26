@@ -72,7 +72,7 @@ fun QuizScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(state.error!!, color = Color.Red)
+                        if (state.error != null) Text(state.error ?: "", color = Color.Red)
                     }
                 }
 
