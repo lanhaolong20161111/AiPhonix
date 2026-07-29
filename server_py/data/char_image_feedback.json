@@ -1,0 +1,29 @@
+[
+  {
+    "char": "测",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-07-29T07:19:22.955973"
+  },
+  {
+    "char": "啊",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": true,
+    "timestamp": "2026-07-29T07:20:14.029655"
+  },
+  {
+    "char": "享",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-07-29T07:24:10.760508"
+  }
+]

@@ -12,6 +12,7 @@ data class Phoneme(
     val lipShape: String,       // "嘴唇向两边拉开"
     val commonMistakes: List<String> = emptyList(),
     val exampleWords: List<String> = emptyList(),
+    val englishWordIds: List<String> = emptyList(),
 )
 
 enum class PhonemeCategory {

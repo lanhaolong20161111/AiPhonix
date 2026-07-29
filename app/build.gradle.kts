@@ -139,6 +139,12 @@ dependencies {
   // OkHttp
   implementation(libs.okhttp)
 
+  // Coil — 图片加载
+  implementation("io.coil-kt:coil-compose:2.7.0")
+
+  // Compose Foundation — HorizontalPager
+  implementation("androidx.compose.foundation:foundation")
+
   // Media3 (ExoPlayer) — 视频播放 + A/B循环
   implementation(libs.androidx.media3.exoplayer)
   implementation(libs.androidx.media3.ui)

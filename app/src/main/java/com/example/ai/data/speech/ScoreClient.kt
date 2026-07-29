@@ -58,9 +58,66 @@ class ScoreClient(
         private const val TAG = "ScoreClient"
         private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
 
+        // ── ARPAbet → 国际音标（IPA）映射 ──
+        // 腾讯 SOE 英文引擎返回 ARPAbet 音标，此映射表将其转为 IPA。
+
+        private val ARPABET_TO_IPA = mapOf(
+            // 元音
+            "AA" to "ɑ",
+            "AE" to "æ",
+            "AH" to "ʌ",
+            "AH0" to "ə",  // unstressed schwa
+            "AO" to "ɔ",
+            "AW" to "aʊ",
+            "AY" to "aɪ",
+            "EH" to "ɛ",
+            "ER" to "ɜr",
+            "ER0" to "ɚ",  // unstressed r-colored schwa
+            "EY" to "eɪ",
+            "IH" to "ɪ",
+            "IY" to "i",
+            "OW" to "oʊ",
+            "OY" to "ɔɪ",
+            "UH" to "ʊ",
+            "UW" to "u",
+            // 辅音
+            "B" to "b",
+            "CH" to "tʃ",
+            "D" to "d",
+            "DH" to "ð",
+            "F" to "f",
+            "G" to "ɡ",
+            "HH" to "h",
+            "JH" to "dʒ",
+            "K" to "k",
+            "L" to "l",
+            "M" to "m",
+            "N" to "n",
+            "NG" to "ŋ",
+            "P" to "p",
+            "R" to "r",
+            "S" to "s",
+            "SH" to "ʃ",
+            "T" to "t",
+            "TH" to "θ",
+            "V" to "v",
+            "W" to "w",
+            "Y" to "j",
+            "Z" to "z",
+            "ZH" to "ʒ",
+        )
+
         fun serverBase(): String {
             val host = BuildConfig.TTS_SERVER_HOST
             return if (host.isNotBlank()) host else "http://192.168.1.7:8080"
+        }
+
+        /** 腾讯 ARPAbet → 国际音标（IPA）。已含斜杠则跳过，未知符号保留原文。 */
+        fun arpabetToIpa(phone: String): String {
+            if (phone.startsWith("/")) return phone  // 已经是 IPA
+            // 去掉尾随重音数字（如 AH0→AH, EH1→EH）
+            val ipa = ARPABET_TO_IPA[phone] ?: ARPABET_TO_IPA[phone.trimEnd('0', '1', '2')]
+            return if (ipa != null) "/$ipa/" else "/$phone/"
         }
 
         /**
@@ -82,6 +139,9 @@ class ScoreClient(
          *   }]
          * }
          * ```
+         *
+         * 注意：腾讯 SOE 英文引擎返回 ARPAbet 音标（如 HH、AH0、W），
+         * 此方法会自动将其映射为国际音标（IPA）。若 phone 已含斜杠则保留原值。
          */
         @JvmStatic
         fun parseJsonResponse(jsonBodyStr: String, refText: String): PronunciationResult {
@@ -113,9 +173,10 @@ class ScoreClient(
                         for (pElem in phones) {
                             val p = pElem.jsonObject
                             val phoneName = p["phone"]?.jsonPrimitive?.content ?: ""
+                            val phoneIpa = arpabetToIpa(phoneName)
                             val phoneScore = (p["accuracy"]?.jsonPrimitive?.doubleOrNull ?: 0.0).toInt().coerceIn(0, 100)
                             phonemeScores.add(PhonemeScore(
-                                phoneme = phoneName,
+                                phoneme = phoneIpa,
                                 score = phoneScore,
                                 level = when {
                                     phoneScore >= 80 -> ScoreLevel.GOOD

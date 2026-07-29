@@ -2,8 +2,8 @@ package com.example.ai.ui.phonics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ai.data.model.EnglishWord
 import com.example.ai.data.model.Phoneme
-import com.example.ai.data.model.Word
 import com.example.ai.data.repository.ContentRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,28 +13,35 @@ import kotlinx.coroutines.launch
 data class PhonicsUiState(
     val phonemes: List<Phoneme> = emptyList(),
     val currentIndex: Int = 0,
-    val words: List<Word> = emptyList(),
+    val exampleWords: List<String> = emptyList(),
+    val englishWords: List<EnglishWord> = emptyList(),
     val isLoading: Boolean = true,
 )
 
 class PhonicsViewModel(
     private val contentRepository: ContentRepository,
+    initialPhonemeIndex: Int = 0,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PhonicsUiState())
     val uiState: StateFlow<PhonicsUiState> = _uiState.asStateFlow()
 
+    private suspend fun loadWordsForPhoneme(phoneme: Phoneme) {
+        val exampleWords = phoneme.exampleWords
+        val allEnglishWords = contentRepository.getAllEnglishWords()
+        val wordLookup = allEnglishWords.associateBy { it.word.lowercase() }
+        val englishWords = phoneme.englishWordIds
+            .mapNotNull { wordLookup[it.lowercase()] }
+        _uiState.value = _uiState.value.copy(exampleWords = exampleWords, englishWords = englishWords)
+    }
+
     init {
         viewModelScope.launch {
             val phonemes = contentRepository.getAllPhonemes()
             if (phonemes.isNotEmpty()) {
-                val words = contentRepository.getWordsForPhoneme(phonemes[0].symbol.trim('/'))
-                _uiState.value = PhonicsUiState(
-                    phonemes = phonemes,
-                    currentIndex = 0,
-                    words = words,
-                    isLoading = false,
-                )
+                val index = initialPhonemeIndex.coerceIn(0, phonemes.lastIndex)
+                _uiState.value = PhonicsUiState(phonemes = phonemes, currentIndex = index, isLoading = false)
+                loadWordsForPhoneme(phonemes[index])
             } else {
                 _uiState.value = PhonicsUiState(isLoading = false)
             }
@@ -45,11 +52,8 @@ class PhonicsViewModel(
         val phonemes = _uiState.value.phonemes
         if (index < 0 || index >= phonemes.size) return
         viewModelScope.launch {
-            val words = contentRepository.getWordsForPhoneme(phonemes[index].symbol.trim('/'))
-            _uiState.value = _uiState.value.copy(
-                currentIndex = index,
-                words = words,
-            )
+            _uiState.value = _uiState.value.copy(currentIndex = index)
+            loadWordsForPhoneme(phonemes[index])
         }
     }
 

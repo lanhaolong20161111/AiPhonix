@@ -1,145 +1,3918 @@
 {
   "letters": [
-    { "char": "a", "ipaName": "/eɪ/", "uppercase": "A", "lowercase": "a", "order": 1 },
-    { "char": "b", "ipaName": "/biː/", "uppercase": "B", "lowercase": "b", "order": 2 },
-    { "char": "c", "ipaName": "/siː/", "uppercase": "C", "lowercase": "c", "order": 3 },
-    { "char": "d", "ipaName": "/diː/", "uppercase": "D", "lowercase": "d", "order": 4 },
-    { "char": "e", "ipaName": "/iː/", "uppercase": "E", "lowercase": "e", "order": 5 },
-    { "char": "f", "ipaName": "/ɛf/", "uppercase": "F", "lowercase": "f", "order": 6 },
-    { "char": "g", "ipaName": "/dʒiː/", "uppercase": "G", "lowercase": "g", "order": 7 },
-    { "char": "h", "ipaName": "/eɪtʃ/", "uppercase": "H", "lowercase": "h", "order": 8 },
-    { "char": "i", "ipaName": "/aɪ/", "uppercase": "I", "lowercase": "i", "order": 9 },
-    { "char": "j", "ipaName": "/dʒeɪ/", "uppercase": "J", "lowercase": "j", "order": 10 },
-    { "char": "k", "ipaName": "/keɪ/", "uppercase": "K", "lowercase": "k", "order": 11 },
-    { "char": "l", "ipaName": "/ɛl/", "uppercase": "L", "lowercase": "l", "order": 12 },
-    { "char": "m", "ipaName": "/ɛm/", "uppercase": "M", "lowercase": "m", "order": 13 },
-    { "char": "n", "ipaName": "/ɛn/", "uppercase": "N", "lowercase": "n", "order": 14 },
-    { "char": "o", "ipaName": "/oʊ/", "uppercase": "O", "lowercase": "o", "order": 15 },
-    { "char": "p", "ipaName": "/piː/", "uppercase": "P", "lowercase": "p", "order": 16 },
-    { "char": "q", "ipaName": "/kjuː/", "uppercase": "Q", "lowercase": "q", "order": 17 },
-    { "char": "r", "ipaName": "/ɑːr/", "uppercase": "R", "lowercase": "r", "order": 18 },
-    { "char": "s", "ipaName": "/ɛs/", "uppercase": "S", "lowercase": "s", "order": 19 },
-    { "char": "t", "ipaName": "/tiː/", "uppercase": "T", "lowercase": "t", "order": 20 },
-    { "char": "u", "ipaName": "/juː/", "uppercase": "U", "lowercase": "u", "order": 21 },
-    { "char": "v", "ipaName": "/viː/", "uppercase": "V", "lowercase": "v", "order": 22 },
-    { "char": "w", "ipaName": "/dʌbəl juː/", "uppercase": "W", "lowercase": "w", "order": 23 },
-    { "char": "x", "ipaName": "/ɛks/", "uppercase": "X", "lowercase": "x", "order": 24 },
-    { "char": "y", "ipaName": "/waɪ/", "uppercase": "Y", "lowercase": "y", "order": 25 },
-    { "char": "z", "ipaName": "/ziː/", "uppercase": "Z", "lowercase": "z", "order": 26 }
+    {
+      "char": "a",
+      "ipaName": "/eɪ/",
+      "uppercase": "A",
+      "lowercase": "a",
+      "order": 1
+    },
+    {
+      "char": "b",
+      "ipaName": "/biː/",
+      "uppercase": "B",
+      "lowercase": "b",
+      "order": 2
+    },
+    {
+      "char": "c",
+      "ipaName": "/siː/",
+      "uppercase": "C",
+      "lowercase": "c",
+      "order": 3
+    },
+    {
+      "char": "d",
+      "ipaName": "/diː/",
+      "uppercase": "D",
+      "lowercase": "d",
+      "order": 4
+    },
+    {
+      "char": "e",
+      "ipaName": "/iː/",
+      "uppercase": "E",
+      "lowercase": "e",
+      "order": 5
+    },
+    {
+      "char": "f",
+      "ipaName": "/ɛf/",
+      "uppercase": "F",
+      "lowercase": "f",
+      "order": 6
+    },
+    {
+      "char": "g",
+      "ipaName": "/dʒiː/",
+      "uppercase": "G",
+      "lowercase": "g",
+      "order": 7
+    },
+    {
+      "char": "h",
+      "ipaName": "/eɪtʃ/",
+      "uppercase": "H",
+      "lowercase": "h",
+      "order": 8
+    },
+    {
+      "char": "i",
+      "ipaName": "/aɪ/",
+      "uppercase": "I",
+      "lowercase": "i",
+      "order": 9
+    },
+    {
+      "char": "j",
+      "ipaName": "/dʒeɪ/",
+      "uppercase": "J",
+      "lowercase": "j",
+      "order": 10
+    },
+    {
+      "char": "k",
+      "ipaName": "/keɪ/",
+      "uppercase": "K",
+      "lowercase": "k",
+      "order": 11
+    },
+    {
+      "char": "l",
+      "ipaName": "/ɛl/",
+      "uppercase": "L",
+      "lowercase": "l",
+      "order": 12
+    },
+    {
+      "char": "m",
+      "ipaName": "/ɛm/",
+      "uppercase": "M",
+      "lowercase": "m",
+      "order": 13
+    },
+    {
+      "char": "n",
+      "ipaName": "/ɛn/",
+      "uppercase": "N",
+      "lowercase": "n",
+      "order": 14
+    },
+    {
+      "char": "o",
+      "ipaName": "/oʊ/",
+      "uppercase": "O",
+      "lowercase": "o",
+      "order": 15
+    },
+    {
+      "char": "p",
+      "ipaName": "/piː/",
+      "uppercase": "P",
+      "lowercase": "p",
+      "order": 16
+    },
+    {
+      "char": "q",
+      "ipaName": "/kjuː/",
+      "uppercase": "Q",
+      "lowercase": "q",
+      "order": 17
+    },
+    {
+      "char": "r",
+      "ipaName": "/ɑːr/",
+      "uppercase": "R",
+      "lowercase": "r",
+      "order": 18
+    },
+    {
+      "char": "s",
+      "ipaName": "/ɛs/",
+      "uppercase": "S",
+      "lowercase": "s",
+      "order": 19
+    },
+    {
+      "char": "t",
+      "ipaName": "/tiː/",
+      "uppercase": "T",
+      "lowercase": "t",
+      "order": 20
+    },
+    {
+      "char": "u",
+      "ipaName": "/juː/",
+      "uppercase": "U",
+      "lowercase": "u",
+      "order": 21
+    },
+    {
+      "char": "v",
+      "ipaName": "/viː/",
+      "uppercase": "V",
+      "lowercase": "v",
+      "order": 22
+    },
+    {
+      "char": "w",
+      "ipaName": "/dʌbəl juː/",
+      "uppercase": "W",
+      "lowercase": "w",
+      "order": 23
+    },
+    {
+      "char": "x",
+      "ipaName": "/ɛks/",
+      "uppercase": "X",
+      "lowercase": "x",
+      "order": 24
+    },
+    {
+      "char": "y",
+      "ipaName": "/waɪ/",
+      "uppercase": "Y",
+      "lowercase": "y",
+      "order": 25
+    },
+    {
+      "char": "z",
+      "ipaName": "/ziː/",
+      "uppercase": "Z",
+      "lowercase": "z",
+      "order": 26
+    }
   ],
   "words": [
-    { "text": "apple", "ipa": "/ˈæp.əl/", "letter": "a", "phonemes": ["æ","p","əl"], "emoji": "🍎", "difficulty": 1 },
-    { "text": "ant", "ipa": "/ænt/", "letter": "a", "phonemes": ["æ","nt"], "emoji": "🐜", "difficulty": 1 },
-    { "text": "all", "ipa": "/ɔːl/", "letter": "a", "phonemes": ["ɔː","l"], "emoji": "🌍", "difficulty": 1 },
-    { "text": "bat", "ipa": "/bæt/", "letter": "b", "phonemes": ["b","æ","t"], "emoji": "🏏", "difficulty": 1 },
-    { "text": "bed", "ipa": "/bed/", "letter": "b", "phonemes": ["b","e","d"], "emoji": "🛏️", "difficulty": 1 },
-    { "text": "big", "ipa": "/bɪɡ/", "letter": "b", "phonemes": ["b","ɪ","ɡ"], "emoji": "🦍", "difficulty": 1 },
-    { "text": "cat", "ipa": "/kæt/", "letter": "c", "phonemes": ["k","æ","t"], "emoji": "🐱", "difficulty": 1 },
-    { "text": "cup", "ipa": "/kʌp/", "letter": "c", "phonemes": ["k","ʌ","p"], "emoji": "☕", "difficulty": 1 },
-    { "text": "dog", "ipa": "/dɒɡ/", "letter": "d", "phonemes": ["d","ɒ","ɡ"], "emoji": "🐕", "difficulty": 1 },
-    { "text": "duck", "ipa": "/dʌk/", "letter": "d", "phonemes": ["d","ʌ","k"], "emoji": "🦆", "difficulty": 1 },
-    { "text": "egg", "ipa": "/eɡ/", "letter": "e", "phonemes": ["e","ɡ"], "emoji": "🥚", "difficulty": 1 },
-    { "text": "elephant", "ipa": "/ˈel.ɪ.fənt/", "letter": "e", "phonemes": ["e","l","ɪ","f","ə","nt"], "emoji": "🐘", "difficulty": 2 },
-    { "text": "fish", "ipa": "/fɪʃ/", "letter": "f", "phonemes": ["f","ɪ","ʃ"], "emoji": "🐟", "difficulty": 1 },
-    { "text": "fox", "ipa": "/fɒks/", "letter": "f", "phonemes": ["f","ɒ","ks"], "emoji": "🦊", "difficulty": 1 },
-    { "text": "goat", "ipa": "/ɡoʊt/", "letter": "g", "phonemes": ["ɡ","oʊ","t"], "emoji": "🐐", "difficulty": 1 },
-    { "text": "hat", "ipa": "/hæt/", "letter": "h", "phonemes": ["h","æ","t"], "emoji": "🎩", "difficulty": 1 },
-    { "text": "hand", "ipa": "/hænd/", "letter": "h", "phonemes": ["h","æ","nd"], "emoji": "✋", "difficulty": 1 },
-    { "text": "igloo", "ipa": "/ˈɪɡ.luː/", "letter": "i", "phonemes": ["ɪ","ɡ","l","uː"], "emoji": "🏔️", "difficulty": 2 },
-    { "text": "ink", "ipa": "/ɪŋk/", "letter": "i", "phonemes": ["ɪ","ŋ","k"], "emoji": "🖊️", "difficulty": 2 },
-    { "text": "jam", "ipa": "/dʒæm/", "letter": "j", "phonemes": ["dʒ","æ","m"], "emoji": "🍓", "difficulty": 1 },
-    { "text": "kite", "ipa": "/kaɪt/", "letter": "k", "phonemes": ["k","aɪ","t"], "emoji": "🪁", "difficulty": 1 },
-    { "text": "key", "ipa": "/kiː/", "letter": "k", "phonemes": ["k","iː"], "emoji": "🔑", "difficulty": 1 },
-    { "text": "lion", "ipa": "/ˈlaɪ.ən/", "letter": "l", "phonemes": ["l","aɪ","ə","n"], "emoji": "🦁", "difficulty": 1 },
-    { "text": "lamp", "ipa": "/læmp/", "letter": "l", "phonemes": ["l","æ","mp"], "emoji": "💡", "difficulty": 1 },
-    { "text": "monkey", "ipa": "/ˈmʌŋ.ki/", "letter": "m", "phonemes": ["m","ʌ","ŋ","k","i"], "emoji": "🐵", "difficulty": 1 },
-    { "text": "map", "ipa": "/mæp/", "letter": "m", "phonemes": ["m","æ","p"], "emoji": "🗺️", "difficulty": 1 },
-    { "text": "nest", "ipa": "/nest/", "letter": "n", "phonemes": ["n","e","st"], "emoji": "🪺", "difficulty": 1 },
-    { "text": "nose", "ipa": "/noʊz/", "letter": "n", "phonemes": ["n","oʊ","z"], "emoji": "👃", "difficulty": 1 },
-    { "text": "orange", "ipa": "/ˈɒr.ɪndʒ/", "letter": "o", "phonemes": ["ɒ","r","ɪ","ndʒ"], "emoji": "🍊", "difficulty": 2 },
-    { "text": "pig", "ipa": "/pɪɡ/", "letter": "p", "phonemes": ["p","ɪ","ɡ"], "emoji": "🐷", "difficulty": 1 },
-    { "text": "pen", "ipa": "/pen/", "letter": "p", "phonemes": ["p","e","n"], "emoji": "🖊️", "difficulty": 1 },
-    { "text": "queen", "ipa": "/kwiːn/", "letter": "q", "phonemes": ["kw","iː","n"], "emoji": "👑", "difficulty": 2 },
-    { "text": "rat", "ipa": "/ræt/", "letter": "r", "phonemes": ["r","æ","t"], "emoji": "🐀", "difficulty": 1 },
-    { "text": "run", "ipa": "/rʌn/", "letter": "r", "phonemes": ["r","ʌ","n"], "emoji": "🏃", "difficulty": 1 },
-    { "text": "sun", "ipa": "/sʌn/", "letter": "s", "phonemes": ["s","ʌ","n"], "emoji": "☀️", "difficulty": 1 },
-    { "text": "star", "ipa": "/stɑːr/", "letter": "s", "phonemes": ["s","t","ɑː","r"], "emoji": "⭐", "difficulty": 1 },
-    { "text": "top", "ipa": "/tɒp/", "letter": "t", "phonemes": ["t","ɒ","p"], "emoji": "🔝", "difficulty": 1 },
-    { "text": "tree", "ipa": "/triː/", "letter": "t", "phonemes": ["t","r","iː"], "emoji": "🌳", "difficulty": 1 },
-    { "text": "umbrella", "ipa": "/ʌmˈbrel.ə/", "letter": "u", "phonemes": ["ʌ","m","b","r","e","l","ə"], "emoji": "☂️", "difficulty": 2 },
-    { "text": "van", "ipa": "/væn/", "letter": "v", "phonemes": ["v","æ","n"], "emoji": "🚐", "difficulty": 1 },
-    { "text": "water", "ipa": "/ˈwɔː.tər/", "letter": "w", "phonemes": ["w","ɔː","t","ə","r"], "emoji": "💧", "difficulty": 1 },
-    { "text": "web", "ipa": "/web/", "letter": "w", "phonemes": ["w","e","b"], "emoji": "🕸️", "difficulty": 1 },
-    { "text": "fox", "ipa": "/fɒks/", "letter": "x", "phonemes": ["f","ɒ","ks"], "emoji": "🦊", "difficulty": 1 },
-    { "text": "yellow", "ipa": "/ˈjel.oʊ/", "letter": "y", "phonemes": ["j","e","l","oʊ"], "emoji": "🟡", "difficulty": 1 },
-    { "text": "zebra", "ipa": "/ˈziː.brə/", "letter": "z", "phonemes": ["z","iː","b","r","ə"], "emoji": "🦓", "difficulty": 2 },
-    { "text": "cake", "ipa": "/keɪk/", "letter": "c", "phonemes": ["k","eɪ","k"], "emoji": "🎂", "difficulty": 1 },
-    { "text": "face", "ipa": "/feɪs/", "letter": "f", "phonemes": ["f","eɪ","s"], "emoji": "😊", "difficulty": 1 },
-    { "text": "rain", "ipa": "/reɪn/", "letter": "r", "phonemes": ["r","eɪ","n"], "emoji": "🌧️", "difficulty": 1 },
-    { "text": "cow", "ipa": "/kaʊ/", "letter": "c", "phonemes": ["k","aʊ"], "emoji": "🐄", "difficulty": 1 },
-    { "text": "house", "ipa": "/haʊs/", "letter": "h", "phonemes": ["h","aʊ","s"], "emoji": "🏠", "difficulty": 1 },
-    { "text": "mouse", "ipa": "/maʊs/", "letter": "m", "phonemes": ["m","aʊ","s"], "emoji": "🐭", "difficulty": 1 },
-    { "text": "boy", "ipa": "/bɔɪ/", "letter": "b", "phonemes": ["b","ɔɪ"], "emoji": "👦", "difficulty": 1 },
-    { "text": "toy", "ipa": "/tɔɪ/", "letter": "t", "phonemes": ["t","ɔɪ"], "emoji": "🧸", "difficulty": 1 },
-    { "text": "coin", "ipa": "/kɔɪn/", "letter": "c", "phonemes": ["k","ɔɪ","n"], "emoji": "🪙", "difficulty": 2 },
-    { "text": "thumb", "ipa": "/θʌm/", "letter": "t", "phonemes": ["θ","ʌ","m"], "emoji": "👍", "difficulty": 1 },
-    { "text": "mouth", "ipa": "/maʊθ/", "letter": "m", "phonemes": ["m","aʊ","θ"], "emoji": "👄", "difficulty": 1 },
-    { "text": "bath", "ipa": "/bɑːθ/", "letter": "b", "phonemes": ["b","ɑː","θ"], "emoji": "🛁", "difficulty": 1 },
-    { "text": "this", "ipa": "/ðɪs/", "letter": "t", "phonemes": ["ð","ɪ","s"], "emoji": "👈", "difficulty": 1 },
-    { "text": "feather", "ipa": "/ˈfeð.ər/", "letter": "f", "phonemes": ["f","e","ð","ə","r"], "emoji": "🪶", "difficulty": 2 },
-    { "text": "mother", "ipa": "/ˈmʌð.ər/", "letter": "m", "phonemes": ["m","ʌ","ð","ə","r"], "emoji": "👩", "difficulty": 1 },
-    { "text": "bird", "ipa": "/bɜːd/", "letter": "b", "phonemes": ["b","ɜː","d"], "emoji": "🐦", "difficulty": 1 },
-    { "text": "girl", "ipa": "/ɡɜːl/", "letter": "g", "phonemes": ["ɡ","ɜː","l"], "emoji": "👧", "difficulty": 1 },
-    { "text": "television", "ipa": "/ˈtel.ɪ.vɪʒ.ən/", "letter": "t", "phonemes": ["t","e","l","ɪ","v","ɪ","ʒ","ə","n"], "emoji": "📺", "difficulty": 2 }
+    {
+      "text": "apple",
+      "ipa": "/ˈæp.əl/",
+      "letter": "a",
+      "phonemes": [
+        "æ",
+        "p",
+        "ə",
+        "l"
+      ],
+      "emoji": "🍎",
+      "difficulty": 1
+    },
+    {
+      "text": "ant",
+      "ipa": "/ænt/",
+      "letter": "a",
+      "phonemes": [
+        "æ",
+        "n",
+        "t"
+      ],
+      "emoji": "🐜",
+      "difficulty": 1
+    },
+    {
+      "text": "all",
+      "ipa": "/ɔːl/",
+      "letter": "a",
+      "phonemes": [
+        "ɔː",
+        "l"
+      ],
+      "emoji": "🌍",
+      "difficulty": 1
+    },
+    {
+      "text": "bat",
+      "ipa": "/bæt/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "æ",
+        "t"
+      ],
+      "emoji": "🏏",
+      "difficulty": 1
+    },
+    {
+      "text": "bed",
+      "ipa": "/bed/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "e",
+        "d"
+      ],
+      "emoji": "🛏️",
+      "difficulty": 1
+    },
+    {
+      "text": "big",
+      "ipa": "/bɪɡ/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɪ",
+        "ɡ"
+      ],
+      "emoji": "🦍",
+      "difficulty": 1
+    },
+    {
+      "text": "cat",
+      "ipa": "/kæt/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "æ",
+        "t"
+      ],
+      "emoji": "🐱",
+      "difficulty": 1
+    },
+    {
+      "text": "cup",
+      "ipa": "/kʌp/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "p"
+      ],
+      "emoji": "☕",
+      "difficulty": 1
+    },
+    {
+      "text": "dog",
+      "ipa": "/dɒɡ/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "ɒ",
+        "ɡ"
+      ],
+      "emoji": "🐕",
+      "difficulty": 1
+    },
+    {
+      "text": "duck",
+      "ipa": "/dʌk/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "ʌ",
+        "k"
+      ],
+      "emoji": "🦆",
+      "difficulty": 1
+    },
+    {
+      "text": "egg",
+      "ipa": "/eɡ/",
+      "letter": "e",
+      "phonemes": [
+        "e",
+        "ɡ"
+      ],
+      "emoji": "🥚",
+      "difficulty": 1
+    },
+    {
+      "text": "elephant",
+      "ipa": "/ˈel.ɪ.fənt/",
+      "letter": "e",
+      "phonemes": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
+      ],
+      "emoji": "🐘",
+      "difficulty": 2
+    },
+    {
+      "text": "fish",
+      "ipa": "/fɪʃ/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "ɪ",
+        "ʃ"
+      ],
+      "emoji": "🐟",
+      "difficulty": 1
+    },
+    {
+      "text": "fox",
+      "ipa": "/fɒks/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ],
+      "emoji": "🦊",
+      "difficulty": 1
+    },
+    {
+      "text": "goat",
+      "ipa": "/ɡoʊt/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "əʊ",
+        "t"
+      ],
+      "emoji": "🐐",
+      "difficulty": 1
+    },
+    {
+      "text": "hat",
+      "ipa": "/hæt/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "æ",
+        "t"
+      ],
+      "emoji": "🎩",
+      "difficulty": 1
+    },
+    {
+      "text": "hand",
+      "ipa": "/hænd/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "æ",
+        "n",
+        "d"
+      ],
+      "emoji": "✋",
+      "difficulty": 1
+    },
+    {
+      "text": "igloo",
+      "ipa": "/ˈɪɡ.luː/",
+      "letter": "i",
+      "phonemes": [
+        "ɪ",
+        "ɡ",
+        "l",
+        "uː"
+      ],
+      "emoji": "🏔️",
+      "difficulty": 2
+    },
+    {
+      "text": "ink",
+      "ipa": "/ɪŋk/",
+      "letter": "i",
+      "phonemes": [
+        "ɪ",
+        "ŋ",
+        "k"
+      ],
+      "emoji": "🖊️",
+      "difficulty": 2
+    },
+    {
+      "text": "jam",
+      "ipa": "/dʒæm/",
+      "letter": "j",
+      "phonemes": [
+        "dʒ",
+        "æ",
+        "m"
+      ],
+      "emoji": "🍓",
+      "difficulty": 1
+    },
+    {
+      "text": "kite",
+      "ipa": "/kaɪt/",
+      "letter": "k",
+      "phonemes": [
+        "k",
+        "aɪ",
+        "t"
+      ],
+      "emoji": "🪁",
+      "difficulty": 1
+    },
+    {
+      "text": "key",
+      "ipa": "/kiː/",
+      "letter": "k",
+      "phonemes": [
+        "k",
+        "iː"
+      ],
+      "emoji": "🔑",
+      "difficulty": 1
+    },
+    {
+      "text": "lion",
+      "ipa": "/ˈlaɪ.ən/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
+      ],
+      "emoji": "🦁",
+      "difficulty": 1
+    },
+    {
+      "text": "lamp",
+      "ipa": "/læmp/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "æ",
+        "m",
+        "p"
+      ],
+      "emoji": "💡",
+      "difficulty": 1
+    },
+    {
+      "text": "monkey",
+      "ipa": "/ˈmʌŋ.ki/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k",
+        "ɪ"
+      ],
+      "emoji": "🐵",
+      "difficulty": 1
+    },
+    {
+      "text": "map",
+      "ipa": "/mæp/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "æ",
+        "p"
+      ],
+      "emoji": "🗺️",
+      "difficulty": 1
+    },
+    {
+      "text": "nest",
+      "ipa": "/nest/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "e",
+        "s",
+        "t"
+      ],
+      "emoji": "🪺",
+      "difficulty": 1
+    },
+    {
+      "text": "nose",
+      "ipa": "/noʊz/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "əʊ",
+        "z"
+      ],
+      "emoji": "👃",
+      "difficulty": 1
+    },
+    {
+      "text": "orange",
+      "ipa": "/ˈɒr.ɪndʒ/",
+      "letter": "o",
+      "phonemes": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
+      ],
+      "emoji": "🍊",
+      "difficulty": 2
+    },
+    {
+      "text": "pig",
+      "ipa": "/pɪɡ/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "ɪ",
+        "ɡ"
+      ],
+      "emoji": "🐷",
+      "difficulty": 1
+    },
+    {
+      "text": "pen",
+      "ipa": "/pen/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "e",
+        "n"
+      ],
+      "emoji": "🖊️",
+      "difficulty": 1
+    },
+    {
+      "text": "queen",
+      "ipa": "/kwiːn/",
+      "letter": "q",
+      "phonemes": [
+        "k",
+        "w",
+        "iː",
+        "n"
+      ],
+      "emoji": "👑",
+      "difficulty": 2
+    },
+    {
+      "text": "rat",
+      "ipa": "/ræt/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "æ",
+        "t"
+      ],
+      "emoji": "🐀",
+      "difficulty": 1
+    },
+    {
+      "text": "run",
+      "ipa": "/rʌn/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "ʌ",
+        "n"
+      ],
+      "emoji": "🏃",
+      "difficulty": 1
+    },
+    {
+      "text": "sun",
+      "ipa": "/sʌn/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "ʌ",
+        "n"
+      ],
+      "emoji": "☀️",
+      "difficulty": 1
+    },
+    {
+      "text": "star",
+      "ipa": "/stɑːr/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "t",
+        "ɑː",
+        "r"
+      ],
+      "emoji": "⭐",
+      "difficulty": 1
+    },
+    {
+      "text": "top",
+      "ipa": "/tɒp/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "ɒ",
+        "p"
+      ],
+      "emoji": "🔝",
+      "difficulty": 1
+    },
+    {
+      "text": "tree",
+      "ipa": "/triː/",
+      "letter": "t",
+      "phonemes": [
+        "tr",
+        "iː"
+      ],
+      "emoji": "🌳",
+      "difficulty": 1
+    },
+    {
+      "text": "umbrella",
+      "ipa": "/ʌmˈbrel.ə/",
+      "letter": "u",
+      "phonemes": [
+        "ʌ",
+        "m",
+        "b",
+        "r",
+        "e",
+        "l",
+        "ə"
+      ],
+      "emoji": "☂️",
+      "difficulty": 2
+    },
+    {
+      "text": "van",
+      "ipa": "/væn/",
+      "letter": "v",
+      "phonemes": [
+        "v",
+        "æ",
+        "n"
+      ],
+      "emoji": "🚐",
+      "difficulty": 1
+    },
+    {
+      "text": "water",
+      "ipa": "/ˈwɔː.tər/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "ɔː",
+        "t",
+        "ə",
+        "r"
+      ],
+      "emoji": "💧",
+      "difficulty": 1
+    },
+    {
+      "text": "web",
+      "ipa": "/web/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "e",
+        "b"
+      ],
+      "emoji": "🕸️",
+      "difficulty": 1
+    },
+    {
+      "text": "yellow",
+      "ipa": "/ˈjel.oʊ/",
+      "letter": "y",
+      "phonemes": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
+      ],
+      "emoji": "🟡",
+      "difficulty": 1
+    },
+    {
+      "text": "zebra",
+      "ipa": "/ˈziː.brə/",
+      "letter": "z",
+      "phonemes": [
+        "z",
+        "iː",
+        "b",
+        "r",
+        "ə"
+      ],
+      "emoji": "🦓",
+      "difficulty": 2
+    },
+    {
+      "text": "cake",
+      "ipa": "/keɪk/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "eɪ",
+        "k"
+      ],
+      "emoji": "🎂",
+      "difficulty": 1
+    },
+    {
+      "text": "face",
+      "ipa": "/feɪs/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "eɪ",
+        "s"
+      ],
+      "emoji": "😊",
+      "difficulty": 1
+    },
+    {
+      "text": "rain",
+      "ipa": "/reɪn/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "eɪ",
+        "n"
+      ],
+      "emoji": "🌧️",
+      "difficulty": 1
+    },
+    {
+      "text": "cow",
+      "ipa": "/kaʊ/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "aʊ"
+      ],
+      "emoji": "🐄",
+      "difficulty": 1
+    },
+    {
+      "text": "house",
+      "ipa": "/haʊs/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "aʊ",
+        "s"
+      ],
+      "emoji": "🏠",
+      "difficulty": 1
+    },
+    {
+      "text": "mouse",
+      "ipa": "/maʊs/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "aʊ",
+        "s"
+      ],
+      "emoji": "🐭",
+      "difficulty": 1
+    },
+    {
+      "text": "boy",
+      "ipa": "/bɔɪ/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɔɪ"
+      ],
+      "emoji": "👦",
+      "difficulty": 1
+    },
+    {
+      "text": "toy",
+      "ipa": "/tɔɪ/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "ɔɪ"
+      ],
+      "emoji": "🧸",
+      "difficulty": 1
+    },
+    {
+      "text": "coin",
+      "ipa": "/kɔɪn/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "ɔɪ",
+        "n"
+      ],
+      "emoji": "🪙",
+      "difficulty": 2
+    },
+    {
+      "text": "thumb",
+      "ipa": "/θʌm/",
+      "letter": "t",
+      "phonemes": [
+        "θ",
+        "ʌ",
+        "m"
+      ],
+      "emoji": "👍",
+      "difficulty": 1
+    },
+    {
+      "text": "mouth",
+      "ipa": "/maʊθ/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "aʊ",
+        "θ"
+      ],
+      "emoji": "👄",
+      "difficulty": 1
+    },
+    {
+      "text": "bath",
+      "ipa": "/bɑːθ/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɑː",
+        "θ"
+      ],
+      "emoji": "🛁",
+      "difficulty": 1
+    },
+    {
+      "text": "this",
+      "ipa": "/ðɪs/",
+      "letter": "t",
+      "phonemes": [
+        "ð",
+        "ɪ",
+        "s"
+      ],
+      "emoji": "👈",
+      "difficulty": 1
+    },
+    {
+      "text": "feather",
+      "ipa": "/ˈfeð.ər/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "e",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "emoji": "🪶",
+      "difficulty": 2
+    },
+    {
+      "text": "mother",
+      "ipa": "/ˈmʌð.ər/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "emoji": "👩",
+      "difficulty": 1
+    },
+    {
+      "text": "bird",
+      "ipa": "/bɜːd/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɜː",
+        "d"
+      ],
+      "emoji": "🐦",
+      "difficulty": 1
+    },
+    {
+      "text": "girl",
+      "ipa": "/ɡɜːl/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "ɜː",
+        "l"
+      ],
+      "emoji": "👧",
+      "difficulty": 1
+    },
+    {
+      "text": "television",
+      "ipa": "/ˈtel.ɪ.vɪʒ.ən/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "e",
+        "l",
+        "ɪ",
+        "v",
+        "ɪ",
+        "ʒ",
+        "ə",
+        "n"
+      ],
+      "emoji": "📺",
+      "difficulty": 2
+    },
+    {
+      "text": "see",
+      "ipa": "/siː/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "iː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "看见"
+    },
+    {
+      "text": "tea",
+      "ipa": "/tiː/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "iː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "茶"
+    },
+    {
+      "text": "bee",
+      "ipa": "/biː/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "iː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "蜜蜂"
+    },
+    {
+      "text": "feet",
+      "ipa": "/fiːt/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "iː",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "脚"
+    },
+    {
+      "text": "car",
+      "ipa": "/kɑː(r)/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "ɑː",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "汽车"
+    },
+    {
+      "text": "farm",
+      "ipa": "/fɑːm/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "m"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "农场"
+    },
+    {
+      "text": "park",
+      "ipa": "/pɑːk/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "ɑː",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "公园"
+    },
+    {
+      "text": "glass",
+      "ipa": "/ɡlɑːs/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "l",
+        "ɑː",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "玻璃杯"
+    },
+    {
+      "text": "door",
+      "ipa": "/dɔː(r)/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "ɔː",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "门"
+    },
+    {
+      "text": "ball",
+      "ipa": "/bɔːl/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɔː",
+        "l"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "球"
+    },
+    {
+      "text": "horse",
+      "ipa": "/hɔːs/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "ɔː",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "马"
+    },
+    {
+      "text": "short",
+      "ipa": "/ʃɔːt/",
+      "letter": "s",
+      "phonemes": [
+        "ʃ",
+        "ɔː",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "短的"
+    },
+    {
+      "text": "draw",
+      "ipa": "/drɔː/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "ɔː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "画画"
+    },
+    {
+      "text": "nurse",
+      "ipa": "/nɜːs/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "ɜː",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "护士"
+    },
+    {
+      "text": "skirt",
+      "ipa": "/skɜːt/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "k",
+        "ɜː",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "短裙"
+    },
+    {
+      "text": "work",
+      "ipa": "/wɜːk/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "ɜː",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "工作"
+    },
+    {
+      "text": "zoo",
+      "ipa": "/zuː/",
+      "letter": "z",
+      "phonemes": [
+        "z",
+        "uː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "动物园"
+    },
+    {
+      "text": "food",
+      "ipa": "/fuːd/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "uː",
+        "d"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "食物"
+    },
+    {
+      "text": "moon",
+      "ipa": "/muːn/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "uː",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "月亮"
+    },
+    {
+      "text": "blue",
+      "ipa": "/bluː/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "l",
+        "uː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "蓝色"
+    },
+    {
+      "text": "school",
+      "ipa": "/skuːl/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "学校"
+    },
+    {
+      "text": "sit",
+      "ipa": "/sɪt/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "坐"
+    },
+    {
+      "text": "milk",
+      "ipa": "/mɪlk/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "ɪ",
+        "l",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "牛奶"
+    },
+    {
+      "text": "red",
+      "ipa": "/red/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "e",
+        "d"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "红色"
+    },
+    {
+      "text": "desk",
+      "ipa": "/desk/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "e",
+        "s",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "书桌"
+    },
+    {
+      "text": "bag",
+      "ipa": "/bæɡ/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "æ",
+        "ɡ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "书包"
+    },
+    {
+      "text": "bus",
+      "ipa": "/bʌs/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ʌ",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "公交"
+    },
+    {
+      "text": "hot",
+      "ipa": "/hɒt/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "ɒ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "热"
+    },
+    {
+      "text": "box",
+      "ipa": "/bɒks/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɒ",
+        "k",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "盒子"
+    },
+    {
+      "text": "shop",
+      "ipa": "/ʃɒp/",
+      "letter": "s",
+      "phonemes": [
+        "ʃ",
+        "ɒ",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "商店"
+    },
+    {
+      "text": "frog",
+      "ipa": "/frɒɡ/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "r",
+        "ɒ",
+        "ɡ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "青蛙"
+    },
+    {
+      "text": "book",
+      "ipa": "/bʊk/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ʊ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "书"
+    },
+    {
+      "text": "look",
+      "ipa": "/lʊk/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "ʊ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "看"
+    },
+    {
+      "text": "good",
+      "ipa": "/ɡʊd/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "ʊ",
+        "d"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "好"
+    },
+    {
+      "text": "foot",
+      "ipa": "/fʊt/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "ʊ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "脚"
+    },
+    {
+      "text": "cook",
+      "ipa": "/kʊk/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "ʊ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "烹饪"
+    },
+    {
+      "text": "teacher",
+      "ipa": "/ˈtiːtʃə(r)/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "iː",
+        "tʃ",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "老师"
+    },
+    {
+      "text": "ruler",
+      "ipa": "/ˈruːlə(r)/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "uː",
+        "l",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "尺子"
+    },
+    {
+      "text": "about",
+      "ipa": "/əˈbaʊt/",
+      "letter": "a",
+      "phonemes": [
+        "ə",
+        "b",
+        "aʊ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "关于"
+    },
+    {
+      "text": "banana",
+      "ipa": "/bəˈnɑːnə/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ə",
+        "n",
+        "ɑː",
+        "n",
+        "ə"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "香蕉"
+    },
+    {
+      "text": "doctor",
+      "ipa": "/ˈdɒktə(r)/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "ɒ",
+        "k",
+        "t",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "医生"
+    },
+    {
+      "text": "name",
+      "ipa": "/neɪm/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "eɪ",
+        "m"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "名字"
+    },
+    {
+      "text": "day",
+      "ipa": "/deɪ/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "eɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "天"
+    },
+    {
+      "text": "play",
+      "ipa": "/pleɪ/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "l",
+        "eɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "玩"
+    },
+    {
+      "text": "bike",
+      "ipa": "/baɪk/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "aɪ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "自行车"
+    },
+    {
+      "text": "like",
+      "ipa": "/laɪk/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "喜欢"
+    },
+    {
+      "text": "five",
+      "ipa": "/faɪv/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "aɪ",
+        "v"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "五"
+    },
+    {
+      "text": "sky",
+      "ipa": "/skaɪ/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "k",
+        "aɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "天空"
+    },
+    {
+      "text": "light",
+      "ipa": "/laɪt/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "灯光"
+    },
+    {
+      "text": "oil",
+      "ipa": "/ɔɪl/",
+      "letter": "o",
+      "phonemes": [
+        "ɔɪ",
+        "l"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "油"
+    },
+    {
+      "text": "noise",
+      "ipa": "/nɔɪz/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "ɔɪ",
+        "z"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "噪音"
+    },
+    {
+      "text": "now",
+      "ipa": "/naʊ/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "aʊ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "现在"
+    },
+    {
+      "text": "brown",
+      "ipa": "/braʊn/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "棕色"
+    },
+    {
+      "text": "home",
+      "ipa": "/həʊm/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "əʊ",
+        "m"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "家"
+    },
+    {
+      "text": "go",
+      "ipa": "/ɡəʊ/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "əʊ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "走"
+    },
+    {
+      "text": "boat",
+      "ipa": "/bəʊt/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "əʊ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小船"
+    },
+    {
+      "text": "snow",
+      "ipa": "/snəʊ/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "n",
+        "əʊ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "雪"
+    },
+    {
+      "text": "ear",
+      "ipa": "/ɪə(r)/",
+      "letter": "e",
+      "phonemes": [
+        "ɪə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "耳朵"
+    },
+    {
+      "text": "here",
+      "ipa": "/hɪə(r)/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "ɪə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "这里"
+    },
+    {
+      "text": "beer",
+      "ipa": "/bɪə(r)/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɪə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "啤酒"
+    },
+    {
+      "text": "near",
+      "ipa": "/nɪə(r)/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "ɪə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "附近"
+    },
+    {
+      "text": "clear",
+      "ipa": "/klɪə(r)/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "l",
+        "ɪə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "清楚"
+    },
+    {
+      "text": "pear",
+      "ipa": "/peə(r)/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "eə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "梨"
+    },
+    {
+      "text": "air",
+      "ipa": "/eə(r)/",
+      "letter": "a",
+      "phonemes": [
+        "eə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "空气"
+    },
+    {
+      "text": "bear",
+      "ipa": "/beə(r)/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "eə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "熊"
+    },
+    {
+      "text": "chair",
+      "ipa": "/tʃeə(r)/",
+      "letter": "c",
+      "phonemes": [
+        "tʃ",
+        "eə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "椅子"
+    },
+    {
+      "text": "where",
+      "ipa": "/weə(r)/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "eə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "哪里"
+    },
+    {
+      "text": "sure",
+      "ipa": "/ʃʊə(r)/",
+      "letter": "s",
+      "phonemes": [
+        "ʃ",
+        "ʊə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "当然"
+    },
+    {
+      "text": "tour",
+      "ipa": "/tʊə(r)/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "ʊə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "旅行"
+    },
+    {
+      "text": "poor",
+      "ipa": "/pʊə(r)/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "ʊə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "贫穷"
+    },
+    {
+      "text": "cure",
+      "ipa": "/kjʊə(r)/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "j",
+        "ʊə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "治愈"
+    },
+    {
+      "text": "pure",
+      "ipa": "/pjʊə(r)/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "j",
+        "ʊə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "纯净"
+    },
+    {
+      "text": "cap",
+      "ipa": "/kæp/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "æ",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "帽子"
+    },
+    {
+      "text": "ten",
+      "ipa": "/ten/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "e",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "十"
+    },
+    {
+      "text": "dad",
+      "ipa": "/dæd/",
+      "letter": "d",
+      "phonemes": [
+        "d",
+        "æ",
+        "d"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "爸爸"
+    },
+    {
+      "text": "fly",
+      "ipa": "/flaɪ/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "l",
+        "aɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "飞"
+    },
+    {
+      "text": "live",
+      "ipa": "/lɪv/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "ɪ",
+        "v"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "居住"
+    },
+    {
+      "text": "vest",
+      "ipa": "/vest/",
+      "letter": "v",
+      "phonemes": [
+        "v",
+        "e",
+        "s",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "背心"
+    },
+    {
+      "text": "love",
+      "ipa": "/lʌv/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "ʌ",
+        "v"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "爱"
+    },
+    {
+      "text": "six",
+      "ipa": "/sɪks/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "六"
+    },
+    {
+      "text": "rose",
+      "ipa": "/rəʊz/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "əʊ",
+        "z"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "玫瑰"
+    },
+    {
+      "text": "bags",
+      "ipa": "/bæɡz/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "æ",
+        "ɡ",
+        "z"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "包"
+    },
+    {
+      "text": "boys",
+      "ipa": "/bɔɪz/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɔɪ",
+        "z"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "男孩们"
+    },
+    {
+      "text": "thin",
+      "ipa": "/θɪn/",
+      "letter": "t",
+      "phonemes": [
+        "θ",
+        "ɪ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "瘦"
+    },
+    {
+      "text": "three",
+      "ipa": "/θriː/",
+      "letter": "t",
+      "phonemes": [
+        "θ",
+        "r",
+        "iː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "三"
+    },
+    {
+      "text": "think",
+      "ipa": "/θɪŋk/",
+      "letter": "t",
+      "phonemes": [
+        "θ",
+        "ɪ",
+        "ŋ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "思考"
+    },
+    {
+      "text": "that",
+      "ipa": "/ðæt/",
+      "letter": "t",
+      "phonemes": [
+        "ð",
+        "æ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "那个"
+    },
+    {
+      "text": "they",
+      "ipa": "/ðeɪ/",
+      "letter": "t",
+      "phonemes": [
+        "ð",
+        "eɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "他们"
+    },
+    {
+      "text": "father",
+      "ipa": "/ˈfɑːðə(r)/",
+      "letter": "f",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "爸爸"
+    },
+    {
+      "text": "ship",
+      "ipa": "/ʃɪp/",
+      "letter": "s",
+      "phonemes": [
+        "ʃ",
+        "ɪ",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "轮船"
+    },
+    {
+      "text": "sheep",
+      "ipa": "/ʃiːp/",
+      "letter": "s",
+      "phonemes": [
+        "ʃ",
+        "iː",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "绵羊"
+    },
+    {
+      "text": "pleasure",
+      "ipa": "/ˈpleʒə(r)/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "l",
+        "e",
+        "ʒ",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "快乐"
+    },
+    {
+      "text": "vision",
+      "ipa": "/ˈvɪʒn/",
+      "letter": "v",
+      "phonemes": [
+        "v",
+        "ɪ",
+        "ʒ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "视力"
+    },
+    {
+      "text": "measure",
+      "ipa": "/ˈmeʒə(r)/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "e",
+        "ʒ",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "测量"
+    },
+    {
+      "text": "happy",
+      "ipa": "/ˈhæpi/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "æ",
+        "p",
+        "ɪ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "开心"
+    },
+    {
+      "text": "hill",
+      "ipa": "/hɪl/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "ɪ",
+        "l"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小山"
+    },
+    {
+      "text": "chicken",
+      "ipa": "/ˈtʃɪkɪn/",
+      "letter": "c",
+      "phonemes": [
+        "tʃ",
+        "ɪ",
+        "k",
+        "ɪ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小鸡"
+    },
+    {
+      "text": "watch",
+      "ipa": "/wɒtʃ/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "ɒ",
+        "tʃ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "手表"
+    },
+    {
+      "text": "teach",
+      "ipa": "/tiːtʃ/",
+      "letter": "t",
+      "phonemes": [
+        "t",
+        "iː",
+        "tʃ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "教"
+    },
+    {
+      "text": "lunch",
+      "ipa": "/lʌntʃ/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "ʌ",
+        "n",
+        "tʃ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "午餐"
+    },
+    {
+      "text": "jump",
+      "ipa": "/dʒʌmp/",
+      "letter": "j",
+      "phonemes": [
+        "dʒ",
+        "ʌ",
+        "m",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "跳"
+    },
+    {
+      "text": "juice",
+      "ipa": "/dʒuːs/",
+      "letter": "j",
+      "phonemes": [
+        "dʒ",
+        "uː",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "果汁"
+    },
+    {
+      "text": "job",
+      "ipa": "/dʒɒb/",
+      "letter": "j",
+      "phonemes": [
+        "dʒ",
+        "ɒ",
+        "b"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "工作"
+    },
+    {
+      "text": "bridge",
+      "ipa": "/brɪdʒ/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "r",
+        "ɪ",
+        "dʒ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "桥"
+    },
+    {
+      "text": "train",
+      "ipa": "/treɪn/",
+      "letter": "t",
+      "phonemes": [
+        "tr",
+        "eɪ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "火车"
+    },
+    {
+      "text": "trousers",
+      "ipa": "/ˈtraʊzəz/",
+      "letter": "t",
+      "phonemes": [
+        "tr",
+        "aʊ",
+        "z",
+        "ə",
+        "z"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "裤子"
+    },
+    {
+      "text": "trip",
+      "ipa": "/trɪp/",
+      "letter": "t",
+      "phonemes": [
+        "tr",
+        "ɪ",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "旅行"
+    },
+    {
+      "text": "trap",
+      "ipa": "/træp/",
+      "letter": "t",
+      "phonemes": [
+        "tr",
+        "æ",
+        "p"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "陷阱"
+    },
+    {
+      "text": "dress",
+      "ipa": "/dres/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "e",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "连衣裙"
+    },
+    {
+      "text": "drink",
+      "ipa": "/drɪŋk/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "ɪ",
+        "ŋ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "喝"
+    },
+    {
+      "text": "dream",
+      "ipa": "/driːm/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "iː",
+        "m"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "梦"
+    },
+    {
+      "text": "drive",
+      "ipa": "/draɪv/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "aɪ",
+        "v"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "驾驶"
+    },
+    {
+      "text": "dragon",
+      "ipa": "/ˈdræɡən/",
+      "letter": "d",
+      "phonemes": [
+        "dr",
+        "æ",
+        "ɡ",
+        "ə",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "龙"
+    },
+    {
+      "text": "cats",
+      "ipa": "/kæts/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "æ",
+        "ts"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "猫"
+    },
+    {
+      "text": "hats",
+      "ipa": "/hæts/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "æ",
+        "ts"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "帽子"
+    },
+    {
+      "text": "boats",
+      "ipa": "/bəʊts/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "əʊ",
+        "ts"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小船"
+    },
+    {
+      "text": "gates",
+      "ipa": "/ɡeɪts/",
+      "letter": "g",
+      "phonemes": [
+        "ɡ",
+        "eɪ",
+        "ts"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "大门"
+    },
+    {
+      "text": "pets",
+      "ipa": "/pets/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "e",
+        "ts"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "宠物"
+    },
+    {
+      "text": "beds",
+      "ipa": "/bedz/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "e",
+        "dz"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "床"
+    },
+    {
+      "text": "hands",
+      "ipa": "/hændz/",
+      "letter": "h",
+      "phonemes": [
+        "h",
+        "æ",
+        "n",
+        "dz"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "手"
+    },
+    {
+      "text": "kids",
+      "ipa": "/kɪdz/",
+      "letter": "k",
+      "phonemes": [
+        "k",
+        "ɪ",
+        "dz"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小孩"
+    },
+    {
+      "text": "birds",
+      "ipa": "/bɜːdz/",
+      "letter": "b",
+      "phonemes": [
+        "b",
+        "ɜː",
+        "dz"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小鸟"
+    },
+    {
+      "text": "mom",
+      "ipa": "/mɒm/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "ɒ",
+        "m"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "妈妈"
+    },
+    {
+      "text": "man",
+      "ipa": "/mæn/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "æ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "男人"
+    },
+    {
+      "text": "nine",
+      "ipa": "/naɪn/",
+      "letter": "n",
+      "phonemes": [
+        "n",
+        "aɪ",
+        "n"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "九"
+    },
+    {
+      "text": "sing",
+      "ipa": "/sɪŋ/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "ŋ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "唱歌"
+    },
+    {
+      "text": "king",
+      "ipa": "/kɪŋ/",
+      "letter": "k",
+      "phonemes": [
+        "k",
+        "ɪ",
+        "ŋ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "国王"
+    },
+    {
+      "text": "song",
+      "ipa": "/sɒŋ/",
+      "letter": "s",
+      "phonemes": [
+        "s",
+        "ɒ",
+        "ŋ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "歌曲"
+    },
+    {
+      "text": "morning",
+      "ipa": "/ˈmɔːnɪŋ/",
+      "letter": "m",
+      "phonemes": [
+        "m",
+        "ɔː",
+        "n",
+        "ɪ",
+        "ŋ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "早上"
+    },
+    {
+      "text": "pink",
+      "ipa": "/pɪŋk/",
+      "letter": "p",
+      "phonemes": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "粉色"
+    },
+    {
+      "text": "leg",
+      "ipa": "/leɡ/",
+      "letter": "l",
+      "phonemes": [
+        "l",
+        "e",
+        "ɡ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "腿"
+    },
+    {
+      "text": "rice",
+      "ipa": "/raɪs/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "aɪ",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "米饭"
+    },
+    {
+      "text": "river",
+      "ipa": "/ˈrɪvə(r)/",
+      "letter": "r",
+      "phonemes": [
+        "r",
+        "ɪ",
+        "v",
+        "ə",
+        "r"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "小河"
+    },
+    {
+      "text": "we",
+      "ipa": "/wiː/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "iː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "我们"
+    },
+    {
+      "text": "white",
+      "ipa": "/waɪt/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "aɪ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "白色"
+    },
+    {
+      "text": "window",
+      "ipa": "/ˈwɪndəʊ/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "ɪ",
+        "n",
+        "d",
+        "əʊ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "窗户"
+    },
+    {
+      "text": "wait",
+      "ipa": "/weɪt/",
+      "letter": "w",
+      "phonemes": [
+        "w",
+        "eɪ",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "等待"
+    },
+    {
+      "text": "yes",
+      "ipa": "/jes/",
+      "letter": "y",
+      "phonemes": [
+        "j",
+        "e",
+        "s"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "是的"
+    },
+    {
+      "text": "you",
+      "ipa": "/juː/",
+      "letter": "y",
+      "phonemes": [
+        "j",
+        "uː"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "你"
+    },
+    {
+      "text": "young",
+      "ipa": "/jʌŋ/",
+      "letter": "y",
+      "phonemes": [
+        "j",
+        "ʌ",
+        "ŋ"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "年轻"
+    },
+    {
+      "text": "cute",
+      "ipa": "/kjuːt/",
+      "letter": "c",
+      "phonemes": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "可爱"
+    }
   ],
   "phonemes": [
-    { "symbol": "/iː/", "category": "LONG_VOWEL", "description": "舌尖抵下齿，舌前部抬高，嘴唇向两边拉开，像微笑", "tonguePosition": "舌前部抬高，靠近硬腭", "lipShape": "嘴唇向两边拉开", "commonMistakes": ["发成/ɪ/不够长", "嘴唇不够展"], "exampleWords": ["key", "tree", "queen"] },
-    { "symbol": "/ɪ/", "category": "SHORT_VOWEL", "description": "舌尖抵下齿，舌前部比/iː/略低，嘴唇放松", "tonguePosition": "舌前部半高，比/iː/略低", "lipShape": "嘴唇自然放松", "commonMistakes": ["发成/iː/", "嘴巴太紧"], "exampleWords": ["big", "pig", "fish"] },
-    { "symbol": "/e/", "category": "SHORT_VOWEL", "description": "舌尖抵下齿，舌前部中等高度，嘴巴半张", "tonguePosition": "舌前部中高位置", "lipShape": "嘴唇自然微张", "commonMistakes": ["发成/æ/嘴巴过大", "发成/eɪ/滑动"], "exampleWords": ["bed", "egg", "pen"] },
-    { "symbol": "/æ/", "category": "SHORT_VOWEL", "description": "嘴巴张大，下巴下沉，舌前部放低", "tonguePosition": "舌尖抵下齿", "lipShape": "嘴唇自然张开", "commonMistakes": ["发成/eɪ/", "嘴巴不够大"], "exampleWords": ["cat", "bat", "hat"] },
-    { "symbol": "/ʌ/", "category": "SHORT_VOWEL", "description": "嘴巴半张，舌中部微抬，短促有力", "tonguePosition": "舌头中部微抬，舌尖平放", "lipShape": "嘴唇自然微张", "commonMistakes": ["发成/ɑː/太长", "嘴巴太圆"], "exampleWords": ["cup", "duck", "sun"] },
-    { "symbol": "/ɑː/", "category": "LONG_VOWEL", "description": "嘴巴大张，舌位放低靠后，长音", "tonguePosition": "舌后部放低", "lipShape": "嘴唇大张", "commonMistakes": ["发成/ʌ/不够长", "嘴巴不够大"], "exampleWords": ["star", "bath"] },
-    { "symbol": "/ɒ/", "category": "SHORT_VOWEL", "description": "嘴巴张开，舌后部微抬，嘴唇略圆", "tonguePosition": "舌后部放低稍抬高", "lipShape": "嘴唇略圆", "commonMistakes": ["发成/ɔː/太长", "嘴巴太圆太大"], "exampleWords": ["dog", "fox", "top"] },
-    { "symbol": "/ɔː/", "category": "LONG_VOWEL", "description": "嘴唇收圆突出，舌后部抬高，长音", "tonguePosition": "舌后部抬高", "lipShape": "嘴唇收圆突出", "commonMistakes": ["发成/ɒ/不够长", "嘴唇不够圆"], "exampleWords": ["water", "all"] },
-    { "symbol": "/ʊ/", "category": "SHORT_VOWEL", "description": "嘴唇微圆，舌后部抬高，短促", "tonguePosition": "舌后部抬高靠近软腭", "lipShape": "嘴唇微圆", "commonMistakes": ["发成/uː/太长", "嘴唇太圆"], "exampleWords": [] },
-    { "symbol": "/uː/", "category": "LONG_VOWEL", "description": "嘴唇收成小圆孔，舌后部抬高，长音", "tonguePosition": "舌后部抬得很高", "lipShape": "嘴唇收成小圆孔", "commonMistakes": ["发成/ʊ/不够长", "嘴唇不够圆"], "exampleWords": ["igloo", "key"] },
-    { "symbol": "/ɜː/", "category": "LONG_VOWEL", "description": "嘴巴半张，舌中部微抬，长音", "tonguePosition": "舌头中部抬起，舌尖平放", "lipShape": "嘴唇自然微张", "commonMistakes": ["发成/ɑː/", "嘴巴太圆"], "exampleWords": ["bird", "girl"] },
-    { "symbol": "/ə/", "category": "SHORT_VOWEL", "description": "嘴巴放松微张，舌中部自然放平，最轻的声音", "tonguePosition": "舌头中部平放，完全放松", "lipShape": "嘴唇自然微张", "commonMistakes": ["发成/ʌ/太重", "不够放松"], "exampleWords": ["water", "elephant"] },
-    { "symbol": "/eɪ/", "category": "DIPHTHONG", "description": "嘴巴从半开到微闭，舌位从/e/滑向/ɪ/", "tonguePosition": "舌头从/e/滑向/ɪ/", "lipShape": "嘴唇向两边拉", "commonMistakes": ["发成/æ/不动"], "exampleWords": ["apple", "cake", "face"] },
-    { "symbol": "/aɪ/", "category": "DIPHTHONG", "description": "嘴巴从大张到微闭，舌位从/a/滑向/ɪ/", "tonguePosition": "舌头从/a/滑向/ɪ/", "lipShape": "嘴唇从张到展", "commonMistakes": ["发成单音", "嘴巴动不够"], "exampleWords": ["kite", "lion"] },
-    { "symbol": "/ɔɪ/", "category": "DIPHTHONG", "description": "嘴巴从圆到微笑，舌位从/ɔ/滑向/ɪ/", "tonguePosition": "舌头从/ɔ/滑向/ɪ/", "lipShape": "嘴唇从圆到两边拉开", "commonMistakes": ["发成单音/ɔː/"], "exampleWords": ["boy", "toy", "coin"] },
-    { "symbol": "/aʊ/", "category": "DIPHTHONG", "description": "嘴巴从张开到合拢，像被吓到", "tonguePosition": "舌头从/a/滑向/ʊ/", "lipShape": "嘴唇从自然张开逐渐收圆", "commonMistakes": ["发成/ɔː/", "嘴巴动得不够"], "exampleWords": ["cow", "house", "mouse"] },
-    { "symbol": "/əʊ/", "category": "DIPHTHONG", "description": "嘴巴从半开到微圆，舌位从/ə/滑向/ʊ/", "tonguePosition": "舌头从/ə/滑向/ʊ/", "lipShape": "嘴唇从自然到微圆", "commonMistakes": ["发成单音/oʊ/", "嘴唇不够圆"], "exampleWords": ["goat", "nose"] },
-    { "symbol": "/ɪə/", "category": "DIPHTHONG", "description": "嘴巴从微闭到微开，舌位从/ɪ/滑向/ə/", "tonguePosition": "舌头从/ɪ/滑向/ə/", "lipShape": "嘴唇自然过渡", "commonMistakes": ["发成单音/ɪ/"], "exampleWords": [] },
-    { "symbol": "/eə/", "category": "DIPHTHONG", "description": "嘴巴从半开到微开，舌位从/e/滑向/ə/", "tonguePosition": "舌头从/e/滑向/ə/", "lipShape": "嘴唇自然过渡", "commonMistakes": ["发成单音/e/"], "exampleWords": [] },
-    { "symbol": "/ʊə/", "category": "DIPHTHONG", "description": "嘴巴从微圆到微开，舌位从/ʊ/滑向/ə/", "tonguePosition": "舌头从/ʊ/滑向/ə/", "lipShape": "嘴唇从微圆到自然", "commonMistakes": ["发成单音/ʊ/"], "exampleWords": [] },
-    { "symbol": "/p/", "category": "PLOSIVE", "description": "双唇紧闭，气流冲开双唇爆破而出，不震动声带", "tonguePosition": "舌头平放", "lipShape": "双唇紧闭后突然打开", "commonMistakes": ["发成/b/不该震动", "爆破感不足"], "exampleWords": ["pig", "pen", "top"] },
-    { "symbol": "/b/", "category": "PLOSIVE", "description": "双唇紧闭，气流冲开双唇，声带震动", "tonguePosition": "舌头平放", "lipShape": "双唇紧闭后打开", "commonMistakes": ["发成/p/不够震动"], "exampleWords": ["big", "bed", "bat"] },
-    { "symbol": "/t/", "category": "PLOSIVE", "description": "舌尖紧贴上齿龈，气流爆破，不震动声带", "tonguePosition": "舌尖抵住上齿龈", "lipShape": "嘴唇微张", "commonMistakes": ["发成/d/不该震动", "舌尖位置太靠前"], "exampleWords": ["top", "tree", "cat"] },
-    { "symbol": "/d/", "category": "PLOSIVE", "description": "舌尖紧贴上齿龈，气流爆破，声带震动", "tonguePosition": "舌尖抵住上齿龈", "lipShape": "嘴唇微张", "commonMistakes": ["发成/t/没有震动", "舌尖不够用力"], "exampleWords": ["dog", "duck", "bed"] },
-    { "symbol": "/k/", "category": "PLOSIVE", "description": "舌后部抵住软腭，气流爆破，不震动声带", "tonguePosition": "舌后部抬起抵住软腭", "lipShape": "嘴唇自然张开", "commonMistakes": ["发成/ɡ/不该震动", "舌位太靠前"], "exampleWords": ["cat", "key", "kite"] },
-    { "symbol": "/ɡ/", "category": "PLOSIVE", "description": "舌后部抵住软腭，气流爆破，声带震动", "tonguePosition": "舌后部抬起抵住软腭", "lipShape": "嘴唇自然张开", "commonMistakes": ["发成/k/没有震动", "爆破感不足"], "exampleWords": ["goat", "girl", "big"] },
-    { "symbol": "/f/", "category": "FRICATIVE", "description": "下唇轻触上齿，气流从唇齿间挤出，不震动", "tonguePosition": "舌头平放", "lipShape": "下唇接触上齿", "commonMistakes": ["发成/v/不该震动"], "exampleWords": ["fish", "fox", "face"] },
-    { "symbol": "/v/", "category": "FRICATIVE", "description": "下唇轻触上齿，气流从唇齿间挤出，声带震动", "tonguePosition": "舌头平放", "lipShape": "下唇接触上齿", "commonMistakes": ["发成/f/没有震动"], "exampleWords": ["van", "television"] },
-    { "symbol": "/θ/", "category": "FRICATIVE", "description": "舌尖轻触上齿，气流从齿缝挤出，不震动", "tonguePosition": "舌尖放在上下牙齿之间", "lipShape": "嘴唇微张", "commonMistakes": ["发成/s/", "发成/f/"], "exampleWords": ["thumb", "mouth", "bath"] },
-    { "symbol": "/ð/", "category": "FRICATIVE", "description": "舌尖轻触上齿，气流从齿缝挤出，声带震动", "tonguePosition": "舌尖放在上下牙齿之间", "lipShape": "嘴唇微张", "commonMistakes": ["发成/z/", "发成/d/"], "exampleWords": ["this", "feather", "mother"] },
-    { "symbol": "/s/", "category": "FRICATIVE", "description": "舌尖靠近上齿龈，气流从缝隙挤出，不震动", "tonguePosition": "舌尖靠近上齿龈", "lipShape": "嘴唇向两边微拉", "commonMistakes": ["发成/z/不该震动", "发成/ʃ/舌位太靠后"], "exampleWords": ["sun", "star", "face"] },
-    { "symbol": "/z/", "category": "FRICATIVE", "description": "舌尖靠近上齿龈，气流从缝隙挤出，声带震动", "tonguePosition": "舌尖靠近上齿龈", "lipShape": "嘴唇向两边微拉", "commonMistakes": ["发成/s/没有震动"], "exampleWords": ["zebra", "nose"] },
-    { "symbol": "/ʃ/", "category": "FRICATIVE", "description": "舌面靠近上颚，气流从缝隙挤出，不震动", "tonguePosition": "舌面抬起靠近上颚", "lipShape": "嘴唇微圆突出", "commonMistakes": ["发成/s/舌位太靠前", "嘴唇不够圆"], "exampleWords": ["fish"] },
-    { "symbol": "/ʒ/", "category": "FRICATIVE", "description": "舌面靠近上颚，气流从缝隙挤出，声带震动", "tonguePosition": "舌面抬起靠近上颚", "lipShape": "嘴唇微圆突出", "commonMistakes": ["发成/ʃ/忘记震动"], "exampleWords": ["television"] },
-    { "symbol": "/h/", "category": "FRICATIVE", "description": "气流从声门通过，轻微摩擦，不震动声带", "tonguePosition": "舌头自然放平", "lipShape": "嘴唇自然张开", "commonMistakes": ["发成中文'喝'太重"], "exampleWords": ["hat", "hand", "house"] },
-    { "symbol": "/tʃ/", "category": "FRICATIVE", "description": "舌尖抵住上齿龈后部，气流冲破阻碍，不震动", "tonguePosition": "舌尖抵住上齿龈后部", "lipShape": "嘴唇微圆突出", "commonMistakes": ["发成/ʃ/缺少爆破感", "发成中文'吃'"], "exampleWords": [] },
-    { "symbol": "/dʒ/", "category": "FRICATIVE", "description": "舌尖抵住上齿龈后部，气流冲破阻碍，声带震动", "tonguePosition": "舌尖抵住上齿龈后部", "lipShape": "嘴唇微圆突出", "commonMistakes": ["发成/tʃ/忘记震动"], "exampleWords": ["jam"] },
-    { "symbol": "/m/", "category": "NASAL", "description": "双唇紧闭，气流从鼻腔通过，声带震动", "tonguePosition": "舌头平放", "lipShape": "双唇紧闭", "commonMistakes": ["发成/n/嘴唇没闭紧", "鼻音不够"], "exampleWords": ["monkey", "map", "mouth"] },
-    { "symbol": "/n/", "category": "NASAL", "description": "舌尖抵住上齿龈，气流从鼻腔通过，声带震动", "tonguePosition": "舌尖抵住上齿龈", "lipShape": "嘴唇微张", "commonMistakes": ["发成/m/", "发成/ŋ/舌位太靠后"], "exampleWords": ["nest", "nose", "sun"] },
-    { "symbol": "/ŋ/", "category": "NASAL", "description": "舌后部抵住软腭，气流从鼻腔通过，声带震动", "tonguePosition": "舌后部抬起抵住软腭", "lipShape": "嘴唇自然张开", "commonMistakes": ["发成/n/舌位太靠前", "发成/ɡ/不该爆破"], "exampleWords": ["ink", "monkey"] },
-    { "symbol": "/l/", "category": "CONSONANT", "description": "舌尖抵住上齿龈，气流从舌侧通过", "tonguePosition": "舌尖抵住上齿龈", "lipShape": "嘴唇微张", "commonMistakes": ["发成/r/", "舌尖没有抵住"], "exampleWords": ["lion", "lamp", "all"] },
-    { "symbol": "/r/", "category": "CONSONANT", "description": "舌尖靠近上齿龈后部，不接触，气流通过", "tonguePosition": "舌尖靠近上齿龈后部但不接触", "lipShape": "嘴唇微圆突出", "commonMistakes": ["发成/l/", "卷舌过度"], "exampleWords": ["rat", "run", "tree"] },
-    { "symbol": "/j/", "category": "CONSONANT", "description": "舌前部抬高靠近硬腭，声带震动，快速滑向后面元音", "tonguePosition": "舌前部抬高靠近硬腭", "lipShape": "嘴唇从微展到自然", "commonMistakes": ["发成/dʒ/太重"], "exampleWords": ["yellow"] },
-    { "symbol": "/w/", "category": "CONSONANT", "description": "嘴唇收圆突出，舌后部抬高，声带震动", "tonguePosition": "舌后部抬高靠近软腭", "lipShape": "嘴唇收圆突出", "commonMistakes": ["发成/v/下唇碰牙齿"], "exampleWords": ["water", "web"] },
-    { "symbol": "/tr/", "category": "CONSONANT", "description": "舌尖抵住上齿龈后部，爆破后滑向/r/，不震动", "tonguePosition": "舌尖从齿龈后部滑向/r/位", "lipShape": "嘴唇从微张到微圆", "commonMistakes": ["发成/tʃ/", "缺少/r/的圆唇"], "exampleWords": ["tree"] },
-    { "symbol": "/dr/", "category": "CONSONANT", "description": "舌尖抵住上齿龈后部，爆破后滑向/r/，声带震动", "tonguePosition": "舌尖从齿龈后部滑向/r/位", "lipShape": "嘴唇从微张到微圆", "commonMistakes": ["发成/dʒ/", "缺少/r/的圆唇"], "exampleWords": [] },
-    { "symbol": "/ts/", "category": "CONSONANT", "description": "舌尖抵住上齿龈，爆破后滑向/s/，不震动", "tonguePosition": "舌尖从齿龈位滑向/s/位", "lipShape": "嘴唇从微张到微拉", "commonMistakes": ["发成/s/缺少爆破感"], "exampleWords": [] },
-    { "symbol": "/dz/", "category": "CONSONANT", "description": "舌尖抵住上齿龈，爆破后滑向/z/，声带震动", "tonguePosition": "舌尖从齿龈位滑向/z/位", "lipShape": "嘴唇从微张到微拉", "commonMistakes": ["发成/ts/忘记震动"], "exampleWords": [] }
+    {
+      "symbol": "/iː/",
+      "category": "LONG_VOWEL",
+      "description": "舌尖抵下齿，舌前部抬高，嘴唇向两边拉开，像微笑",
+      "tonguePosition": "舌前部抬高，靠近硬腭",
+      "lipShape": "嘴唇向两边拉开",
+      "commonMistakes": [
+        "发成/ɪ/不够长",
+        "嘴唇不够展"
+      ],
+      "exampleWords": [
+        "see",
+        "tea",
+        "bee",
+        "feet",
+        "tree"
+      ],
+      "englishWordIds": [
+        "eat",
+        "green",
+        "need",
+        "sea",
+        "tree"
+      ]
+    },
+    {
+      "symbol": "/ɪ/",
+      "category": "SHORT_VOWEL",
+      "description": "舌尖抵下齿，舌前部比/iː/略低，嘴唇放松",
+      "tonguePosition": "舌前部半高，比/iː/略低",
+      "lipShape": "嘴唇自然放松",
+      "commonMistakes": [
+        "发成/iː/",
+        "嘴巴太紧"
+      ],
+      "exampleWords": [
+        "sit",
+        "big",
+        "pig",
+        "fish",
+        "milk"
+      ],
+      "englishWordIds": [
+        "big",
+        "fish",
+        "pink",
+        "six"
+      ]
+    },
+    {
+      "symbol": "/e/",
+      "category": "SHORT_VOWEL",
+      "description": "舌尖抵下齿，舌前部中等高度，嘴巴半张",
+      "tonguePosition": "舌前部中高位置",
+      "lipShape": "嘴唇自然微张",
+      "commonMistakes": [
+        "发成/æ/嘴巴过大",
+        "发成/eɪ/滑动"
+      ],
+      "exampleWords": [
+        "bed",
+        "pen",
+        "red",
+        "egg",
+        "desk"
+      ],
+      "englishWordIds": [
+        "elephant",
+        "help",
+        "red",
+        "ten"
+      ]
+    },
+    {
+      "symbol": "/æ/",
+      "category": "SHORT_VOWEL",
+      "description": "嘴巴张大，下巴下沉，舌前部放低",
+      "tonguePosition": "舌尖抵下齿",
+      "lipShape": "嘴唇自然张开",
+      "commonMistakes": [
+        "发成/eɪ/",
+        "嘴巴不够大"
+      ],
+      "exampleWords": [
+        "cat",
+        "bag",
+        "map",
+        "hat",
+        "apple"
+      ],
+      "englishWordIds": [
+        "apple",
+        "cat",
+        "dad",
+        "hand"
+      ]
+    },
+    {
+      "symbol": "/ʌ/",
+      "category": "SHORT_VOWEL",
+      "description": "嘴巴半张，舌中部微抬，短促有力",
+      "tonguePosition": "舌头中部微抬，舌尖平放",
+      "lipShape": "嘴唇自然微张",
+      "commonMistakes": [
+        "发成/ɑː/太长",
+        "嘴巴太圆"
+      ],
+      "exampleWords": [
+        "cup",
+        "bus",
+        "sun",
+        "duck",
+        "run"
+      ],
+      "englishWordIds": [
+        "brother",
+        "duck",
+        "mother",
+        "sun"
+      ]
+    },
+    {
+      "symbol": "/ɑː/",
+      "category": "LONG_VOWEL",
+      "description": "嘴巴大张，舌位放低靠后，长音",
+      "tonguePosition": "舌后部放低",
+      "lipShape": "嘴唇大张",
+      "commonMistakes": [
+        "发成/ʌ/不够长",
+        "嘴巴不够大"
+      ],
+      "exampleWords": [
+        "car",
+        "star",
+        "farm",
+        "park",
+        "glass"
+      ],
+      "englishWordIds": [
+        "arm"
+      ]
+    },
+    {
+      "symbol": "/ɒ/",
+      "category": "SHORT_VOWEL",
+      "description": "嘴巴张开，舌后部微抬，嘴唇略圆",
+      "tonguePosition": "舌后部放低稍抬高",
+      "lipShape": "嘴唇略圆",
+      "commonMistakes": [
+        "发成/ɔː/太长",
+        "嘴巴太圆太大"
+      ],
+      "exampleWords": [
+        "dog",
+        "hot",
+        "box",
+        "shop",
+        "frog"
+      ],
+      "englishWordIds": [
+        "dog",
+        "fox",
+        "orange"
+      ]
+    },
+    {
+      "symbol": "/ɔː/",
+      "category": "LONG_VOWEL",
+      "description": "嘴唇收圆突出，舌后部抬高，长音",
+      "tonguePosition": "舌后部抬高",
+      "lipShape": "嘴唇收圆突出",
+      "commonMistakes": [
+        "发成/ɒ/不够长",
+        "嘴唇不够圆"
+      ],
+      "exampleWords": [
+        "door",
+        "ball",
+        "horse",
+        "short",
+        "draw"
+      ],
+      "englishWordIds": [
+        "draw",
+        "four",
+        "tall"
+      ]
+    },
+    {
+      "symbol": "/ʊ/",
+      "category": "SHORT_VOWEL",
+      "description": "嘴唇微圆，舌后部抬高，短促",
+      "tonguePosition": "舌后部抬高靠近软腭",
+      "lipShape": "嘴唇微圆",
+      "commonMistakes": [
+        "发成/uː/太长",
+        "嘴唇太圆"
+      ],
+      "exampleWords": [
+        "book",
+        "look",
+        "good",
+        "foot",
+        "cook"
+      ],
+      "englishWordIds": [
+        "good"
+      ]
+    },
+    {
+      "symbol": "/uː/",
+      "category": "LONG_VOWEL",
+      "description": "嘴唇收成小圆孔，舌后部抬高，长音",
+      "tonguePosition": "舌后部抬得很高",
+      "lipShape": "嘴唇收成小圆孔",
+      "commonMistakes": [
+        "发成/ʊ/不够长",
+        "嘴唇不够圆"
+      ],
+      "exampleWords": [
+        "zoo",
+        "food",
+        "moon",
+        "blue",
+        "school"
+      ],
+      "englishWordIds": [
+        "blue",
+        "school",
+        "two",
+        "zoo"
+      ]
+    },
+    {
+      "symbol": "/ɜː/",
+      "category": "LONG_VOWEL",
+      "description": "嘴巴半张，舌中部微抬，长音",
+      "tonguePosition": "舌头中部抬起，舌尖平放",
+      "lipShape": "嘴唇自然微张",
+      "commonMistakes": [
+        "发成/ɑː/",
+        "嘴巴太圆"
+      ],
+      "exampleWords": [
+        "bird",
+        "girl",
+        "nurse",
+        "skirt",
+        "work"
+      ],
+      "englishWordIds": [
+        "bird"
+      ]
+    },
+    {
+      "symbol": "/ə/",
+      "category": "SHORT_VOWEL",
+      "description": "嘴巴放松微张，舌中部自然放平，最轻的声音",
+      "tonguePosition": "舌头中部平放，完全放松",
+      "lipShape": "嘴唇自然微张",
+      "commonMistakes": [
+        "发成/ʌ/太重",
+        "不够放松"
+      ],
+      "exampleWords": [
+        "teacher",
+        "ruler",
+        "about",
+        "banana",
+        "doctor"
+      ],
+      "englishWordIds": [
+        "banana",
+        "brother",
+        "father",
+        "mother",
+        "sister",
+        "water"
+      ]
+    },
+    {
+      "symbol": "/eɪ/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从半开到微闭，舌位从/e/滑向/ɪ/",
+      "tonguePosition": "舌头从/e/滑向/ɪ/",
+      "lipShape": "嘴唇向两边拉",
+      "commonMistakes": [
+        "发成/æ/不动"
+      ],
+      "exampleWords": [
+        "cake",
+        "name",
+        "day",
+        "play",
+        "rain"
+      ],
+      "englishWordIds": [
+        "baby",
+        "cake",
+        "eight",
+        "make",
+        "name",
+        "say"
+      ]
+    },
+    {
+      "symbol": "/aɪ/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从大张到微闭，舌位从/a/滑向/ɪ/",
+      "tonguePosition": "舌头从/a/滑向/ɪ/",
+      "lipShape": "嘴唇从张到展",
+      "commonMistakes": [
+        "发成单音",
+        "嘴巴动不够"
+      ],
+      "exampleWords": [
+        "bike",
+        "like",
+        "five",
+        "sky",
+        "light"
+      ],
+      "englishWordIds": [
+        "eye",
+        "five",
+        "like",
+        "nice",
+        "white"
+      ]
+    },
+    {
+      "symbol": "/ɔɪ/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从圆到微笑，舌位从/ɔ/滑向/ɪ/",
+      "tonguePosition": "舌头从/ɔ/滑向/ɪ/",
+      "lipShape": "嘴唇从圆到两边拉开",
+      "commonMistakes": [
+        "发成单音/ɔː/"
+      ],
+      "exampleWords": [
+        "boy",
+        "toy",
+        "oil",
+        "coin",
+        "noise"
+      ],
+      "englishWordIds": []
+    },
+    {
+      "symbol": "/aʊ/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从张开到合拢，像被吓到",
+      "tonguePosition": "舌头从/a/滑向/ʊ/",
+      "lipShape": "嘴唇从自然张开逐渐收圆",
+      "commonMistakes": [
+        "发成/ɔː/",
+        "嘴巴动得不够"
+      ],
+      "exampleWords": [
+        "house",
+        "now",
+        "cow",
+        "brown",
+        "mouth"
+      ],
+      "englishWordIds": [
+        "brown",
+        "mouth"
+      ]
+    },
+    {
+      "symbol": "/əʊ/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从半开到微圆，舌位从/ə/滑向/ʊ/",
+      "tonguePosition": "舌头从/ə/滑向/ʊ/",
+      "lipShape": "嘴唇从自然到微圆",
+      "commonMistakes": [
+        "发成单音/oʊ/",
+        "嘴唇不够圆"
+      ],
+      "exampleWords": [
+        "home",
+        "nose",
+        "go",
+        "boat",
+        "snow"
+      ],
+      "englishWordIds": [
+        "go",
+        "old",
+        "yellow"
+      ]
+    },
+    {
+      "symbol": "/ɪə/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从微闭到微开，舌位从/ɪ/滑向/ə/",
+      "tonguePosition": "舌头从/ɪ/滑向/ə/",
+      "lipShape": "嘴唇自然过渡",
+      "commonMistakes": [
+        "发成单音/ɪ/"
+      ],
+      "exampleWords": [
+        "ear",
+        "here",
+        "beer",
+        "near",
+        "clear"
+      ],
+      "englishWordIds": [
+        "ear"
+      ]
+    },
+    {
+      "symbol": "/eə/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从半开到微开，舌位从/e/滑向/ə/",
+      "tonguePosition": "舌头从/e/滑向/ə/",
+      "lipShape": "嘴唇自然过渡",
+      "commonMistakes": [
+        "发成单音/e/"
+      ],
+      "exampleWords": [
+        "pear",
+        "air",
+        "bear",
+        "chair",
+        "where"
+      ],
+      "englishWordIds": [
+        "air",
+        "bear"
+      ]
+    },
+    {
+      "symbol": "/ʊə/",
+      "category": "DIPHTHONG",
+      "description": "嘴巴从微圆到微开，舌位从/ʊ/滑向/ə/",
+      "tonguePosition": "舌头从/ʊ/滑向/ə/",
+      "lipShape": "嘴唇从微圆到自然",
+      "commonMistakes": [
+        "发成单音/ʊ/"
+      ],
+      "exampleWords": [
+        "sure",
+        "tour",
+        "poor",
+        "cure",
+        "pure"
+      ],
+      "englishWordIds": []
+    },
+    {
+      "symbol": "/p/",
+      "category": "PLOSIVE",
+      "description": "双唇紧闭，气流冲开双唇爆破而出，不震动声带",
+      "tonguePosition": "舌头平放",
+      "lipShape": "双唇紧闭后突然打开",
+      "commonMistakes": [
+        "发成/b/不该震动",
+        "爆破感不足"
+      ],
+      "exampleWords": [
+        "pen",
+        "cap",
+        "map",
+        "pig",
+        "cup"
+      ],
+      "englishWordIds": [
+        "apple",
+        "help",
+        "panda",
+        "pet",
+        "pink"
+      ]
+    },
+    {
+      "symbol": "/b/",
+      "category": "PLOSIVE",
+      "description": "双唇紧闭，气流冲开双唇，声带震动",
+      "tonguePosition": "舌头平放",
+      "lipShape": "双唇紧闭后打开",
+      "commonMistakes": [
+        "发成/p/不够震动"
+      ],
+      "exampleWords": [
+        "bed",
+        "bag",
+        "ball",
+        "bird",
+        "boy"
+      ],
+      "englishWordIds": [
+        "baby",
+        "banana",
+        "bear",
+        "big",
+        "bird",
+        "brown"
+      ]
+    },
+    {
+      "symbol": "/t/",
+      "category": "PLOSIVE",
+      "description": "舌尖紧贴上齿龈，气流爆破，不震动声带",
+      "tonguePosition": "舌尖抵住上齿龈",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/d/不该震动",
+        "舌尖位置太靠前"
+      ],
+      "exampleWords": [
+        "ten",
+        "cat",
+        "hat",
+        "tree",
+        "kite"
+      ],
+      "englishWordIds": [
+        "cat",
+        "eat",
+        "eight",
+        "ten",
+        "tree",
+        "two"
+      ]
+    },
+    {
+      "symbol": "/d/",
+      "category": "PLOSIVE",
+      "description": "舌尖紧贴上齿龈，气流爆破，声带震动",
+      "tonguePosition": "舌尖抵住上齿龈",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/t/没有震动",
+        "舌尖不够用力"
+      ],
+      "exampleWords": [
+        "dog",
+        "desk",
+        "dad",
+        "door",
+        "duck"
+      ],
+      "englishWordIds": [
+        "bird",
+        "dad",
+        "dog",
+        "duck",
+        "good",
+        "hand",
+        "red"
+      ]
+    },
+    {
+      "symbol": "/k/",
+      "category": "PLOSIVE",
+      "description": "舌后部抵住软腭，气流爆破，不震动声带",
+      "tonguePosition": "舌后部抬起抵住软腭",
+      "lipShape": "嘴唇自然张开",
+      "commonMistakes": [
+        "发成/ɡ/不该震动",
+        "舌位太靠前"
+      ],
+      "exampleWords": [
+        "cat",
+        "cup",
+        "car",
+        "kite",
+        "cake"
+      ],
+      "englishWordIds": [
+        "black",
+        "cake",
+        "cat",
+        "duck",
+        "like",
+        "pink",
+        "school"
+      ]
+    },
+    {
+      "symbol": "/ɡ/",
+      "category": "PLOSIVE",
+      "description": "舌后部抵住软腭，气流爆破，声带震动",
+      "tonguePosition": "舌后部抬起抵住软腭",
+      "lipShape": "嘴唇自然张开",
+      "commonMistakes": [
+        "发成/k/没有震动",
+        "爆破感不足"
+      ],
+      "exampleWords": [
+        "go",
+        "pig",
+        "bag",
+        "girl",
+        "egg"
+      ],
+      "englishWordIds": [
+        "big",
+        "dog",
+        "give",
+        "go",
+        "good",
+        "green"
+      ]
+    },
+    {
+      "symbol": "/f/",
+      "category": "FRICATIVE",
+      "description": "下唇轻触上齿，气流从唇齿间挤出，不震动",
+      "tonguePosition": "舌头平放",
+      "lipShape": "下唇接触上齿",
+      "commonMistakes": [
+        "发成/v/不该震动"
+      ],
+      "exampleWords": [
+        "fish",
+        "five",
+        "farm",
+        "foot",
+        "fly"
+      ],
+      "englishWordIds": [
+        "family",
+        "farm",
+        "father",
+        "fish",
+        "five",
+        "four",
+        "fox"
+      ]
+    },
+    {
+      "symbol": "/v/",
+      "category": "FRICATIVE",
+      "description": "下唇轻触上齿，气流从唇齿间挤出，声带震动",
+      "tonguePosition": "舌头平放",
+      "lipShape": "下唇接触上齿",
+      "commonMistakes": [
+        "发成/f/没有震动"
+      ],
+      "exampleWords": [
+        "van",
+        "five",
+        "live",
+        "vest",
+        "love"
+      ],
+      "englishWordIds": [
+        "five",
+        "give",
+        "have",
+        "seven"
+      ]
+    },
+    {
+      "symbol": "/θ/",
+      "category": "FRICATIVE",
+      "description": "舌尖轻触上齿，气流从齿缝挤出，不震动",
+      "tonguePosition": "舌尖放在上下牙齿之间",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/s/",
+        "发成/f/"
+      ],
+      "exampleWords": [
+        "thin",
+        "three",
+        "think",
+        "bath",
+        "mouth"
+      ],
+      "englishWordIds": [
+        "mouth",
+        "three"
+      ]
+    },
+    {
+      "symbol": "/ð/",
+      "category": "FRICATIVE",
+      "description": "舌尖轻触上齿，气流从齿缝挤出，声带震动",
+      "tonguePosition": "舌尖放在上下牙齿之间",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/z/",
+        "发成/d/"
+      ],
+      "exampleWords": [
+        "this",
+        "that",
+        "they",
+        "mother",
+        "father"
+      ],
+      "englishWordIds": [
+        "brother",
+        "father",
+        "mother",
+        "them"
+      ]
+    },
+    {
+      "symbol": "/s/",
+      "category": "FRICATIVE",
+      "description": "舌尖靠近上齿龈，气流从缝隙挤出，不震动",
+      "tonguePosition": "舌尖靠近上齿龈",
+      "lipShape": "嘴唇向两边微拉",
+      "commonMistakes": [
+        "发成/z/不该震动",
+        "发成/ʃ/舌位太靠后"
+      ],
+      "exampleWords": [
+        "sun",
+        "bus",
+        "six",
+        "star",
+        "glass"
+      ],
+      "englishWordIds": [
+        "school",
+        "six",
+        "small",
+        "sun"
+      ]
+    },
+    {
+      "symbol": "/z/",
+      "category": "FRICATIVE",
+      "description": "舌尖靠近上齿龈，气流从缝隙挤出，声带震动",
+      "tonguePosition": "舌尖靠近上齿龈",
+      "lipShape": "嘴唇向两边微拉",
+      "commonMistakes": [
+        "发成/s/没有震动"
+      ],
+      "exampleWords": [
+        "zoo",
+        "nose",
+        "rose",
+        "bags",
+        "boys"
+      ],
+      "englishWordIds": [
+        "zoo"
+      ]
+    },
+    {
+      "symbol": "/ʃ/",
+      "category": "FRICATIVE",
+      "description": "舌面靠近上颚，气流从缝隙挤出，不震动",
+      "tonguePosition": "舌面抬起靠近上颚",
+      "lipShape": "嘴唇微圆突出",
+      "commonMistakes": [
+        "发成/s/舌位太靠前",
+        "嘴唇不够圆"
+      ],
+      "exampleWords": [
+        "ship",
+        "fish",
+        "shop",
+        "short",
+        "sheep"
+      ],
+      "englishWordIds": [
+        "fish"
+      ]
+    },
+    {
+      "symbol": "/ʒ/",
+      "category": "FRICATIVE",
+      "description": "舌面靠近上颚，气流从缝隙挤出，声带震动",
+      "tonguePosition": "舌面抬起靠近上颚",
+      "lipShape": "嘴唇微圆突出",
+      "commonMistakes": [
+        "发成/ʃ/忘记震动"
+      ],
+      "exampleWords": [
+        "pleasure",
+        "vision",
+        "measure"
+      ],
+      "englishWordIds": []
+    },
+    {
+      "symbol": "/h/",
+      "category": "FRICATIVE",
+      "description": "气流从声门通过，轻微摩擦，不震动声带",
+      "tonguePosition": "舌头自然放平",
+      "lipShape": "嘴唇自然张开",
+      "commonMistakes": [
+        "发成中文'喝'太重"
+      ],
+      "exampleWords": [
+        "hat",
+        "hand",
+        "house",
+        "happy",
+        "hill"
+      ],
+      "englishWordIds": [
+        "hand",
+        "have",
+        "help"
+      ]
+    },
+    {
+      "symbol": "/tʃ/",
+      "category": "FRICATIVE",
+      "description": "舌尖抵住上齿龈后部，气流冲破阻碍，不震动",
+      "tonguePosition": "舌尖抵住上齿龈后部",
+      "lipShape": "嘴唇微圆突出",
+      "commonMistakes": [
+        "发成/ʃ/缺少爆破感",
+        "发成中文'吃'"
+      ],
+      "exampleWords": [
+        "chair",
+        "chicken",
+        "watch",
+        "teach",
+        "lunch"
+      ],
+      "englishWordIds": []
+    },
+    {
+      "symbol": "/dʒ/",
+      "category": "FRICATIVE",
+      "description": "舌尖抵住上齿龈后部，气流冲破阻碍，声带震动",
+      "tonguePosition": "舌尖抵住上齿龈后部",
+      "lipShape": "嘴唇微圆突出",
+      "commonMistakes": [
+        "发成/tʃ/忘记震动"
+      ],
+      "exampleWords": [
+        "jump",
+        "juice",
+        "job",
+        "orange",
+        "bridge"
+      ],
+      "englishWordIds": [
+        "orange"
+      ]
+    },
+    {
+      "symbol": "/m/",
+      "category": "NASAL",
+      "description": "双唇紧闭，气流从鼻腔通过，声带震动",
+      "tonguePosition": "舌头平放",
+      "lipShape": "双唇紧闭",
+      "commonMistakes": [
+        "发成/n/嘴唇没闭紧",
+        "鼻音不够"
+      ],
+      "exampleWords": [
+        "map",
+        "mom",
+        "milk",
+        "mouth",
+        "man"
+      ],
+      "englishWordIds": [
+        "make",
+        "mouth",
+        "name"
+      ]
+    },
+    {
+      "symbol": "/n/",
+      "category": "NASAL",
+      "description": "舌尖抵住上齿龈，气流从鼻腔通过，声带震动",
+      "tonguePosition": "舌尖抵住上齿龈",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/m/",
+        "发成/ŋ/舌位太靠后"
+      ],
+      "exampleWords": [
+        "nose",
+        "pen",
+        "sun",
+        "nine",
+        "hand"
+      ],
+      "englishWordIds": [
+        "hand",
+        "name",
+        "need",
+        "new",
+        "nine",
+        "sun"
+      ]
+    },
+    {
+      "symbol": "/ŋ/",
+      "category": "NASAL",
+      "description": "舌后部抵住软腭，气流从鼻腔通过，声带震动",
+      "tonguePosition": "舌后部抬起抵住软腭",
+      "lipShape": "嘴唇自然张开",
+      "commonMistakes": [
+        "发成/n/舌位太靠前",
+        "发成/ɡ/不该爆破"
+      ],
+      "exampleWords": [
+        "sing",
+        "king",
+        "song",
+        "morning",
+        "pink"
+      ],
+      "englishWordIds": [
+        "pink"
+      ]
+    },
+    {
+      "symbol": "/l/",
+      "category": "CONSONANT",
+      "description": "舌尖抵住上齿龈，气流从舌侧通过",
+      "tonguePosition": "舌尖抵住上齿龈",
+      "lipShape": "嘴唇微张",
+      "commonMistakes": [
+        "发成/r/",
+        "舌尖没有抵住"
+      ],
+      "exampleWords": [
+        "leg",
+        "light",
+        "like",
+        "ball",
+        "school"
+      ],
+      "englishWordIds": [
+        "apple",
+        "blue",
+        "like",
+        "school"
+      ]
+    },
+    {
+      "symbol": "/r/",
+      "category": "CONSONANT",
+      "description": "舌尖靠近上齿龈后部，不接触，气流通过",
+      "tonguePosition": "舌尖靠近上齿龈后部但不接触",
+      "lipShape": "嘴唇微圆突出",
+      "commonMistakes": [
+        "发成/l/",
+        "卷舌过度"
+      ],
+      "exampleWords": [
+        "red",
+        "rice",
+        "run",
+        "rain",
+        "river"
+      ],
+      "englishWordIds": [
+        "rabbit",
+        "red"
+      ]
+    },
+    {
+      "symbol": "/j/",
+      "category": "CONSONANT",
+      "description": "舌前部抬高靠近硬腭，声带震动，快速滑向后面元音",
+      "tonguePosition": "舌前部抬高靠近硬腭",
+      "lipShape": "嘴唇从微展到自然",
+      "commonMistakes": [
+        "发成/dʒ/太重"
+      ],
+      "exampleWords": [
+        "yes",
+        "yellow",
+        "you",
+        "young",
+        "cute"
+      ],
+      "englishWordIds": [
+        "cute",
+        "year",
+        "yellow"
+      ]
+    },
+    {
+      "symbol": "/w/",
+      "category": "CONSONANT",
+      "description": "嘴唇收圆突出，舌后部抬高，声带震动",
+      "tonguePosition": "舌后部抬高靠近软腭",
+      "lipShape": "嘴唇收圆突出",
+      "commonMistakes": [
+        "发成/v/下唇碰牙齿"
+      ],
+      "exampleWords": [
+        "we",
+        "water",
+        "white",
+        "window",
+        "wait"
+      ],
+      "englishWordIds": [
+        "water",
+        "white"
+      ]
+    },
+    {
+      "symbol": "/tr/",
+      "category": "CONSONANT",
+      "description": "舌尖抵住上齿龈后部，爆破后滑向/r/，不震动",
+      "tonguePosition": "舌尖从齿龈后部滑向/r/位",
+      "lipShape": "嘴唇从微张到微圆",
+      "commonMistakes": [
+        "发成/tʃ/",
+        "缺少/r/的圆唇"
+      ],
+      "exampleWords": [
+        "tree",
+        "train",
+        "trousers",
+        "trip",
+        "trap"
+      ],
+      "englishWordIds": [
+        "tree"
+      ]
+    },
+    {
+      "symbol": "/dr/",
+      "category": "CONSONANT",
+      "description": "舌尖抵住上齿龈后部，爆破后滑向/r/，声带震动",
+      "tonguePosition": "舌尖从齿龈后部滑向/r/位",
+      "lipShape": "嘴唇从微张到微圆",
+      "commonMistakes": [
+        "发成/dʒ/",
+        "缺少/r/的圆唇"
+      ],
+      "exampleWords": [
+        "dress",
+        "drink",
+        "dream",
+        "drive",
+        "dragon"
+      ],
+      "englishWordIds": [
+        "draw"
+      ]
+    },
+    {
+      "symbol": "/ts/",
+      "category": "CONSONANT",
+      "description": "舌尖抵住上齿龈，爆破后滑向/s/，不震动",
+      "tonguePosition": "舌尖从齿龈位滑向/s/位",
+      "lipShape": "嘴唇从微张到微拉",
+      "commonMistakes": [
+        "发成/s/缺少爆破感"
+      ],
+      "exampleWords": [
+        "cats",
+        "hats",
+        "boats",
+        "gates",
+        "pets"
+      ],
+      "englishWordIds": []
+    },
+    {
+      "symbol": "/dz/",
+      "category": "CONSONANT",
+      "description": "舌尖抵住上齿龈，爆破后滑向/z/，声带震动",
+      "tonguePosition": "舌尖从齿龈位滑向/z/位",
+      "lipShape": "嘴唇从微张到微拉",
+      "commonMistakes": [
+        "发成/ts/忘记震动"
+      ],
+      "exampleWords": [
+        "beds",
+        "bags",
+        "hands",
+        "kids",
+        "birds"
+      ],
+      "englishWordIds": []
+    }
   ]
 }

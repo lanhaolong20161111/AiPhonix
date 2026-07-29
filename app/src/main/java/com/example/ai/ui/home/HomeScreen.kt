@@ -13,6 +13,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import com.example.ai.AppContainer
+import com.example.ai.CharImageRecognition
+import com.example.ai.ChinesePractice
+import com.example.ai.EnglishLearning
 
 @Composable
 fun HomeScreen(
@@ -70,6 +73,28 @@ fun HomeScreen(
                     Column {
                         Text("语文练习", fontWeight = FontWeight.Bold, fontSize = 22.sp)
                         Text("认字 · 默写 · 词语", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // 看图识字入口
+        OutlinedCard(
+            onClick = { onNavigate(CharImageRecognition) },
+            modifier = Modifier.fillMaxWidth().height(100.dp),
+            colors = CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+            )
+        ) {
+            Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🖼️", fontSize = 40.sp)
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text("看图识字", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                        Text("汉字图片 · 左右滑动", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

@@ -2,7 +2,10 @@ package com.example.ai.ui.pronunciation
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,7 +74,14 @@ fun PronunciationScreen(
 
         when (state.step) {
             PronunciationStep.IDLE,
-            PronunciationStep.PLAYING -> IdleContent(state.word, onStart = onStartEval, onPlaySound = { viewModel.playTts() }, state = state)
+            PronunciationStep.PLAYING -> IdleContent(
+                word = state.word,
+                phonemeToPhonicsIndex = state.phonemeToPhonicsIndex,
+                onStart = onStartEval,
+                onPlaySound = { viewModel.playTts() },
+                onPlayPhoneme = { ipaPlayer.play(it) },
+                state = state,
+            )
             PronunciationStep.ASSESSING -> AssessingContent(onStop = { viewModel.stopEvaluation() })
             PronunciationStep.RESULT -> ResultContent(state.result, onRetry = { viewModel.reset() }, onBack = onBack, ipaPlayer = ipaPlayer)
         }
@@ -79,7 +89,14 @@ fun PronunciationScreen(
 }
 
 @Composable
-private fun IdleContent(word: com.example.ai.data.model.Word?, onStart: () -> Unit, onPlaySound: () -> Unit, state: PronunciationUiState) {
+private fun IdleContent(
+    word: com.example.ai.data.model.Word?,
+    phonemeToPhonicsIndex: Map<String, Int>,
+    onStart: () -> Unit,
+    onPlaySound: () -> Unit,
+    onPlayPhoneme: (String) -> Unit,  // 点击音素播放发音
+    state: PronunciationUiState,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -96,11 +113,28 @@ private fun IdleContent(word: com.example.ai.data.model.Word?, onStart: () -> Un
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
             )
-            Text(
-                text = word.ipa,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // 音素 chips（有 displayPhonemes 时显示为可点击 chip，否则显示原始 IPA）
+            if (state.displayPhonemes.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    state.displayPhonemes.forEach { ph ->
+                        val index = phonemeToPhonicsIndex[ph] ?: -1
+                        PhonemeChip(
+                            phoneme = ph,
+                            enabled = index >= 0,
+                            onClick = { if (index >= 0) onPlayPhoneme(ph) },
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = word.ipa,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = onPlaySound) {
                 Text("🔊 播放发音", fontSize = 14.sp)
@@ -200,5 +234,30 @@ fun WaveformAnimation(modifier: Modifier = Modifier) {
             path.lineTo(xf, y)
         }
         drawPath(path, color = Color(0xFF4CAF50), style = Stroke(width = 3f))
+    }
+}
+
+@Composable
+private fun PhonemeChip(
+    phoneme: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val bg = if (enabled) MaterialTheme.colorScheme.primaryContainer
+             else MaterialTheme.colorScheme.surfaceVariant
+    val fg = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
+             else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = bg,
+        modifier = Modifier
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
+    ) {
+        Text(
+            text = phoneme,
+            fontSize = 20.sp,
+            color = fg,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
     }
 }

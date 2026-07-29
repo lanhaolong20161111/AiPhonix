@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class PhonemeIndexUiState(
+    val allPhonemes: List<Phoneme> = emptyList(),
+    val phonemeIndexMap: Map<String, Int> = emptyMap(),
     val grouped: Map<PhonemeCategory, List<Phoneme>> = emptyMap(),
     val isLoading: Boolean = true,
 )
@@ -26,7 +28,13 @@ class PhonemeIndexViewModel(
         viewModelScope.launch {
             val phonemes = contentRepository.getAllPhonemes()
             val grouped = phonemes.groupBy { it.category }
-            _uiState.value = PhonemeIndexUiState(grouped = grouped, isLoading = false)
+            val indexMap = phonemes.withIndex().associate { (i, ph) -> ph.symbol to i }
+            _uiState.value = PhonemeIndexUiState(
+                allPhonemes = phonemes,
+                phonemeIndexMap = indexMap,
+                grouped = grouped,
+                isLoading = false,
+            )
         }
     }
 }

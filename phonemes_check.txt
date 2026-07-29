@@ -1,0 +1,10 @@
+apple: phonemes=[æ,p,ə,l]  ipa=/ˈæp.əl/
+tree: phonemes=[tr,iː]  ipa=/triː/
+see: phonemes=[s,iː]  ipa=/siː/
+car: phonemes=[k,ɑː,r]  ipa=/kɑː(r)/
+door: phonemes=[d,ɔː,r]  ipa=/dɔː(r)/
+ball: phonemes=[b,ɔː,l]  ipa=/bɔːl/
+nurse: phonemes=[n,ɜː,s]  ipa=/nɜːs/
+zoo: phonemes=[z,uː]  ipa=/zuː/
+jump: phonemes=[dʒ,ʌ,m,p]  ipa=/dʒʌmp/
+hands: phonemes=[h,æ,n,dz]  ipa=/hændz/

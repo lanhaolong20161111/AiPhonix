@@ -1,0 +1,38 @@
+{
+  "source_video": "https://www.bilibili.com/video/BV1co4y1Q7jm/",
+  "total_duration": 219.0,
+  "cropped_area": {
+    "x": 170,
+    "y": 120,
+    "width": 880,
+    "height": 500
+  },
+  "letters": [
+    {"letter": "A", "start": 0, "end": 12.0, "duration": 12.0},
+    {"letter": "B", "start": 12.0, "end": 20.0, "duration": 8.0},
+    {"letter": "C", "start": 20.0, "end": 26.0, "duration": 6.0},
+    {"letter": "D", "start": 26.0, "end": 33.0, "duration": 7.0},
+    {"letter": "E", "start": 33.0, "end": 40.5, "duration": 7.5},
+    {"letter": "F", "start": 40.5, "end": 47.5, "duration": 7.0},
+    {"letter": "G", "start": 47.5, "end": 54.5, "duration": 7.0},
+    {"letter": "H", "start": 54.5, "end": 61.5, "duration": 7.0},
+    {"letter": "I", "start": 61.5, "end": 68.5, "duration": 7.0},
+    {"letter": "J", "start": 68.5, "end": 77.5, "duration": 9.0},
+    {"letter": "K", "start": 77.5, "end": 86.5, "duration": 9.0},
+    {"letter": "L", "start": 86.5, "end": 93.0, "duration": 6.5},
+    {"letter": "M", "start": 93.0, "end": 102.0, "duration": 9.0},
+    {"letter": "N", "start": 102.0, "end": 110.5, "duration": 8.5},
+    {"letter": "O", "start": 110.5, "end": 118.5, "duration": 8.0},
+    {"letter": "P", "start": 118.5, "end": 128.0, "duration": 9.5},
+    {"letter": "Q", "start": 128.0, "end": 138.0, "duration": 10.0},
+    {"letter": "R", "start": 138.0, "end": 148.0, "duration": 10.0},
+    {"letter": "S", "start": 148.0, "end": 155.0, "duration": 7.0},
+    {"letter": "T", "start": 155.0, "end": 166.0, "duration": 11.0},
+    {"letter": "U", "start": 166.0, "end": 177.0, "duration": 11.0},
+    {"letter": "V", "start": 177.0, "end": 183.0, "duration": 6.0},
+    {"letter": "W", "start": 183.0, "end": 191.0, "duration": 8.0},
+    {"letter": "X", "start": 191.0, "end": 200.0, "duration": 9.0},
+    {"letter": "Y", "start": 201.0, "end": 209.0, "duration": 8.0},
+    {"letter": "Z", "start": 210.0, "end": 218.0, "duration": 8.0}
+  ]
+}

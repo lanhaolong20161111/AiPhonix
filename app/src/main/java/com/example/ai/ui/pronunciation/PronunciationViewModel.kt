@@ -18,6 +18,10 @@ data class PronunciationUiState(
     val step: PronunciationStep = PronunciationStep.IDLE,
     val result: PronunciationResult? = null,
     val error: String? = null,
+    /** 合并辅音连缀后的音素列表（如 t+r → tr），用于 UI 显示 */
+    val displayPhonemes: List<String> = emptyList(),
+    /** 每个展示音素对应的 Phonics 页面 index（-1 表示未找到） */
+    val phonemeToPhonicsIndex: Map<String, Int> = emptyMap(),
 )
 
 enum class PronunciationStep {
@@ -39,12 +43,100 @@ class PronunciationViewModel(
     fun loadWord(wordId: String) {
         viewModelScope.launch {
             _uiState.update { PronunciationUiState() }
-            val word = contentRepository.getAllWords().find { it.text == wordId }
-            _uiState.update { it.copy(word = word) }
-            if (word != null) {
-                // 不再自动播放 TTS，由用户点击按钮触发
+            // 先从词库找
+            var word = contentRepository.getAllWords().find { it.text == wordId }
+            if (word == null) {
+                // 再从三年级英语词汇降级查找
+                val ew = contentRepository.getAllEnglishWords().find { it.word == wordId }
+                if (ew != null) {
+                    word = Word(
+                        text = ew.word,
+                        ipa = ew.phonetic,
+                        letter = ew.firstLetter,
+                        phonemes = emptyList(),
+                        emoji = null,
+                        difficulty = 1,
+                    )
+                }
+            }
+            // 构建音素→Phonics index 映射
+            val allPhonemes = contentRepository.getAllPhonemes()
+            val phonemeToIndex = mutableMapOf<String, Int>()
+            allPhonemes.forEachIndexed { i, ph ->
+                phonemeToIndex[ph.symbol.trim('/')] = i
+            }
+            // 合并辅音连缀（如 t+r→tr）
+            val wordPhonemes = word?.phonemes ?: emptyList()
+            val mergedPhonemes = mergeBlends(wordPhonemes)
+            // 每个展示音素找 Phonics index：优先查合并后的音素，找不到再用首个原始音素
+            val resultMap = mutableMapOf<String, Int>()
+            var j = 0
+            for (merged in mergedPhonemes) {
+                val len = blendedLength(merged)  // 由几个原始音素合并而成
+                val firstOrig = wordPhonemes.getOrNull(j) ?: ""
+                val idx = if (len > 1) {
+                    // 合并后的音素本身可能在音素表里（如 tr→/tr/），优先用这个
+                    phonemeToIndex[merged] ?: -1
+                } else {
+                    phonemeToIndex[firstOrig] ?: -1
+                }
+                resultMap[merged] = idx
+                j += len
+            }
+            _uiState.update {
+                it.copy(
+                    word = word,
+                    displayPhonemes = mergedPhonemes,
+                    phonemeToPhonicsIndex = resultMap,
+                )
             }
         }
+    }
+
+    companion object {
+        // 常见双字母辅音连缀
+        private val BLENDS_2 = setOf(
+            "tr", "dr", "pr", "br", "cr", "gr", "fr",
+            "pl", "bl", "cl", "gl", "fl", "sl",
+            "sc", "sk", "sm", "sn", "sp", "st", "sw", "tw",
+            "dw", "gw", "kw", "wh",
+        )
+        // 三字母连缀
+        private val BLENDS_3 = setOf(
+            "str", "spr", "scr", "spl", "squ", "thr", "shr",
+        )
+    }
+
+    /** 合并已知辅音连缀 */
+    private fun mergeBlends(phonemes: List<String>): List<String> {
+        val result = mutableListOf<String>()
+        var i = 0
+        while (i < phonemes.size) {
+            when {
+                i + 2 < phonemes.size &&
+                    (phonemes[i] + phonemes[i + 1] + phonemes[i + 2]) in BLENDS_3 -> {
+                    result.add(phonemes[i] + phonemes[i + 1] + phonemes[i + 2])
+                    i += 3
+                }
+                i + 1 < phonemes.size &&
+                    (phonemes[i] + phonemes[i + 1]) in BLENDS_2 -> {
+                    result.add(phonemes[i] + phonemes[i + 1])
+                    i += 2
+                }
+                else -> {
+                    result.add(phonemes[i])
+                    i += 1
+                }
+            }
+        }
+        return result
+    }
+
+    /** 返回合并后的音素由几个原始音素组成 */
+    private fun blendedLength(blended: String): Int = when {
+        blended in BLENDS_3 -> 3
+        blended in BLENDS_2 -> 2
+        else -> 1
     }
 
     fun playTts() {
@@ -57,6 +149,17 @@ class PronunciationViewModel(
                 Log.w("PronVm", "TTS 播放异常: ${e.message}")
             } finally {
                 _uiState.update { it.copy(step = PronunciationStep.IDLE) }
+            }
+        }
+    }
+
+    /** 播放单个音素的发音 */
+    fun playPhonemeSound(phoneme: String) {
+        viewModelScope.launch {
+            try {
+                ttsEngine.speak(phoneme)
+            } catch (e: Exception) {
+                Log.w("PronVm", "音素发音播放异常: ${e.message}")
             }
         }
     }

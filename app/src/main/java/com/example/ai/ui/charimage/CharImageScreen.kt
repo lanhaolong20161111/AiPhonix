@@ -1,0 +1,453 @@
+package com.example.ai.ui.charimage
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun CharImageScreen(
+    viewModel: CharImageViewModel,
+    onBack: () -> Unit,
+    onPlayTts: ((String) -> Unit)? = null,
+) {
+    val state by viewModel.uiState.collectAsState()
+    val showHint = remember { kotlinx.coroutines.flow.MutableStateFlow(true) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // 收集反馈提交结果
+    LaunchedEffect(Unit) {
+        viewModel.feedbackResult.collect { msg ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = if (msg == "ok") "已记录" else msg,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
+
+    // 录音结果提示
+    LaunchedEffect(Unit) {
+        viewModel.audioResult.collect { msg ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = msg,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(state.title) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            when {
+                state.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(12.dp))
+                            Text("加载汉字图片…", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+
+                state.error != null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("加载失败", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                            Spacer(Modifier.height(8.dp))
+                            Text(state.error!!, style = MaterialTheme.typography.bodySmall)
+                            Spacer(Modifier.height(16.dp))
+                            Text("下拉刷新重试", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+
+                state.items.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("暂无图片", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+
+                else -> {
+                    val pagerState = rememberPagerState(
+                        initialPage = state.currentIndex,
+                        pageCount = { state.items.size },
+                    )
+
+                    LaunchedEffect(pagerState.currentPage) {
+                        viewModel.setCurrentIndex(pagerState.currentPage)
+                    }
+
+                    // 滑动提示
+                    LaunchedEffect(Unit) {
+                        delay(3000)
+                        showHint.value = false
+                    }
+
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                    ) { page ->
+                        val item = state.items[page]
+                        CharImagePage(item = item, viewModel = viewModel, onPlayTts = onPlayTts)
+                    }
+
+                    // 页码指示器 + 滑动提示
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // 滑动提示
+                            AnimatedVisibility(
+                                visible = showHint.value,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                            ) {
+                                Text(
+                                    "← 左右滑动切换 →",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(bottom = 4.dp),
+                                )
+                            }
+
+                            // 页码
+                            Text(
+                                "${pagerState.currentPage + 1} / ${state.items.size}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 16.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, onPlayTts: ((String) -> Unit)? = null) {
+    var learningStatus by remember { mutableStateOf<String?>(null) }
+    var needsRegen by remember { mutableStateOf(false) }
+    val soeState by viewModel.soeState.collectAsState()
+    val isEnglish = item.type == "英词" || item.type == "英句"
+    val isRecording = soeState is CharImageViewModel.SoeState.Recording &&
+            (soeState as CharImageViewModel.SoeState.Recording).text == item.char
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+    ) {
+        // 汉字/词语
+        Text(
+            text = item.char,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 3.sp,
+            ),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+
+        // 图片
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth(0.75f)
+                .aspectRatio(1f),
+        ) {
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = item.char,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Fit,
+            )
+        }
+
+        Spacer(Modifier.height(6.dp))
+
+        // 来源
+        val typeLabel = when (item.type) {
+            "认" -> "识字表"
+            "写" -> "写字表"
+            "词" -> "词语表"
+            "英词" -> "英语词汇表"
+            "英句" -> "英语句子表"
+            else -> item.type
+        }
+        val gradeLabel = when (item.grade to item.semester) {
+            "二年级" to "上" -> "二年级上册"
+            "二年级" to "下" -> "二年级下册"
+            "三年级" to "上" -> "三年级上册"
+            "三年级" to "下" -> "三年级下册"
+            else -> "${item.grade}${item.semester}"
+        }
+        Text(
+            text = "来自$gradeLabel · $typeLabel",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        // 功能按钮：中文=录音/播放，英语=TTS/SOE
+        Spacer(Modifier.height(8.dp))
+        if (isEnglish) {
+            // 英语：TTS 朗读 + SOE 跟读
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                TextButton(onClick = { onPlayTts?.invoke(item.char) },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                    Text("\uD83D\uDD0A", fontSize = 18.sp)
+                    Spacer(Modifier.width(4.dp)); Text("朗读", fontSize = 12.sp)
+                }
+                Spacer(Modifier.width(16.dp))
+                TextButton(onClick = {
+                    if (isRecording) viewModel.stopSoe() else viewModel.startSoe(item.char)
+                }, contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
+                    Text(if (isRecording) "\uD83D\uDD34" else "\uD83C\uDF99\uFE0F", fontSize = 18.sp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (isRecording) "录音中…" else "跟读", fontSize = 12.sp,
+                        color = if (isRecording) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            // SOE 结果
+            if (soeState is CharImageViewModel.SoeState.Done &&
+                (soeState as CharImageViewModel.SoeState.Done).text == item.char)
+                Text("测评得分: ${(soeState as CharImageViewModel.SoeState.Done).score}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if ((soeState as CharImageViewModel.SoeState.Done).score >= 80)
+                            MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+            if (soeState is CharImageViewModel.SoeState.Error &&
+                (soeState as CharImageViewModel.SoeState.Error).text == item.char)
+                Text("测评失败", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error)
+        } else {
+            // 中文：录音 + 播放
+            val isRec = viewModel.recordingChar == item.char
+            val isPla = viewModel.playingChar.collectAsState().value == item.char
+            val hasAudio = viewModel.hasAudio(item.char)
+
+            // 当前页进入时检测是否有录音
+            LaunchedEffect(item.char) { viewModel.checkAudioExists(item.char) }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                // 麦克风（录音）
+                TextButton(onClick = { viewModel.toggleRecord(item.char) },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    enabled = !isPla) {
+                    Text(if (isRec) "\uD83D\uDD34" else "\uD83C\uDFA4", fontSize = 18.sp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (isRec) "停止" else "录音", fontSize = 12.sp,
+                        color = if (isRec) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(16.dp))
+                // 喇叭（播放）
+                TextButton(onClick = { viewModel.togglePlayback(item.char) },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    enabled = hasAudio && !isRec) {
+                    Text(if (isPla) "\u23F8\uFE0F" else "\uD83D\uDD0A", fontSize = 18.sp,
+                        modifier = Modifier.alpha(if (hasAudio || isPla) 1f else 0.4f))
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (isPla) "暂停" else "播放", fontSize = 12.sp,
+                        color = if (hasAudio || isPla) MaterialTheme.colorScheme.onSurfaceVariant
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // 第一行：学习状态 ✓ × ? + 重新配图
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 学习状态按钮
+            TextButton(
+                onClick = { learningStatus = if (learningStatus == "correct") null else "correct" },
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    if (learningStatus == "correct") "✓" else "✓",
+                    fontSize = 13.sp,
+                    color = if (learningStatus == "correct")
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
+            }
+            TextButton(
+                onClick = { learningStatus = if (learningStatus == "wrong") null else "wrong" },
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    "×",
+                    fontSize = 13.sp,
+                    color = if (learningStatus == "wrong")
+                        MaterialTheme.colorScheme.error
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
+            }
+            TextButton(
+                onClick = { learningStatus = if (learningStatus == "unsure") null else "unsure" },
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    "?",
+                    fontSize = 13.sp,
+                    color = if (learningStatus == "unsure")
+                        MaterialTheme.colorScheme.tertiary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // 重新配图
+            TextButton(
+                onClick = { needsRegen = !needsRegen },
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+            ) {
+                Text(
+                    "重新配图",
+                    fontSize = 12.sp,
+                    color = if (needsRegen)
+                        MaterialTheme.colorScheme.error
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                )
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+
+        // 第二行：提交按钮
+        val hasFeedback = learningStatus != null || needsRegen
+        if (hasFeedback) {
+            androidx.compose.material3.FilledTonalButton(
+                onClick = {
+                    viewModel.submitFeedback(
+                        char = item.char, grade = item.grade,
+                        semester = item.semester, type_ = item.type,
+                        learningStatus = learningStatus,
+                        needsRegen = needsRegen,
+                    )
+                    learningStatus = null
+                    needsRegen = false
+                },
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
+            ) {
+                Text("提交", fontSize = 13.sp)
+            }
+        }
+    }
+}

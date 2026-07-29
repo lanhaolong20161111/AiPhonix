@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ai.AppContainer
+import com.example.ai.Phonics
 import com.example.ai.data.audio.IpaAudioPlayer
 import com.example.ai.data.model.Phoneme
 import com.example.ai.data.model.PhonemeCategory
@@ -64,7 +65,10 @@ fun PhonemeIndexScreen(
                     PhonemeGrid(
                         phonemes = phonemes,
                         onPlay = { player.play(it.symbol) },
-                        onClick = { /* 将来可导航到详情页 */ },
+                        onClick = { ph ->
+                            val index = state.phonemeIndexMap[ph.symbol] ?: -1
+                            if (index >= 0) onNavigate(Phonics(phonemeIndex = index))
+                        },
                     )
                 }
             }

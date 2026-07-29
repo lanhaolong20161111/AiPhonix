@@ -46,7 +46,7 @@ fun EnglishLearningScreen(
 
             // 26个英文字母
             OutlinedCard(
-                onClick = { onNavigate(com.example.ai.Letter("a")) },
+                onClick = { onNavigate(com.example.ai.LetterIndex) },
                 modifier = Modifier.fillMaxWidth().height(100.dp),
             ) {
                 Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
@@ -65,7 +65,7 @@ fun EnglishLearningScreen(
 
             // 练拼读
             OutlinedCard(
-                onClick = { onNavigate(com.example.ai.Phonics) },
+                onClick = { onNavigate(com.example.ai.Phonics(phonemeIndex = 0)) },
                 modifier = Modifier.fillMaxWidth().height(100.dp),
             ) {
                 Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {

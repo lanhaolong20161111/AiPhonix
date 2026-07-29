@@ -1,0 +1,3504 @@
+{
+  "version": "1.0",
+  "description": "英文字母手写笔顺数据（标准手写体）",
+  "coordinate_system": {
+    "origin": "top-left",
+    "x_range": [
+      0,
+      1
+    ],
+    "y_range": [
+      0,
+      1
+    ],
+    "uppercase": {
+      "cap_top": 0.0,
+      "baseline": 0.85
+    },
+    "lowercase": {
+      "ascender": 0.0,
+      "x_height": 0.5,
+      "baseline": 0.85,
+      "descender": 1.0
+    }
+  },
+  "stroke_types": {
+    "line": "直线 — 用两个端点定义",
+    "curve": "曲线 — 所有点平滑连接"
+  },
+  "letters": [
+    {
+      "letter": "A",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.2,
+              "y": 0.85
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.8,
+              "y": 0.85
+            }
+          ],
+          "label": "右斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.28,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.5
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/eɪ/",
+        "example": "apple"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "B",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.7,
+              "y": 0.15
+            },
+            {
+              "x": 0.7,
+              "y": 0.35
+            },
+            {
+              "x": 0.25,
+              "y": 0.42
+            }
+          ],
+          "label": "上半圆",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 3,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.42
+            },
+            {
+              "x": 0.72,
+              "y": 0.52
+            },
+            {
+              "x": 0.72,
+              "y": 0.72
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "下半圆",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/biː/",
+        "example": "ball"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "C",
+      "case": "uppercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.7,
+              "y": 0.02
+            },
+            {
+              "x": 0.22,
+              "y": 0.1
+            },
+            {
+              "x": 0.18,
+              "y": 0.45
+            },
+            {
+              "x": 0.22,
+              "y": 0.78
+            },
+            {
+              "x": 0.7,
+              "y": 0.83
+            }
+          ],
+          "label": "圆弧",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/siː/",
+        "example": "cat"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "D",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.72,
+              "y": 0.12
+            },
+            {
+              "x": 0.78,
+              "y": 0.45
+            },
+            {
+              "x": 0.72,
+              "y": 0.75
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "圆弧",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/diː/",
+        "example": "dog"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "E",
+      "case": "uppercase",
+      "stroke_count": 4,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.78,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.42
+            },
+            {
+              "x": 0.65,
+              "y": 0.42
+            }
+          ],
+          "label": "中横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 4,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.85
+            },
+            {
+              "x": 0.78,
+              "y": 0.85
+            }
+          ],
+          "label": "下横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/iː/",
+        "example": "egg"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "F",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.78,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.42
+            },
+            {
+              "x": 0.65,
+              "y": 0.42
+            }
+          ],
+          "label": "中横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛf/",
+        "example": "fish"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "G",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.72,
+              "y": 0.02
+            },
+            {
+              "x": 0.22,
+              "y": 0.1
+            },
+            {
+              "x": 0.18,
+              "y": 0.45
+            },
+            {
+              "x": 0.22,
+              "y": 0.78
+            },
+            {
+              "x": 0.68,
+              "y": 0.83
+            }
+          ],
+          "label": "圆弧",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.5
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/dʒiː/",
+        "example": "girl"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "H",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.0
+            },
+            {
+              "x": 0.2,
+              "y": 0.85
+            }
+          ],
+          "label": "左竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.8,
+              "y": 0.0
+            },
+            {
+              "x": 0.8,
+              "y": 0.85
+            }
+          ],
+          "label": "右竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.42
+            },
+            {
+              "x": 0.8,
+              "y": 0.42
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/eɪtʃ/",
+        "example": "hat"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "I",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.35,
+              "y": 0.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.35,
+              "y": 0.85
+            },
+            {
+              "x": 0.65,
+              "y": 0.85
+            }
+          ],
+          "label": "下横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/aɪ/",
+        "example": "ice"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "J",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.65
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.65
+            },
+            {
+              "x": 0.42,
+              "y": 0.78
+            },
+            {
+              "x": 0.25,
+              "y": 0.78
+            }
+          ],
+          "label": "弯钩",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.35,
+              "y": 0.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/dʒeɪ/",
+        "example": "jump"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "K",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.42
+            },
+            {
+              "x": 0.78,
+              "y": 0.0
+            }
+          ],
+          "label": "上斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.42
+            },
+            {
+              "x": 0.78,
+              "y": 0.85
+            }
+          ],
+          "label": "下斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/keɪ/",
+        "example": "kite"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "L",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.85
+            },
+            {
+              "x": 0.78,
+              "y": 0.85
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛl/",
+        "example": "lion"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "M",
+      "case": "uppercase",
+      "stroke_count": 4,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.85
+            },
+            {
+              "x": 0.15,
+              "y": 0.0
+            }
+          ],
+          "label": "左竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.65
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.65
+            },
+            {
+              "x": 0.85,
+              "y": 0.0
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        },
+        {
+          "order": 4,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.85,
+              "y": 0.0
+            },
+            {
+              "x": 0.85,
+              "y": 0.85
+            }
+          ],
+          "label": "右竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛm/",
+        "example": "monkey"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "N",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.85
+            },
+            {
+              "x": 0.2,
+              "y": 0.0
+            }
+          ],
+          "label": "左竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.0
+            },
+            {
+              "x": 0.8,
+              "y": 0.85
+            }
+          ],
+          "label": "斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.8,
+              "y": 0.85
+            },
+            {
+              "x": 0.8,
+              "y": 0.0
+            }
+          ],
+          "label": "右竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛn/",
+        "example": "nose"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "O",
+      "case": "uppercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.8,
+              "y": 0.1
+            },
+            {
+              "x": 0.85,
+              "y": 0.42
+            },
+            {
+              "x": 0.8,
+              "y": 0.75
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.2,
+              "y": 0.75
+            },
+            {
+              "x": 0.15,
+              "y": 0.42
+            },
+            {
+              "x": 0.2,
+              "y": 0.1
+            },
+            {
+              "x": 0.5,
+              "y": 0.0
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        }
+      ],
+      "phonics": {
+        "sound": "/əʊ/",
+        "example": "orange"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "P",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.72,
+              "y": 0.08
+            },
+            {
+              "x": 0.78,
+              "y": 0.28
+            },
+            {
+              "x": 0.68,
+              "y": 0.45
+            },
+            {
+              "x": 0.25,
+              "y": 0.42
+            }
+          ],
+          "label": "半圆",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/piː/",
+        "example": "pig"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "Q",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.8,
+              "y": 0.12
+            },
+            {
+              "x": 0.85,
+              "y": 0.45
+            },
+            {
+              "x": 0.78,
+              "y": 0.78
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.22,
+              "y": 0.78
+            },
+            {
+              "x": 0.15,
+              "y": 0.45
+            },
+            {
+              "x": 0.2,
+              "y": 0.12
+            },
+            {
+              "x": 0.5,
+              "y": 0.0
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.65
+            },
+            {
+              "x": 0.85,
+              "y": 0.8
+            }
+          ],
+          "label": "尾巴",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/kjuː/",
+        "example": "queen"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "R",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.25,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.0
+            },
+            {
+              "x": 0.72,
+              "y": 0.08
+            },
+            {
+              "x": 0.78,
+              "y": 0.28
+            },
+            {
+              "x": 0.68,
+              "y": 0.45
+            },
+            {
+              "x": 0.25,
+              "y": 0.42
+            }
+          ],
+          "label": "半圆",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.42
+            },
+            {
+              "x": 0.78,
+              "y": 0.85
+            }
+          ],
+          "label": "斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɑː/",
+        "example": "rabbit"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "S",
+      "case": "uppercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.72,
+              "y": 0.1
+            },
+            {
+              "x": 0.3,
+              "y": 0.12
+            },
+            {
+              "x": 0.22,
+              "y": 0.35
+            },
+            {
+              "x": 0.3,
+              "y": 0.52
+            },
+            {
+              "x": 0.7,
+              "y": 0.6
+            },
+            {
+              "x": 0.78,
+              "y": 0.78
+            },
+            {
+              "x": 0.6,
+              "y": 0.85
+            },
+            {
+              "x": 0.25,
+              "y": 0.82
+            }
+          ],
+          "label": "S形",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛs/",
+        "example": "sun"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "T",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.0
+            },
+            {
+              "x": 0.85,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/tiː/",
+        "example": "tree"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "U",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.0
+            },
+            {
+              "x": 0.2,
+              "y": 0.6
+            }
+          ],
+          "label": "左竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.6
+            },
+            {
+              "x": 0.22,
+              "y": 0.75
+            },
+            {
+              "x": 0.5,
+              "y": 0.82
+            },
+            {
+              "x": 0.78,
+              "y": 0.75
+            },
+            {
+              "x": 0.8,
+              "y": 0.6
+            }
+          ],
+          "label": "底部弧线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.8,
+              "y": 0.6
+            },
+            {
+              "x": 0.8,
+              "y": 0.0
+            }
+          ],
+          "label": "右竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ʌ/",
+        "example": "umbrella"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "V",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.82
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.82
+            },
+            {
+              "x": 0.85,
+              "y": 0.0
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/viː/",
+        "example": "violin"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "W",
+      "case": "uppercase",
+      "stroke_count": 4,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.12,
+              "y": 0.0
+            },
+            {
+              "x": 0.35,
+              "y": 0.85
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.35,
+              "y": 0.85
+            },
+            {
+              "x": 0.5,
+              "y": 0.0
+            }
+          ],
+          "label": "右上斜线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.85
+            }
+          ],
+          "label": "右下斜线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 4,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.85
+            },
+            {
+              "x": 0.88,
+              "y": 0.0
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ˈdʌbəl juː/",
+        "example": "water"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "X",
+      "case": "uppercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.18,
+              "y": 0.0
+            },
+            {
+              "x": 0.82,
+              "y": 0.85
+            }
+          ],
+          "label": "右斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.82,
+              "y": 0.0
+            },
+            {
+              "x": 0.18,
+              "y": 0.85
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛks/",
+        "example": "fox"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "Y",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.42
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.8,
+              "y": 0.0
+            },
+            {
+              "x": 0.5,
+              "y": 0.42
+            }
+          ],
+          "label": "右斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.42
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/waɪ/",
+        "example": "yellow"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "Z",
+      "case": "uppercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.0
+            },
+            {
+              "x": 0.85,
+              "y": 0.0
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.85,
+              "y": 0.0
+            },
+            {
+              "x": 0.15,
+              "y": 0.85
+            }
+          ],
+          "label": "斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.85
+            },
+            {
+              "x": 0.85,
+              "y": 0.85
+            }
+          ],
+          "label": "下横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ziː/",
+        "example": "zebra"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "a",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.55,
+              "y": 0.5
+            },
+            {
+              "x": 0.65,
+              "y": 0.58
+            },
+            {
+              "x": 0.65,
+              "y": 0.72
+            },
+            {
+              "x": 0.55,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.2,
+              "y": 0.72
+            },
+            {
+              "x": 0.2,
+              "y": 0.6
+            },
+            {
+              "x": 0.3,
+              "y": 0.5
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.5,
+              "y": 0.5
+            },
+            {
+              "x": 0.55,
+              "y": 0.58
+            },
+            {
+              "x": 0.55,
+              "y": 0.82
+            }
+          ],
+          "label": "右边竖线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/æ/",
+        "example": "ant"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "b",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.0
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.6,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.6
+            },
+            {
+              "x": 0.72,
+              "y": 0.75
+            },
+            {
+              "x": 0.6,
+              "y": 0.85
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            }
+          ],
+          "label": "圆圈",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/biː/",
+        "example": "ball"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "c",
+      "case": "lowercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.5
+            },
+            {
+              "x": 0.25,
+              "y": 0.55
+            },
+            {
+              "x": 0.2,
+              "y": 0.7
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.65,
+              "y": 0.8
+            }
+          ],
+          "label": "圆弧",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/siː/",
+        "example": "cat"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "d",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.35,
+              "y": 0.5
+            },
+            {
+              "x": 0.65,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.6
+            },
+            {
+              "x": 0.75,
+              "y": 0.75
+            },
+            {
+              "x": 0.65,
+              "y": 0.85
+            },
+            {
+              "x": 0.35,
+              "y": 0.82
+            },
+            {
+              "x": 0.25,
+              "y": 0.72
+            },
+            {
+              "x": 0.25,
+              "y": 0.6
+            },
+            {
+              "x": 0.35,
+              "y": 0.5
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.82
+            },
+            {
+              "x": 0.65,
+              "y": 0.0
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/diː/",
+        "example": "dog"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "e",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.65
+            },
+            {
+              "x": 0.65,
+              "y": 0.65
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.65
+            },
+            {
+              "x": 0.65,
+              "y": 0.72
+            },
+            {
+              "x": 0.55,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.2,
+              "y": 0.72
+            },
+            {
+              "x": 0.22,
+              "y": 0.55
+            },
+            {
+              "x": 0.35,
+              "y": 0.5
+            },
+            {
+              "x": 0.6,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.55
+            }
+          ],
+          "label": "弧线",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        }
+      ],
+      "phonics": {
+        "sound": "/e/",
+        "example": "elephant"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "f",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.5,
+              "y": 0.08
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.08
+            },
+            {
+              "x": 0.28,
+              "y": 0.12
+            },
+            {
+              "x": 0.2,
+              "y": 0.25
+            }
+          ],
+          "label": "上弯",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.42
+            },
+            {
+              "x": 0.75,
+              "y": 0.42
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛf/",
+        "example": "fish"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "g",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.6,
+              "y": 0.5
+            },
+            {
+              "x": 0.7,
+              "y": 0.58
+            },
+            {
+              "x": 0.7,
+              "y": 0.7
+            },
+            {
+              "x": 0.6,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.2,
+              "y": 0.72
+            },
+            {
+              "x": 0.2,
+              "y": 0.58
+            },
+            {
+              "x": 0.3,
+              "y": 0.5
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.95
+            },
+            {
+              "x": 0.5,
+              "y": 1.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.95
+            }
+          ],
+          "label": "下尾巴",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/dʒiː/",
+        "example": "girl"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "h",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.82
+            },
+            {
+              "x": 0.25,
+              "y": 0.0
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.5
+            },
+            {
+              "x": 0.55,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.58
+            },
+            {
+              "x": 0.75,
+              "y": 0.72
+            },
+            {
+              "x": 0.72,
+              "y": 0.82
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.25,
+              "y": 0.82
+            }
+          ],
+          "label": "拱形",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/eɪtʃ/",
+        "example": "hat"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "i",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.45,
+              "y": 0.5
+            },
+            {
+              "x": 0.45,
+              "y": 0.82
+            }
+          ],
+          "label": "竖线",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.48,
+              "y": 0.35
+            },
+            {
+              "x": 0.48,
+              "y": 0.28
+            }
+          ],
+          "label": "点",
+          "direction": "dot",
+          "voice_hint": "点一个点"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɪ/",
+        "example": "insect"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "j",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.45,
+              "y": 0.5
+            },
+            {
+              "x": 0.45,
+              "y": 0.82
+            },
+            {
+              "x": 0.45,
+              "y": 0.92
+            },
+            {
+              "x": 0.38,
+              "y": 0.98
+            },
+            {
+              "x": 0.3,
+              "y": 0.95
+            }
+          ],
+          "label": "竖线+下尾巴",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.48,
+              "y": 0.35
+            },
+            {
+              "x": 0.48,
+              "y": 0.28
+            }
+          ],
+          "label": "点",
+          "direction": "dot",
+          "voice_hint": "点一个点"
+        }
+      ],
+      "phonics": {
+        "sound": "/dʒeɪ/",
+        "example": "jump"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "k",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.25,
+              "y": 0.82
+            },
+            {
+              "x": 0.25,
+              "y": 0.0
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.3
+            }
+          ],
+          "label": "上斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.8
+            }
+          ],
+          "label": "下斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/keɪ/",
+        "example": "kite"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "l",
+      "case": "lowercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.42,
+              "y": 0.82
+            },
+            {
+              "x": 0.42,
+              "y": 0.0
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛl/",
+        "example": "lion"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "m",
+      "case": "lowercase",
+      "stroke_count": 4,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.82
+            },
+            {
+              "x": 0.15,
+              "y": 0.5
+            }
+          ],
+          "label": "左竖",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.15,
+              "y": 0.5
+            },
+            {
+              "x": 0.35,
+              "y": 0.5
+            },
+            {
+              "x": 0.48,
+              "y": 0.55
+            },
+            {
+              "x": 0.48,
+              "y": 0.72
+            },
+            {
+              "x": 0.38,
+              "y": 0.82
+            },
+            {
+              "x": 0.15,
+              "y": 0.82
+            }
+          ],
+          "label": "第一拱",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.38,
+              "y": 0.82
+            },
+            {
+              "x": 0.38,
+              "y": 0.5
+            }
+          ],
+          "label": "中竖",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 4,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.38,
+              "y": 0.5
+            },
+            {
+              "x": 0.58,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.55
+            },
+            {
+              "x": 0.78,
+              "y": 0.72
+            },
+            {
+              "x": 0.7,
+              "y": 0.82
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.38,
+              "y": 0.82
+            }
+          ],
+          "label": "第二拱",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛm/",
+        "example": "monkey"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "n",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.82
+            },
+            {
+              "x": 0.2,
+              "y": 0.5
+            }
+          ],
+          "label": "左竖",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.5
+            },
+            {
+              "x": 0.45,
+              "y": 0.5
+            },
+            {
+              "x": 0.65,
+              "y": 0.55
+            },
+            {
+              "x": 0.72,
+              "y": 0.68
+            },
+            {
+              "x": 0.68,
+              "y": 0.8
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.2,
+              "y": 0.82
+            }
+          ],
+          "label": "拱形",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛn/",
+        "example": "nose"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "o",
+      "case": "lowercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.55
+            },
+            {
+              "x": 0.75,
+              "y": 0.68
+            },
+            {
+              "x": 0.68,
+              "y": 0.82
+            },
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.28,
+              "y": 0.82
+            },
+            {
+              "x": 0.22,
+              "y": 0.68
+            },
+            {
+              "x": 0.25,
+              "y": 0.55
+            },
+            {
+              "x": 0.5,
+              "y": 0.5
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɒ/",
+        "example": "octopus"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "p",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.95
+            },
+            {
+              "x": 0.5,
+              "y": 1.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.92
+            }
+          ],
+          "label": "竖线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.5
+            },
+            {
+              "x": 0.6,
+              "y": 0.5
+            },
+            {
+              "x": 0.72,
+              "y": 0.58
+            },
+            {
+              "x": 0.72,
+              "y": 0.72
+            },
+            {
+              "x": 0.62,
+              "y": 0.82
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            }
+          ],
+          "label": "圆圈",
+          "direction": "down",
+          "voice_hint": "向下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/piː/",
+        "example": "pig"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "q",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.38,
+              "y": 0.5
+            },
+            {
+              "x": 0.65,
+              "y": 0.5
+            },
+            {
+              "x": 0.75,
+              "y": 0.58
+            },
+            {
+              "x": 0.75,
+              "y": 0.7
+            },
+            {
+              "x": 0.65,
+              "y": 0.82
+            },
+            {
+              "x": 0.38,
+              "y": 0.82
+            },
+            {
+              "x": 0.28,
+              "y": 0.72
+            },
+            {
+              "x": 0.28,
+              "y": 0.58
+            },
+            {
+              "x": 0.38,
+              "y": 0.5
+            }
+          ],
+          "label": "圆圈",
+          "direction": "circle",
+          "voice_hint": "画一个圆圈"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.38,
+              "y": 0.82
+            },
+            {
+              "x": 0.38,
+              "y": 0.95
+            },
+            {
+              "x": 0.5,
+              "y": 1.0
+            },
+            {
+              "x": 0.65,
+              "y": 0.95
+            }
+          ],
+          "label": "下尾巴",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/kjuː/",
+        "example": "queen"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "r",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.82
+            },
+            {
+              "x": 0.2,
+              "y": 0.5
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.5
+            },
+            {
+              "x": 0.45,
+              "y": 0.5
+            },
+            {
+              "x": 0.62,
+              "y": 0.55
+            },
+            {
+              "x": 0.68,
+              "y": 0.6
+            }
+          ],
+          "label": "小拱",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɑː/",
+        "example": "rabbit"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "s",
+      "case": "lowercase",
+      "stroke_count": 1,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.65,
+              "y": 0.5
+            },
+            {
+              "x": 0.28,
+              "y": 0.55
+            },
+            {
+              "x": 0.22,
+              "y": 0.65
+            },
+            {
+              "x": 0.28,
+              "y": 0.75
+            },
+            {
+              "x": 0.65,
+              "y": 0.78
+            },
+            {
+              "x": 0.72,
+              "y": 0.85
+            },
+            {
+              "x": 0.65,
+              "y": 0.88
+            },
+            {
+              "x": 0.28,
+              "y": 0.85
+            }
+          ],
+          "label": "S形",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛs/",
+        "example": "sun"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "t",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.85
+            },
+            {
+              "x": 0.5,
+              "y": 0.0
+            }
+          ],
+          "label": "竖线",
+          "direction": "up",
+          "voice_hint": "向上写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 0.3,
+              "y": 0.05
+            },
+            {
+              "x": 0.22,
+              "y": 0.15
+            }
+          ],
+          "label": "上弯",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.45
+            },
+            {
+              "x": 0.72,
+              "y": 0.45
+            }
+          ],
+          "label": "横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/tiː/",
+        "example": "tree"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "u",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.5
+            },
+            {
+              "x": 0.2,
+              "y": 0.72
+            }
+          ],
+          "label": "左竖",
+          "direction": "down",
+          "voice_hint": "向下写"
+        },
+        {
+          "order": 2,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.2,
+              "y": 0.72
+            },
+            {
+              "x": 0.22,
+              "y": 0.82
+            },
+            {
+              "x": 0.45,
+              "y": 0.85
+            },
+            {
+              "x": 0.68,
+              "y": 0.82
+            },
+            {
+              "x": 0.72,
+              "y": 0.72
+            }
+          ],
+          "label": "底部弧线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.72,
+              "y": 0.72
+            },
+            {
+              "x": 0.72,
+              "y": 0.5
+            }
+          ],
+          "label": "右竖",
+          "direction": "up",
+          "voice_hint": "向上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ʌ/",
+        "example": "umbrella"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "v",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.18,
+              "y": 0.5
+            },
+            {
+              "x": 0.5,
+              "y": 0.82
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.82
+            },
+            {
+              "x": 0.82,
+              "y": 0.5
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/viː/",
+        "example": "violin"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "w",
+      "case": "lowercase",
+      "stroke_count": 4,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.12,
+              "y": 0.5
+            },
+            {
+              "x": 0.3,
+              "y": 0.82
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.3,
+              "y": 0.82
+            },
+            {
+              "x": 0.5,
+              "y": 0.5
+            }
+          ],
+          "label": "右上斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.5
+            },
+            {
+              "x": 0.7,
+              "y": 0.82
+            }
+          ],
+          "label": "右下斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 4,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.7,
+              "y": 0.82
+            },
+            {
+              "x": 0.88,
+              "y": 0.5
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ˈdʌbəl juː/",
+        "example": "water"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "x",
+      "case": "lowercase",
+      "stroke_count": 2,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.22,
+              "y": 0.5
+            },
+            {
+              "x": 0.78,
+              "y": 0.85
+            }
+          ],
+          "label": "右斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.78,
+              "y": 0.5
+            },
+            {
+              "x": 0.22,
+              "y": 0.85
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ɛks/",
+        "example": "fox"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "y",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.18,
+              "y": 0.5
+            },
+            {
+              "x": 0.5,
+              "y": 0.82
+            }
+          ],
+          "label": "左斜线",
+          "direction": "down-right",
+          "voice_hint": "向右下写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.82
+            },
+            {
+              "x": 0.82,
+              "y": 0.5
+            }
+          ],
+          "label": "右斜线",
+          "direction": "up-right",
+          "voice_hint": "向右上写"
+        },
+        {
+          "order": 3,
+          "type": "curve",
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.82
+            },
+            {
+              "x": 0.5,
+              "y": 0.95
+            },
+            {
+              "x": 0.35,
+              "y": 1.0
+            },
+            {
+              "x": 0.2,
+              "y": 0.95
+            }
+          ],
+          "label": "下尾巴",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        }
+      ],
+      "phonics": {
+        "sound": "/j/",
+        "example": "yarn"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    },
+    {
+      "letter": "z",
+      "case": "lowercase",
+      "stroke_count": 3,
+      "strokes": [
+        {
+          "order": 1,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.18,
+              "y": 0.5
+            },
+            {
+              "x": 0.82,
+              "y": 0.5
+            }
+          ],
+          "label": "上横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        },
+        {
+          "order": 2,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.82,
+              "y": 0.5
+            },
+            {
+              "x": 0.18,
+              "y": 0.85
+            }
+          ],
+          "label": "斜线",
+          "direction": "down-left",
+          "voice_hint": "向左下写"
+        },
+        {
+          "order": 3,
+          "type": "line",
+          "points": [
+            {
+              "x": 0.18,
+              "y": 0.85
+            },
+            {
+              "x": 0.82,
+              "y": 0.85
+            }
+          ],
+          "label": "下横线",
+          "direction": "right",
+          "voice_hint": "向右写"
+        }
+      ],
+      "phonics": {
+        "sound": "/ziː/",
+        "example": "zebra"
+      },
+      "animation": {
+        "default_speed": 1.0,
+        "pause_after_stroke_ms": 500
+      }
+    }
+  ]
+}

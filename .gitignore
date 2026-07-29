@@ -50,12 +50,24 @@ server/server_err.txt
 *.local.properties
 server/start.bat
 server/config.yaml
+server_py/config.yaml
+
+# Python server generated files
+server_py/cache/
+server_py/data/char_images/
+server_py/data/char_audio/
+server_py/static/
 
 # Practice data
 server/data/practice/
+server_py/data/practice/
 
 # Server cache
 server/cache/
 
 # Temp scripts
 scripts/
+
+# 字母书写参考视频（大文件，不提交）
+**/assets/letter_writing.mp4
+**/assets/letter_clips/

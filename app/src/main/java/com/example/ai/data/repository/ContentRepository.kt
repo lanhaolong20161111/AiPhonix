@@ -1,5 +1,6 @@
 package com.example.ai.data.repository
 
+import com.example.ai.data.model.EnglishWord
 import com.example.ai.data.model.Letter
 import com.example.ai.data.model.Phoneme
 import com.example.ai.data.model.Word
@@ -12,4 +13,7 @@ interface ContentRepository {
     suspend fun getWordsForPhoneme(phoneme: String): List<Word>
     suspend fun getAllWords(): List<Word>
     suspend fun getAllPhonemes(): List<Phoneme>
+    suspend fun getAllEnglishWords(): List<EnglishWord>
+    suspend fun getEnglishWordsForLetter(letter: String): List<EnglishWord>
+    suspend fun getEnglishWordsForPhoneme(phoneme: String): List<EnglishWord>
 }

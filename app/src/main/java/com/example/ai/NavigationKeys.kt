@@ -5,8 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object Home : NavKey          // 首页
 @Serializable data object EnglishLearning : NavKey // 英语学习主页
+@Serializable data object LetterIndex : NavKey    // 字母网格索引
 @Serializable data class Letter(val char: String = "a") : NavKey  // 字母学习
-@Serializable data object Phonics : NavKey        // 自然拼读
+@Serializable data class Phonics(val phonemeIndex: Int) : NavKey        // 自然拼读
 @Serializable data object PhonemeIndex : NavKey    // 音标总表
 @Serializable data class Practice(val wordId: String) : NavKey    // 跟读录音
 @Serializable data class Result(val wordId: String) : NavKey     // 纠音结果
@@ -19,3 +20,15 @@ import kotlinx.serialization.Serializable
 @Serializable data object Recognition : NavKey                    // 认字
 @Serializable data object Dictation : NavKey                      // 默写
 @Serializable data object WordPractice : NavKey                   // 词语
+
+// 看图识字
+@Serializable data object CharImageRecognition : NavKey              // 看图识字主页（年级选择）
+@Serializable data class CharImageGradeSelection(
+    val grade: String,
+    val semester: String,
+) : NavKey                                                           // 年级内类型选择（识字表/写字表/词语表）
+@Serializable data class CharImageList(
+    val grade: String,
+    val semester: String,
+    val type_: String = "",                                           // "认" / "写" / "词"
+) : NavKey                                                           // 图片列表（过滤后）

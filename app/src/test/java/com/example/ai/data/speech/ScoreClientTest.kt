@@ -209,4 +209,70 @@ class ScoreClientTest {
             ScoreClient.parseJsonResponse("", "x")
         }
     }
+
+    // ── ARPAbet → IPA 转换 ──
+
+    @Test
+    fun `arpabet HH to IPA h`() {
+        assertEquals("/h/", ScoreClient.arpabetToIpa("HH"))
+    }
+
+    @Test
+    fun `arpabet AH0 to IPA schwa`() {
+        assertEquals("/ə/", ScoreClient.arpabetToIpa("AH0"))
+    }
+
+    @Test
+    fun `arpabet with stress number stripped`() {
+        assertEquals("/ʌ/", ScoreClient.arpabetToIpa("AH1"))
+        assertEquals("/ɛ/", ScoreClient.arpabetToIpa("EH2"))
+        assertEquals("/i/", ScoreClient.arpabetToIpa("IY1"))
+    }
+
+    @Test
+    fun `arpabet blend to IPA`() {
+        assertEquals("/tʃ/", ScoreClient.arpabetToIpa("CH"))
+        assertEquals("/dʒ/", ScoreClient.arpabetToIpa("JH"))
+        assertEquals("/θ/", ScoreClient.arpabetToIpa("TH"))
+        assertEquals("/ð/", ScoreClient.arpabetToIpa("DH"))
+        assertEquals("/ʃ/", ScoreClient.arpabetToIpa("SH"))
+    }
+
+    @Test
+    fun `already IPA with slash passes through`() {
+        assertEquals("/h/", ScoreClient.arpabetToIpa("/h/"))
+        assertEquals("/æ/", ScoreClient.arpabetToIpa("/æ/"))
+    }
+
+    @Test
+    fun `unknown arpabet wrapped in slashes`() {
+        assertEquals("/XYZ/", ScoreClient.arpabetToIpa("XYZ"))
+    }
+
+    @Test
+    fun `arpabet hello word mapped correctly`() {
+        val json = """
+        {
+            "pron_accuracy": 85,
+            "words": [{
+                "word": "hello",
+                "accuracy": 85.0,
+                "match_tag": 0,
+                "phone_infos": [
+                    { "phone": "HH", "accuracy": 90.0 },
+                    { "phone": "AH0", "accuracy": 85.0 },
+                    { "phone": "L", "accuracy": 80.0 },
+                    { "phone": "OW", "accuracy": 75.0 }
+                ]
+            }]
+        }
+        """.trimIndent()
+
+        val result = ScoreClient.parseJsonResponse(json, "hello")
+        assertEquals(4, result.phonemeScores.size)
+        assertEquals("/h/", result.phonemeScores[0].phoneme)
+        assertEquals("/ə/", result.phonemeScores[1].phoneme)
+        assertEquals("/l/", result.phonemeScores[2].phoneme)
+        assertEquals("/oʊ/", result.phonemeScores[3].phoneme)
+    }
 }
