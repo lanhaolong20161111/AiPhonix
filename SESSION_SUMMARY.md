@@ -1,49 +1,126 @@
-# 会话总结 — 2026-07-30
+# 会话总结 — 2026-07-21
 
-## 完成的功能
+> 本次会话主轴：讯飞语音评测（流式版）WebSocket 集成调试
 
-### 🔐 用户系统（全新）
-- **后端**: SQLAlchemy 2.0 异步引擎（SQLite/PostgreSQL 双支持），User + RefreshToken + Essay 三表
-- **Auth API**: register / login / refresh / logout / users/me
-- **Android**: TokenManager（SharedPreferences）+ LoginViewModel + LoginScreen（登录/注册切换）
-- **认证拦截器**: OkHttp Interceptor 自动添加 `Authorization: Bearer <token>` header
+---
 
-### 🔤 字母发音功能
-- `Letter.kt` 新增 `pronunciations: List<String>` 字段
-- `wordbank.json` 26 个字母全部配好常用发音
-- 用 FFmpeg 拼接生成 3 个新音标音频：`kw.aac`、`ks.aac`、`ju.aac`
-- LetterScreen 新增可点击发音芯片（点击播放 `assets/ipa/*.aac`）
+## 1. 讯飞 ISE 集成 — 错误 48195 调试全程
 
-### ✍️ 口述作文（OralWriting）
-- 服务端 5 个端点 + `essays.json` 题库
-- 全段落独立卡片 + 独立麦克风输入
-- 切换段落 500ms 过渡 + 自动停止录音
-- 结果页显示原文 + 润饰版 + 反馈
-- sherpa-onnx ASR 集成（本地流式语音识别）
+### API 信息
+- **端点**: `wss://ise-api.xfyun.cn/v2/open-ise`
+- **鉴权**: HMAC-SHA256 签名 → Base64 → URL 编码 → 拼接到 URL 查询参数
+- **参考文档**: https://www.xfyun.cn/doc/Ise/IseAPI.html
 
-### 🐳 Docker 部署
-- Dockerfile + docker-compose.yml + .env.example + DEPLOY.md
+### 发现并修复的 Bug
 
-## 修复的 Bug
-
-| # | 问题 | 根因 |
+| # | 问题 | 修复 |
 |---|------|------|
-| 1 | 看图识字录音按钮无效 | `_recordingChar != null`→StateFlow 对象永远非 null，应 `.value` |
-| 2 | 播放按钮灰色 | 上传成功未更新 `_hasAudioSet` |
-| 3 | 字母视频自动播放 | `playWhenReady = true`→`false` |
-| 4 | 音标声音太小 | `MediaPlayer.setVolume()` 受限，改用 `LoudnessEnhancer` +2000mB |
-| 5 | 口述作文 NetworkOnMainThread | 嵌套 `withContext(IO)` 未生效，应直接 `launch(Dispatchers.IO)` |
-| 6 | 编译错误：companion 位置 | Kotlin 要求 `init` 块在 `companion object` 之前 |
-| 7 | 类被提前关闭 | 多余 `}` 导致所有方法变文件级函数 |
+| 1 | 鉴权 URL 组装错误：直接用 `wss://...` 字符串，缺少 `host`/`date` 参数 | 重写 `XfyunAuth.generateAuthUrl()`，按 Demo 格式拼接 `authorization`+`host`+`date` 三参数 |
+| 2 | SSB 响应条件写反：`status:1`（中间结果）被当成错误 | 改为检查 `code==0 && data.data==null` 才视为 SSB 握手成功 |
+| 3 | PCM 字节序：Android `AudioRecord` 输出 little-endian，讯飞 `audio/L16` 格式预期 big-endian | 添加 `pcmLeToBe()` 逐 sample 交换高低字节 |
+| 4 | 音频帧瞬间全发，撑爆缓冲区 → 报错 | 改为逐帧 1280 字节、间隔 40ms 实时发送 |
+| 5 | **text 字段被 Base64 编码**（关键 Bug）| 改为直接传 UTF-8 文本 `\uFEFFapple`（BOM头+文字），不加 Base64 |
+| 6 | text 多加了 `\r\n`（Demo 中不存在）| 去掉 `\r\n`，格式回退到 `\uFEFFapple` |
+| 7 | ssb 帧多加了 `category: "read_word"`（Demo 中没有）→ 待验证是否多余 | 当前保留，如仍报 48195 则去掉 |
+| 8 | AUW 帧多加了 `common` 块（文档说"仅在首帧上传"）| AUW 帧仅保留 `business`+`data` |
 
-## Git 提交
-- Commit: `5f54fcc` → `feat: 用户系统 + 字母发音 + 口述作文 + 看图识字修复 + sherpa-onnx ASR`
-- 62 个文件，+5319/-57 行
-- 推送到 `origin/master`
+### 当前状态
 
-## 待办（下一会话可继续）
-- [ ] Android HomeScreen 添加注销按钮
-- [ ] 句子练习功能（LLM 一问一答）
-- [ ] 后端 LangGraph 集成
-- [ ] 用户头像上传
-- [ ] 家长/教师角色
+```
+ssb帧 (握手):
+  common: {app_id: "de0d3a92"}
+  business: {sub:"ise", ent:"en_vip", category:"read_word", cmd:"ssb",
+             text:"\uFEFFapple", tte:"utf-8", auf:"audio/L16;rate=16000", aue:"raw"}
+  data: {status:0, data:""}
+
+auw帧 (音频):
+  business: {cmd:"auw", aus:1|2|4, aue:"raw"}
+  data: {status:1, data:"<base64(BE-PCM)>", data_type:1, encoding:"raw"}
+```
+
+- ✅ WebSocket 连接成功，鉴权通过
+- ✅ SSB 握手被接受（code=0）
+- ✅ PCM 振幅正常（peak=+23271, avg=869）
+- 🔴 仍报 `code=48195, message: iSEInputAppend error, ret=8195`
+- 📍 **待验证方案**：去掉 ssb 中的 `category` 参数（Demo 中不存在）
+
+### 关键文件
+
+| 文件 | 说明 |
+|------|------|
+| `AiPhonix/app/.../xfyun/XfyunSpeechRepository.kt` | WebSocket 主逻辑：鉴权→ssb→auw→解析结果 |
+| `AiPhonix/app/.../xfyun/XfyunAuth.kt` | HMAC-SHA256 签名 + URL 组装 |
+| `AiPhonix/app/.../xfyun/XfyunCredentialsProvider.kt` | 从 BuildConfig 注入凭证 |
+| `AiPhonix/app/.../xfyun/XfyunConfig.kt` | appId/apiKey/apiSecret 数据类 |
+
+---
+
+## 2. TTS（TextToSpeech）问题
+
+### 症状
+- `tt init failed status = -1`
+- 设备提示"设备未安装语音引擎"
+
+### 根因
+OPPO 设备缺少英语 TTS 语音数据。Android 原生 `TextToSpeech` 引擎需要设备安装 Google TTS 或等效引擎 + 英语语音包。
+
+### 已做修复
+- `TtsEngine.kt`: awaitInit() + withTimeout(5000) 避免挂死
+- `PronunciationViewModel.kt`: catch 块输出 `Log.e(TAG, ...)` 日志
+- UI: 错误信息展示到 Snackbar
+
+### 待解决
+用户需在设备上安装 Google TTS 引擎和英语语音包。
+
+---
+
+## 3. 音频录制
+
+- `AudioRecorder.kt`: 16kHz / 16-bit / Mono PCM
+- 状态机: IDLE → RECORDING → RELEASED
+- `PronunciationViewModel.startRecording()`: 启动录音 → 持续 read → stop 返回完整 `ByteArray`
+- 运行时权限: `RECORD_AUDIO` 通过 `rememberLauncherForActivityResult` 请求
+
+---
+
+## 4. 项目记忆导出
+
+为支持跨会话接力，已将关键上下文存入 Reasonix 项目记忆：
+
+| 记忆文件 | 内容 |
+|----------|------|
+| `phase-1-ai伴我学发音-项目完成.md` | 架构总览、5 页面、API 状态、构建命令 |
+| `xfyun-ise-integration-status.md` | 讯飞调试全记录（本次会话核心） |
+| `fix-stop-crash-race.md` | 录音闪退修复方案（通用） |
+| `log-after-operation.md` | 操作后必记日志（通用规范） |
+
+---
+
+## 5. 构建与部署
+
+```powershell
+# 编译
+cd AiPhonix
+.\gradlew.bat assembleDebug
+
+# 安装
+adb install -r app\build\outputs\apk\debug\app-debug.apk
+
+# 拉日志
+adb logcat -d -v time | Select-String "XfyunSpeech|PronVm|AudioRecorder"
+
+# 截图
+adb exec-out screencap -p > $env:USERPROFILE\Desktop\screen.png
+```
+
+- **构建状态**: BUILD SUCCESSFUL（零警告）
+- **设备**: 4HPJM7W48XNR9XLV (OPPO)
+
+---
+
+## 6. 下一步建议
+
+1. **讯飞 48195**: 尝试去掉 ssb `category` 参数后再测试
+2. **TTS**: 用户在设备安装 Google TTS + 英语语音包
+3. **DeepSeek LLM**: 已接入 `deepseek-v4-flash`，待真机验证
+4. **功能扩展**: 字母→发音映射、音素标签行高亮
