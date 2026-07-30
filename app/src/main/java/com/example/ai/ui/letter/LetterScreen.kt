@@ -1,9 +1,11 @@
 package com.example.ai.ui.letter
 
 import android.media.MediaPlayer
+import android.media.audiofx.LoudnessEnhancer
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -54,7 +56,7 @@ fun LetterScreen(
         val player = ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(android.net.Uri.parse(videoPath)))
             prepare()
-            playWhenReady = true
+            playWhenReady = false
             addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(playing: Boolean) {
                     isPlaying = playing
@@ -126,6 +128,75 @@ fun LetterScreen(
         Spacer(Modifier.height(8.dp))
         Text(text = letter.ipaName, fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
 
+        // ── 字母常用发音（可点击播放）──
+        if (letter.pronunciations.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text("字母发音", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            var playingIpa by remember { mutableStateOf<String?>(null) }
+            val ipaPlayer = remember {
+                object {
+                    private var mp: MediaPlayer? = null
+                    fun play(ipa: String) {
+                        stop()
+                        val clean = ipa.removePrefix("/").removeSuffix("/").trim()
+                        val assetPath = "ipa/$clean.aac"
+                        try {
+                            val afd = context.assets.openFd(assetPath)
+                            mp = MediaPlayer().apply {
+                                setDataSource(afd)
+                                setOnCompletionListener { playingIpa = null; release(); mp = null }
+                                setOnErrorListener { _, _, _ -> playingIpa = null; mp?.release(); mp = null; true }
+                                prepare()
+                                start()
+                                // LoudnessEnhancer 放大增益
+                                try {
+                                    val le = LoudnessEnhancer(audioSessionId)
+                                    le.setTargetGain(2000) // 2000 mB = +20 dB
+                                    le.enabled = true
+                                } catch (_: Exception) { }
+                            }
+                            afd.close()
+                            playingIpa = ipa
+                        } catch (e: Exception) { playingIpa = null }
+                    }
+                    fun stop() {
+                        mp?.let { try { if (it.isPlaying) it.stop(); it.release() } catch (_: Exception) {} }
+                        mp = null
+                        playingIpa = null
+                    }
+                }
+            }
+            DisposableEffect(char) { onDispose { ipaPlayer.stop() } }
+
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                letter.pronunciations.forEach { ipa ->
+                    val isPlaying = playingIpa == ipa
+                    SuggestionChip(
+                        onClick = { if (isPlaying) ipaPlayer.stop() else ipaPlayer.play(ipa) },
+                        icon = {
+                            Text(if (isPlaying) "🔊" else "🔈", fontSize = 14.sp)
+                        },
+                        label = {
+                            Text(ipa, fontSize = 16.sp,
+                                color = if (isPlaying) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurface)
+                        },
+                        border = BorderStroke(
+                            if (isPlaying) 2.dp else 1.dp,
+                            if (isPlaying) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline,
+                        ),
+                    )
+                }
+            }
+        }
+
         Spacer(Modifier.height(12.dp))
 
         // ── 视频播放器（点击结束画面重播）──
@@ -134,9 +205,10 @@ fun LetterScreen(
                 .width(400.dp)
                 .height(280.dp)
                 .then(
-                    if (isEnded) Modifier.clickable {
+                    if (!isPlaying) Modifier.clickable {
                         exoPlayer?.apply { seekTo(0); play() }
                         isEnded = false
+                        isPlaying = true
                     } else Modifier
                 ),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -154,6 +226,12 @@ fun LetterScreen(
                 if (exoPlayer == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("视频加载中…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                if (!isPlaying && !isEnded && exoPlayer != null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("▶ 点击播放", fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 if (isEnded) {
@@ -185,6 +263,11 @@ fun LetterScreen(
                             setOnErrorListener { _, _, _ -> isPlayingAudio = false; mp?.release(); mp = null; true }
                             prepare()
                             start()
+                            try {
+                                val le = LoudnessEnhancer(audioSessionId)
+                                le.setTargetGain(2000)
+                                le.enabled = true
+                            } catch (_: Exception) { }
                         }
                         afd.close()
                         isPlayingAudio = true

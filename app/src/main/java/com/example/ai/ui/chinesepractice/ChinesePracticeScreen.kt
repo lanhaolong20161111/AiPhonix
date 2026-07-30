@@ -19,6 +19,7 @@ fun ChinesePracticeScreen(
     onNavigateToRecognition: () -> Unit,
     onNavigateToDictation: () -> Unit,
     onNavigateToWordPractice: () -> Unit,
+    onNavigateToOralWriting: () -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -83,6 +84,18 @@ fun ChinesePracticeScreen(
                     MaterialTheme.colorScheme.secondaryContainer
                 ),
                 onClick = onNavigateToWordPractice
+            )
+
+            // 口述作文
+            PracticeButton(
+                title = "口述作文",
+                subtitle = "选主题 · 语音写作 · AI辅导",
+                emoji = "🎙️",
+                colors = listOf(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.primaryContainer
+                ),
+                onClick = onNavigateToOralWriting
             )
         }
     }

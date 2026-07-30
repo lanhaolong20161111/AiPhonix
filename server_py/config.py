@@ -106,9 +106,32 @@ def load_config(path: str = "config.yaml") -> Config:
             cfg.ark_image.api_key = a.get("api_key", "")
             cfg.ark_image.model = a.get("model", cfg.ark_image.model)
 
-    # 环境变量覆盖
+    # 环境变量覆盖（所有密钥支持从环境变量读取，容器化部署用）
     if v := os.environ.get("DEEPSEEK_API_KEY"):
         cfg.deepseek.api_key = v
+    if v := os.environ.get("DEEPSEEK_BASE_URL"):
+        cfg.deepseek.base_url = v
+    if v := os.environ.get("DEEPSEEK_MODEL"):
+        cfg.deepseek.model = v
+
+    if v := os.environ.get("BAIDU_TTS_APP_ID"):
+        cfg.baidu_tts.app_id = v
+    if v := os.environ.get("BAIDU_TTS_API_KEY"):
+        cfg.baidu_tts.api_key = v
+    if v := os.environ.get("BAIDU_TTS_SECRET_KEY"):
+        cfg.baidu_tts.secret_key = v
+
+    if v := os.environ.get("TENCENT_APP_ID"):
+        cfg.tencent.app_id = v
+    if v := os.environ.get("TENCENT_SECRET_ID"):
+        cfg.tencent.secret_id = v
+    if v := os.environ.get("TENCENT_SECRET_KEY"):
+        cfg.tencent.secret_key = v
+
+    if v := os.environ.get("ARK_API_KEY"):
+        cfg.ark_image.api_key = v
+    if v := os.environ.get("ARK_MODEL"):
+        cfg.ark_image.model = v
 
     # 默认提示词
     if not cfg.llm_prompts.english_teaching:

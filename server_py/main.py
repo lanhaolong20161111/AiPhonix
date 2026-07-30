@@ -32,7 +32,7 @@ app.add_middleware(
 
 def _init_routes():
     """初始化所有路由（延迟导入，解决循环依赖）"""
-    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image
+    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users
 
     # 加载配置
     cfg_path = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -48,6 +48,7 @@ def _init_routes():
     practice.init("data")
     practice_tracker.init(cfg)
     word_suggestions.init(cfg)
+    essays.init(cfg)
     english  # no init needed
     char_images.init()
 
@@ -67,6 +68,9 @@ def _init_routes():
     app.include_router(english.router, prefix="/api/v1")
     app.include_router(char_images.router, prefix="/api/v1")
     app.include_router(ark_image.router, prefix="/api/v1")
+    app.include_router(essays.router, prefix="/api/v1")
+    app.include_router(auth.router)
+    app.include_router(users.router)
 
     logger.info("所有路由已注册")
     return cfg
@@ -75,6 +79,9 @@ def _init_routes():
 @app.on_event("startup")
 async def startup():
     global _cfg
+    # 初始化数据库
+    from database import init_db
+    await init_db()
     _cfg = _init_routes()
     model = _cfg.deepseek.model
     addr = f"{_cfg.server.host}:{_cfg.server.port}"

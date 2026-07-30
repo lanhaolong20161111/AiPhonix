@@ -5,182 +5,269 @@
       "ipaName": "/eɪ/",
       "uppercase": "A",
       "lowercase": "a",
-      "order": 1
+      "order": 1,
+      "pronunciations": [
+        "/eɪ/",
+        "/æ/"
+      ]
     },
     {
       "char": "b",
       "ipaName": "/biː/",
       "uppercase": "B",
       "lowercase": "b",
-      "order": 2
+      "order": 2,
+      "pronunciations": [
+        "/b/"
+      ]
     },
     {
       "char": "c",
       "ipaName": "/siː/",
       "uppercase": "C",
       "lowercase": "c",
-      "order": 3
+      "order": 3,
+      "pronunciations": [
+        "/k/",
+        "/s/"
+      ]
     },
     {
       "char": "d",
       "ipaName": "/diː/",
       "uppercase": "D",
       "lowercase": "d",
-      "order": 4
+      "order": 4,
+      "pronunciations": [
+        "/d/"
+      ]
     },
     {
       "char": "e",
       "ipaName": "/iː/",
       "uppercase": "E",
       "lowercase": "e",
-      "order": 5
+      "order": 5,
+      "pronunciations": [
+        "/iː/",
+        "/e/"
+      ]
     },
     {
       "char": "f",
       "ipaName": "/ɛf/",
       "uppercase": "F",
       "lowercase": "f",
-      "order": 6
+      "order": 6,
+      "pronunciations": [
+        "/f/"
+      ]
     },
     {
       "char": "g",
       "ipaName": "/dʒiː/",
       "uppercase": "G",
       "lowercase": "g",
-      "order": 7
+      "order": 7,
+      "pronunciations": [
+        "/ɡ/",
+        "/dʒ/"
+      ]
     },
     {
       "char": "h",
       "ipaName": "/eɪtʃ/",
       "uppercase": "H",
       "lowercase": "h",
-      "order": 8
+      "order": 8,
+      "pronunciations": [
+        "/h/"
+      ]
     },
     {
       "char": "i",
       "ipaName": "/aɪ/",
       "uppercase": "I",
       "lowercase": "i",
-      "order": 9
+      "order": 9,
+      "pronunciations": [
+        "/aɪ/",
+        "/ɪ/"
+      ]
     },
     {
       "char": "j",
       "ipaName": "/dʒeɪ/",
       "uppercase": "J",
       "lowercase": "j",
-      "order": 10
+      "order": 10,
+      "pronunciations": [
+        "/dʒ/"
+      ]
     },
     {
       "char": "k",
       "ipaName": "/keɪ/",
       "uppercase": "K",
       "lowercase": "k",
-      "order": 11
+      "order": 11,
+      "pronunciations": [
+        "/k/"
+      ]
     },
     {
       "char": "l",
       "ipaName": "/ɛl/",
       "uppercase": "L",
       "lowercase": "l",
-      "order": 12
+      "order": 12,
+      "pronunciations": [
+        "/l/"
+      ]
     },
     {
       "char": "m",
       "ipaName": "/ɛm/",
       "uppercase": "M",
       "lowercase": "m",
-      "order": 13
+      "order": 13,
+      "pronunciations": [
+        "/m/"
+      ]
     },
     {
       "char": "n",
       "ipaName": "/ɛn/",
       "uppercase": "N",
       "lowercase": "n",
-      "order": 14
+      "order": 14,
+      "pronunciations": [
+        "/n/"
+      ]
     },
     {
       "char": "o",
       "ipaName": "/oʊ/",
       "uppercase": "O",
       "lowercase": "o",
-      "order": 15
+      "order": 15,
+      "pronunciations": [
+        "/əʊ/",
+        "/ɒ/"
+      ]
     },
     {
       "char": "p",
       "ipaName": "/piː/",
       "uppercase": "P",
       "lowercase": "p",
-      "order": 16
+      "order": 16,
+      "pronunciations": [
+        "/p/"
+      ]
     },
     {
       "char": "q",
       "ipaName": "/kjuː/",
       "uppercase": "Q",
       "lowercase": "q",
-      "order": 17
+      "order": 17,
+      "pronunciations": [
+        "/kw/"
+      ]
     },
     {
       "char": "r",
       "ipaName": "/ɑːr/",
       "uppercase": "R",
       "lowercase": "r",
-      "order": 18
+      "order": 18,
+      "pronunciations": [
+        "/r/"
+      ]
     },
     {
       "char": "s",
       "ipaName": "/ɛs/",
       "uppercase": "S",
       "lowercase": "s",
-      "order": 19
+      "order": 19,
+      "pronunciations": [
+        "/s/",
+        "/z/"
+      ]
     },
     {
       "char": "t",
       "ipaName": "/tiː/",
       "uppercase": "T",
       "lowercase": "t",
-      "order": 20
+      "order": 20,
+      "pronunciations": [
+        "/t/"
+      ]
     },
     {
       "char": "u",
       "ipaName": "/juː/",
       "uppercase": "U",
       "lowercase": "u",
-      "order": 21
+      "order": 21,
+      "pronunciations": [
+        "/juː/",
+        "/ʌ/"
+      ]
     },
     {
       "char": "v",
       "ipaName": "/viː/",
       "uppercase": "V",
       "lowercase": "v",
-      "order": 22
+      "order": 22,
+      "pronunciations": [
+        "/v/"
+      ]
     },
     {
       "char": "w",
       "ipaName": "/dʌbəl juː/",
       "uppercase": "W",
       "lowercase": "w",
-      "order": 23
+      "order": 23,
+      "pronunciations": [
+        "/w/"
+      ]
     },
     {
       "char": "x",
       "ipaName": "/ɛks/",
       "uppercase": "X",
       "lowercase": "x",
-      "order": 24
+      "order": 24,
+      "pronunciations": [
+        "/ks/"
+      ]
     },
     {
       "char": "y",
       "ipaName": "/waɪ/",
       "uppercase": "Y",
       "lowercase": "y",
-      "order": 25
+      "order": 25,
+      "pronunciations": [
+        "/j/",
+        "/aɪ/"
+      ]
     },
     {
       "char": "z",
       "ipaName": "/ziː/",
       "uppercase": "Z",
       "lowercase": "z",
-      "order": 26
+      "order": 26,
+      "pronunciations": [
+        "/z/"
+      ]
     }
   ],
   "words": [

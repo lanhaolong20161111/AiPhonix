@@ -1,0 +1,20 @@
+# Docker 忽略文件
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.log
+tencent_speech.log
+.DS_Store
+.git/
+test_*.py
+test_origin.py
+test_api.py
+test_sdk_style.py
+test_secretid_case.py
+test_server.py
+download_*.py
+generate_strokes.py
+douyin_download.py

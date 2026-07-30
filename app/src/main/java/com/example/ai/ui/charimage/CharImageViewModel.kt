@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -117,7 +118,7 @@ class CharImageViewModel(
 
     // ── 录音/播放 ──
 
-    private var _recordingChar: String? = null
+    private val _recordingChar = MutableStateFlow<String?>(null)
     private var mediaRecorder: MediaRecorder? = null
     private var mediaPlayer: MediaPlayer? = null
     private var tempAudioFile: File? = null
@@ -125,8 +126,8 @@ class CharImageViewModel(
     private val _audioResult = MutableSharedFlow<String>()  // "ok" | error message
     val audioResult: SharedFlow<String> = _audioResult
 
-    val isRecording get() = _recordingChar != null
-    val recordingChar get() = _recordingChar
+    val isRecording get() = _recordingChar.value != null
+    val recordingChar: StateFlow<String?> = _recordingChar.asStateFlow()
 
     private val _playingChar = MutableStateFlow<String?>(null)
     val playingChar: StateFlow<String?> = _playingChar
@@ -164,7 +165,7 @@ class CharImageViewModel(
 
     /** 切换录音状态 */
     fun toggleRecord(char: String) {
-        if (_recordingChar != null) {
+        if (_recordingChar.value != null) {
             // 停止录音
             stopRecording(char)
         } else {
@@ -187,7 +188,7 @@ class CharImageViewModel(
                 prepare()
                 start()
             }
-            _recordingChar = char
+            _recordingChar.value = char
             Log.d(TAG, "开始录音: $char")
         } catch (e: Exception) {
             Log.e(TAG, "启动录音失败", e)
@@ -202,14 +203,14 @@ class CharImageViewModel(
                 release()
             }
             mediaRecorder = null
-            _recordingChar = null
+            _recordingChar.value = null
             Log.d(TAG, "录音结束: $char")
             // 上传到服务器
             uploadAudio(char)
         } catch (e: Exception) {
             Log.e(TAG, "停止录音失败", e)
             mediaRecorder = null
-            _recordingChar = null
+            _recordingChar.value = null
             viewModelScope.launch { _audioResult.emit("停止录音失败") }
         }
     }
@@ -232,6 +233,7 @@ class CharImageViewModel(
                         .build()
                     val resp = client.newCall(request).execute()
                     if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
+                    _hasAudioSet.value = _hasAudioSet.value + char
                 }
                 file.delete()
                 tempAudioFile = null

@@ -32,3 +32,7 @@ import kotlinx.serialization.Serializable
     val semester: String,
     val type_: String = "",                                           // "认" / "写" / "词"
 ) : NavKey                                                           // 图片列表（过滤后）
+
+// 口述作文
+@Serializable data object OralWriting : NavKey                       // 口述作文
+@Serializable data object Login : NavKey                              // 登录

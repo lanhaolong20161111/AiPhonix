@@ -339,7 +339,7 @@ class RecognitionViewModel(
                     loading = false
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(loading = false, message = "获取提示失败: ${e.message}")
+                _state.value = _state.value.copy(loading = false, message = "获取提示失败: ${e.message ?: "未知错误"}")
             }
         }
     }
@@ -391,7 +391,7 @@ class RecognitionViewModel(
                 _state.value = _state.value.copy(isRecording = false)
             } catch (e: Exception) {
                 Log.e(TAG, "语音评测失败: ${e.message}")
-                _state.value = _state.value.copy(isRecording = false, message = "评测失败: ${e.message}")
+                _state.value = _state.value.copy(isRecording = false, message = "评测失败: ${e.message ?: "未知错误"}")
             }
         }
     }

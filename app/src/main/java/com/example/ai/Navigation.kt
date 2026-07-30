@@ -34,13 +34,20 @@ import com.example.ai.ui.charimage.CharImageRecognitionScreen
 import com.example.ai.ui.charimage.CharImageGradeSelectionScreen
 import com.example.ai.ui.charimage.CharImageScreen
 import com.example.ai.ui.charimage.CharImageViewModel
+import com.example.ai.ui.oralwriting.OralWritingScreen
+import com.example.ai.ui.oralwriting.OralWritingViewModel
+import com.example.ai.ui.login.LoginScreen
+import com.example.ai.ui.login.LoginViewModel
 import com.example.ai.ui.quiz.QuizScreen
 import com.example.ai.ui.videopractice.VideoPracticeScreen
 import com.example.ai.di.ServiceModule
+import com.example.ai.data.auth.TokenManager
 
 @Composable
 fun MainNavigation(container: AppContainer) {
-  val backStack = rememberNavBackStack(Home)
+  val backStack = rememberNavBackStack(
+    if (TokenManager.isLoggedIn) Home else Login
+  )
 
   NavDisplay(
     backStack = backStack,
@@ -52,6 +59,14 @@ fun MainNavigation(container: AppContainer) {
             onNavigate = { backStack.add(it) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<Login> {
+          LoginScreen(
+            onLoginSuccess = {
+              backStack.remove(Login)
+              backStack.add(Home)
+            },
           )
         }
         entry<EnglishLearning> {
@@ -130,6 +145,7 @@ fun MainNavigation(container: AppContainer) {
             onNavigateToRecognition = { backStack.add(Recognition) },
             onNavigateToDictation = { backStack.add(Dictation) },
             onNavigateToWordPractice = { backStack.add(WordPractice) },
+            onNavigateToOralWriting = { backStack.add(OralWriting) },
             onBack = { backStack.removeLastOrNull() }
           )
         }
@@ -202,6 +218,12 @@ fun MainNavigation(container: AppContainer) {
           CharImageScreen(
             viewModel = vm,
             onPlayTts = { text -> scope.launch { container.ttsEngine.speak(text) } },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<OralWriting> {
+          OralWritingScreen(
+            viewModel = viewModel { OralWritingViewModel(serverBase = ServiceModule.serverBase) },
             onBack = { backStack.removeLastOrNull() },
           )
         }

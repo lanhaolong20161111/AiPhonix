@@ -1,0 +1,48 @@
+# ===== docker-compose.yml =====
+# AiPhonix 服务端容器化部署
+#
+# 使用方式:
+#   1. 复制 .env.example 为 .env，填入真实密钥
+#   2. docker compose up -d
+#   3. 访问 http://localhost:8080/health
+#
+# 云部署: 将镜像推送到仓库，然后在云服务器上 docker run
+
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: server_py/Dockerfile
+    container_name: aiphonix-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # 可以从 .env 文件或系统环境变量读取
+      - CONFIG_PATH=config.yaml
+      # 以下密钥由 .env 文件提供
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - BAIDU_TTS_APP_ID=${BAIDU_TTS_APP_ID:-}
+      - BAIDU_TTS_API_KEY=${BAIDU_TTS_API_KEY:-}
+      - BAIDU_TTS_SECRET_KEY=${BAIDU_TTS_SECRET_KEY:-}
+      - TENCENT_APP_ID=${TENCENT_APP_ID:-}
+      - TENCENT_SECRET_ID=${TENCENT_SECRET_ID:-}
+      - TENCENT_SECRET_KEY=${TENCENT_SECRET_KEY:-}
+      - ARK_API_KEY=${ARK_API_KEY:-}
+      - ARK_MODEL=${ARK_MODEL:-doubao-seedream-4-5-251128}
+    volumes:
+      - char_images_data:/app/data/char_images
+      - char_audio_data:/app/data/char_audio
+      - ./data:/app/data:ro  # 只读挂载 JSON 数据文件
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  char_images_data:
+  char_audio_data:

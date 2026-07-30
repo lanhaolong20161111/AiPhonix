@@ -31,9 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,6 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -77,6 +78,8 @@ fun CharImageScreen(
     val showHint = remember { kotlinx.coroutines.flow.MutableStateFlow(true) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var showPageDialog by remember { mutableStateOf(false) }
+    var targetPage by remember { mutableStateOf("") }
 
     // 收集反馈提交结果
     LaunchedEffect(Unit) {
@@ -205,14 +208,53 @@ fun CharImageScreen(
                                 )
                             }
 
-                            // 页码
-                            Text(
-                                "${pagerState.currentPage + 1} / ${state.items.size}",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 16.dp),
-                            )
+                            // 页码（点击可跳转）
+                            TextButton(
+                                onClick = {
+                                    targetPage = "${pagerState.currentPage + 1}"
+                                    showPageDialog = true
+                                },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    "${pagerState.currentPage + 1} / ${state.items.size}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
+                    }
+
+                    // 页码跳转对话框
+                    if (showPageDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showPageDialog = false },
+                            title = { Text("跳转到") },
+                            text = {
+                                OutlinedTextField(
+                                    value = targetPage,
+                                    onValueChange = { targetPage = it.filter { c -> c.isDigit() } },
+                                    label = { Text("页码 (1-${state.items.size})") },
+                                    singleLine = true,
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    val page = targetPage.toIntOrNull()
+                                    if (page != null && page in 1..state.items.size) {
+                                        scope.launch { pagerState.animateScrollToPage(page - 1) }
+                                    }
+                                    showPageDialog = false
+                                }) {
+                                    Text("跳转")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showPageDialog = false }) {
+                                    Text("取消")
+                                }
+                            },
+                        )
                     }
                 }
             }
@@ -326,9 +368,11 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                     color = MaterialTheme.colorScheme.error)
         } else {
             // 中文：录音 + 播放
-            val isRec = viewModel.recordingChar == item.char
             val isPla = viewModel.playingChar.collectAsState().value == item.char
-            val hasAudio = viewModel.hasAudio(item.char)
+            val recordingChar by viewModel.recordingChar.collectAsState()
+            val isRec = recordingChar == item.char
+            val hasAudioSet by viewModel.hasAudioSet.collectAsState()
+            val hasAudio = hasAudioSet.contains(item.char)
 
             // 当前页进入时检测是否有录音
             LaunchedEffect(item.char) { viewModel.checkAudioExists(item.char) }
