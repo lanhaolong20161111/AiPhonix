@@ -1,6 +1,7 @@
 # 会话总结 — 2026-07-21
 
-> 本次会话主轴：讯飞语音评测（流式版）WebSocket 集成调试
+> 本次会话主轴：讯飞语音评测（流式版）WebSocket 集成调试  
+> **最终结果：✅ 全部通过 — 跟读评测正常返回评分**
 
 ---
 
@@ -24,25 +25,38 @@
 | 7 | ssb 帧多加了 `category: "read_word"`（Demo 中没有）→ 待验证是否多余 | 当前保留，如仍报 48195 则去掉 |
 | 8 | AUW 帧多加了 `common` 块（文档说"仅在首帧上传"）| AUW 帧仅保留 `business`+`data` |
 
-### 当前状态
+### 最终可用帧格式
 
+```json
+// ssb 握手帧（Demo 同款，精简参数）
+{
+  "common": {"app_id": "de0d3a92"},
+  "business": {
+    "sub": "ise",
+    "ent": "en_vip",
+    "category": "read_word",
+    "cmd": "ssb",
+    "text": "\uFEFFapple",
+    "tte": "utf-8",
+    "auf": "audio/L16;rate=16000",
+    "aue": "raw"
+  },
+  "data": {"status": 0, "data": ""}
+}
+
+// auw 音频帧（不含 common）
+{
+  "business": {"cmd": "auw", "aus": 1, "aue": "raw"},
+  "data": {"status": 1, "data": "<base64(BE-PCM)>", "data_type": 1, "encoding": "raw"}
+}
 ```
-ssb帧 (握手):
-  common: {app_id: "de0d3a92"}
-  business: {sub:"ise", ent:"en_vip", category:"read_word", cmd:"ssb",
-             text:"\uFEFFapple", tte:"utf-8", auf:"audio/L16;rate=16000", aue:"raw"}
-  data: {status:0, data:""}
 
-auw帧 (音频):
-  business: {cmd:"auw", aus:1|2|4, aue:"raw"}
-  data: {status:1, data:"<base64(BE-PCM)>", data_type:1, encoding:"raw"}
-```
-
-- ✅ WebSocket 连接成功，鉴权通过
-- ✅ SSB 握手被接受（code=0）
-- ✅ PCM 振幅正常（peak=+23271, avg=869）
-- 🔴 仍报 `code=48195, message: iSEInputAppend error, ret=8195`
-- 📍 **待验证方案**：去掉 ssb 中的 `category` 参数（Demo 中不存在）
+### 核心教训
+- **text 格式**: `\uFEFFapple`（BOM头+纯文本），**不加 `\r\n`，不用 Base64**
+- **PCM 字节序**: Android 小端 → 讯飞大端，必须 `pcmLeToBe()`
+- **音频发送**: 逐帧 1280 字节 + 40ms 间隔，不能瞬间全发
+- **AUW 帧**: 不加 `common`（文档规定"仅在首帧上传"）
+- **鉴权 URL**: `host` + `date` + `authorization` 三参数拼接
 
 ### 关键文件
 
@@ -118,9 +132,20 @@ adb exec-out screencap -p > $env:USERPROFILE\Desktop\screen.png
 
 ---
 
-## 6. 下一步建议
+## 6. 最终结果
 
-1. **讯飞 48195**: 尝试去掉 ssb `category` 参数后再测试
-2. **TTS**: 用户在设备安装 Google TTS + 英语语音包
-3. **DeepSeek LLM**: 已接入 `deepseek-v4-flash`，待真机验证
-4. **功能扩展**: 字母→发音映射、音素标签行高亮
+| 指标 | 状态 |
+|------|------|
+| 讯飞跟读评测 | ✅ **通过** — 朗读 apple 正常返回评分 |
+| TTS | 🔴 设备缺英语语音引擎（需用户安装 Google TTS） |
+| 构建 | ✅ BUILD SUCCESSFUL（零警告） |
+| ADB | ✅ 4HPJM7W48XNR9XLV (OPPO) |
+
+---
+
+## 7. 下一步建议
+
+1. **TTS**: 用户在设备安装 Google TTS + 英语语音包
+2. **DeepSeek LLM**: `deepseek-v4-flash` 已接入，真机验证 AI 反馈
+3. **功能扩展**: 字母→发音映射、音素标签行高亮
+4. **录制流程优化**: 录音时长提示、音量波形可视化
