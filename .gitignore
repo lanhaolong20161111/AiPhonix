@@ -71,3 +71,28 @@ scripts/
 # 字母书写参考视频（大文件，不提交）
 **/assets/letter_writing.mp4
 **/assets/letter_clips/
+
+# sherpa-onnx 离线 ASR 模型与 JNI 库（超 GitHub 100MB 限制，不提交）
+app/src/main/assets/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/
+app/src/main/jniLibs/
+
+# 大视频资源
+english_24_letters.mp4
+letter_videos/*.mp4
+
+# 数据库与 LLM 调用日志（含用户内容，不提交）
+*.db
+server_py/data/llm_call_logs.json
+/data/
+letter_videos/data/
+
+# 临时/备份产物
+*.bak*
+*_bak*/
+char_images_bak_*/
+letter_videos/_*/
+/_*.png
+
+# IPA 拼接临时文件
+app/src/main/assets/ipa/temp_*.wav
+app/src/main/assets/ipa/concat_list.txt
