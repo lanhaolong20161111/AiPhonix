@@ -218,5 +218,15 @@
     "consecutive_correct": 0,
     "last_seen": "2026-07-25T21:34:34.2693312+08:00",
     "last_correct": false
+  },
+  {
+    "char": "嘴",
+    "pinyin_correct": 1,
+    "pinyin_wrong": 3,
+    "pronunciation_correct": 1,
+    "pronunciation_wrong": 0,
+    "consecutive_correct": 0,
+    "last_seen": 1785293774.783275,
+    "last_correct": false
   }
 ]

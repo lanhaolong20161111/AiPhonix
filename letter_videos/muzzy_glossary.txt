@@ -1,0 +1,1210 @@
+# Muzzy 精简单词+短句对照表（纯背诵版）
+
+
+king 国王
+
+queen 王后
+
+princess 公主
+
+gardener 园丁
+
+monster 怪兽
+
+mummy 妈妈
+
+daddy 爸爸
+
+friend 朋友
+
+girl 女孩
+
+doctor 医生
+
+guest 宾客
+
+your Majesty 陛下
+
+how do you do 你好
+
+hello 你好
+
+hi 嗨
+
+good morning 早上好
+
+good afternoon 下午好
+
+good evening 晚上好
+
+good night 晚安
+
+goodbye 再见
+
+bye 再见
+
+see you 回头见
+
+strong 强壮的
+
+beautiful 漂亮的
+
+clever 聪明的
+
+brave 勇敢的
+
+big 大的
+
+small 小的
+
+tall 高的
+
+short 短的；矮的
+
+hot 热的
+
+cold 冷的
+
+wet 潮湿的；湿的
+
+dry 干燥的
+
+hungry 饥饿的
+
+thirsty 口渴的
+
+tired 疲惫的
+
+lovely 美好的
+
+delicious 美味的
+
+yummy 好吃的
+
+horrible 糟糕的；难吃的
+
+terrible 严重的；糟糕的
+
+fantastic 极好的
+
+great 极好的
+
+nice 美好的
+
+silly 傻的
+
+naughty 淘气的
+
+quiet 安静的
+
+quick 快速的
+
+careful 仔细的
+
+rude 粗鲁的
+
+polite 有礼貌的
+
+wrong 错误的
+
+right 正确的；右边
+
+busy 忙碌的
+
+fine 身体好
+
+well 身体健康的
+
+better 更好的
+
+important 重要的
+
+deep 深的
+
+funny 有趣的；奇怪的
+
+awful 糟糕的；难看的
+
+huge 巨大的
+
+enormous 超大的
+
+heavy 重的
+
+wide 宽的
+
+narrow 狭窄的
+
+invisible 隐形的
+
+safe 安全的
+
+dangerous 危险的
+
+far 远的
+
+far away 遥远
+
+here 这里
+
+there 那里
+
+up 向上
+
+down 向下
+
+in 在……里面
+
+on 在……上面
+
+under 在……下面
+
+behind 在……后面
+
+in front of 在……前面
+
+between 在……之间
+
+over 在……上方
+
+over there 在那边
+
+beside 在……旁边
+
+by 在……旁边
+
+against 靠着
+
+left 左边
+
+middle 中间
+
+upstairs 在楼上
+
+downstairs 在楼下
+
+straight on 直走
+
+this way 这边
+
+that way 那边
+
+east 东
+
+west 西
+
+south 南
+
+north 北
+
+one 一
+
+two 二
+
+three 三
+
+four 四
+
+five 五
+
+six 六
+
+seven 七
+
+eight 八
+
+nine 九
+
+ten 十
+
+eleven 十一
+
+twelve 十二
+
+thirteen 十三
+
+fourteen 十四
+
+fifteen 十五
+
+sixteen 十六
+
+seventeen 十七
+
+eighteen 十八
+
+nineteen 十九
+
+twenty 二十
+
+thirty 三十
+
+hundred 百
+
+a hundred and seven 一百零七
+
+a hundred and eight 一百零八
+
+a hundred and nine 一百零九
+
+a hundred and ten 一百一十
+
+a hundred and fifty 一百五十
+
+first 第一
+
+second 第二
+
+third 第三
+
+fourth 第四
+
+fifth 第五
+
+sixth 第六
+
+seventh 第七
+
+eighth 第八
+
+ninth 第九
+
+tenth 第十
+
+eleventh 第十一
+
+thirty\-first 第三十一
+
+number one 一号
+
+number two 二号
+
+number three 三号
+
+o'clock ……点钟
+
+half past five 五点半
+
+quarter past ten 十点十五
+
+quarter to eleven 十点四十五
+
+early 早的
+
+late 晚的
+
+today 今天
+
+yesterday 昨天
+
+the day before yesterday 前天
+
+tomorrow 明天
+
+the day after tomorrow 后天
+
+evening 晚上
+
+now 现在
+
+then 那时
+
+date 日期
+
+holiday 假期
+
+lunch\-time 午饭时间
+
+dinner\-time 晚饭时间
+
+dark 天黑
+
+nearly 将近
+
+spring 春天
+
+summer 夏天
+
+autumn 秋天
+
+winter 冬天
+
+January 一月
+
+February 二月
+
+March 三月
+
+April 四月
+
+May 五月
+
+June 六月
+
+July 七月
+
+August 八月
+
+September 九月
+
+October 十月
+
+November 十一月
+
+December 十二月
+
+Monday 周一
+
+Tuesday 周二
+
+Wednesday 周三
+
+Thursday 周四
+
+Friday 周五
+
+Saturday 周六
+
+Sunday 周日
+
+red 红色
+
+blue 蓝色
+
+green 绿色
+
+black 黑色
+
+white 白色
+
+yellow 黄色
+
+brown 棕色
+
+pink 粉色
+
+head 头
+
+eye 眼睛
+
+nose 鼻子
+
+mouth 嘴巴
+
+ear 耳朵
+
+neck 脖子
+
+shoulder 肩膀
+
+arm 手臂
+
+hand 手
+
+finger 手指
+
+leg 腿
+
+foot 脚
+
+toe 脚趾
+
+tooth 牙齿
+
+headache 头痛
+
+stomachache 肚子疼
+
+toothache 牙疼
+
+backache 后背疼
+
+plum 李子
+
+peach 桃子
+
+grape 葡萄
+
+apple 苹果
+
+food 食物
+
+salad 沙拉
+
+drink 饮品；喝
+
+ice-cream 冰淇淋
+
+hamburger 汉堡包
+
+breakfast 早餐
+
+lunch 午餐
+
+dinner 晚餐
+
+flour 面粉
+
+sugar 白糖
+
+egg 鸡蛋
+
+butter 黄油
+
+currants 葡萄干
+
+salt 盐
+
+pepper 胡椒粉
+
+rice 大米
+
+cheese 奶酪
+
+milk 牛奶
+
+bottle 奶瓶
+
+cookie 小饼干
+
+peanuts 花生
+
+crisps 薯片
+
+biscuits 饼干
+
+buns 小圆面包
+
+lemonade 柠檬水
+
+orange juice 橙汁
+
+a cup of tea 一杯茶
+
+pizza 披萨
+
+pies 馅饼
+
+spaghetti 意大利面
+
+soup 汤
+
+cake 蛋糕
+
+chocolate ice 巧克力冰淇淋
+
+strawberry ice 草莓冰淇淋
+
+tree 树
+
+bush 灌木丛
+
+flower 花朵
+
+rose 玫瑰花
+
+bird 小鸟
+
+fly 苍蝇
+
+animal 动物
+
+cat 猫咪
+
+garden 花园
+
+palace 宫殿
+
+prison 监狱
+
+room 房间
+
+kitchen 厨房
+
+bathroom 浴室
+
+bedroom 卧室
+
+sitting-room 客厅
+
+computer room 电脑房
+
+swimming pool 游泳池
+
+tennis court 网球场
+
+first floor 一楼
+
+second floor 二楼
+
+top floor 顶楼
+
+river 河流
+
+road 马路
+
+old house 老房子
+
+small house 小房子
+
+rock 岩石
+
+France 法国
+
+Britain 英国
+
+China 中国
+
+Greece 希腊
+
+Japan 日本
+
+Gondoland 贡多兰
+
+South America 南美洲
+
+bag 包
+
+map 地图
+
+clock 钟表
+
+box 盒子
+
+plate 盘子
+
+book 书本
+
+bell 铃铛
+
+statue 雕像
+
+fireplace 壁炉
+
+wall 墙壁
+
+door 门
+
+window 窗户
+
+chair 椅子
+
+chandelier 吊灯
+
+shower 淋浴
+
+towel 毛巾
+
+sweater 毛衣
+
+dress 连衣裙
+
+pants 长裤
+
+skirt 短裙
+
+hat 帽子
+
+basket 篮子
+
+a pair of shoes 一双鞋子
+
+a pair of socks 一双袜子
+
+baby's things 婴儿用品
+
+button 按钮
+
+handle 把手
+
+switch 开关
+
+plug 船塞
+
+boat 小船
+
+new boat 新船
+
+old boat 旧船
+
+car 小汽车
+
+bike 自行车
+
+motorbike 摩托车
+
+helicopter 直升机
+
+spaceship 宇宙飞船
+
+parking meter 停车计时器
+
+typewriter 打字机
+
+computer 电脑
+
+telephone 电话
+
+telephone box 电话亭
+
+radio 收音机
+
+noise 声响；噪音
+
+rubbish 垃圾
+
+black box 黑盒子
+
+present 礼物
+
+job 工作；活儿
+
+thing 东西
+
+story 故事
+
+party 派对
+
+danger 危险
+
+entrance 入口
+
+exit 出口
+
+kilometre 千米
+
+metre 米
+
+degree 度
+
+speed 速度
+
+temperature 温度
+
+football 足球
+
+basketball 篮球
+
+tennis 网球
+
+golf 高尔夫球
+
+swimming 游泳
+
+roller-skating 滑旱冰
+
+exercise 锻炼；运动
+
+rain 下雨；雨水
+
+wash 清洗
+
+count 数数
+
+go 走；出发
+
+come 来
+
+follow 跟随
+
+stop 停下
+
+look 看
+
+listen 听
+
+see 看见
+
+hear 听见
+
+talk 说话
+
+walk 走路
+
+run 奔跑
+
+jump 跳跃
+
+swim 游泳
+
+try 尝试
+
+eat 吃
+
+take 拿；服用
+
+put 放
+
+push 推
+
+press 按
+
+open 打开
+
+close 关闭
+
+carry 搬运；抱着
+
+bring 带来
+
+take away 带走；拿走
+
+put down 放下
+
+come back 回来
+
+go back 返回
+
+go away 走开；离开
+
+run away 逃跑
+
+get 变得；拿到
+
+get wet 淋湿
+
+find 找到
+
+look for 寻找
+
+wait 等待
+
+cry 哭泣
+
+appear 出现
+
+pick 采摘
+
+bounce 蹦跳
+
+slide 滑动
+
+reach 够到
+
+mend 修理
+
+make 制作
+
+write down 记下
+
+ride 骑行
+
+drive 开车
+
+need 需要
+
+want 想要
+
+learn 学习
+
+teach 教
+
+help 帮忙
+
+marry 结婚
+
+argue 争吵
+
+bite 咬
+
+sink 下沉
+
+pull 拉
+
+pour 倾倒
+
+warm 加热；温暖的
+
+know 知道
+
+like 喜欢
+
+love 喜爱
+
+have 拥有；吃；喝
+
+have got 拥有
+
+please 请
+
+thank you 谢谢你
+
+thanks 谢谢
+
+here you are 给你
+
+excuse me 打扰一下
+
+I beg your pardon 请再说一遍
+
+wait a moment 稍等片刻
+
+well done 做得好
+
+no thank you 不用谢谢
+
+welcome to 欢迎来到
+
+nice to see you 很高兴见到你
+
+glad to see you 很高兴见到你
+
+what 什么
+
+where 哪里
+
+who 谁
+
+whose 谁的
+
+why 为什么
+
+when 什么时候
+
+how 怎样
+
+how many 多少
+
+how about 怎么样
+
+what about 怎么样
+
+which 哪一个
+
+yes 是的
+
+no 不
+
+all right 没事；安好
+
+of course 当然
+
+too 也
+
+again 再次
+
+just 仅仅
+
+some 一些
+
+any 一些；任何
+
+lots of 许多
+
+hundreds of 许许多多
+
+a little 一点
+
+a lot of 许多
+
+more 更多
+
+everything 一切
+
+something 某物；某事
+
+anything 任何事物
+
+nothing 没有东西
+
+someone 某人
+
+anyone 任何人
+
+no one 没有人
+
+everyone 所有人
+
+somebody 某人
+
+nobody 没有人
+
+because 因为
+
+and 和
+
+but 但是
+
+or 或者；否则
+
+for 为了；给
+
+from 从
+
+away 离开
+
+back 返回
+
+together 一起
+
+everywhere 到处
+
+once upon a time 从前
+
+off we go 我们出发啦
+
+off you go 去吧
+
+come on 快点
+
+don't worry 别担心
+
+don't argue 别吵架
+
+don't do that 别那么做
+
+look out 小心
+
+be careful 小心
+
+be quiet 安静
+
+let's go 我们走吧
+
+let's see 我们看看
+
+wait and see 等着瞧
+
+tell me 告诉我
+
+that's better 这样好多了
+
+that's it 就是这样
+
+i see 我明白了
+
+it's ready 准备好了
+
+it's all right 没事
+
+no entry 禁止入内
+
+gotcha 抓到你啦
+
+hurray 万岁
+
+hooray 太棒了
+
+oh dear 哎呀
+
+help 救命
+
+acho 阿嚏
+
+my goodness 天呐
+
+wonderful 太好了
+
+surprise 惊喜
+
+secret 秘密
+
+matter 问题；毛病
+
+fault 过错
+
+happiness 快乐
+
+fun 乐趣
+
+happen 发生
+
+happening 发生的事
+
+rest 休息
+
+free 自由的
+
+name 名字
+
+age 年龄
+
+weather 天气
+
+village 村庄
+
+street 街道
+
+hill 小山
+
+bridge 桥
+
+forest 森林
+
+beach 沙滩
+
+season 季节
+
+festival 节日
+
+present 礼物
+
+card 卡片
+
+letter 信件
+
+song 歌曲
+
+game 游戏
+
+team 团队
+
+class 班级
+
+school 学校
+
+teacher 老师
+
+student 学生
+
+doctor 医生
+
+nurse 护士
+
+driver 司机
+
+farmer 农民
+
+worker 工人
+
+player 运动员
+
+winner 获胜者
+
+loser 失败者
+
+firstly 首先
+
+secondly 其次
+
+finally 最后
+
+today's the third 今天是三号
+
+the second was yesterday 昨天是二号
+
+the day before that was the first 前天是一号
+
+tomorrow's the fourth 明天是四号
+
+what time is it 现在几点了
+
+how fast are we going 车速多少
+
+how far is it 有多远
+
+how hot is it 气温多少度
+
+what's the matter 怎么了
+
+what's happening 发生什么事了
+
+what happened 刚刚发生了什么
+
+what do you think 你觉得怎么样
+
+what does this mean 这是什么意思
+
+when are you going to stop 你准备几点停工
+
+where are you going 你要去哪里
+
+how does it work 它怎么运作
+
+what's it like 它长什么样
+
+which way do we go 走哪条路
+
+can you see me 你能看见我吗
+
+i can hear something 我听到有动静
+
+i can't see anything 我什么都看不见
+
+did you hear anything 你听到什么了吗
+
+there's nothing in it 里面空空如也
+
+there's someone inside 里面有个人
+
+is anyone there 有人在那里吗
+
+i can't see anyone 我看不到任何人
+
+there's no one outside 外面没人
+
+no one can see me 没人能看见我
+
+it's your fault 是你的错
+
+this clock is wrong 钟表时间不准
+
+you're invisible 你隐形了
+
+you're not tall enough 你身高不够高
+
+it's not big enough 尺寸不够大
+
+this one is big enough 这个大小刚刚好
+
+too long 太长
+
+too big 太大
+
+too heavy 太重
+
+too fast 太快
+
+let's be quiet 我们安静点
+
+let's be calm 我们冷静下来
+
+let's go quickly 我们快点走
+
+let's go carefully 我们小心走
+
+let's get amanda back 我们把阿曼达找回来
+
+listen to me 听我说
+
+come here 过来
+
+go right 往右走
+
+go left 往左走
+
+go straight on 一直往前走
+
+here we are 我们到了
+
+say it again 再说一遍
+
+say properly 说标准
+
+look outside 看向外面
+
+get through 穿过去
+
+push the button 按下按钮
+
+turn video on 打开视频
+
+turn video off 关闭视频
+
+doors go up 门上升
+
+doors come down 门降下
+
+water's coming in 水灌进来
+
+the boat's sinking 船正在下沉
+
+the water isn't deep 水不深
+
+everyone can walk ashore 所有人可以蹚水上岸
+
+amanda stayed dry 阿曼达没淋湿
+
+corvax got wet 科瓦克斯浑身湿透
+
+> （注：部分内容可能由 AI 生成）

@@ -14,7 +14,7 @@
     "semester": "上",
     "type": "写",
     "learning_status": null,
-    "needs_regen": true,
+    "needs_regen": false,
     "timestamp": "2026-07-29T07:20:14.029655"
   },
   {
@@ -25,5 +25,5517 @@
     "learning_status": "wrong",
     "needs_regen": false,
     "timestamp": "2026-07-29T07:24:10.760508"
+  },
+  {
+    "char": "假",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T11:59:59.141219"
+  },
+  {
+    "char": "厉",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:00:19.356959"
+  },
+  {
+    "char": "韵",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:01:02.962529"
+  },
+  {
+    "char": "掠",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:01:07.219325"
+  },
+  {
+    "char": "尔",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:01:20.664788"
+  },
+  {
+    "char": "陌",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:01:49.803041"
+  },
+  {
+    "char": "委",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:02.242785"
+  },
+  {
+    "char": "屈",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:06.015967"
+  },
+  {
+    "char": "局",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:15.079699"
+  },
+  {
+    "char": "搞",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:22.863891"
+  },
+  {
+    "char": "少",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:30.600848"
+  },
+  {
+    "char": "希",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:02:48.323172"
+  },
+  {
+    "char": "瘦",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:03:05.867542"
+  },
+  {
+    "char": "性",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:04:25.564891"
+  },
+  {
+    "char": "饶",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:04:58.215536"
+  },
+  {
+    "char": "侧",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:05:29.230746"
+  },
+  {
+    "char": "贸",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:05:41.040646"
+  },
+  {
+    "char": "政",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:05:46.514530"
+  },
+  {
+    "char": "府",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:05:55.017829"
+  },
+  {
+    "char": "幻",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:06:00.316615"
+  },
+  {
+    "char": "激",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:06:14.403498"
+  },
+  {
+    "char": "伟",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:06:20.904328"
+  },
+  {
+    "char": "贞",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:06:25.654202"
+  },
+  {
+    "char": "凡",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:06:30.285596"
+  },
+  {
+    "char": "资",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:24:22.009805"
+  },
+  {
+    "char": "还",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:25:05.110932"
+  },
+  {
+    "char": "亚",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:57:12.890645"
+  },
+  {
+    "char": "态",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:57:41.861315"
+  },
+  {
+    "char": "浅",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:57:48.347743"
+  },
+  {
+    "char": "使",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:57:54.339215"
+  },
+  {
+    "char": "另",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:57:57.034961"
+  },
+  {
+    "char": "怜",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:00.943127"
+  },
+  {
+    "char": "功",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:20.438338"
+  },
+  {
+    "char": "务",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:27.762443"
+  },
+  {
+    "char": "罚",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:38.455385"
+  },
+  {
+    "char": "庭",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:42.669553"
+  },
+  {
+    "char": "未",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:44.974156"
+  },
+  {
+    "char": "斜",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:58:50.782732"
+  },
+  {
+    "char": "挑",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:01.099050"
+  },
+  {
+    "char": "列",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:10.313776"
+  },
+  {
+    "char": "凌",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:13.784974"
+  },
+  {
+    "char": "棕",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:17.154493"
+  },
+  {
+    "char": "枚",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:24.595396"
+  },
+  {
+    "char": "爽",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:30.275877"
+  },
+  {
+    "char": "频",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:34.237156"
+  },
+  {
+    "char": "勾",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:49.596325"
+  },
+  {
+    "char": "持",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T12:59:54.332390"
+  },
+  {
+    "char": "恒",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:00:03.163932"
+  },
+  {
+    "char": "圣",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:00:07.492477"
+  },
+  {
+    "char": "妥",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:00:24.365229"
+  },
+  {
+    "char": "阁",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:00:46.364400"
+  },
+  {
+    "char": "轴",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:00:54.870944"
+  },
+  {
+    "char": "普",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:01.830128"
+  },
+  {
+    "char": "及",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:12.072911"
+  },
+  {
+    "char": "吞",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:17.894222"
+  },
+  {
+    "char": "申",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:23.163120"
+  },
+  {
+    "char": "介",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:26.945157"
+  },
+  {
+    "char": "绍",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:31.545801"
+  },
+  {
+    "char": "宗",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:39.723476"
+  },
+  {
+    "char": "占",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:01:49.817646"
+  },
+  {
+    "char": "英",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:02.194867"
+  },
+  {
+    "char": "欠",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:05.298990"
+  },
+  {
+    "char": "拢",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:08.916606"
+  },
+  {
+    "char": "优",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:15.032376"
+  },
+  {
+    "char": "威",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:24.098585"
+  },
+  {
+    "char": "厚",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:26.471616"
+  },
+  {
+    "char": "滨",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:30.972702"
+  },
+  {
+    "char": "封",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:39.947095"
+  },
+  {
+    "char": "药",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:43.996223"
+  },
+  {
+    "char": "仅",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:46.591624"
+  },
+  {
+    "char": "返",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:50.782901"
+  },
+  {
+    "char": "亦",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:54.116041"
+  },
+  {
+    "char": "宜",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:02:59.003067"
+  },
+  {
+    "char": "妙",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:02.566072"
+  },
+  {
+    "char": "充",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:10.101677"
+  },
+  {
+    "char": "击",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:14.746251"
+  },
+  {
+    "char": "器",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:18.714326"
+  },
+  {
+    "char": "汇",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:22.265666"
+  },
+  {
+    "char": "序",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:25.534443"
+  },
+  {
+    "char": "姿",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:30.005863"
+  },
+  {
+    "char": "秘",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:03:33.726410"
+  },
+  {
+    "char": "瞪",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:05.574505"
+  },
+  {
+    "char": "瞅",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:08.411089"
+  },
+  {
+    "char": "睁",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:12.376876"
+  },
+  {
+    "char": "眶",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:19.962851"
+  },
+  {
+    "char": "怒",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:23.489353"
+  },
+  {
+    "char": "睹",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:26.352991"
+  },
+  {
+    "char": "朝",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:30.787349"
+  },
+  {
+    "char": "喜",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:38.839675"
+  },
+  {
+    "char": "淡",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:04:43.408268"
+  },
+  {
+    "char": "抽",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:25.258715"
+  },
+  {
+    "char": "严",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:32.596955"
+  },
+  {
+    "char": "苍",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:41.892116"
+  },
+  {
+    "char": "刮",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:48.783462"
+  },
+  {
+    "char": "捉",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:51.638676"
+  },
+  {
+    "char": "楚",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:55.055249"
+  },
+  {
+    "char": "至",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:05:59.811918"
+  },
+  {
+    "char": "岸",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:03.740157"
+  },
+  {
+    "char": "欲",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:11.029046"
+  },
+  {
+    "char": "感",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:22.165801"
+  },
+  {
+    "char": "荣",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:35.860909"
+  },
+  {
+    "char": "部",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:43.373524"
+  },
+  {
+    "char": "跌",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:54.158245"
+  },
+  {
+    "char": "念",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:06:55.395025"
+  },
+  {
+    "char": "退",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:01.820504"
+  },
+  {
+    "char": "单",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:04.115597"
+  },
+  {
+    "char": "留",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:06.081260"
+  },
+  {
+    "char": "取",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:17.135212"
+  },
+  {
+    "char": "勿",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:20.187984"
+  },
+  {
+    "char": "呼",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:26.303901"
+  },
+  {
+    "char": "朗",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:53.298816"
+  },
+  {
+    "char": "展",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:07:58.535746"
+  },
+  {
+    "char": "备",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:16.339006"
+  },
+  {
+    "char": "暴",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:20.318260"
+  },
+  {
+    "char": "钻",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:24.663000"
+  },
+  {
+    "char": "错",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:32.875988"
+  },
+  {
+    "char": "式",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:34.698236"
+  },
+  {
+    "char": "旅",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:36.140121"
+  },
+  {
+    "char": "咬",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:47.076882"
+  },
+  {
+    "char": "亲",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:50.987000"
+  },
+  {
+    "char": "祖",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:08:52.453395"
+  },
+  {
+    "char": "翠",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:09:01.564680"
+  },
+  {
+    "char": "悄",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:09:05.990881"
+  },
+  {
+    "char": "捕",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T13:09:08.242651"
+  },
+  {
+    "char": "完",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "needs_regen": false,
+    "original_version": null,
+    "feedback": "",
+    "timestamp": "2026-07-29T14:00:00"
+  },
+  {
+    "char": "诗",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:12.458681"
+  },
+  {
+    "char": "碧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:21.431128"
+  },
+  {
+    "char": "绿",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:28.493801"
+  },
+  {
+    "char": "寻",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:38.180443"
+  },
+  {
+    "char": "原",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:49.681070"
+  },
+  {
+    "char": "惊",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:55.976897"
+  },
+  {
+    "char": "邓",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:08:59.263480"
+  },
+  {
+    "char": "植",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:09:11.881014"
+  },
+  {
+    "char": "昨",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:09:25.512453"
+  },
+  {
+    "char": "买",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:09:44.982075"
+  },
+  {
+    "char": "周",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:02.997071"
+  },
+  {
+    "char": "勇",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:24.672788"
+  },
+  {
+    "char": "敢",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:26.106205"
+  },
+  {
+    "char": "术",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:33.913116"
+  },
+  {
+    "char": "州",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:39.417830"
+  },
+  {
+    "char": "华",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:10:48.373650"
+  },
+  {
+    "char": "全",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:08.563370"
+  },
+  {
+    "char": "团",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:11.218443"
+  },
+  {
+    "char": "真",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:12.972965"
+  },
+  {
+    "char": "品",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:22.085040"
+  },
+  {
+    "char": "乎",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:37.497012"
+  },
+  {
+    "char": "精",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:11:48.204259"
+  },
+  {
+    "char": "亡",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:12:29.929413"
+  },
+  {
+    "char": "劝",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:12:34.696463"
+  },
+  {
+    "char": "坏",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:12:42.008566"
+  },
+  {
+    "char": "死",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:12:44.186058"
+  },
+  {
+    "char": "意",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:00.604909"
+  },
+  {
+    "char": "刻",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:04.144216"
+  },
+  {
+    "char": "突",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:07.222174"
+  },
+  {
+    "char": "然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:09.278113"
+  },
+  {
+    "char": "掉",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:11.195265"
+  },
+  {
+    "char": "映",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:37.011740"
+  },
+  {
+    "char": "新",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:44.273753"
+  },
+  {
+    "char": "迎",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:48.512755"
+  },
+  {
+    "char": "扑",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:50.795214"
+  },
+  {
+    "char": "南",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:55.134746"
+  },
+  {
+    "char": "帮",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:13:58.370325"
+  },
+  {
+    "char": "忠",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:08.483459"
+  },
+  {
+    "char": "夜",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:19.413510"
+  },
+  {
+    "char": "特",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:21.384751"
+  },
+  {
+    "char": "或",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:28.393998"
+  },
+  {
+    "char": "所",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:33.480798"
+  },
+  {
+    "char": "慢",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:36.309046"
+  },
+  {
+    "char": "定",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:39.540576"
+  },
+  {
+    "char": "决",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:46.295873"
+  },
+  {
+    "char": "付",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:51.579282"
+  },
+  {
+    "char": "终",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:14:55.331806"
+  },
+  {
+    "char": "佛",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:13.544307"
+  },
+  {
+    "char": "任",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:17.846067"
+  },
+  {
+    "char": "何",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:20.372659"
+  },
+  {
+    "char": "迟",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:27.524465"
+  },
+  {
+    "char": "始",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:36.511348"
+  },
+  {
+    "char": "值",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:41.820729"
+  },
+  {
+    "char": "此",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:45.487815"
+  },
+  {
+    "char": "忽",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:47.219245"
+  },
+  {
+    "char": "件",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:49.902357"
+  },
+  {
+    "char": "启",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:51.327235"
+  },
+  {
+    "char": "召",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:54.504762"
+  },
+  {
+    "char": "完",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:15:59.121602"
+  },
+  {
+    "char": "却",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:00.913191"
+  },
+  {
+    "char": "供",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:02.564697"
+  },
+  {
+    "char": "治",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:16.455441"
+  },
+  {
+    "char": "姓",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:18.917046"
+  },
+  {
+    "char": "仍",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:29.872719"
+  },
+  {
+    "char": "继",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:31.800748"
+  },
+  {
+    "char": "续",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:36.940289"
+  },
+  {
+    "char": "业",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:38.838707"
+  },
+  {
+    "char": "灿",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:16:40.594971"
+  },
+  {
+    "char": "原来",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:06.892754"
+  },
+  {
+    "char": "碧空如洗",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:22.646222"
+  },
+  {
+    "char": "格外",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:30.512085"
+  },
+  {
+    "char": "引人注目",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:36.542774"
+  },
+  {
+    "char": "小心",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:41.761505"
+  },
+  {
+    "char": "昨天",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:50.328882"
+  },
+  {
+    "char": "也许",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:17:55.824950"
+  },
+  {
+    "char": "应该",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:07.826576"
+  },
+  {
+    "char": "弱小",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:11.726532"
+  },
+  {
+    "char": "神州",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:20.040410"
+  },
+  {
+    "char": "中华",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:24.427655"
+  },
+  {
+    "char": "山川",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:27.082385"
+  },
+  {
+    "char": "长江",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:31.052719"
+  },
+  {
+    "char": "先人",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:51.764819"
+  },
+  {
+    "char": "转眼",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:18:56.053666"
+  },
+  {
+    "char": "有关",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:09.224762"
+  },
+  {
+    "char": "烤鸭",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:16.667767"
+  },
+  {
+    "char": "季节",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:28.894954"
+  },
+  {
+    "char": "出色",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:31.598040"
+  },
+  {
+    "char": "不时",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:39.623114"
+  },
+  {
+    "char": "一直",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:46.445609"
+  },
+  {
+    "char": "拼音",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:19:59.777146"
+  },
+  {
+    "char": "劝告",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:06.650285"
+  },
+  {
+    "char": "时候",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:19.150446"
+  },
+  {
+    "char": "神情",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:28.512261"
+  },
+  {
+    "char": "愿意",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:30.259089"
+  },
+  {
+    "char": "为难",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:33.364252"
+  },
+  {
+    "char": "立刻",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:36.928667"
+  },
+  {
+    "char": "突然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:39.020044"
+  },
+  {
+    "char": "难为情",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:42.883161"
+  },
+  {
+    "char": "迎面",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:51.751884"
+  },
+  {
+    "char": "天然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:20:55.774957"
+  },
+  {
+    "char": "向导",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:10.593331"
+  },
+  {
+    "char": "北极星",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:14.273517"
+  },
+  {
+    "char": "特别",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:21.306302"
+  },
+  {
+    "char": "主要",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:26.707051"
+  },
+  {
+    "char": "方便",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:30.589220"
+  },
+  {
+    "char": "直接",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:33.309798"
+  },
+  {
+    "char": "实在",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:38.802181"
+  },
+  {
+    "char": "通常",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:40.516838"
+  },
+  {
+    "char": "似的",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:45.492146"
+  },
+  {
+    "char": "遇到",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:49.079737"
+  },
+  {
+    "char": "一定",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:21:51.154051"
+  },
+  {
+    "char": "经常",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:22:03.291173"
+  },
+  {
+    "char": "人家",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:22:04.999839"
+  },
+  {
+    "char": "决定",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:22:12.458929"
+  },
+  {
+    "char": "工夫",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:22:17.310958"
+  },
+  {
+    "char": "终于",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:22:19.457354"
+  },
+  {
+    "char": "新奇",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:23.805206"
+  },
+  {
+    "char": "任何",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:35.379895"
+  },
+  {
+    "char": "事情",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:37.726649"
+  },
+  {
+    "char": "怎样",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:43.414819"
+  },
+  {
+    "char": "以前",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:45.778181"
+  },
+  {
+    "char": "灵巧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:48.319955"
+  },
+  {
+    "char": "开始",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:52.936318"
+  },
+  {
+    "char": "决心",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:56.907707"
+  },
+  {
+    "char": "从此",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T14:59:59.688347"
+  },
+  {
+    "char": "忽然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:07.436985"
+  },
+  {
+    "char": "启发",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:10.854816"
+  },
+  {
+    "char": "号召",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:13.300875"
+  },
+  {
+    "char": "民众",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:15.435898"
+  },
+  {
+    "char": "自由",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:19.159913"
+  },
+  {
+    "char": "道理",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:21.508915"
+  },
+  {
+    "char": "根本",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:23.318203"
+  },
+  {
+    "char": "果然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:25.520508"
+  },
+  {
+    "char": "提供",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:27.926047"
+  },
+  {
+    "char": "百姓",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:33.152868"
+  },
+  {
+    "char": "必须",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:34.964965"
+  },
+  {
+    "char": "反而",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:36.677982"
+  },
+  {
+    "char": "仍然",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:38.293116"
+  },
+  {
+    "char": "治服",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:40.573712"
+  },
+  {
+    "char": "继续",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:42.810127"
+  },
+  {
+    "char": "采用",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:44.778085"
+  },
+  {
+    "char": "奔波",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:47.420741"
+  },
+  {
+    "char": "平常",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:00:57.862351"
+  },
+  {
+    "char": "平时",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:01:00.499432"
+  },
+  {
+    "char": "难道",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:01:09.251699"
+  },
+  {
+    "char": "探",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "needs_regen": false
+  },
+  {
+    "char": "掩",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "needs_regen": false
+  },
+  {
+    "char": "遮",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "needs_regen": false
+  },
+  {
+    "char": "滥",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:57:29.471900"
+  },
+  {
+    "char": "善",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:57:38.420482"
+  },
+  {
+    "char": "其",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:57:40.989192"
+  },
+  {
+    "char": "替",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:57:42.777604"
+  },
+  {
+    "char": "设",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:57:44.658981"
+  },
+  {
+    "char": "甫",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:59:20.383020"
+  },
+  {
+    "char": "既",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:59:31.385930"
+  },
+  {
+    "char": "哩",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T15:59:51.007320"
+  },
+  {
+    "char": "即",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:00:04.795003"
+  },
+  {
+    "char": "因",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:11.106150"
+  },
+  {
+    "char": "难",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:14.933133"
+  },
+  {
+    "char": "答",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:21.895061"
+  },
+  {
+    "char": "处",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:24.876194"
+  },
+  {
+    "char": "两",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:34.273604"
+  },
+  {
+    "char": "条",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:37.056937"
+  },
+  {
+    "char": "哪",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:41.233459"
+  },
+  {
+    "char": "宽",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:44.487947"
+  },
+  {
+    "char": "成",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:49.540729"
+  },
+  {
+    "char": "起",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:54.696254"
+  },
+  {
+    "char": "许",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:58.203594"
+  },
+  {
+    "char": "作",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:01:59.487014"
+  },
+  {
+    "char": "办",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:02.360094"
+  },
+  {
+    "char": "法",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:04.216853"
+  },
+  {
+    "char": "如",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:05.851128"
+  },
+  {
+    "char": "已",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:07.706198"
+  },
+  {
+    "char": "经",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:09.075512"
+  },
+  {
+    "char": "别",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:10.698168"
+  },
+  {
+    "char": "轻",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:12.155950"
+  },
+  {
+    "char": "胆",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:13.580333"
+  },
+  {
+    "char": "肚",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:15.102161"
+  },
+  {
+    "char": "更",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:16.976204"
+  },
+  {
+    "char": "识",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:19.013277"
+  },
+  {
+    "char": "夹",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:22.294808"
+  },
+  {
+    "char": "之",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:02:29.918583"
+  },
+  {
+    "char": "名",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:03:26.422704"
+  },
+  {
+    "char": "诉",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:03:31.916652"
+  },
+  {
+    "char": "很",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:03:34.136217"
+  },
+  {
+    "char": "份",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:03:59.752498"
+  },
+  {
+    "char": "状",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:05.519655"
+  },
+  {
+    "char": "形",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:08.945632"
+  },
+  {
+    "char": "活",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:12.656884"
+  },
+  {
+    "char": "些",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:17.092433"
+  },
+  {
+    "char": "总",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:18.826697"
+  },
+  {
+    "char": "您",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:21.789511"
+  },
+  {
+    "char": "能",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:33.681627"
+  },
+  {
+    "char": "奇",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:37.525318"
+  },
+  {
+    "char": "吧",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:04:56.837809"
+  },
+  {
+    "char": "代",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:02.040442"
+  },
+  {
+    "char": "穿",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:04.249854"
+  },
+  {
+    "char": "货",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:05.948104"
+  },
+  {
+    "char": "利",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:10.066096"
+  },
+  {
+    "char": "路",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:13.393120"
+  },
+  {
+    "char": "常",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:21.942828"
+  },
+  {
+    "char": "非",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:23.719368"
+  },
+  {
+    "char": "每",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:25.537016"
+  },
+  {
+    "char": "士",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:31.207322"
+  },
+  {
+    "char": "忘",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:34.761137"
+  },
+  {
+    "char": "民",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:37.583099"
+  },
+  {
+    "char": "理",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:38.934912"
+  },
+  {
+    "char": "令",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:43.248257"
+  },
+  {
+    "char": "反",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:45.657581"
+  },
+  {
+    "char": "村",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:47.724306"
+  },
+  {
+    "char": "由",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:49.515537"
+  },
+  {
+    "char": "于",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:51.246303"
+  },
+  {
+    "char": "员",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:53.362556"
+  },
+  {
+    "char": "岁",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:05:57.633899"
+  },
+  {
+    "char": "息",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:02.345036"
+  },
+  {
+    "char": "绝",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:04.174098"
+  },
+  {
+    "char": "独",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:09.208337"
+  },
+  {
+    "char": "阴",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:12.699290"
+  },
+  {
+    "char": "该",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:30.502038"
+  },
+  {
+    "char": "失",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:35.331187"
+  },
+  {
+    "char": "得",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:39.172254"
+  },
+  {
+    "char": "忙",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:43.331383"
+  },
+  {
+    "char": "谁",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:45.798023"
+  },
+  {
+    "char": "宁",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:50.191897"
+  },
+  {
+    "char": "怎",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:53.138288"
+  },
+  {
+    "char": "收",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:06:57.985189"
+  },
+  {
+    "char": "极",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:04.275550"
+  },
+  {
+    "char": "送",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:05.913847"
+  },
+  {
+    "char": "但",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:07.402244"
+  },
+  {
+    "char": "句",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:11.385286"
+  },
+  {
+    "char": "抓",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:16.526389"
+  },
+  {
+    "char": "咱",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:20.205663"
+  },
+  {
+    "char": "戏",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:23.296467"
+  },
+  {
+    "char": "蛇",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:07:28.089935"
+  },
+  {
+    "char": "那么",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:25:55.548742"
+  },
+  {
+    "char": "自言自语",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:26:16.682113"
+  },
+  {
+    "char": "常常",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:26:32.994512"
+  },
+  {
+    "char": "来回",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:26:35.968464"
+  },
+  {
+    "char": "为了",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:26:54.812105"
+  },
+  {
+    "char": "由于",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:27:00.761128"
+  },
+  {
+    "char": "一切",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:27:11.810661"
+  },
+  {
+    "char": "消失",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:27:25.901845"
+  },
+  {
+    "char": "怎么",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:27:43.110849"
+  },
+  {
+    "char": "但是",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:27:53.773547"
+  },
+  {
+    "char": "更加",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:28:06.823562"
+  },
+  {
+    "char": "频频",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:02.838620"
+  },
+  {
+    "char": "准备",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:15.496272"
+  },
+  {
+    "char": "旁边",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:22.418490"
+  },
+  {
+    "char": "安心",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:28.754434"
+  },
+  {
+    "char": "吃力",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:32.278246"
+  },
+  {
+    "char": "漂亮",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:38.707848"
+  },
+  {
+    "char": "意思",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:41.797615"
+  },
+  {
+    "char": "因此",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:43.510101"
+  },
+  {
+    "char": "阁楼",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:45.229533"
+  },
+  {
+    "char": "妥当",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:30:55.933412"
+  },
+  {
+    "char": "声明",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:03.407513"
+  },
+  {
+    "char": "普通",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:05.868181"
+  },
+  {
+    "char": "让步",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:08.435937"
+  },
+  {
+    "char": "条件",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:09.967697"
+  },
+  {
+    "char": "要是",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:24.113669"
+  },
+  {
+    "char": "最好",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:27.923523"
+  },
+  {
+    "char": "答应",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:32.865698"
+  },
+  {
+    "char": "来得及",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:38.523012"
+  },
+  {
+    "char": "当然",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:46.433919"
+  },
+  {
+    "char": "刚才",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:48.412371"
+  },
+  {
+    "char": "知觉",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:50.339361"
+  },
+  {
+    "char": "介绍",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:31:58.745507"
+  },
+  {
+    "char": "主旨",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:00.506855"
+  },
+  {
+    "char": "占领",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:03.209264"
+  },
+  {
+    "char": "乏力",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:06.015695"
+  },
+  {
+    "char": "一本正经",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:17.391971"
+  },
+  {
+    "char": "发展",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:42.774764"
+  },
+  {
+    "char": "海滨",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:45.229159"
+  },
+  {
+    "char": "水平线",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:52.916331"
+  },
+  {
+    "char": "来来往往",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:32:57.371913"
+  },
+  {
+    "char": "散发",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:10.401580"
+  },
+  {
+    "char": "密密层层",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:14.468244"
+  },
+  {
+    "char": "严严实实",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:16.163429"
+  },
+  {
+    "char": "视线",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:20.849873"
+  },
+  {
+    "char": "山谷",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:22.681409"
+  },
+  {
+    "char": "充满",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:49.082932"
+  },
+  {
+    "char": "轻快",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:33:57.878948"
+  },
+  {
+    "char": "精神",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:10.737709"
+  },
+  {
+    "char": "千姿百态",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:14.056997"
+  },
+  {
+    "char": "无穷",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:24.603427"
+  },
+  {
+    "char": "奥秘",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:27.579808"
+  },
+  {
+    "char": "再三",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:43.646089"
+  },
+  {
+    "char": "难得",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:46.567968"
+  },
+  {
+    "char": "落后",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:52.770321"
+  },
+  {
+    "char": "地位",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:54.499982"
+  },
+  {
+    "char": "环节",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:57.638832"
+  },
+  {
+    "char": "难度",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:34:59.890002"
+  },
+  {
+    "char": "陆续",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:09.325671"
+  },
+  {
+    "char": "血丝",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:11.127368"
+  },
+  {
+    "char": "匆匆",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:13.718793"
+  },
+  {
+    "char": "转告",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:16.508978"
+  },
+  {
+    "char": "连续",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:24.217549"
+  },
+  {
+    "char": "怒目圆睁",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:25.921209"
+  },
+  {
+    "char": "眨眼",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:28.229159"
+  },
+  {
+    "char": "眼眶",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:30.693148"
+  },
+  {
+    "char": "耳闻目睹",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:33.981552"
+  },
+  {
+    "char": "迟到",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:41.748009"
+  },
+  {
+    "char": "凌乱",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-07-29T16:35:50.837129"
+  },
+  {
+    "char": "ten",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:09:50.047000"
+  },
+  {
+    "char": "two",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:56:44.977868"
+  },
+  {
+    "char": "polite",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:58:03.877335"
+  },
+  {
+    "char": "better",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:58:15.929096"
+  },
+  {
+    "char": "important",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:58:23.542627"
+  },
+  {
+    "char": "under",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:58:55.689957"
+  },
+  {
+    "char": "west",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:59:15.623469"
+  },
+  {
+    "char": "outside",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:59:24.638280"
+  },
+  {
+    "char": "into",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:59:41.318973"
+  },
+  {
+    "char": "eleven",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T15:59:45.940275"
+  },
+  {
+    "char": "early",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:00.370649"
+  },
+  {
+    "char": "late",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:02.030864"
+  },
+  {
+    "char": "then",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:24.808774"
+  },
+  {
+    "char": "tomorrow",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:25.721360"
+  },
+  {
+    "char": "yesterday",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:27.458590"
+  },
+  {
+    "char": "today",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:28.979773"
+  },
+  {
+    "char": "date",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:40.306852"
+  },
+  {
+    "char": "holiday",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:41.979387"
+  },
+  {
+    "char": "dark",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:44.973545"
+  },
+  {
+    "char": "nearly",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:00:46.526981"
+  },
+  {
+    "char": "head",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:01:13.975489"
+  },
+  {
+    "char": "neck",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:01:16.055019"
+  },
+  {
+    "char": "toe",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:01:28.561319"
+  },
+  {
+    "char": "dinner",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:02:51.835129"
+  },
+  {
+    "char": "breakfast",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:02:53.538558"
+  },
+  {
+    "char": "plug",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:05:27.249899"
+  },
+  {
+    "char": "noise",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:05:45.147445"
+  },
+  {
+    "char": "come",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:15.070042"
+  },
+  {
+    "char": "jump",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:30.547478"
+  },
+  {
+    "char": "try",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:34.255916"
+  },
+  {
+    "char": "take",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:37.385568"
+  },
+  {
+    "char": "close",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:42.989224"
+  },
+  {
+    "char": "bring",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:47.106159"
+  },
+  {
+    "char": "get",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:49.567577"
+  },
+  {
+    "char": "appear",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:06:53.335544"
+  },
+  {
+    "char": "drive",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:08.107932"
+  },
+  {
+    "char": "want",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:12.178677"
+  },
+  {
+    "char": "please",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:30.522569"
+  },
+  {
+    "char": "what",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:35.476676"
+  },
+  {
+    "char": "where",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:38.321428"
+  },
+  {
+    "char": "whose",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:44.119545"
+  },
+  {
+    "char": "who",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:44.413865"
+  },
+  {
+    "char": "why",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:46.684975"
+  },
+  {
+    "char": "when",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:48.538616"
+  },
+  {
+    "char": "how",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:50.952310"
+  },
+  {
+    "char": "thank",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:52.819590"
+  },
+  {
+    "char": "t00",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:54.256265"
+  },
+  {
+    "char": "quiet",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:56.599073"
+  },
+  {
+    "char": "r",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:07:58.136808"
+  },
+  {
+    "char": "help",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:08:34.723780"
+  },
+  {
+    "char": "present",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:12:37.197841"
+  },
+  {
+    "char": "monster",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:14:26.467261"
+  },
+  {
+    "char": "now",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:14:49.329753"
+  },
+  {
+    "char": "fine",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:14:55.129466"
+  },
+  {
+    "char": "pull",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:14:59.224549"
+  },
+  {
+    "char": "over",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:11.006447"
+  },
+  {
+    "char": "which",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:21.775327"
+  },
+  {
+    "char": "what about",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:26.425783"
+  },
+  {
+    "char": "count",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:30.931235"
+  },
+  {
+    "char": "a hundred and eight",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:36.421758"
+  },
+  {
+    "char": "a hundred and nine",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:41.187813"
+  },
+  {
+    "char": "a hundred and ten",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:44.756403"
+  },
+  {
+    "char": "a hundred and fifty",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:47.663006"
+  },
+  {
+    "char": "first",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:53.742854"
+  },
+  {
+    "char": "second",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:15:55.936221"
+  },
+  {
+    "char": "fifth",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:19.390358"
+  },
+  {
+    "char": "seventh",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:32.304762"
+  },
+  {
+    "char": "eighth",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:36.638455"
+  },
+  {
+    "char": "ninth",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:39.384520"
+  },
+  {
+    "char": "tenth",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:42.774141"
+  },
+  {
+    "char": "eleventh",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:51.228973"
+  },
+  {
+    "char": "thirty-first",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:52.888198"
+  },
+  {
+    "char": "number one",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:54.413438"
+  },
+  {
+    "char": "number two",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:56.550855"
+  },
+  {
+    "char": "number three",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:58.504481"
+  },
+  {
+    "char": "half past five",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:16:59.723053"
+  },
+  {
+    "char": "quarter past ten",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:17:01.722830"
+  },
+  {
+    "char": "quarter to eleven",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:17:03.152301"
+  },
+  {
+    "char": "acho",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:17:10.843103"
+  },
+  {
+    "char": "a pair of shoes",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:17:33.754676"
+  },
+  {
+    "char": "a pair of socks",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:17:36.270960"
+  },
+  {
+    "char": "talk",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:01.547335"
+  },
+  {
+    "char": "come back",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:09.020593"
+  },
+  {
+    "char": "go back",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:10.676340"
+  },
+  {
+    "char": "go away",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:12.941306"
+  },
+  {
+    "char": "find",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:16.674816"
+  },
+  {
+    "char": "that's it",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:18.823571"
+  },
+  {
+    "char": "know",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:21.920132"
+  },
+  {
+    "char": "yes",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:24.031133"
+  },
+  {
+    "char": "have got",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:26.908841"
+  },
+  {
+    "char": "too",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:28.958437"
+  },
+  {
+    "char": "welcome to",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:32.280206"
+  },
+  {
+    "char": "everyone",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:38.242635"
+  },
+  {
+    "char": "how about",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T16:19:40.102929"
+  },
+  {
+    "char": "Two.",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:11:19.630302"
+  },
+  {
+    "char": "Your Majesty",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:11:30.263174"
+  },
+  {
+    "char": "camera",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:11:57.813738"
+  },
+  {
+    "char": "no",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:10.442104"
+  },
+  {
+    "char": "you did well",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:12.120538"
+  },
+  {
+    "char": "please say it again",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:15.070646"
+  },
+  {
+    "char": "north",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:17.164129"
+  },
+  {
+    "char": "the day before yesterday",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:26.598823"
+  },
+  {
+    "char": "the day after tomorrow",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:28.076430"
+  },
+  {
+    "char": "danger",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:34.341801"
+  },
+  {
+    "char": "football",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:35.405609"
+  },
+  {
+    "char": "basketball",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:37.286626"
+  },
+  {
+    "char": "press",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:38.794266"
+  },
+  {
+    "char": "put",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:40.482168"
+  },
+  {
+    "char": "cry",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:45.934304"
+  },
+  {
+    "char": "thanks",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:12:47.710152"
+  },
+  {
+    "char": "again",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:01.400856"
+  },
+  {
+    "char": "just",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:03.288110"
+  },
+  {
+    "char": "some",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:05.021118"
+  },
+  {
+    "char": "any",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:06.334034"
+  },
+  {
+    "char": "lots of",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:07.989172"
+  },
+  {
+    "char": "more",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:12.862656"
+  },
+  {
+    "char": "everything",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:14.660717"
+  },
+  {
+    "char": "something",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:17.249155"
+  },
+  {
+    "char": "anything",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:18.547303"
+  },
+  {
+    "char": "nothing",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:19.900453"
+  },
+  {
+    "char": "someone",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:21.190028"
+  },
+  {
+    "char": "anyone",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:22.554585"
+  },
+  {
+    "char": "no one",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:25.156658"
+  },
+  {
+    "char": "Everyone likes the game",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:26.853747"
+  },
+  {
+    "char": "somebody",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:28.849837"
+  },
+  {
+    "char": "nobody",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:30.255449"
+  },
+  {
+    "char": "because",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:31.904116"
+  },
+  {
+    "char": "and",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:33.977776"
+  },
+  {
+    "char": "but",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:35.958868"
+  },
+  {
+    "char": "or",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:38.341093"
+  },
+  {
+    "char": "for",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:38.781084"
+  },
+  {
+    "char": "from",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:40.016551"
+  },
+  {
+    "char": "away",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:41.325488"
+  },
+  {
+    "char": "back",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:42.750775"
+  },
+  {
+    "char": "together",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:44.109122"
+  },
+  {
+    "char": "everywhere",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:46.332076"
+  },
+  {
+    "char": "once upon a time",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:13:53.685684"
+  },
+  {
+    "char": "It's ready for school.",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:13.611029"
+  },
+  {
+    "char": "It's all right, I'm okay.",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:15.233312"
+  },
+  {
+    "char": "entry",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:18.040196"
+  },
+  {
+    "char": "gotcha",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:19.556734"
+  },
+  {
+    "char": "hurray",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:21.929363"
+  },
+  {
+    "char": "hooray",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:22.561477"
+  },
+  {
+    "char": "achoo",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:28.291635"
+  },
+  {
+    "char": "wonderful",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:31.244622"
+  },
+  {
+    "char": "surprise",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:31.670630"
+  },
+  {
+    "char": "secret",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:33.155326"
+  },
+  {
+    "char": "matter",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:34.497005"
+  },
+  {
+    "char": "fault",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:35.908378"
+  },
+  {
+    "char": "happiness",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:37.355101"
+  },
+  {
+    "char": "fun",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:39.875643"
+  },
+  {
+    "char": "happen",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:40.552007"
+  },
+  {
+    "char": "happening",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:42.026867"
+  },
+  {
+    "char": "rest",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:43.445759"
+  },
+  {
+    "char": "free",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:44.900067"
+  },
+  {
+    "char": "age",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:47.341938"
+  },
+  {
+    "char": "weather",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:47.676545"
+  },
+  {
+    "char": "village",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:48.983429"
+  },
+  {
+    "char": "street",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:50.478168"
+  },
+  {
+    "char": "hill",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:51.648556"
+  },
+  {
+    "char": "bridge",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:52.950709"
+  },
+  {
+    "char": "forest",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:55.393359"
+  },
+  {
+    "char": "beach",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:56.678258"
+  },
+  {
+    "char": "season",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:57.999212"
+  },
+  {
+    "char": "festival",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:14:59.324868"
+  },
+  {
+    "char": "card",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:00.646380"
+  },
+  {
+    "char": "letter",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:01.924135"
+  },
+  {
+    "char": "song",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:03.135364"
+  },
+  {
+    "char": "game",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:04.325318"
+  },
+  {
+    "char": "team",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:05.561543"
+  },
+  {
+    "char": "class",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:06.727527"
+  },
+  {
+    "char": "teacher",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:08.021786"
+  },
+  {
+    "char": "student",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:09.314352"
+  },
+  {
+    "char": "nurse",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:10.521217"
+  },
+  {
+    "char": "driver",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:13.309852"
+  },
+  {
+    "char": "farmer",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:14.810365"
+  },
+  {
+    "char": "worker",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:16.109782"
+  },
+  {
+    "char": "player",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:17.449181"
+  },
+  {
+    "char": "winner",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:18.780895"
+  },
+  {
+    "char": "loser",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:20.122757"
+  },
+  {
+    "char": "firstly",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:21.747157"
+  },
+  {
+    "char": "secondly",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:22.988865"
+  },
+  {
+    "char": "finally",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:15:24.291989"
+  },
+  {
+    "char": "it's not big enough",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:16:14.320522"
+  },
+  {
+    "char": "i can't see anyone",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": null,
+    "needs_regen": false,
+    "timestamp": "2026-08-01T19:16:41.822264"
   }
 ]

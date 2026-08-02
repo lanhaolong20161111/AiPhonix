@@ -1958,5 +1958,121 @@
   "龙舟": {
     "sentence": "端午湖面众人合力划动龙舟比赛。",
     "grade": "二年级上"
+  },
+  "妆容": {
+    "sentence": "她的妆容很精致。",
+    "source": "llm"
+  },
+  "英雄": {
+    "sentence": "英雄是保护大家的勇敢者。",
+    "source": "llm"
+  },
+  "仿照": {
+    "sentence": "仿照例句写一句话。",
+    "source": "llm"
+  },
+  "挖掘": {
+    "sentence": "工人挖掘地道。",
+    "source": "llm"
+  },
+  "财富": {
+    "sentence": "知识是宝贵的财富。",
+    "source": "llm"
+  },
+  "楼梯": {
+    "sentence": "我每天走楼梯上学。",
+    "source": "llm"
+  },
+  "生病": {
+    "sentence": "我生病了，妈妈照顾我。",
+    "source": "llm"
+  },
+  "休假": {
+    "sentence": "爸爸今天休假。",
+    "source": "llm"
+  },
+  "坏人": {
+    "sentence": "不要和坏人交朋友。",
+    "source": "llm"
+  },
+  "水桶": {
+    "sentence": "水桶里装满了水。",
+    "source": "llm"
+  },
+  "紧张": {
+    "sentence": "考试前我很紧张。",
+    "source": "llm"
+  },
+  "铁路": {
+    "sentence": "火车在铁路上行驶。",
+    "source": "llm"
+  },
+  "路径": {
+    "sentence": "这条路径通向花园。",
+    "source": "llm"
+  },
+  "黑板": {
+    "sentence": "老师在黑板上写字。",
+    "source": "llm"
+  },
+  "摇晃": {
+    "sentence": "风把树枝吹得摇晃。",
+    "source": "llm"
+  },
+  "冒泡": {
+    "sentence": "小鱼在水里冒泡。",
+    "source": "llm"
+  },
+  "烟雾": {
+    "sentence": "山洞里飘出白色烟雾。",
+    "source": "llm"
+  },
+  "着急": {
+    "sentence": "小明上学迟到了，很着急。",
+    "source": "llm"
+  },
+  "沐浴": {
+    "sentence": "阳光下的花儿沐浴着温暖。",
+    "source": "llm"
+  },
+  "退却": {
+    "sentence": "困难面前，他不退却。",
+    "source": "llm"
+  },
+  "看病": {
+    "sentence": "妈妈带我去看病。",
+    "source": "llm"
+  },
+  "柔弱": {
+    "sentence": "小草看起来很柔弱。",
+    "source": "llm"
+  },
+  "窗帘": {
+    "sentence": "窗帘被风吹动了。",
+    "source": "llm"
+  },
+  "淡水": {
+    "sentence": "淡水是可以喝的。",
+    "source": "llm"
+  },
+  "金黄": {
+    "sentence": "秋天稻谷金黄一片。",
+    "source": "llm"
+  },
+  "齿轮": {
+    "sentence": "齿轮咬合转动。",
+    "source": "llm"
+  },
+  "准许": {
+    "sentence": "妈妈准许我去玩。",
+    "source": "llm"
+  },
+  "挖土": {
+    "sentence": "小明在花园挖土。",
+    "source": "llm"
+  },
+  "灿然": {
+    "sentence": "阳光灿然，真暖和。",
+    "source": "llm"
   }
 }
