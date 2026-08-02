@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from config import Config
-from services.deepseek import DeepSeekService
+from services.deepseek import BudgetExceededError, DeepSeekService
 from utils.pinyin import parse_pinyin
 
 logger = logging.getLogger(__name__)
@@ -96,6 +96,8 @@ async def word_info(req: WordInfoRequest):
                 sentence = res.get("sentence", "")
             except json.JSONDecodeError:
                 pass
+        except BudgetExceededError:
+            raise  # 预算守卫拒绝 → 全局 429 统一提示
         except Exception:
             pass
 
@@ -142,6 +144,8 @@ async def word_info(req: WordInfoRequest):
     try:
         reply = svc.chat("你是一个只输出JSON的语文教学助手。", prompt, 2000, "word_info_batch")
         return {"char": char, "raw": reply, "source": "llm"}
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -177,6 +181,8 @@ async def sentence_generate(req: SentenceGenerateRequest):
         _save_sentence_cache()
 
         return {"word": word, "sentence": sentence, "source": "llm"}
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

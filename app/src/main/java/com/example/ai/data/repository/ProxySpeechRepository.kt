@@ -36,6 +36,9 @@ class ProxySpeechRepository(
     private val audioRecorder = AudioRecorder()
     private val scoreClient = ScoreClient(client)
 
+    /** 最近一次流式评测的原始 PCM，供"我的发音"回放保存（取走即清空） */
+    private var lastRecordingPcm: ByteArray? = null
+
     // ========== SpeechRepository ==========
 
     /** 预录音频评测（上传已有文件） */
@@ -51,6 +54,8 @@ class ProxySpeechRepository(
         Log.d(TAG, "开始录音评测: ${word.text}")
         audioRecorder.reset() // 清除上次的 stop 状态
         val audioBytes = audioRecorder.record()
+        // 保留本次录音，供"我的发音"回放（跟读即录音，多次跟读覆盖最近一次）
+        lastRecordingPcm = audioBytes
 
         if (audioBytes.size < MIN_AUDIO_BYTES) {
             throw RuntimeException("录音太短，请至少读一秒")
@@ -67,5 +72,12 @@ class ProxySpeechRepository(
     override fun stopStreamingEvaluation() {
         Log.d(TAG, "停止录音")
         audioRecorder.stop()
+    }
+
+    /** 取走最近一次评测的录音（取走即清空，避免重复上传） */
+    override fun takeLastRecordingPcm(): ByteArray? {
+        val pcm = lastRecordingPcm
+        lastRecordingPcm = null
+        return pcm
     }
 }

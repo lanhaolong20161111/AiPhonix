@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from config import Config
-from services.deepseek import DeepSeekService
+from services.deepseek import BudgetExceededError, DeepSeekService
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +99,8 @@ async def word_suggestions(req: WordSuggestionsRequest):
                     words = llm_words
             except json.JSONDecodeError:
                 pass
+        except BudgetExceededError:
+            raise  # 预算守卫拒绝 → 全局 429 统一提示
         except Exception:
             pass
 

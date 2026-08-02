@@ -18,6 +18,10 @@ class DeepSeekConfig:
     api_key: str = ""
     base_url: str = "https://api.deepseek.com"
     model: str = "deepseek-v4-flash"
+    # 预算守卫（元 / 字符）
+    max_cost_per_call: float = 0.5      # 单次调用费用上限（调用前按最坏情况预估拒绝）
+    max_cost_per_day: float = 5.0       # 每日累计费用上限（超限拒绝当日后续调用）
+    max_input_chars: int = 20000        # 输入提示词字符数硬上限
 
 
 @dataclass
@@ -78,6 +82,11 @@ def load_config(path: str = "config.yaml") -> Config:
             cfg.deepseek.api_key = raw["deepseek"].get("api_key", "")
             cfg.deepseek.base_url = raw["deepseek"].get("base_url", cfg.deepseek.base_url)
             cfg.deepseek.model = raw["deepseek"].get("model", cfg.deepseek.model)
+            if "budget" in raw["deepseek"]:
+                b = raw["deepseek"]["budget"]
+                cfg.deepseek.max_cost_per_call = float(b.get("max_cost_per_call", cfg.deepseek.max_cost_per_call))
+                cfg.deepseek.max_cost_per_day = float(b.get("max_cost_per_day", cfg.deepseek.max_cost_per_day))
+                cfg.deepseek.max_input_chars = int(b.get("max_input_chars", cfg.deepseek.max_input_chars))
 
         if "baidu_tts" in raw:
             b = raw["baidu_tts"]

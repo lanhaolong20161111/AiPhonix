@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from config import Config
-from services.deepseek import DeepSeekService, get_call_logs, clear_call_logs
+from services.deepseek import BudgetExceededError, DeepSeekService, get_call_logs, clear_call_logs, get_day_cost
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,8 @@ async def llm_chat(req: ChatRequest):
     try:
         reply = svc.chat(system_prompt, req.message, max_tokens, req.mode or "chat")
         return {"reply": reply}
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM 调用失败: {e}")
 
@@ -88,3 +90,18 @@ async def llm_logs():
 async def llm_logs_clear():
     clear_call_logs()
     return {"status": "ok"}
+
+
+@router.get("/llm/budget")
+async def llm_budget():
+    """预算守卫状态：当日已用费用 + 阈值"""
+    day = get_day_cost()
+    return {
+        "date": day.get("date"),
+        "total_cost": day.get("total_cost", 0.0),
+        "calls": day.get("calls", 0),
+        "max_cost_per_day": cfg.deepseek.max_cost_per_day,
+        "max_cost_per_call": cfg.deepseek.max_cost_per_call,
+        "max_input_chars": cfg.deepseek.max_input_chars,
+        "blocked": day.get("total_cost", 0.0) >= cfg.deepseek.max_cost_per_day,
+    }

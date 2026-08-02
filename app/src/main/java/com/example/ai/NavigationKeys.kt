@@ -30,8 +30,12 @@ import kotlinx.serialization.Serializable
 @Serializable data class CharImageList(
     val grade: String,
     val semester: String,
-    val type_: String = "",                                           // "认" / "写" / "词"
+    val type_: String = "",                                           // "认" / "写" / "词" / "英词" / "英句"
 ) : NavKey                                                           // 图片列表（过滤后）
+
+// 英语学习 → 词汇/句子练习（直接复用 CharImageList 列表页）
+@Serializable data object VocabularyPractice : NavKey                  // 词汇练习（英词）
+@Serializable data object SentencePractice : NavKey                    // 句子练习（英句）
 
 // 口述作文
 @Serializable data object OralWriting : NavKey                       // 口述作文

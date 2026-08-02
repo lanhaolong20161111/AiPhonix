@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
+import com.example.ai.ui.components.PhonemeHeatmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.util.Log
@@ -266,7 +271,6 @@ fun CharImageScreen(
 @Composable
 private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, onPlayTts: ((String) -> Unit)? = null) {
     var learningStatus by remember { mutableStateOf<String?>(null) }
-    var needsRegen by remember { mutableStateOf(false) }
     val soeState by viewModel.soeState.collectAsState()
     val isEnglish = item.type == "英词" || item.type == "英句"
     val isRecording = soeState is CharImageViewModel.SoeState.Recording &&
@@ -276,18 +280,65 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
-        // 汉字/词语
-        Text(
-            text = item.char,
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 3.sp,
-            ),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp),
-        )
+        // 拼音 + 汉字（沿中线逐字对齐）
+        if (item.pinyin.isNotBlank() && item.char.length > 1) {
+            val pinyinParts = item.pinyin.split(" ")
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+            ) {
+                item.char.forEachIndexed { index, c ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        // 拼音
+                        Text(
+                            text = pinyinParts.getOrElse(index) { "" },
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 14.sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        // 汉字
+                        Text(
+                            text = c.toString(),
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        } else {
+            // 单字：拼音在上，汉字在下
+            if (item.pinyin.isNotBlank()) {
+                Text(
+                    text = item.pinyin,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        letterSpacing = 2.sp,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 2.dp),
+                )
+            }
+            // 汉字/词语
+            Text(
+                text = item.char,
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = if (item.char.length > 1) 8.sp else 0.sp,
+                ),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
 
         // 图片
         Card(
@@ -355,13 +406,82 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                                 else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            // SOE 结果
+            // 我的发音：回放最近一次跟读的录音（跟读即录音，自动保存）
+            val isPla = viewModel.playingChar.collectAsState().value == item.char
+            val hasAudioSet by viewModel.hasAudioSet.collectAsState()
+            val hasAudio = hasAudioSet.contains(item.char)
+            LaunchedEffect(item.char) { viewModel.checkAudioExists(item.char) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                // 喇叭（播放自己的发音）
+                TextButton(onClick = { viewModel.togglePlayback(item.char) },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    enabled = hasAudio) {
+                    Text(if (isPla) "\u23F8\uFE0F" else "\uD83D\uDD0A", fontSize = 18.sp,
+                        modifier = Modifier.alpha(if (hasAudio || isPla) 1f else 0.4f))
+                    Spacer(Modifier.width(4.dp))
+                    Text(if (isPla) "暂停" else "播放我的发音", fontSize = 12.sp,
+                        color = if (hasAudio || isPla) MaterialTheme.colorScheme.onSurfaceVariant
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                }
+            }
+            // SOE 结果：总分 + 详细（词语=音素级，句子=词级）
             if (soeState is CharImageViewModel.SoeState.Done &&
-                (soeState as CharImageViewModel.SoeState.Done).text == item.char)
-                Text("测评得分: ${(soeState as CharImageViewModel.SoeState.Done).score}",
+                (soeState as CharImageViewModel.SoeState.Done).text == item.char) {
+                val done = soeState as CharImageViewModel.SoeState.Done
+                Text("测评得分: ${done.score}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if ((soeState as CharImageViewModel.SoeState.Done).score >= 80)
-                            MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                    color = if (done.score >= 80) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.error)
+                if (item.type == "英句" && done.wordScores.isNotEmpty()) {
+                    // 句子 → 每个单词的评测结果
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 150.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        done.wordScores.forEachIndexed { i, ws ->
+                            if (i > 0) Spacer(Modifier.width(10.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(ws.word, fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                val wc = when {
+                                    ws.pronAccuracy >= 80 -> Color(0xFF4CAF50)
+                                    ws.pronAccuracy >= 60 -> Color(0xFFFF9800)
+                                    else -> Color(0xFFF44336)
+                                }
+                                Text("%.0f".format(ws.pronAccuracy), fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold, color = wc)
+                                Text(
+                                    text = when (ws.matchTag) {
+                                        1 -> "漏读"
+                                        2 -> "增读"
+                                        3 -> "错读"
+                                        else -> ""
+                                    },
+                                    fontSize = 10.sp,
+                                    color = wc,
+                                )
+                            }
+                        }
+                    }
+                } else if (done.phonemeScores.isNotEmpty()) {
+                    // 词语 → 每个音素的评测结果
+                    Spacer(Modifier.height(8.dp))
+                    PhonemeHeatmap(
+                        phonemeScores = done.phonemeScores,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 180.dp)
+                            .verticalScroll(rememberScrollState()),
+                    )
+                }
+            }
             if (soeState is CharImageViewModel.SoeState.Error &&
                 (soeState as CharImageViewModel.SoeState.Error).text == item.char)
                 Text("测评失败", style = MaterialTheme.typography.bodySmall,
@@ -408,7 +528,7 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
 
         Spacer(Modifier.height(8.dp))
 
-        // 第一行：学习状态 ✓ × ? + 重新配图
+        // 第一行：学习状态 ✓ × ?
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -454,28 +574,12 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                 )
             }
 
-            Spacer(Modifier.weight(1f))
-
-            // 重新配图
-            TextButton(
-                onClick = { needsRegen = !needsRegen },
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    "重新配图",
-                    fontSize = 12.sp,
-                    color = if (needsRegen)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                )
-            }
         }
 
         Spacer(Modifier.height(4.dp))
 
         // 第二行：提交按钮
-        val hasFeedback = learningStatus != null || needsRegen
+        val hasFeedback = learningStatus != null
         if (hasFeedback) {
             androidx.compose.material3.FilledTonalButton(
                 onClick = {
@@ -483,10 +587,8 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                         char = item.char, grade = item.grade,
                         semester = item.semester, type_ = item.type,
                         learningStatus = learningStatus,
-                        needsRegen = needsRegen,
                     )
                     learningStatus = null
-                    needsRegen = false
                 },
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
             ) {

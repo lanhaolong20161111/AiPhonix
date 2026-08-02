@@ -14,6 +14,12 @@ COST_PER_M_INPUT = 0.5
 COST_PER_M_OUTPUT = 2.0
 MAX_LOGS = 100000
 LOG_FILE = "data/llm_call_logs.json"
+BUDGET_FILE = "data/llm_budget.json"
+
+
+class BudgetExceededError(ValueError):
+    """预算守卫拒绝调用时抛出（输入超长 / 日累计超限 / 单次预估超限）"""
+    pass
 
 
 @dataclass
@@ -69,6 +75,63 @@ def _append_log(log: LLMCallLog):
     _save_logs()
 
 
+def _finish_log(log: LLMCallLog, start: float):
+    """记录耗时后写入日志文件"""
+    log.duration_ms = int((time.time() - start) * 1000)
+    _append_log(log)
+
+
+# ── 预算守卫：每日累计费用（持久化，重启不丢） ──
+
+_day_cost: dict = {}
+
+
+def _today() -> str:
+    return time.strftime("%Y-%m-%d")
+
+
+def _load_budget():
+    global _day_cost
+    try:
+        if os.path.exists(BUDGET_FILE):
+            with open(BUDGET_FILE, encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("date") == _today():
+                _day_cost = data
+            else:
+                _day_cost = {"date": _today(), "total_cost": 0.0, "calls": 0}
+        else:
+            _day_cost = {"date": _today(), "total_cost": 0.0, "calls": 0}
+    except Exception:
+        _day_cost = {"date": _today(), "total_cost": 0.0, "calls": 0}
+
+
+def _save_budget():
+    try:
+        os.makedirs(os.path.dirname(BUDGET_FILE), exist_ok=True)
+        with open(BUDGET_FILE, "w", encoding="utf-8") as f:
+            json.dump(_day_cost, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
+def get_day_cost() -> dict:
+    if _day_cost.get("date") != _today():
+        _load_budget()
+    return dict(_day_cost)
+
+
+def _record_cost(cost: float):
+    if _day_cost.get("date") != _today():
+        _load_budget()
+    _day_cost["total_cost"] = round(_day_cost.get("total_cost", 0.0) + cost, 6)
+    _day_cost["calls"] = _day_cost.get("calls", 0) + 1
+    _save_budget()
+
+
+_load_budget()
+
+
 _load_logs()
 
 
@@ -93,9 +156,33 @@ class DeepSeekService:
             time=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             caller=caller,
             model=self.config.model,
-            system_prompt=system_prompt[:200],
-            user_prompt=user_prompt[:500],
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
         )
+
+        # ── 预算守卫（调用前拒绝） ──
+        input_len = len(system_prompt) + len(user_prompt)
+        if input_len > self.config.max_input_chars:
+            log.success = False
+            log.error = f"budget: input {input_len} chars exceeds limit {self.config.max_input_chars}"
+            _finish_log(log, start)
+            raise BudgetExceededError(log.error)
+        day = get_day_cost()
+        if day["total_cost"] >= self.config.max_cost_per_day:
+            log.success = False
+            log.error = (f"budget: daily cost {day['total_cost']:.4f} yuan "
+                         f"exceeds limit {self.config.max_cost_per_day}")
+            _finish_log(log, start)
+            raise BudgetExceededError(log.error)
+        # 最坏情况单次费用预估：输入按字符估算 + 输出按 max_tokens 全量计
+        est_input_tokens = input_len
+        est_cost = (est_input_tokens * COST_PER_M_INPUT + max_tokens * COST_PER_M_OUTPUT) / 1_000_000
+        if est_cost > self.config.max_cost_per_call:
+            log.success = False
+            log.error = (f"budget: estimated cost {est_cost:.4f} yuan "
+                         f"exceeds per-call limit {self.config.max_cost_per_call}")
+            _finish_log(log, start)
+            raise BudgetExceededError(log.error)
 
         try:
             payload = {
@@ -131,17 +218,18 @@ class DeepSeekService:
             if not content:
                 log.success = False
                 log.error = "empty content"
-                _append_log(log)
+                _finish_log(log, start)
                 return ""
 
             log.success = True
-            _append_log(log)
+            _finish_log(log, start)
+            _record_cost(log.cost_yuan)
             return content
 
         except Exception as e:
             log.success = False
             log.error = str(e)
-            _append_log(log)
+            _finish_log(log, start)
             raise
 
     def close(self):

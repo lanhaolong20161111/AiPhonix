@@ -22,4 +22,10 @@ interface SpeechRepository {
 
     /** 停止流式评测——用户按停止按钮时调用 */
     fun stopStreamingEvaluation()
+
+    /**
+     * 取走最近一次流式评测录到的原始 PCM（取走即清空）。
+     * 供"我的发音"回放保存用；无录音或未实现时返回 null。
+     */
+    fun takeLastRecordingPcm(): ByteArray? = null
 }

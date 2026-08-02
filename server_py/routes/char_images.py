@@ -3,10 +3,12 @@
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from pypinyin import pinyin as _pypinyin, Style
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ IMAGE_DIR = os.path.join(DATA_DIR, "char_images")
 
 _index: list[dict] = []
 _index_map: dict[str, dict] = {}  # char -> entry
+_pinyin_cache: dict[str, str] = {}  # char -> pinyin
 
 
 def init(*args):
@@ -39,6 +42,20 @@ def init(*args):
     logger.info("汉字图片索引已加载: %d 条", len(_index))
 
 
+def _get_pinyin(char: str) -> str:
+    """获取汉字的拼音（带声调），多字用空格分隔；纯英文/无汉字返回空串（英词/英句不显示拼音）"""
+    if not char or not re.search(r'[\u4e00-\u9fff]', char):
+        return ""
+    if char in _pinyin_cache:
+        return _pinyin_cache[char]
+    try:
+        result = ' '.join(p[0] for p in _pypinyin(char, style=Style.TONE))
+        _pinyin_cache[char] = result
+        return result
+    except Exception:
+        return char
+
+
 def _save_index():
     """持久化索引"""
     os.makedirs(os.path.dirname(INDEX_FILE), exist_ok=True)
@@ -54,9 +71,10 @@ async def list_char_images(
     grade: str = "",
     semester: str = "",
     type_: str = "",
+    q: str = "",
     limit: int = 500,
 ):
-    """查询汉字图片列表，支持按年级/学期/类型筛选"""
+    """查询汉字图片列表，支持按年级/学期/类型/关键词筛选"""
     result = _index
     if grade:
         result = [e for e in result if e.get("grade") == grade]
@@ -64,9 +82,20 @@ async def list_char_images(
         result = [e for e in result if e.get("semester") == semester]
     if type_:
         result = [e for e in result if e.get("type") == type_]
+    if q:
+        ql = q.lower()
+        result = [
+            e for e in result
+            if ql in e.get("char", "").lower()
+            or ql in e.get("image", "").lower()
+        ]
     total_before_limit = len(result)
     if limit > 0:
         result = result[:limit]
+    # 添加拼音
+    for item in result:
+        if "pinyin" not in item:
+            item["pinyin"] = _get_pinyin(item.get("char", ""))
     return {"total": total_before_limit, "items": result}
 
 
@@ -87,7 +116,7 @@ def _save_feedback(items: list):
 
 @router.post("/char-images/feedback")
 async def submit_feedback(body: dict):
-    """提交图片反馈"""
+    """提交图片反馈（幂等：同 char+grade+semester+type 覆盖旧记录，不追加）"""
     from datetime import datetime
     entry = {
         "char": body.get("char", ""),
@@ -99,9 +128,24 @@ async def submit_feedback(body: dict):
         "timestamp": datetime.now().isoformat(),
     }
     feedbacks = _load_feedback()
-    feedbacks.append(entry)
+    existing = next(
+        (x for x in feedbacks
+         if x.get("char") == entry["char"]
+         and x.get("grade") == entry["grade"]
+         and x.get("semester") == entry["semester"]
+         and x.get("type") == entry["type"]),
+        None,
+    )
+    if existing:
+        # 字段级合并：learning_status 新值非 None 才覆盖；needs_regen 一旦 true 保持 true
+        if entry["learning_status"] is not None:
+            existing["learning_status"] = entry["learning_status"]
+        existing["needs_regen"] = bool(existing.get("needs_regen")) or bool(entry["needs_regen"])
+        existing["timestamp"] = entry["timestamp"]
+    else:
+        feedbacks.append(entry)
     _save_feedback(feedbacks)
-    logger.info("反馈已保存: char=%s status=%s regen=%s",
+    logger.info("反馈已保存(幂等): char=%s status=%s regen=%s",
                 entry["char"], entry["learning_status"], entry["needs_regen"])
     return {"status": "ok"}
 
@@ -118,7 +162,10 @@ async def get_char_image(char: str):
     entry = _index_map.get(char)
     if not entry:
         raise HTTPException(status_code=404, detail=f"汉字 '{char}' 没有图片")
-    return entry
+    result = dict(entry)
+    if "pinyin" not in result:
+        result["pinyin"] = _get_pinyin(result.get("char", ""))
+    return result
 
 
 @router.get("/char-images/file/{filename}")

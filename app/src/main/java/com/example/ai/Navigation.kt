@@ -221,6 +221,28 @@ fun MainNavigation(container: AppContainer) {
             onBack = { backStack.removeLastOrNull() },
           )
         }
+        entry<VocabularyPractice> {
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase) }
+          LaunchedEffect(Unit) { vm.load("", "", "英词") }
+          LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
+          val scope = rememberCoroutineScope()
+          CharImageScreen(
+            viewModel = vm,
+            onPlayTts = { text -> scope.launch { container.ttsEngine.speak(text) } },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<SentencePractice> {
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase) }
+          LaunchedEffect(Unit) { vm.load("", "", "英句") }
+          LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
+          val scope = rememberCoroutineScope()
+          CharImageScreen(
+            viewModel = vm,
+            onPlayTts = { text -> scope.launch { container.ttsEngine.speak(text) } },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
         entry<OralWriting> {
           OralWritingScreen(
             viewModel = viewModel { OralWritingViewModel(serverBase = ServiceModule.serverBase) },

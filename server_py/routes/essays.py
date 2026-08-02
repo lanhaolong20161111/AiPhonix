@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from config import Config
-from services.deepseek import DeepSeekService
+from services.deepseek import BudgetExceededError, DeepSeekService
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +122,8 @@ async def generate_structure(req: StructureRequest):
                 {"label": "感受", "guide": "你心里怎么想的"},
             ]
         return StructureResponse(sections=sections)
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         logger.error("生成结构失败: %s", e)
         return StructureResponse(sections=[
@@ -161,6 +163,8 @@ async def generate_hint(req: HintRequest):
     try:
         reply = svc.chat(prompt, user_msg, max_tokens=512, caller="essay_hint")
         return HintResponse(hint=reply.strip())
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         logger.error("生成提示失败: %s", e)
         return HintResponse(hint="慢慢来，想到什么就说什么。加油！")
@@ -195,6 +199,8 @@ async def score_essay(req: ScoreRequest):
     try:
         reply = svc.chat(prompt, user_msg, max_tokens=1024, caller="essay_score")
         return ScoreResponse(feedback=reply.strip())
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         logger.error("评分失败: %s", e)
         return ScoreResponse(feedback="评分服务暂时不可用，请稍后重试。")
@@ -223,6 +229,8 @@ async def format_essay(req: FormatRequest):
     try:
         reply = svc.chat(prompt, user_msg, max_tokens=2048, caller="essay_format")
         return FormatResponse(formatted=reply.strip())
+    except BudgetExceededError:
+        raise  # 预算守卫拒绝 → 全局 429 统一提示
     except Exception as e:
         logger.error("润饰失败: %s", e)
         # fallback: 返回原始文本

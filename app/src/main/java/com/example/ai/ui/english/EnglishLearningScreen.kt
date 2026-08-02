@@ -1,6 +1,8 @@
 package com.example.ai.ui.english
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,7 +38,8 @@ fun EnglishLearningScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(24.dp))
@@ -94,6 +97,44 @@ fun EnglishLearningScreen(
                         Column {
                             Text("视频跟读", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Text("看动画视频模仿跟读", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // 词汇练习
+            OutlinedCard(
+                onClick = { onNavigate(com.example.ai.VocabularyPractice) },
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+            ) {
+                Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🗣️", fontSize = 40.sp)
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text("词汇练习", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text("英语单词 + 图片记忆", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // 句子练习
+            OutlinedCard(
+                onClick = { onNavigate(com.example.ai.SentencePractice) },
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+            ) {
+                Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("💬", fontSize = 40.sp)
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text("句子练习", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text("常用英语句子 + 图片", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

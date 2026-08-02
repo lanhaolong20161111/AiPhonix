@@ -1,18 +1,15 @@
 package com.example.ai.ui.login
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.ai.data.auth.TokenManager
 import com.example.ai.di.NetworkModule
 import com.example.ai.di.ServiceModule
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -37,10 +34,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val gson = Gson()
     private val JSON = "application/json; charset=utf-8".toMediaType()
     private val serverBase = ServiceModule.serverBase
-    private val TAG = "LoginVM"
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     init {
-        // 检查是否已登录
         if (TokenManager.isLoggedIn) {
             _uiState.value = _uiState.value.copy(isLoggedIn = true)
         }
@@ -59,29 +55,42 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         _uiState.value = s.copy(isLoading = true, error = null)
-        viewModelScope.launch {
+        Thread {
             try {
                 val url = "$serverBase/api/v1/auth/login"
                 val body = gson.toJson(mapOf(
                     "username" to s.username,
                     "password" to s.password,
                 ))
-                val resp = withContext(Dispatchers.IO) {
-                    client.newCall(Request.Builder().url(url)
-                        .post(body.toRequestBody(JSON)).build()).execute()
+                val resp = client.newCall(Request.Builder().url(url)
+                    .post(body.toRequestBody(JSON)).build()).execute()
+                val bodyString = resp.body?.string() ?: ""
+                mainHandler.post {
+                    try {
+                        if (!resp.isSuccessful) {
+                            val msg = parseError(bodyString)
+                            _uiState.value = _uiState.value.copy(isLoading = false, error = msg)
+                            return@post
+                        }
+                        val json = gson.fromJson(bodyString, Map::class.java)
+                        if (json != null) {
+                            saveTokens(json, s.username)
+                            _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                        } else {
+                            _uiState.value = _uiState.value.copy(isLoading = false, error = "登录失败：响应格式错误")
+                        }
+                    } catch (e: Exception) {
+                        val msg = e::class.simpleName ?: "未知异常"
+                        _uiState.value = _uiState.value.copy(isLoading = false, error = "处理响应出错: $msg")
+                    }
                 }
-                if (!resp.isSuccessful) {
-                    val msg = resp.body?.string()?.let { parseError(it) } ?: "登录失败"
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = msg)
-                    return@launch
-                }
-                val json = resp.body?.string()?.let { gson.fromJson(it, Map::class.java) } ?: return@launch
-                saveTokens(json, s.username)
-                _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "网络错误: ${e.message}")
+                mainHandler.post {
+                    val msg = if (!e.message.isNullOrBlank()) e.message else e::class.simpleName ?: "未知错误"
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = "网络错误: $msg")
+                }
             }
-        }
+        }.start()
     }
 
     fun register() {
@@ -91,7 +100,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         _uiState.value = s.copy(isLoading = true, error = null)
-        viewModelScope.launch {
+        Thread {
             try {
                 val url = "$serverBase/api/v1/auth/register"
                 val body = gson.toJson(mapOf(
@@ -100,22 +109,35 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     "nickname" to s.nickname,
                     "grade" to s.grade,
                 ))
-                val resp = withContext(Dispatchers.IO) {
-                    client.newCall(Request.Builder().url(url)
-                        .post(body.toRequestBody(JSON)).build()).execute()
+                val resp = client.newCall(Request.Builder().url(url)
+                    .post(body.toRequestBody(JSON)).build()).execute()
+                val bodyString = resp.body?.string() ?: ""
+                mainHandler.post {
+                    try {
+                        if (!resp.isSuccessful) {
+                            val msg = parseError(bodyString)
+                            _uiState.value = _uiState.value.copy(isLoading = false, error = msg)
+                            return@post
+                        }
+                        val json = gson.fromJson(bodyString, Map::class.java)
+                        if (json != null) {
+                            saveTokens(json, s.username)
+                            _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                        } else {
+                            _uiState.value = _uiState.value.copy(isLoading = false, error = "注册失败：响应格式错误")
+                        }
+                    } catch (e: Exception) {
+                        val msg = e::class.simpleName ?: "未知异常"
+                        _uiState.value = _uiState.value.copy(isLoading = false, error = "处理响应出错: $msg")
+                    }
                 }
-                if (!resp.isSuccessful) {
-                    val msg = resp.body?.string()?.let { parseError(it) } ?: "注册失败"
-                    _uiState.value = _uiState.value.copy(isLoading = false, error = msg)
-                    return@launch
-                }
-                val json = resp.body?.string()?.let { gson.fromJson(it, Map::class.java) } ?: return@launch
-                saveTokens(json, s.username)
-                _uiState.value = _uiState.value.copy(isLoading = false, isLoggedIn = true)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "网络错误: ${e.message}")
+                mainHandler.post {
+                    val msg = if (!e.message.isNullOrBlank()) e.message else e::class.simpleName ?: "未知错误"
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = "网络错误: $msg")
+                }
             }
-        }
+        }.start()
     }
 
     fun logout() {
@@ -129,7 +151,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         TokenManager.accessToken = access
         TokenManager.refreshToken = refresh
         TokenManager.username = username
-        // 尝试获取 nickname
         if (json.containsKey("nickname")) {
             TokenManager.nickname = json["nickname"] as? String ?: ""
         } else {

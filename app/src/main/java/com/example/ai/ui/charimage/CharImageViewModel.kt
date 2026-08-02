@@ -5,8 +5,11 @@ import android.media.MediaRecorder
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ai.data.audio.AudioRecorder
+import com.example.ai.data.model.PhonemeScore
 import com.example.ai.data.model.PronunciationResult
 import com.example.ai.data.model.Word
+import com.example.ai.data.model.WordScore
 import com.example.ai.data.repository.SpeechRepository
 import com.example.ai.di.NetworkModule
 import com.google.gson.Gson
@@ -23,6 +26,8 @@ import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 data class CharImageItem(
     val char: String,
@@ -30,6 +35,7 @@ data class CharImageItem(
     val grade: String = "",
     val semester: String = "",
     val type: String = "",
+    val pinyin: String = "",
 )
 
 data class CharImageUiState(
@@ -52,6 +58,7 @@ private data class ItemEntry(
     val grade: String = "",
     val semester: String = "",
     val type: String = "",
+    val pinyin: String = "",
 )
 
 class CharImageViewModel(
@@ -74,7 +81,12 @@ class CharImageViewModel(
     sealed class SoeState {
         data object Idle : SoeState()
         data class Recording(val text: String) : SoeState()
-        data class Done(val text: String, val score: Int) : SoeState()
+        data class Done(
+            val text: String,
+            val score: Int,
+            val phonemeScores: List<PhonemeScore> = emptyList(),
+            val wordScores: List<WordScore> = emptyList(),
+        ) : SoeState()
         data class Error(val text: String, val message: String) : SoeState()
     }
 
@@ -103,7 +115,14 @@ class CharImageViewModel(
                         )
                 }
                 val score = result.totalScore
-                _soeState.value = SoeState.Done(text, score)
+                _soeState.value = SoeState.Done(
+                    text = text,
+                    score = score,
+                    phonemeScores = result.phonemeScores,
+                    wordScores = result.wordScores,
+                )
+                // 跟读即录音：把本次录音保存到服务器（覆盖旧录音），供"播放"回放
+                saveLastRecording(text)
             } catch (e: Exception) {
                 Log.e(TAG, "SOE失败", e)
                 _soeState.value = SoeState.Error(text, e.message ?: "未知错误")
@@ -114,6 +133,58 @@ class CharImageViewModel(
     /** 停止 SOE 测评（结束录音） */
     fun stopSoe() {
         speechRepository?.stopStreamingEvaluation()
+    }
+
+    /**
+     * 跟读评测完成后，把最近一次录音保存到服务器（覆盖旧录音），供"播放"回放。
+     * 上传失败不影响评分显示，仅提示。
+     */
+    private fun saveLastRecording(char: String) {
+        val pcm = speechRepository?.takeLastRecordingPcm() ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val wav = pcmToWav(pcm)
+                    val url = "$serverBase/api/v1/char-images/audio?char=$char"
+                    val requestBody = MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("char", char)
+                        .addFormDataPart("file", "${char}.mp3",
+                            wav.toRequestBody("audio/wav".toMediaType()))
+                        .build()
+                    val request = Request.Builder().url(url).post(requestBody).build()
+                    val resp = client.newCall(request).execute()
+                    if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
+                    _hasAudioSet.value = _hasAudioSet.value + char
+                }
+                _audioResult.emit("录音已保存，可点播放回听")
+            } catch (e: Exception) {
+                Log.e(TAG, "保存跟读录音失败", e)
+                _audioResult.emit(networkErrorMsg(e))
+            }
+        }
+    }
+
+    /** PCM(16kHz/mono/16bit) 加 WAV 头，生成可播放的 WAV 字节流 */
+    private fun pcmToWav(pcm: ByteArray, sampleRate: Int = AudioRecorder.SAMPLE_RATE): ByteArray {
+        val dataSize = pcm.size
+        val byteRate = sampleRate * 2 // 16bit mono
+        val header = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN).apply {
+            put("RIFF".toByteArray(Charsets.US_ASCII))
+            putInt(36 + dataSize)
+            put("WAVE".toByteArray(Charsets.US_ASCII))
+            put("fmt ".toByteArray(Charsets.US_ASCII))
+            putInt(16)          // fmt chunk size
+            putShort(1)         // PCM
+            putShort(1)         // mono
+            putInt(sampleRate)
+            putInt(byteRate)
+            putShort(2)         // block align
+            putShort(16)        // bits per sample
+            put("data".toByteArray(Charsets.US_ASCII))
+            putInt(dataSize)
+        }
+        return header.array() + pcm
     }
 
     // ── 录音/播放 ──
@@ -140,7 +211,7 @@ class CharImageViewModel(
     /** 检查某个字是否有录音文件 */
     fun checkAudioExists(char: String) {
         if (_hasAudioSet.value.contains(char)) return // 已查过
-        val safeName = char.replace("/", "_").replace("\\", "_").replace(":", "_")
+        val safeName = encodeAudioName(char)
         viewModelScope.launch {
             try {
                 val url = "$serverBase/api/v1/char-images/audio/$safeName/exists"
@@ -264,7 +335,7 @@ class CharImageViewModel(
     }
 
     private fun playAudio(char: String) {
-        val safeName = char.replace("/", "_").replace("\\", "_").replace(":", "_")
+        val safeName = encodeAudioName(char)
         val url = "$serverBase/api/v1/char-images/audio/$safeName.mp3"
         viewModelScope.launch {
             try {
@@ -293,6 +364,15 @@ class CharImageViewModel(
 
     companion object {
         private const val TAG = "CharImageVM"
+
+        /** 将 char 转成 URL 安全的音频文件名（中文卡无空格；英文词/句含空格需编码） */
+        private fun encodeAudioName(char: String): String {
+            return char.replace("/", "_")
+                .replace("\\", "_")
+                .replace(":", "_")
+                .replace(" ", "%20")
+                .replace("'", "%27")
+        }
 
         /** 将异常转为用户可读的错误消息 */
         private fun networkErrorMsg(e: Exception): String {
@@ -370,7 +450,7 @@ class CharImageViewModel(
             "英句" -> "英语句子表"
             else -> "全部"
         }
-        return "$gradeStr · $typeStr"
+        return if (gradeStr.isBlank()) typeStr else "$gradeStr · $typeStr"
     }
 
     fun setCurrentIndex(index: Int) {
@@ -380,7 +460,7 @@ class CharImageViewModel(
     /** 提交图片反馈 */
     fun submitFeedback(
         char: String, grade: String, semester: String, type_: String,
-        learningStatus: String?, needsRegen: Boolean,
+        learningStatus: String?,
     ) {
         viewModelScope.launch {
             try {
@@ -392,7 +472,6 @@ class CharImageViewModel(
                         "semester" to semester,
                         "type" to type_,
                         "learning_status" to learningStatus,
-                        "needs_regen" to needsRegen,
                     )).toRequestBody("application/json".toMediaType())
                     val request = Request.Builder()
                         .url(url)
@@ -418,6 +497,7 @@ class CharImageViewModel(
                 grade = entry.grade,
                 semester = entry.semester,
                 type = entry.type,
+                pinyin = entry.pinyin,
             )
         }
     }
