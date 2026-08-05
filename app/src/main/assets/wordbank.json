@@ -7,7 +7,6 @@
       "lowercase": "a",
       "order": 1,
       "pronunciations": [
-        "/eɪ/",
         "/æ/"
       ]
     },
@@ -28,8 +27,7 @@
       "lowercase": "c",
       "order": 3,
       "pronunciations": [
-        "/k/",
-        "/s/"
+        "/k/"
       ]
     },
     {
@@ -49,7 +47,6 @@
       "lowercase": "e",
       "order": 5,
       "pronunciations": [
-        "/iː/",
         "/e/"
       ]
     },
@@ -70,8 +67,7 @@
       "lowercase": "g",
       "order": 7,
       "pronunciations": [
-        "/ɡ/",
-        "/dʒ/"
+        "/ɡ/"
       ]
     },
     {
@@ -91,7 +87,6 @@
       "lowercase": "i",
       "order": 9,
       "pronunciations": [
-        "/aɪ/",
         "/ɪ/"
       ]
     },
@@ -152,7 +147,6 @@
       "lowercase": "o",
       "order": 15,
       "pronunciations": [
-        "/əʊ/",
         "/ɒ/"
       ]
     },
@@ -193,8 +187,7 @@
       "lowercase": "s",
       "order": 19,
       "pronunciations": [
-        "/s/",
-        "/z/"
+        "/s/"
       ]
     },
     {
@@ -214,7 +207,6 @@
       "lowercase": "u",
       "order": 21,
       "pronunciations": [
-        "/juː/",
         "/ʌ/"
       ]
     },
@@ -255,8 +247,7 @@
       "lowercase": "y",
       "order": 25,
       "pronunciations": [
-        "/j/",
-        "/aɪ/"
+        "/j/"
       ]
     },
     {

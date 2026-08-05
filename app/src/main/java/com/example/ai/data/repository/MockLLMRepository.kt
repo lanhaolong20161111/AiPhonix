@@ -33,4 +33,14 @@ class MockLLMRepository() : LLMRepository {
 ]
 """.trimIndent()
     }
+
+    override suspend fun generateArticleQuestions(articleTitle: String, articleText: String): String {
+        return """
+[
+  {"question": "《$articleTitle》主要讲了什么？", "answer": "围绕文章的标题和主要内容进行概括。"},
+  {"question": "你最喜欢文章中的哪个部分？为什么？", "answer": "说出自己的感受并说明理由。"},
+  {"question": "读完这篇文章，你学到了什么道理？", "answer": "结合文章主旨谈收获。"}
+]
+""".trimIndent()
+    }
 }

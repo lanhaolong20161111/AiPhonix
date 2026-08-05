@@ -18,7 +18,7 @@ data class VideoPracticeState(
 )
 
 class VideoPracticeViewModel(
-    private val speechRepository: SpeechRepository
+    private val speechRepository: SpeechRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(VideoPracticeState())

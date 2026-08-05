@@ -43,7 +43,7 @@ data class DictationUiState(
 
 class DictationViewModel(
     private val wordBankRepo: WordBankRepository,
-    private val wordInfoRepo: WordInfoRepository
+    private val wordInfoRepo: WordInfoRepository,
 ) : ViewModel() {
 
     companion object {

@@ -96,4 +96,17 @@ class DeepSeekLLMRepository(
             respBody // 原样返回，由调用方解析
         }
     }
+
+    override suspend fun generateArticleQuestions(articleTitle: String, articleText: String): String {
+        val prompt = buildString {
+            append("你是小学语文老师。请根据下面这篇课文，出 3 道阅读理解问答题，适合小学生回答。\n")
+            append("要求：\n")
+            append("1. 题目紧扣文章内容，难度循序渐进（基础理解 → 分析 → 启发/联系生活）\n")
+            append("2. 每道题都给出参考答案（供老师/家长参考，孩子回答不必与答案完全一致）\n")
+            append("3. 只输出 JSON 数组，格式：[{\"question\": \"题目\", \"answer\": \"参考答案\"}]\n")
+            append("课文标题：《$articleTitle》\n")
+            append("课文内容：\n$articleText\n")
+        }
+        return callChat("chinese", prompt)
+    }
 }

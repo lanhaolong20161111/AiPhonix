@@ -6,6 +6,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.data.audio.AudioRecorder
+import com.example.ai.data.auth.TokenManager
+import com.example.ai.data.charimage.PendingFeedback
+import com.example.ai.data.charimage.PendingFeedbackStore
+import com.example.ai.data.progress.CharImageProgressStore
+import com.example.ai.data.progress.CharImageProgressStore.LastVisit
 import com.example.ai.data.model.PhonemeScore
 import com.example.ai.data.model.PronunciationResult
 import com.example.ai.data.model.Word
@@ -19,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -63,10 +69,14 @@ private data class ItemEntry(
 
 class CharImageViewModel(
     private val serverBase: String,
+    private val pendingStore: PendingFeedbackStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharImageUiState())
     val uiState: StateFlow<CharImageUiState> = _uiState
+
+    private val _pendingCount = MutableStateFlow(0)
+    val pendingCount: StateFlow<Int> = _pendingCount.asStateFlow()
 
     private val client = NetworkModule.httpClient
     private val gson = Gson()
@@ -350,6 +360,9 @@ class CharImageViewModel(
                     }
                     setOnErrorListener { _, _, _ ->
                         _playingChar.value = null
+                        viewModelScope.launch {
+                            _audioResult.emit("发音播放失败，请检查网络")
+                        }
                         false
                     }
                     prepareAsync()
@@ -424,7 +437,14 @@ class CharImageViewModel(
                     parseList(body)
                 }
                 val title = buildTitle()
-                _uiState.value = CharImageUiState(items = result, isLoading = false, title = title)
+                // 恢复上次浏览位置（per 列表记忆，越界则回 0）
+                val saved = CharImageProgressStore.getPosition(
+                    TokenManager.userId, filterGrade, filterSemester, filterType
+                )
+                val startIndex = if (saved in 0 until result.size) saved else 0
+                _uiState.value = CharImageUiState(
+                    items = result, isLoading = false, title = title, currentIndex = startIndex,
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "加载失败", e)
                 _uiState.value = CharImageUiState(
@@ -454,38 +474,109 @@ class CharImageViewModel(
     }
 
     fun setCurrentIndex(index: Int) {
-        _uiState.value = _uiState.value.copy(currentIndex = index)
+        val s = _uiState.value
+        _uiState.value = s.copy(currentIndex = index)
+        // 翻页即持久化：正常退出/意外退出后都能恢复到上次位置
+        if (filterType.isNotEmpty()) {
+            CharImageProgressStore.savePosition(
+                TokenManager.userId, filterGrade, filterSemester, filterType, index,
+            )
+            CharImageProgressStore.saveLastVisit(
+                TokenManager.userId,
+                LastVisit(filterGrade, filterSemester, filterType, index),
+            )
+        }
     }
 
-    /** 提交图片反馈 */
+    /** 提交图片反馈：服务器不可达时暂存本地，联网后自动同步 */
     fun submitFeedback(
         char: String, grade: String, semester: String, type_: String,
         learningStatus: String?,
     ) {
         viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val url = "$serverBase/api/v1/char-images/feedback"
-                    val body = gson.toJson(mapOf(
-                        "char" to char,
-                        "grade" to grade,
-                        "semester" to semester,
-                        "type" to type_,
-                        "learning_status" to learningStatus,
-                    )).toRequestBody("application/json".toMediaType())
-                    val request = Request.Builder()
-                        .url(url)
-                        .post(body)
-                        .build()
-                    val resp = client.newCall(request).execute()
-                    if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
+            val ok = withContext(Dispatchers.IO) {
+                try {
+                    sendFeedback(char, grade, semester, type_, learningStatus)
+                    true
+                } catch (e: Exception) {
+                    Log.e(TAG, "反馈提交失败，暂存本地待同步", e)
+                    pendingStore.add(PendingFeedback(char, grade, semester, type_, learningStatus))
+                    false
                 }
+            }
+            refreshPendingCount()
+            if (ok) {
                 _feedbackResult.emit("ok")
-            } catch (e: Exception) {
-                Log.e(TAG, "反馈提交失败", e)
-                _feedbackResult.emit(networkErrorMsg(e))
+                // 提交成功说明网络可用，顺带把历史暂存记录一起同步
+                flushPendingFeedback()
+            } else {
+                _feedbackResult.emit("⚠️ 无法连接服务器，已暂存本地，联网后自动同步")
             }
         }
+    }
+
+    /** 重发所有暂存反馈，成功后移除（网络恢复时调用） */
+    private val flushing = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    fun flushPendingFeedback() {
+        // 防重入：多个触发点（进页面/网络恢复/resume）并发时只执行一次
+        if (!flushing.compareAndSet(false, true)) return
+        viewModelScope.launch {
+            try {
+                // 网络恢复早期（Wi-Fi 刚关联、TCP 未就绪）可能失败，重试几次覆盖就绪窗口
+                repeat(3) {
+                    val pending = withContext(Dispatchers.IO) { pendingStore.load() }
+                    if (pending.isEmpty()) return@launch
+                    val synced = withContext(Dispatchers.IO) {
+                        pending.filter { item ->
+                            try {
+                                sendFeedback(item.char, item.grade, item.semester, item.type, item.learningStatus)
+                                true
+                            } catch (e: Exception) {
+                                false
+                            }
+                        }
+                    }
+                    if (synced.isNotEmpty()) {
+                        withContext(Dispatchers.IO) { pendingStore.removeAll(synced) }
+                        refreshPendingCount()
+                        _feedbackResult.emit("✅ 已自动同步 ${synced.size} 条暂存记录")
+                        return@launch
+                    }
+                    delay(3000)
+                }
+            } finally {
+                flushing.set(false)
+            }
+        }
+    }
+
+    /** 从本地暂存队列刷新待同步数量（进入页面时展示提示条） */
+    fun refreshPendingCount() {
+        viewModelScope.launch {
+            _pendingCount.value = withContext(Dispatchers.IO) { pendingStore.load().size }
+        }
+    }
+
+    private fun sendFeedback(
+        char: String, grade: String, semester: String, type_: String,
+        learningStatus: String?,
+    ) {
+        val url = "$serverBase/api/v1/char-images/feedback"
+        val body = gson.toJson(mapOf(
+            "user_id" to TokenManager.userId,
+            "char" to char,
+            "grade" to grade,
+            "semester" to semester,
+            "type" to type_,
+            "learning_status" to learningStatus,
+        )).toRequestBody("application/json".toMediaType())
+        val request = Request.Builder()
+            .url(url)
+            .post(body)
+            .build()
+        val resp = client.newCall(request).execute()
+        if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
     }
 
     private fun parseList(json: String): List<CharImageItem> {

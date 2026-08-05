@@ -135,18 +135,34 @@ class TencentSOEService:
         # --- 转换结果格式 ---
         words = []
         for w in result.get("Words", []):
+            # 中文声调（RefTone/HypothesisTone，或嵌套在 Tone 对象中）
+            tone = None
+            t = w.get("Tone")
+            if isinstance(t, dict):
+                tone = {"ref": t.get("RefTone"), "hyp": t.get("HypothesisTone")}
+            elif w.get("RefTone") is not None or w.get("HypothesisTone") is not None:
+                tone = {"ref": w.get("RefTone"), "hyp": w.get("HypothesisTone")}
+
             phones = [
-                {"phone": p.get("Phone", ""), "accuracy": p.get("PronAccuracy", 0.0)}
+                {
+                    "phone": p.get("Phone", ""),
+                    "reference_phone": p.get("ReferencePhone", ""),
+                    "accuracy": p.get("PronAccuracy", 0.0),
+                    "match_tag": p.get("MatchTag", 0),
+                }
                 for p in w.get("PhoneInfos", [])
             ]
             words.append({
                 "word": w.get("ReferenceWord", ""),
                 "accuracy": w.get("PronAccuracy", 0.0),
                 "match_tag": w.get("MatchTag", 0),
+                "tone": tone,
                 "phone_infos": phones,
             })
 
         return {
+            "engine": engine,
+            "eval_mode": eval_mode,
             "pron_accuracy": result.get("PronAccuracy", 0.0),
             "pron_fluency": result.get("PronFluency", 0.0),
             "pron_completion": result.get("PronCompletion", 0.0),

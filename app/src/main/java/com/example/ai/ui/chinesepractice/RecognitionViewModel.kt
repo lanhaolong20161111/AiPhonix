@@ -54,7 +54,9 @@ data class RecognitionUiState(
     val results: List<QuestionResult> = emptyList(),
     val loading: Boolean = false,
     val isRecording: Boolean = false,
-    val message: String = ""
+    val message: String = "",
+    /** 练习记录是否因断网未同步到服务端 */
+    val recordSyncFailed: Boolean = false,
 ) {
     /** 两项都通过才算正确 */
     val isCorrect: Boolean? get() = when {
@@ -83,6 +85,7 @@ class RecognitionViewModel(
     // 服务端 API 客户端
     // 多音字数据（字 -> {读音列表, 词语, 常用读音}）
     private var polyphoneMap: Map<String, PolyphoneInfo> = emptyMap()
+    private var polyphoneLoadFailed = false
 
     data class PolyphoneInfo(
         val pronunciations: List<String>,
@@ -93,7 +96,7 @@ class RecognitionViewModel(
     private val apiClient = NetworkModule.httpClient
     private val JSON_MEDIA = "application/json; charset=utf-8".toMediaType()
     private fun serverBase() = com.example.ai.BuildConfig.TTS_SERVER_HOST.let {
-        if (it.isNotBlank()) it else "http://192.168.1.7:8080"
+        if (it.isNotBlank()) it else "http://192.168.1.3:8080"
     }
 
     var onPlayTts: ((String) -> Unit) = {}
@@ -141,6 +144,7 @@ class RecognitionViewModel(
             polyphoneMap = map
             Log.d(TAG, "已加载 ${map.size} 个多音字数据")
         } catch (e: Exception) {
+            polyphoneLoadFailed = true
             Log.w(TAG, "加载多音字数据失败: ${e.message}")
         }
     }
@@ -155,6 +159,7 @@ class RecognitionViewModel(
             }
 
             // 从服务端获取权重（出错则使用均匀随机）
+            var weightFetchFailed = false
             val weights = try {
                 val chars = JSONArray().apply { all.forEach { put(it.text) } }
                 val body = JSONObject().apply { put("chars", chars) }
@@ -168,7 +173,7 @@ class RecognitionViewModel(
                 if (w != null) {
                     all.associate { it.text to w.optDouble(it.text, 1.0).toFloat().coerceAtLeast(0.1f) }
                 } else null
-            } catch (_: Exception) { null }
+            } catch (_: Exception) { weightFetchFailed = true; null }
 
             // 加权随机选 QUIZ_COUNT 个（权重越高概率越大）
             val selected = if (weights != null) {
@@ -206,9 +211,14 @@ class RecognitionViewModel(
             }
 
             val firstChar = selected.firstOrNull()?.text ?: ""
+            val msgs = buildList {
+                if (weightFetchFailed) add("无法获取个性化选题，已使用默认顺序")
+                if (polyphoneLoadFailed) add("多音字数据加载失败，已使用本地字库")
+            }
             _state.value = RecognitionUiState(
                 items = selected,
-                wordContext = wordContexts[firstChar] ?: ""
+                wordContext = wordContexts[firstChar] ?: "",
+                message = msgs.joinToString("；"),
             )
             Log.d(TAG, "加载 ${selected.size} 个识字字 (权重模式=${weights != null})")
             updateTtsHint()
@@ -312,7 +322,10 @@ class RecognitionViewModel(
                     .post(body.toString().toRequestBody(JSON_MEDIA))
                     .build()
                 withContext(Dispatchers.IO) { apiClient.newCall(req).execute() }
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+                _state.value = _state.value.copy(recordSyncFailed = true)
+                Log.w(TAG, "练习记录同步失败（断网）")
+            }
         }
     }
 
@@ -362,7 +375,8 @@ class RecognitionViewModel(
                     ?: info?.words?.values?.firstOrNull()?.firstOrNull() ?: ""
                 word
             } else ""
-            _state.value = RecognitionUiState(items = s.items, currentIndex = nextIndex, wordContext = ctx)
+            _state.value = RecognitionUiState(items = s.items, currentIndex = nextIndex, wordContext = ctx,
+                recordSyncFailed = _state.value.recordSyncFailed)
             updateTtsHint()
             val numChinese = listOf("一","二","三","四","五","六","七","八","九","十",
                 "十一","十二","十三","十四","十五","十六","十七","十八","十九","二十")

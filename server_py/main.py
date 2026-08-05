@@ -47,7 +47,7 @@ app.add_middleware(
 
 def _init_routes():
     """初始化所有路由（延迟导入，解决循环依赖）"""
-    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users
+    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users, uploads, import_templates, user_imports, free_llm, training
 
     # 加载配置
     cfg_path = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -66,9 +66,13 @@ def _init_routes():
     essays.init(cfg)
     english  # no init needed
     char_images.init()
+    import_templates.init("data")
 
     from services import ark_image as ark_svc
     ark_svc.init(cfg.ark_image)
+
+    from services import free_llm as free_llm_svc
+    free_llm_svc.init(cfg.ark_chat)
 
     # 注册路由
     app.include_router(llm.router, prefix="/api/v1")
@@ -86,6 +90,18 @@ def _init_routes():
     app.include_router(essays.router, prefix="/api/v1")
     app.include_router(auth.router)
     app.include_router(users.router)
+    app.include_router(uploads.router, prefix="/api/v1")
+    app.include_router(import_templates.router, prefix="/api/v1")
+    app.include_router(user_imports.router, prefix="/api/v1")
+    app.include_router(free_llm.router, prefix="/api/v1")
+    app.include_router(training.router, prefix="/api/v1")
+
+    # 移动端网页（上传工具），构建产物在 static/web/
+    from fastapi.staticfiles import StaticFiles
+    web_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "web")
+    if os.path.isdir(web_dir):
+        app.mount("/web", StaticFiles(directory=web_dir, html=True), name="web")
+        logger.info("移动端网页已挂载: %s", web_dir)
 
     logger.info("所有路由已注册")
     return cfg

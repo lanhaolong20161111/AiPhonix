@@ -157,6 +157,21 @@ private fun WritingScreen(state: OralWritingUiState, viewModel: OralWritingViewM
         // 题目标题
         Text(topic.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
 
+        // 网络错误提示
+        state.error?.let { err ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    err,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
+        }
+
         // 段落进度指示器
         SectionProgressIndicator(sections, state.currentSectionIndex)
 
@@ -435,6 +450,21 @@ private fun ResultScreen(state: OralWritingUiState, viewModel: OralWritingViewMo
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("🎉 写作完成！", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+
+        // 网络错误提示
+        state.error?.let { err ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    err,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
+        }
 
         // === 显示各段原文 ===
         Card(modifier = Modifier.fillMaxWidth()) {

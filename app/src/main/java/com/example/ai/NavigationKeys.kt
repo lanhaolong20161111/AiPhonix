@@ -40,3 +40,27 @@ import kotlinx.serialization.Serializable
 // 口述作文
 @Serializable data object OralWriting : NavKey                       // 口述作文
 @Serializable data object Login : NavKey                              // 登录
+
+// 每日一练（语数英三板块，内容后续添加）
+@Serializable data object DailyPractice : NavKey                      // 每日一练主页
+
+// 导入中心（LLM 费用外移：提示词 → 用户 LLM → 粘贴回 → 本地加工）
+@Serializable data object ImportCenter : NavKey                       // 导入学习内容
+@Serializable data object MyImports : NavKey                           // 我的导入（查看/删除已导入内容）
+
+// 导入数据训练（消费端：本地题库/句子跟读/我的学习聚合页）
+@Serializable data object MyLearning : NavKey                          // 我的学习（聚合统计+训练入口）
+@Serializable data object QuizPractice : NavKey                        // 本地题库练习（导入的题目）
+@Serializable data object SentenceReading : NavKey                     // 句子跟读练习（导入的句子）
+
+// 文章跟读（TTS 朗读 + 段落口述 + 读后问答）
+@Serializable data object ArticleList : NavKey                         // 文章列表（导入的文章）
+@Serializable data class ArticleReading(val articleKey: String, val title: String) : NavKey
+@Serializable data class ArticleQuiz(val articleKey: String, val title: String) : NavKey
+
+// 账户详情页（错题本/掌握情况/待确认/退出登录）
+@Serializable data object Account : NavKey                            // 我的账户
+@Serializable data class FeedbackList(val status: String) : NavKey    // 反馈详情列表（错题本/掌握/待确认）
+
+// 家长设置（PIN 保护：家长动态决定学生首页的页面集合/今日任务）
+@Serializable data object ParentSettings : NavKey                     // 家长设置

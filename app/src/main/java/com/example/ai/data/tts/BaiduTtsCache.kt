@@ -78,29 +78,34 @@ class BaiduTtsCache(
         }
 
         return withContext(Dispatchers.IO) {
-            val body = jsonBody.toString().toRequestBody(JSON_MEDIA_TYPE)
-            val request = Request.Builder()
-                .url(serverUrl)
-                .post(body)
-                .build()
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                val errBody = response.body?.string() ?: "unknown"
-                Log.w(TAG, "服务器 TTS 代理返回 ${response.code}: $errBody")
-                return@withContext null
-            }
+            try {
+                val body = jsonBody.toString().toRequestBody(JSON_MEDIA_TYPE)
+                val request = Request.Builder()
+                    .url(serverUrl)
+                    .post(body)
+                    .build()
+                val response = client.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    val errBody = response.body?.string() ?: "unknown"
+                    Log.w(TAG, "服务器 TTS 代理返回 ${response.code}: $errBody")
+                    return@withContext null
+                }
 
-            val bytes = response.body?.bytes() ?: return@withContext null
-            file.writeBytes(bytes)
-            Log.d(TAG, "下载成功: ${file.name} (${bytes.size} bytes)")
-            file
+                val bytes = response.body?.bytes() ?: return@withContext null
+                file.writeBytes(bytes)
+                Log.d(TAG, "下载成功: ${file.name} (${bytes.size} bytes)")
+                file
+            } catch (e: Exception) {
+                Log.w(TAG, "TTS 下载异常（断网或服务端不可达）: ${e.message}")
+                null
+            }
         }
     }
 
     private fun getServerUrl(): String {
         val host = BuildConfig.TTS_SERVER_HOST
         if (host.isNotBlank()) return "$host/api/v1/tts/synthesize"
-        return "http://192.168.1.7:8080/api/v1/tts/synthesize"
+        return "http://192.168.1.3:8080/api/v1/tts/synthesize"
     }
 
     private suspend fun playFile(file: File): Boolean = suspendCancellableCoroutine { cont ->

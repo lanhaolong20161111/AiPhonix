@@ -130,6 +130,18 @@ private fun QuizContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // 本地缓存提示（非错误）
+        state.notice?.let { msg ->
+            Text(
+                text = "🗂️ $msg",
+                fontSize = 12.sp,
+                color = Color(0xFF6D4C41),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+            )
+        }
+
         // 题号 + 得分 + 尝试次数
         Row(
             modifier = Modifier.fillMaxWidth(),

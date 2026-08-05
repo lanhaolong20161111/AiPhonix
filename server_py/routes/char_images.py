@@ -116,9 +116,10 @@ def _save_feedback(items: list):
 
 @router.post("/char-images/feedback")
 async def submit_feedback(body: dict):
-    """提交图片反馈（幂等：同 char+grade+semester+type 覆盖旧记录，不追加）"""
+    """提交图片反馈（幂等：同 user_id+char+grade+semester+type 覆盖旧记录，不追加）"""
     from datetime import datetime
     entry = {
+        "user_id": int(body.get("user_id", 0) or 0),
         "char": body.get("char", ""),
         "grade": body.get("grade", ""),
         "semester": body.get("semester", ""),
@@ -130,7 +131,8 @@ async def submit_feedback(body: dict):
     feedbacks = _load_feedback()
     existing = next(
         (x for x in feedbacks
-         if x.get("char") == entry["char"]
+         if int(x.get("user_id", 0) or 0) == entry["user_id"]
+         and x.get("char") == entry["char"]
          and x.get("grade") == entry["grade"]
          and x.get("semester") == entry["semester"]
          and x.get("type") == entry["type"]),
@@ -142,18 +144,33 @@ async def submit_feedback(body: dict):
             existing["learning_status"] = entry["learning_status"]
         existing["needs_regen"] = bool(existing.get("needs_regen")) or bool(entry["needs_regen"])
         existing["timestamp"] = entry["timestamp"]
+        if "user_id" not in existing:
+            existing["user_id"] = entry["user_id"]
     else:
         feedbacks.append(entry)
     _save_feedback(feedbacks)
-    logger.info("反馈已保存(幂等): char=%s status=%s regen=%s",
-                entry["char"], entry["learning_status"], entry["needs_regen"])
+    logger.info("反馈已保存(幂等): user=%s char=%s status=%s regen=%s",
+                entry["user_id"], entry["char"], entry["learning_status"], entry["needs_regen"])
     return {"status": "ok"}
 
 
 @router.get("/char-images/feedback")
-async def list_feedback():
-    """查看所有反馈"""
-    return {"total": len(_load_feedback()), "items": _load_feedback()}
+async def list_feedback(user_id: int = 0, limit: int = 50, offset: int = 0):
+    """查看反馈；传 user_id>0 时只返回该用户的记录。
+    按时间倒序分页：limit/offset 控制切片，total 为过滤后总数。"""
+    items = _load_feedback()
+    if user_id > 0:
+        items = [x for x in items if int(x.get("user_id", 0) or 0) == user_id]
+    total = len(items)
+    items = sorted(items, key=lambda x: x.get("timestamp", ""), reverse=True)
+    stats = {"correct": 0, "wrong": 0, "unsure": 0, "unmarked": 0}
+    for x in items:
+        s = x.get("learning_status")
+        if s in stats:
+            stats[s] += 1
+        else:
+            stats["unmarked"] += 1
+    return {"total": total, "stats": stats, "items": items[offset:offset + max(1, min(limit, 200))]}
 
 
 @router.get("/char-images/{char}")

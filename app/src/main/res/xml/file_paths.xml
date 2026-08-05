@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 拍照临时文件目录：相机通过 FileProvider 写入 App 私有 cache -->
+<paths>
+    <cache-path name="import_photos" path="import_photos/" />
+</paths>

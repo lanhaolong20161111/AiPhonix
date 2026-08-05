@@ -1,6 +1,7 @@
 package com.example.ai.ui.charimage
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -41,10 +42,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ButtonDefaults
@@ -52,10 +56,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.example.ai.ui.components.PhonemeHeatmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -63,6 +74,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -85,6 +97,37 @@ fun CharImageScreen(
     val scope = rememberCoroutineScope()
     var showPageDialog by remember { mutableStateOf(false) }
     var targetPage by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val pendingCount by viewModel.pendingCount.collectAsState()
+
+    // 进入页面：刷新待同步数并尝试把离线暂存的反馈补发
+    LaunchedEffect(Unit) {
+        viewModel.refreshPendingCount()
+        viewModel.flushPendingFeedback()
+    }
+
+    // 监听网络恢复：连上网络后自动同步暂存反馈
+    DisposableEffect(context) {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                viewModel.flushPendingFeedback()
+            }
+        }
+        // 不限定 NET_CAPABILITY_INTERNET：局域网可达（如自建服务端）但无外网时也能触发同步
+        val request = NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+            .build()
+        cm.registerNetworkCallback(request, callback)
+        onDispose { cm.unregisterNetworkCallback(callback) }
+    }
+
+    // 页面每次恢复前台时也尝试同步（网络恢复的兜底）
+    LifecycleResumeEffect(Unit) {
+        viewModel.flushPendingFeedback()
+        onPauseOrDispose { }
+    }
 
     // 收集反馈提交结果
     LaunchedEffect(Unit) {
@@ -263,6 +306,32 @@ fun CharImageScreen(
                     }
                 }
             }
+
+            // 有待同步反馈时顶部提示条（置于内容之上，不遮挡交互）
+            AnimatedVisibility(
+                visible = pendingCount > 0,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .zIndex(10f),
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                ) {
+                    Text(
+                        text = "📤 待同步 $pendingCount 条反馈，联网后自动同步",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
         }
     }
 }
@@ -340,7 +409,18 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
             )
         }
 
-        // 图片
+        // 图片（延迟 5 秒揭示：先回忆思考，再揭晓图片）
+        var revealImage by remember(item.char) { mutableStateOf(false) }
+        var countdown by remember(item.char) { mutableStateOf(5) }
+        LaunchedEffect(item.char) {
+            revealImage = false
+            countdown = 5
+            while (countdown > 0) {
+                delay(1000)
+                countdown -= 1
+            }
+            revealImage = true
+        }
         Card(
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -348,14 +428,77 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                 .fillMaxWidth(0.75f)
                 .aspectRatio(1f),
         ) {
-            AsyncImage(
-                model = item.imageUrl,
-                contentDescription = item.char,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Fit,
-            )
+            Crossfade(
+                targetState = revealImage,
+                modifier = Modifier.fillMaxSize(),
+                label = "charImageReveal",
+            ) { showImage ->
+                if (showImage) {
+                    SubcomposeAsyncImage(
+                        model = item.imageUrl,
+                        contentDescription = item.char,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Fit,
+                    ) {
+                        when (painter.state) {
+                            is AsyncImagePainter.State.Loading -> {
+                                Box(
+                                    Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                            is AsyncImagePainter.State.Error -> {
+                                Box(
+                                    Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("🖼️", fontSize = 36.sp)
+                                        Spacer(Modifier.height(8.dp))
+                                        Text(
+                                            "图片加载失败，请检查网络",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.error,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                    }
+                                }
+                            }
+                            else -> SubcomposeAsyncImageContent()
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🤔", fontSize = 40.sp)
+                            Spacer(Modifier.height(10.dp))
+                            Text(
+                                "小朋友，请先回忆和思考哦！",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Center,
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "图片 $countdown 秒后揭晓",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(Modifier.height(6.dp))

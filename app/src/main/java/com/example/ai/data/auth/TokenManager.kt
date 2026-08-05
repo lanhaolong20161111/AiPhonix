@@ -11,6 +11,7 @@ object TokenManager {
     private const val PREFS_NAME = "ai_phonix_auth"
     private const val KEY_ACCESS_TOKEN = "access_token"
     private const val KEY_REFRESH_TOKEN = "refresh_token"
+    private const val KEY_USER_ID = "user_id"
     private const val KEY_USERNAME = "username"
     private const val KEY_NICKNAME = "nickname"
     private const val KEY_ROLE = "role"
@@ -28,6 +29,11 @@ object TokenManager {
     var refreshToken: String
         get() = prefs.getString(KEY_REFRESH_TOKEN, "") ?: ""
         set(value) = prefs.edit().putString(KEY_REFRESH_TOKEN, value).apply()
+
+    /** 用户 ID（0 = 未登录/游客） */
+    var userId: Int
+        get() = prefs.getInt(KEY_USER_ID, 0)
+        set(value) = prefs.edit().putInt(KEY_USER_ID, value).apply()
 
     var username: String
         get() = prefs.getString(KEY_USERNAME, "") ?: ""

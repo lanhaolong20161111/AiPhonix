@@ -28,7 +28,7 @@ class OpenAIProvider(
         /** Shared OkHttpClient — connection pooling across all instances. */
         val httpClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
                 .build()

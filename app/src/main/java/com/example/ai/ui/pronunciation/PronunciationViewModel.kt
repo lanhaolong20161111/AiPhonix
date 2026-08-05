@@ -144,7 +144,10 @@ class PronunciationViewModel(
         _uiState.update { it.copy(step = PronunciationStep.PLAYING) }
         viewModelScope.launch {
             try {
-                ttsEngine.speak(word.text)
+                val ok = ttsEngine.speak(word.text)
+                if (!ok) {
+                    _uiState.update { it.copy(error = "朗读失败，请检查网络") }
+                }
             } catch (e: Exception) {
                 Log.w("PronVm", "TTS 播放异常: ${e.message}")
             } finally {
@@ -157,7 +160,10 @@ class PronunciationViewModel(
     fun playPhonemeSound(phoneme: String) {
         viewModelScope.launch {
             try {
-                ttsEngine.speak(phoneme)
+                val ok = ttsEngine.speak(phoneme)
+                if (!ok) {
+                    _uiState.update { it.copy(error = "朗读失败，请检查网络") }
+                }
             } catch (e: Exception) {
                 Log.w("PronVm", "音素发音播放异常: ${e.message}")
             }

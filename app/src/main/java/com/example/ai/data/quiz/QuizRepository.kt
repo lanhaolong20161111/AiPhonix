@@ -4,6 +4,9 @@ import android.util.Log
 import kotlinx.serialization.json.Json
 import java.io.File
 
+/** 题库加载结果：bank + 是否来自本地缓存 */
+data class QuizBankResult(val bank: QuizBank, val fromCache: Boolean)
+
 /**
  * 管理各视频对应的题库：从缓存加载，必要时通过 QuizGenerator 生成。
  */
@@ -17,7 +20,7 @@ class QuizRepository(
      * 获取指定视频的题库。
      * 优先从缓存文件加载，不存在时调用 LLM 生成并缓存。
      */
-    suspend fun getQuizBank(videoName: String, subtitleText: String): QuizBank {
+    suspend fun getQuizBank(videoName: String, subtitleText: String): QuizBankResult {
         val cacheFile = getCacheFile(videoName)
 
         // 缓存存在 → 直接加载
@@ -25,15 +28,16 @@ class QuizRepository(
             Log.d("QuizRepository", "从缓存加载题库: $videoName")
             return try {
                 val cached = cacheFile.readText()
-                json.decodeFromString<QuizBank>(cached)
+                val bank = json.decodeFromString<QuizBank>(cached)
+                QuizBankResult(bank, fromCache = true)
             } catch (e: Exception) {
                 Log.e("QuizRepository", "缓存解析失败，重新生成", e)
-                generateAndCache(videoName, subtitleText)
+                QuizBankResult(generateAndCache(videoName, subtitleText), fromCache = false)
             }
         }
 
         // 不存在 → 生成并缓存
-        return generateAndCache(videoName, subtitleText)
+        return QuizBankResult(generateAndCache(videoName, subtitleText), fromCache = false)
     }
 
     private suspend fun generateAndCache(videoName: String, subtitleText: String): QuizBank {

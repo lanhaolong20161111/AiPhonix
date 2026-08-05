@@ -5537,5 +5537,35 @@
     "learning_status": null,
     "needs_regen": false,
     "timestamp": "2026-08-01T19:16:41.822264"
+  },
+  {
+    "user_id": 0,
+    "char": "妈妈",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "词",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-03T12:07:39.806077"
+  },
+  {
+    "user_id": 6,
+    "char": "冒",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-04T13:37:32.236921"
+  },
+  {
+    "user_id": 6,
+    "char": "air",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-04T17:08:51.809081"
   }
 ]

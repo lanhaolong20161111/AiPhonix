@@ -151,6 +151,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         TokenManager.accessToken = access
         TokenManager.refreshToken = refresh
         TokenManager.username = username
+        TokenManager.userId = (json["user_id"] as? Number)?.toInt() ?: 0
         if (json.containsKey("nickname")) {
             TokenManager.nickname = json["nickname"] as? String ?: ""
         } else {

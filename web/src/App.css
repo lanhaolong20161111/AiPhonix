@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+.page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 48px;
+}
+
+header h1 {
+  font-size: 22px;
+  margin: 8px 0 4px;
+}
+
+header p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  font-size: 17px;
+  margin: 0 0 12px;
+}
+
+input[type="file"] {
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+input.note,
+textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.preview {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  max-height: 320px;
+  object-fit: contain;
+  background: #f0f2f5;
+}
+
+.msg {
+  font-size: 14px;
+  margin: 10px 0 0;
+  color: #2563eb;
+}
+
+.empty {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f0f2f5;
+  flex-shrink: 0;
+}
+
+.thumb.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-tag {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.origin-tag {
+  background: #dcfce7;
+  color: #166534;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.time {
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.text-body {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #374151;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ocr {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #047857;
+}
+
+.ocr.pending {
+  color: #9ca3af;
+}
+
+footer {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 24px;
+}

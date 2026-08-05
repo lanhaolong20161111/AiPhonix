@@ -1,13 +1,19 @@
 package com.example.ai.data.wordbank
 
 import android.content.Context
+import com.example.ai.data.userimport.UserImportItem
+import com.example.ai.data.userimport.UserImportStore
 import com.google.gson.Gson
 
 /**
- * 字词库仓库 - 从 assets/wordbank.json 加载
- * 所有查询在内存中进行，无网络/数据库依赖
+ * 字词库仓库 - 从 assets/wordbank.json 加载内置基线词库，
+ * 并将用户导入数据（UserImportStore）合并进查询结果。
+ * 所有查询在内存中进行，无网络/数据库依赖。
  */
-class WordBankRepository(private val context: Context) {
+class WordBankRepository(
+    private val context: Context,
+    private val userImportStore: UserImportStore? = null,
+) {
     private var bank: WordBank? = null
 
     private fun getBank(): WordBank {
@@ -20,21 +26,22 @@ class WordBankRepository(private val context: Context) {
         return bank ?: throw IllegalStateException("WordBank not initialized — call loadAsync() first")
     }
 
-    /** 根据标签过滤汉字 */
+    private fun userItems(): List<UserImportItem> =
+        userImportStore?.load().orEmpty()
+
+    /** 根据标签过滤汉字（内置 + 用户导入 char，补"识字/写字"标签） */
     fun queryChars(vararg requiredTags: String): List<WordBankEntry> {
-        return getBank().chars.filter { entry ->
-            requiredTags.all { tag -> tag in entry.tags }
-        }
+        return mergeUserEntries(getBank().chars, userItems(), "char", listOf("识字", "写字"))
+            .filter { entry -> requiredTags.all { tag -> tag in entry.tags } }
     }
 
-    /** 根据标签过滤词语 */
+    /** 根据标签过滤词语（内置 + 用户导入 word，补"词语"标签） */
     fun queryWords(vararg requiredTags: String): List<WordBankEntry> {
-        return getBank().words.filter { entry ->
-            requiredTags.all { tag -> tag in entry.tags }
-        }
+        return mergeUserEntries(getBank().words, userItems(), "word", listOf("词语"))
+            .filter { entry -> requiredTags.all { tag -> tag in entry.tags } }
     }
 
-    /** 根据年级/学期/类型查询 */
+    /** 根据年级/学期/类型查询（内置 + 用户导入） */
     fun queryByGrade(
         grade: String? = null,
         semester: String? = null,
@@ -45,17 +52,21 @@ class WordBankRepository(private val context: Context) {
             if (grade != null && semester != null) "$grade$semester" else null,
             type
         )
-        val all = if (tags.isEmpty()) getBank().allEntries()
-        else getBank().allEntries().filter { entry ->
+        val mergedChars = mergeUserEntries(getBank().chars, userItems(), "char", listOf("识字", "写字"))
+        val mergedWords = mergeUserEntries(getBank().words, userItems(), "word", listOf("词语"))
+        val all = if (tags.isEmpty()) mergedChars + mergedWords
+        else (mergedChars + mergedWords).filter { entry ->
             tags.all { tag -> tag in entry.tags }
         }
         return all.take(limit)
     }
 
-    /** 获取标签列表及对应数量 */
+    /** 获取标签列表及对应数量（含用户导入条目的标签） */
     fun getTagStats(): Map<String, Int> {
         val counts = mutableMapOf<String, Int>()
-        for (entry in getBank().allEntries()) {
+        val mergedChars = mergeUserEntries(getBank().chars, userItems(), "char", listOf("识字", "写字"))
+        val mergedWords = mergeUserEntries(getBank().words, userItems(), "word", listOf("词语"))
+        for (entry in mergedChars + mergedWords) {
             for (tag in entry.tags) {
                 counts[tag] = counts.getOrDefault(tag, 0) + 1
             }
@@ -63,10 +74,12 @@ class WordBankRepository(private val context: Context) {
         return counts
     }
 
-    /** 搜索字/词 */
+    /** 搜索字/词（内置 + 用户导入） */
     fun search(query: String): List<WordBankEntry> {
         val q = query.trim()
         if (q.isEmpty()) return emptyList()
-        return getBank().allEntries().filter { it.text.contains(q) }
+        val mergedChars = mergeUserEntries(getBank().chars, userItems(), "char", listOf("识字", "写字"))
+        val mergedWords = mergeUserEntries(getBank().words, userItems(), "word", listOf("词语"))
+        return (mergedChars + mergedWords).filter { it.text.contains(q) }
     }
 }

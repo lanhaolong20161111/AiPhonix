@@ -53,6 +53,8 @@ data class QuizState(
     /** 是否展示撒花庆祝 */
     val showConfetti: Boolean = false,
     val error: String? = null,
+    /** 非错误提示（如：使用本地缓存题库） */
+    val notice: String? = null,
 ) {
     val currentItem: QuizItem? get() = items.getOrNull(currentIndex)
     val isSubmitted: Boolean get() = wordResults != null
@@ -84,7 +86,8 @@ class QuizViewModel(
                     return@launch
                 }
 
-                val bank = quizRepository.getQuizBank(videoName, subtitleText)
+                val result = quizRepository.getQuizBank(videoName, subtitleText)
+                val bank = result.bank
                 if (bank.items.isEmpty()) {
                     _state.value = QuizState(
                         isLoading = false,
@@ -92,6 +95,8 @@ class QuizViewModel(
                     )
                     return@launch
                 }
+                // 使用本地缓存题库时提示
+                val notice = if (result.fromCache) "已使用本地缓存题库（断网也可用）" else null
                 // 将部分条目自动转为填空模式（如果 LLM 未提供 cloze）
                 val enriched = enrichItems(bank.items)
                 val items = enriched.shuffled().take(30)
@@ -103,6 +108,7 @@ class QuizViewModel(
                         items = items,
                         userInputs = listOf(""),
                         totalCount = items.size,
+                        notice = notice,
                     )
                 } else {
                     val firstInfo = parseSentence(first.english)
@@ -112,6 +118,7 @@ class QuizViewModel(
                         userInputs = firstInfo.cleanWords.map { "" },
                         punctInfo = firstInfo,
                         totalCount = items.size,
+                        notice = notice,
                     )
                 }
             } catch (e: Exception) {
@@ -182,7 +189,10 @@ class QuizViewModel(
     fun speakHint() {
         val text = _state.value.currentItem?.english ?: return
         viewModelScope.launch {
-            ttsEngine.speak(text)
+            val ok = ttsEngine.speak(text)
+            if (!ok) {
+                _state.value = _state.value.copy(error = "朗读失败，请检查网络")
+            }
         }
     }
 

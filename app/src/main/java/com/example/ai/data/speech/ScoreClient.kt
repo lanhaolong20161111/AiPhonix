@@ -109,7 +109,7 @@ class ScoreClient(
 
         fun serverBase(): String {
             val host = BuildConfig.TTS_SERVER_HOST
-            return if (host.isNotBlank()) host else "http://192.168.1.7:8080"
+            return if (host.isNotBlank()) host else "http://192.168.1.3:8080"
         }
 
         /** 腾讯 ARPAbet → 国际音标（IPA）。已含斜杠则跳过，未知符号保留原文。 */

@@ -39,12 +39,14 @@ data class WordPracticeUiState(
     val finished: Boolean = false,
     val loading: Boolean = false,
     val message: String = "",
-    val submitted: Boolean = false
+    val submitted: Boolean = false,
+    /** 例句生成失败，使用了本地默认句 */
+    val sentenceFallback: Boolean = false,
 )
 
 class WordPracticeViewModel(
     private val wordBankRepo: WordBankRepository,
-    private val wordInfoRepo: WordInfoRepository
+    private val wordInfoRepo: WordInfoRepository,
 ) : ViewModel() {
 
     companion object {
@@ -114,14 +116,16 @@ class WordPracticeViewModel(
                 } else ""
             } catch (_: Exception) { "" }
 
-            val displaySentence = if (sentence.isNotEmpty()) sentence else "请写出词语: $word"
+            val fallback = sentence.isEmpty()
+            val displaySentence = if (fallback) "请写出词语: $word" else sentence
 
             val updated = s.items.toMutableList()
             updated[index] = updated[index].copy(sentence = displaySentence)
             _state.value = _state.value.copy(
                 items = updated,
                 currentWord = word,
-                currentSentence = displaySentence
+                currentSentence = displaySentence,
+                sentenceFallback = fallback
             )
 
             // 开始朗读：词→句子，重复2遍

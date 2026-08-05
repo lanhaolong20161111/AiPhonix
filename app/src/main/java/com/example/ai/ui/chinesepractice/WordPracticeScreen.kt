@@ -139,6 +139,16 @@ private fun ReadingPhase(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
+                // 例句生成失败 → 本地默认句提示
+                if (state.sentenceFallback) {
+                    Text(
+                        text = "⚠️ 例句生成失败，正在使用本地默认句（联网后可自动获取）",
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color(0xFFE65100),
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                }
             }
         }
 

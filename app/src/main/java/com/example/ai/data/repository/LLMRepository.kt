@@ -12,4 +12,7 @@ interface LLMRepository {
     suspend fun generateLessonPlan(progress: Map<String, Any>): String
     /** 根据字幕内容生成考试题目（中英文对照），返回 JSON 字符串 */
     suspend fun generateQuizItems(subtitleText: String): String
+
+    /** 根据文章内容生成阅读理解问答题（带参考答案），返回 JSON 数组字符串 [{question, answer}] */
+    suspend fun generateArticleQuestions(articleTitle: String, articleText: String): String
 }

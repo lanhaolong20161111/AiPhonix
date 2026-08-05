@@ -77,6 +77,7 @@ fun RecognitionScreen(
                 results = state.results,
                 totalItems = state.items.size,
                 onBack = onBack,
+                warning = if (state.recordSyncFailed) "部分练习记录未同步（断网）" else null,
                 modifier = Modifier.padding(padding)
             )
             return@Scaffold
@@ -535,6 +536,7 @@ private fun ResultScreen(
     results: List<QuestionResult>,
     totalItems: Int,
     onBack: () -> Unit,
+    warning: String? = null,
     modifier: Modifier = Modifier
 ) {
     val correctCount = results.count { it.isCorrect }
@@ -545,6 +547,9 @@ private fun ResultScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        warning?.let {
+            Text(it, color = Color(0xFFE65100), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+        }
         Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 

@@ -208,6 +208,7 @@ class OralWritingViewModel(
                     sections = fallback,
                     sectionTexts = MutableList(fallback.size) { "" },
                     isGeneratingStructure = false,
+                    error = "无法连接服务器，已使用默认写作框架",
                 )
             }
         }
@@ -307,7 +308,7 @@ class OralWritingViewModel(
                 _uiState.value = _uiState.value.copy(isGeneratingHint = false, currentHint = hint)
             } catch (e: Exception) {
                 Log.e(TAG, "请求提示失败", e)
-                _uiState.value = _uiState.value.copy(isGeneratingHint = false, error = "请求提示失败")
+                _uiState.value = _uiState.value.copy(isGeneratingHint = false, error = "请求提示失败，请检查网络")
             }
         }
     }
@@ -354,7 +355,7 @@ class OralWritingViewModel(
             _uiState.value = _uiState.value.copy(formattedText = formatted, isFormatting = false)
         } catch (e: Exception) {
             Log.e(TAG, "润饰失败", e)
-            _uiState.value = _uiState.value.copy(isFormatting = false)
+            _uiState.value = _uiState.value.copy(isFormatting = false, error = "润色失败，请检查网络")
         }
     }
 
@@ -383,7 +384,7 @@ class OralWritingViewModel(
             _uiState.value = _uiState.value.copy(feedback = feedback, isScoring = false)
         } catch (e: Exception) {
             Log.e(TAG, "评分失败", e)
-            _uiState.value = _uiState.value.copy(isScoring = false)
+            _uiState.value = _uiState.value.copy(isScoring = false, error = "评分失败，请检查网络")
         }
     }
 

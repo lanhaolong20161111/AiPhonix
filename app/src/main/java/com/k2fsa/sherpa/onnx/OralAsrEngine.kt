@@ -4,6 +4,9 @@ import android.content.res.AssetManager
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.DataOutputStream
 import kotlin.math.max
 import kotlin.math.min
 
@@ -60,9 +63,13 @@ class OralAsrEngine(private val assetManager: AssetManager) {
     /**
      * 开始录音 + ASR。通过 onPartial 回调实时返回识别中间结果。
      * 录音结束后 Result 为最终完整文本。
+     *
+     * @param onPartial 实时识别回调
+     * @param wavPath 非空时录音结束后把音频写入该 wav 文件（PCM16/16kHz/单声道），供留存回听
      */
     suspend fun startRecording(
         onPartial: (String) -> Unit = {},
+        wavPath: String? = null,
     ): Result<String> = withContext(Dispatchers.IO) {
         val rec = recognizer ?: return@withContext Result.failure(Exception("ASR 未初始化"))
         val audioRecorder = PcmAudioRecorder()
@@ -83,6 +90,8 @@ class OralAsrEngine(private val assetManager: AssetManager) {
 
         val buffer = ShortArray(PcmAudioRecorder.CHUNK_SAMPLES) // ~100ms of PCM
         val floatBuf = FloatArray(PcmAudioRecorder.CHUNK_SAMPLES)
+        // 收集 PCM 数据（仅当需要保存 wav 时）
+        val pcmBuffer = if (wavPath != null) ByteArrayOutputStream() else null
         val sb = StringBuilder()
         var bestText = ""
         var lastSpeechMs = System.currentTimeMillis()
@@ -92,6 +101,14 @@ class OralAsrEngine(private val assetManager: AssetManager) {
             while (isRecording) {
                 val n = audioRecorder.read(buffer)
                 if (n > 0) {
+                    // 收集 PCM（LE）
+                    pcmBuffer?.let { out ->
+                        for (i in 0 until n) {
+                            val s = buffer[i].toInt()
+                            out.write(s and 0xFF)
+                            out.write((s shr 8) and 0xFF)
+                        }
+                    }
                     // Short → Float conversion
                     for (i in 0 until n) {
                         floatBuf[i] = max(-1f, min(1f, buffer[i].toFloat() / Short.MAX_VALUE))
@@ -125,6 +142,14 @@ class OralAsrEngine(private val assetManager: AssetManager) {
             audioRecorder.stop()
             audioRecorder.release()
             stream.inputFinished()
+            // 保存 wav（如有需要）
+            if (pcmBuffer != null && wavPath != null) {
+                try {
+                    writeWav(File(wavPath), pcmBuffer.toByteArray(), PcmAudioRecorder.SAMPLE_RATE)
+                } catch (e: Exception) {
+                    Log.e(TAG, "startRecording: write wav failed", e)
+                }
+            }
             // 最后一次 decode
             if (rec.isReady(stream)) {
                 rec.decode(stream)
@@ -148,6 +173,33 @@ class OralAsrEngine(private val assetManager: AssetManager) {
     /** 停止录音。 */
     fun stopRecording() {
         isRecording = false
+    }
+
+    /** 把 PCM16 数据写成 wav 文件（单声道，LE）。 */
+    private fun writeWav(file: File, pcm: ByteArray, sampleRate: Int) {
+        file.parentFile?.mkdirs()
+        DataOutputStream(file.outputStream().buffered()).use { dos ->
+            fun writeLe16(v: Int) {
+                dos.write(v and 0xFF)
+                dos.write((v shr 8) and 0xFF)
+            }
+            val byteRate = sampleRate * 2 // 16bit 单声道
+            val dataSize = pcm.size
+            dos.writeBytes("RIFF")
+            dos.writeInt(Integer.reverseBytes(36 + dataSize))
+            dos.writeBytes("WAVE")
+            dos.writeBytes("fmt ")
+            dos.writeInt(Integer.reverseBytes(16))
+            writeLe16(1)                            // PCM
+            writeLe16(1)                            // 单声道
+            dos.writeInt(Integer.reverseBytes(sampleRate))
+            dos.writeInt(Integer.reverseBytes(byteRate))
+            writeLe16(2)                            // blockAlign
+            writeLe16(16)                           // bitsPerSample
+            dos.writeBytes("data")
+            dos.writeInt(Integer.reverseBytes(dataSize))
+            dos.write(pcm)
+        }
     }
 
     /** 释放 ASR 模型资源（通常不需要手动调用）。 */

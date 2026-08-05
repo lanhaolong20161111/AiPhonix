@@ -57,6 +57,13 @@ class ArkImageConfig:
 
 
 @dataclass
+class ArkChatConfig:
+    """火山引擎送 token 的免费 LLM（多模态：文本 + 图片）"""
+    api_key: str = ""
+    model: str = "doubao-seed-2-0-mini-260428"
+
+
+@dataclass
 class Config:
     server: ServerConfig = field(default_factory=ServerConfig)
     deepseek: DeepSeekConfig = field(default_factory=DeepSeekConfig)
@@ -64,6 +71,7 @@ class Config:
     tencent: TencentConfig = field(default_factory=TencentConfig)
     llm_prompts: LLMPromptsConfig = field(default_factory=LLMPromptsConfig)
     ark_image: ArkImageConfig = field(default_factory=ArkImageConfig)
+    ark_chat: ArkChatConfig = field(default_factory=ArkChatConfig)
 
 
 def load_config(path: str = "config.yaml") -> Config:
@@ -115,6 +123,11 @@ def load_config(path: str = "config.yaml") -> Config:
             cfg.ark_image.api_key = a.get("api_key", "")
             cfg.ark_image.model = a.get("model", cfg.ark_image.model)
 
+        if "ark_chat" in raw:
+            a = raw["ark_chat"]
+            cfg.ark_chat.api_key = a.get("api_key", "")
+            cfg.ark_chat.model = a.get("model", cfg.ark_chat.model)
+
     # 环境变量覆盖（所有密钥支持从环境变量读取，容器化部署用）
     if v := os.environ.get("DEEPSEEK_API_KEY"):
         cfg.deepseek.api_key = v
@@ -139,8 +152,11 @@ def load_config(path: str = "config.yaml") -> Config:
 
     if v := os.environ.get("ARK_API_KEY"):
         cfg.ark_image.api_key = v
+        cfg.ark_chat.api_key = v  # 免费 LLM 与文生图共用 ARK_API_KEY
     if v := os.environ.get("ARK_MODEL"):
         cfg.ark_image.model = v
+    if v := os.environ.get("ARK_CHAT_MODEL"):
+        cfg.ark_chat.model = v
 
     # 默认提示词
     if not cfg.llm_prompts.english_teaching:

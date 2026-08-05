@@ -47,6 +47,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    user_id: int = 0
 
 class UserInfo(BaseModel):
     uuid: str
@@ -169,6 +170,7 @@ async def register(req: RegisterRequest, session: AsyncSession = Depends(get_ses
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token_str,
+        user_id=user.id,
     )
 
 
@@ -194,6 +196,7 @@ async def login(req: LoginRequest, session: AsyncSession = Depends(get_session))
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token_str,
+        user_id=user.id,
     )
 
 
@@ -231,6 +234,7 @@ async def refresh(req: RefreshRequest, session: AsyncSession = Depends(get_sessi
     return TokenResponse(
         access_token=access_token,
         refresh_token=new_refresh_token_str,
+        user_id=user.id,
     )
 
 

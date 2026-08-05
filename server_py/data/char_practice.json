@@ -228,5 +228,15 @@
     "consecutive_correct": 0,
     "last_seen": 1785293774.783275,
     "last_correct": false
+  },
+  {
+    "char": "蛇",
+    "pinyin_correct": 1,
+    "pinyin_wrong": 0,
+    "pronunciation_correct": 1,
+    "pronunciation_wrong": 0,
+    "consecutive_correct": 2,
+    "last_seen": 1785839978.8446436,
+    "last_correct": true
   }
 ]

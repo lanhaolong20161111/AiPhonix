@@ -96,3 +96,17 @@ letter_videos/_*/
 # IPA 拼接临时文件
 app/src/main/assets/ipa/temp_*.wav
 app/src/main/assets/ipa/concat_list.txt
+
+# 临时日志与产物
+build_out.txt
+gradle_err.txt
+gradle_out.txt
+ui_final.xml
+test_essays.ps1
+
+# 图片批量生成临时脚本（下划线开头）
+letter_videos/_*
+server_py/_*.py
+
+# 服务端运行时状态
+server_py/data/llm_budget.json

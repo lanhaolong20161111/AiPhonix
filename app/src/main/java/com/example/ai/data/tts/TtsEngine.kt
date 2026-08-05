@@ -52,19 +52,29 @@ class TtsEngine(context: Context) {
     /**
      * 朗读文本。
      * 优先使用系统 TTS（离线），不可用时回退到服务端百度 TTS。
+     *
+     * @return true 表示播放成功；false 表示系统 TTS 与服务端 TTS 均失败（断网等）
      */
-    suspend fun speak(text: String) {
+    suspend fun speak(text: String): Boolean {
         Log.d(TAG, "speak(\"$text\")")
 
         // 1. 尝试系统 TTS
         if (ttsReady && tts != null) {
-            if (speakWithSystemTts(text)) return
+            if (speakWithSystemTts(text)) return true
             Log.w(TAG, "系统 TTS 播放失败，回退到服务端 TTS")
         }
 
         // 2. 回退到服务端百度 TTS
-        if (!cache.play(text)) {
-            Log.e(TAG, "TTS 播放失败（服务端不可达或缓存错误）")
+        return try {
+            if (!cache.play(text)) {
+                Log.e(TAG, "TTS 播放失败（服务端不可达或缓存错误）")
+                false
+            } else {
+                true
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "TTS 回退异常: ${e.message}")
+            false
         }
     }
 

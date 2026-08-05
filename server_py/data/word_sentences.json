@@ -2074,5 +2074,45 @@
   "灿然": {
     "sentence": "阳光灿然，真暖和。",
     "source": "llm"
+  },
+  "每个": {
+    "sentence": "每个孩子都有自己的梦想。",
+    "source": "llm"
+  },
+  "饭菜": {
+    "sentence": "妈妈做的饭菜真好吃。",
+    "source": "llm"
+  },
+  "开朗": {
+    "sentence": "她性格开朗爱笑",
+    "source": "llm"
+  },
+  "闹市": {
+    "sentence": "闹市里人很多。",
+    "source": "llm"
+  },
+  "孤单": {
+    "sentence": "一个人在家很孤单。",
+    "source": "llm"
+  },
+  "饥渴": {
+    "sentence": "小羊饥渴地找水喝。",
+    "source": "llm"
+  },
+  "目眶": {
+    "sentence": "她目眶含泪，却坚强地笑了。",
+    "source": "llm"
+  },
+  "木板": {
+    "sentence": "我用木板做小桌子。",
+    "source": "llm"
+  },
+  "泉眼": {
+    "sentence": "泉眼里冒出了清澈的水。",
+    "source": "llm"
+  },
+  "艾草": {
+    "sentence": "艾草有淡淡清香。",
+    "source": "llm"
   }
 }

@@ -1,5 +1,6 @@
 package com.example.ai.ui.charimage
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ai.CharImageList
+import com.example.ai.data.auth.TokenManager
+import com.example.ai.data.progress.CharImageProgressStore
 
 data class TypeEntry(
     val label: String,
@@ -77,8 +80,12 @@ fun CharImageGradeSelectionScreen(
             Spacer(Modifier.height(40.dp))
 
             types.forEach { entry ->
+                val lastIndex = CharImageProgressStore.getPosition(
+                    TokenManager.userId, grade, semester, entry.type_,
+                )
                 TypeCard(
                     entry = entry,
+                    lastIndex = if (lastIndex >= 0) lastIndex else null,
                     onClick = {
                         onNavigateToList(
                             CharImageList(
@@ -98,13 +105,15 @@ fun CharImageGradeSelectionScreen(
 @Composable
 private fun TypeCard(
     entry: TypeEntry,
+    lastIndex: Int? = null,
     onClick: () -> Unit,
 ) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(100.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (lastIndex != null) 6.dp else 4.dp),
+        border = if (lastIndex != null) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
         ),
@@ -115,7 +124,7 @@ private fun TypeCard(
         ) {
             Text(entry.emoji, fontSize = 36.sp)
             Spacer(Modifier.width(20.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     entry.label,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -125,6 +134,14 @@ private fun TypeCard(
                     entry.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                )
+            }
+            if (lastIndex != null) {
+                Text(
+                    "⏩ 上次：第 ${lastIndex + 1} 个",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }

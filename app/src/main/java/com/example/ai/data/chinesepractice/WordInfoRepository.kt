@@ -36,7 +36,7 @@ class WordInfoRepository(
 
         fun getServerBase(): String {
             val host = BuildConfig.TTS_SERVER_HOST
-            return if (host.isNotBlank()) host else "http://192.168.1.7:8080"
+            return if (host.isNotBlank()) host else "http://192.168.1.3:8080"
         }
     }
 

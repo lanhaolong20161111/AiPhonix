@@ -1,0 +1,248 @@
+{
+  "version": 2,
+  "templates": [
+    {
+      "id": "text_to_vocab",
+      "group": "text",
+      "name": "文本 → 词汇表",
+      "description": "粘贴课本单词表/生字表，提取每个字词及其拼音、释义",
+      "inputType": "text",
+      "contentType": "vocab",
+      "params": [
+        {
+          "key": "language",
+          "label": "语言",
+          "type": "select",
+          "options": [
+            "中文",
+            "英语"
+          ],
+          "default": "中文"
+        },
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        },
+        {
+          "key": "mode",
+          "label": "提取模式",
+          "type": "select",
+          "options": [
+            "提取",
+            "补全"
+          ],
+          "default": "提取"
+        }
+      ],
+      "promptTemplate": "你是小学学习资料整理助手。请把下面内容中出现的每个需要学习的字或词提取出来，输出为 JSON 数组，不要输出任何其他内容。\n\n严格按以下字段输出（字段名必须完全一致）：\n- text：字或词（必填）\n- pinyin：拼音，数字声调格式如 yi1、xiang3（中文必填；英语可不填）\n- meaning：中文释义（必填）\n- type：\"char\"（单字）或 \"word\"（词语）\n- tags：标签数组，至少包含 \"{{grade}}\"\n- pos：词性（英语必填，如 noun/verb/adjective；中文可不填）\n- phonetic：音标（英语填 IPA 格式如 /kæt/；中文可不填）\n- example：包含该字词的例句（能给出就给出）\n- exampleTranslation：例句的中文翻译（有 example 时给出）\n- radical：部首（中文生字填，如 \"犭\"；英语可不填）\n- strokes：笔画数（中文生字填，如 11；英语可不填）\n- synonyms：近义词数组（英语填，如 [\"kitty\"]；中文可不填）\n- antonyms：反义词数组（英语填；中文可不填）\n- difficulty：难度，1-5 的整数（1 最简单，5 最难；无法确定可省略）\n\n以上元信息字段能提取的尽量提取，无法确定的字段可省略。\n\n输出示例：[{\"text\":\"cat\",\"pinyin\":\"\",\"meaning\":\"猫\",\"type\":\"word\",\"tags\":[\"{{grade}}\"],\"pos\":\"noun\",\"phonetic\":\"/kæt/\",\"example\":\"The cat is sleeping.\",\"exampleTranslation\":\"猫在睡觉。\",\"synonyms\":[\"kitty\"],\"antonyms\":[],\"difficulty\":1}]\n\n{{mode_note}}只输出 JSON 数组，不要输出解释、注释或 markdown 代码块标记。\n\n内容如下：\n{{input_text}}",
+      "privacyNotice": "",
+      "version": 2
+    },
+    {
+      "id": "text_to_article",
+      "group": "text",
+      "name": "文本 → 文章",
+      "description": "粘贴课文/短文，整理为标题 + 正文 + 分段",
+      "inputType": "text",
+      "contentType": "article",
+      "params": [
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        }
+      ],
+      "promptTemplate": "你是小学语文/英语学习资料整理助手。请把下面内容整理为一篇文章，输出 JSON 对象，不要输出任何其他内容。\n\n字段：\n- title：标题（原文无标题则根据内容拟一个合适的）\n- content：正文全文（保留原文，不删改）\n- paragraphs：按自然段拆分的字符串数组，每段一个元素\n- gradeLevel：适合年级，如 \"{{grade}}\"\n- summary：一句话内容摘要（能概括就给出）\n- theme：主题/中心思想（能概括就给出）\n- newWords：生字词数组，每个元素是 {\"word\":\"字或词\",\"pinyin\":\"拼音\",\"meaning\":\"释义\"}（低年级课文填，无法确定可省略）\n\n以上元信息字段能提取的尽量提取，无法确定的字段可省略。\n\n输出示例：{\"title\":\"小壁虎借尾巴\",\"content\":\"...\",\"paragraphs\":[\"...\",\"...\"],\"gradeLevel\":\"{{grade}}\",\"summary\":\"小壁虎借尾巴的故事\",\"theme\":\"动物尾巴的作用\",\"newWords\":[{\"word\":\"壁虎\",\"pinyin\":\"bi4 hu3\",\"meaning\":\"一种爬行动物\"}]}\n\n只输出 JSON 对象，不要 markdown 代码块标记。\n\n内容如下：\n{{input_text}}",
+      "privacyNotice": "",
+      "version": 2
+    },
+    {
+      "id": "text_to_sentence",
+      "group": "text",
+      "name": "文本 → 句子/句型",
+      "description": "粘贴课文/对话，提取每个句子及翻译、关键词",
+      "inputType": "text",
+      "contentType": "sentence",
+      "params": [
+        {
+          "key": "language",
+          "label": "语言",
+          "type": "select",
+          "options": [
+            "中文",
+            "英语"
+          ],
+          "default": "英语"
+        },
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        }
+      ],
+      "promptTemplate": "你是小学学习资料整理助手。请把下面内容中的每个句子提取出来，输出为 JSON 数组，不要输出任何其他内容。\n\n字段：\n- sentence：句子原文（必填）\n- translation：中文翻译（必填，中文句可写同义解释）\n- keywords：关键词数组（英语句给重点英文单词，中文句给重点字词）\n- grammar：语法点/句型（如\"一般现在时\"\"主谓宾\"\"There be 句型\"，能识别就给出）\n- scene：使用场景（如\"打招呼\"\"购物\"\"课堂\"，能识别就给出）\n- difficulty：难度，1-5 的整数（1 最简单，5 最难；无法确定可省略）\n\n以上元信息字段能提取的尽量提取，无法确定的字段可省略。\n\n输出示例：[{\"sentence\":\"How are you?\",\"translation\":\"你好吗？\",\"keywords\":[\"how\",\"are\",\"you\"],\"grammar\":\"特殊疑问句\",\"scene\":\"打招呼\",\"difficulty\":1}]\n\n只输出 JSON 数组，不要输出解释、注释或 markdown 代码块标记。\n\n内容如下：\n{{input_text}}",
+      "privacyNotice": "",
+      "version": 2
+    },
+    {
+      "id": "image_to_quiz",
+      "group": "image",
+      "name": "图片 → 题目",
+      "description": "拍摄教辅/试卷题目，识别为题集",
+      "inputType": "image",
+      "contentType": "quiz",
+      "params": [
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        },
+        {
+          "key": "subject",
+          "label": "科目",
+          "type": "select",
+          "options": [
+            "语文",
+            "英语",
+            "数学"
+          ],
+          "default": "语文"
+        },
+        {
+          "key": "count",
+          "label": "题数",
+          "type": "number",
+          "default": "10"
+        }
+      ],
+      "promptTemplate": "请识别我附带的图片中的练习题目，提取为 JSON 数组，不要输出任何其他内容。\n\n字段（每条题目）：\n- type：\"选择\" | \"填空\" | \"问答\" | \"判断\"\n- stem：题目题干\n- options：选项数组（选择/判断题有，其余为空数组）\n- answer：正确答案\n- explanation：简要解析（可空）\n\n输出示例：[{\"type\":\"选择\",\"stem\":\"3+5=？\",\"options\":[\"6\",\"7\",\"8\",\"9\"],\"answer\":\"8\",\"explanation\":\"\"}]\n\n要求：{{grade}}{{subject}}，最多提取 {{count}} 道题。只输出 JSON 数组。",
+      "privacyNotice": "⚠️ 请勿拍摄包含人脸、姓名、学校、家庭住址等个人信息的图片，仅拍摄题目内容。",
+      "version": 1
+    },
+    {
+      "id": "image_to_article",
+      "group": "image",
+      "name": "图片 → 文章",
+      "description": "拍摄课本/文章页，识别为标题 + 正文 + 分段",
+      "inputType": "image",
+      "contentType": "article",
+      "params": [
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        }
+      ],
+      "promptTemplate": "请识别我附带的图片中的课文/文章内容，输出为 JSON 对象，不要输出任何其他内容。\n\n字段：\n- title：标题\n- content：正文全文（保留原文，不删改）\n- paragraphs：按自然段拆分的字符串数组\n- gradeLevel：适合年级，如 \"{{grade}}\"\n\n只输出 JSON 对象，不要 markdown 代码块标记。",
+      "privacyNotice": "⚠️ 请勿拍摄包含人脸、姓名、学校等个人信息的图片，仅拍摄文章内容。",
+      "version": 1
+    },
+    {
+      "id": "image_to_answer",
+      "group": "image",
+      "name": "图片 → 答案",
+      "description": "拍摄练习答案页，识别为题目 + 答案 + 解析",
+      "inputType": "image",
+      "contentType": "answer",
+      "params": [
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "二年级上"
+        }
+      ],
+      "promptTemplate": "请识别我附带的图片中的练习答案，提取为 JSON 数组，不要输出任何其他内容。\n\n字段（每条）：\n- question：对应题目（题干或题号+题干）\n- answer：答案\n- isCorrect：该答案是否正确（true/false）\n- explanation：简要解析（可空）\n\n输出示例：[{\"question\":\"3+5=？\",\"answer\":\"8\",\"isCorrect\":true,\"explanation\":\"\"}]\n\n只输出 JSON 数组，不要 markdown 代码块标记。",
+      "privacyNotice": "⚠️ 请勿拍摄包含人脸、姓名、学校等个人信息的图片，仅拍摄答案内容。",
+      "version": 1
+    },
+    {
+      "id": "text_to_pinyin",
+      "group": "text",
+      "name": "文本 → 句子拼音",
+      "description": "粘贴中文句子，转成带声调的拼音，方便认读",
+      "inputType": "text",
+      "contentType": "pinyin",
+      "params": [
+        {
+          "key": "grade",
+          "label": "年级",
+          "type": "select",
+          "options": [
+            "一年级上",
+            "一年级下",
+            "二年级上",
+            "二年级下",
+            "三年级上",
+            "三年级下",
+            "其他"
+          ],
+          "default": "一年级下"
+        }
+      ],
+      "promptTemplate": "你是小学语文拼音助手。请把下面内容中的每个句子提取出来，标注带声调的拼音，输出为 JSON 数组，不要输出任何其他内容。\n\n字段：\n- sentence：句子原文（必填）\n- pinyin：整句拼音，带声调，词与词之间用空格分隔（必填，如\"wǒ xǐ huān xué xí\"）\n- translation：释义（可选，生僻词或成语给简要解释）\n- scene：使用场景（如\"课堂\"\"家庭\"\"户外\"，能识别就给出）\n- difficulty：难度，1-5 的整数（1 最简单，5 最难；无法确定可省略）\n\n以上元信息字段能提取的尽量提取，无法确定的字段可省略。\n\n输出示例：[{\"sentence\":\"我喜欢学习\",\"pinyin\":\"wǒ xǐ huān xué xí\",\"translation\":\"I like studying\",\"scene\":\"课堂\",\"difficulty\":1}]\n\n只输出 JSON 数组，不要输出解释、注释或 markdown 代码块标记。\n\n内容如下：\n{{input_text}}",
+      "privacyNotice": "",
+      "version": 1
+    }
+  ]
+}
