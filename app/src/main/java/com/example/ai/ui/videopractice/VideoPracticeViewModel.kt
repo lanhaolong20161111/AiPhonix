@@ -19,6 +19,7 @@ data class VideoPracticeState(
 
 class VideoPracticeViewModel(
     private val speechRepository: SpeechRepository,
+    private val sessionResultStore: com.example.ai.data.training.SessionResultStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(VideoPracticeState())
@@ -44,6 +45,19 @@ class VideoPracticeViewModel(
                     wordScores = result.wordScores,
                     resultText = "发音得分: ${result.totalScore}"
                 )
+                // V2：至少完成一次成功评测即达完成标准，回传真实结果（返回首页时打卡）
+                val itemId = com.example.ai.data.training.ActiveTrainingSession.itemId
+                if (itemId != null) {
+                    val prev = sessionResultStore.snapshot()[itemId]
+                    sessionResultStore.record(
+                        itemId,
+                        com.example.ai.data.training.PlanResult(
+                            count = (prev?.count ?: 0) + 1, // 累计成功评测句数
+                            score = result.totalScore.toDouble(),
+                            durationMs = (prev?.durationMs ?: 0),
+                        )
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("VideoPractice", "评测失败", e)
                 _state.value = VideoPracticeState(

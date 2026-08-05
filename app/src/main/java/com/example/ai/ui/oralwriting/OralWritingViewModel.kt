@@ -72,9 +72,15 @@ data class OralWritingUiState(
 
 class OralWritingViewModel(
     private val serverBase: String = ServiceModule.serverBase,
+    private val sessionResultStore: com.example.ai.data.training.SessionResultStore = com.example.ai.data.training.SessionResultStore(),
 ) : ViewModel() {
 
+
+    // V2：本次写作开始时间（finishWriting 时计算耗时）
+    private var startTimeMs: Long = 0
+
     private val _uiState = MutableStateFlow(OralWritingUiState())
+
     val uiState: StateFlow<OralWritingUiState> = _uiState
 
     private val client = NetworkModule.httpClient
@@ -164,7 +170,9 @@ class OralWritingViewModel(
 
     /** 选择题目，生成结构 */
     fun selectTopic(topic: EssayTopic) {
+        startTimeMs = System.currentTimeMillis()
         _uiState.value = _uiState.value.copy(
+
             selectedTopic = topic,
             phase = OralWritingUiState.Phase.Writing,
             isGeneratingStructure = true,
@@ -324,6 +332,19 @@ class OralWritingViewModel(
             isFormatting = true,
             isScoring = true,
         )
+
+        // V2：写作完成进入结果页即达完成标准，回传真实结果（返回首页时打卡）
+        val itemId = com.example.ai.data.training.ActiveTrainingSession.itemId
+        if (itemId != null) {
+            sessionResultStore.record(
+                itemId,
+                com.example.ai.data.training.PlanResult(
+                    count = state.sectionTexts.count { it.isNotBlank() },
+                    durationMs = (System.currentTimeMillis() - startTimeMs).coerceAtLeast(0),
+                )
+            )
+        }
+
 
         // 并发请求格式化和评分
         viewModelScope.launch(Dispatchers.IO) {

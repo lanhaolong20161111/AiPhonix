@@ -6,6 +6,7 @@ data class EnglishWord(
     val phonetic: String,
     val meanings: List<String>,
     val emoji: String = "",
+    val phonemes: List<String> = emptyList(),
 ) {
     /** 首字母（小写），用于关联到字母页 */
     val firstLetter: String get() = word.first().lowercase()

@@ -10,7 +10,10 @@ import com.example.ai.data.repository.ContentRepositoryImpl
 import com.example.ai.data.repository.SpeechRepository
 import com.example.ai.data.repository.ProxySpeechRepository
 import com.example.ai.data.tts.TtsEngine
+import com.example.ai.data.training.ActiveTrainingSession
+import com.example.ai.data.training.SessionResultStore
 import com.example.ai.data.training.TrainingPlanStore
+import com.example.ai.data.training.TrainingPlanSync
 import com.example.ai.data.userimport.UserImportStore
 import com.example.ai.data.wordbank.WordBankRepository
 import com.example.ai.di.NetworkModule
@@ -72,5 +75,15 @@ class AppContainer(context: Context) {
     // ── 家长训练任务（家长动态决定的学生页面集合 + 家长 PIN） ──
     val trainingPlanStore: TrainingPlanStore by lazy {
         TrainingPlanStore(appContext)
+    }
+
+    // ── V2：页面真实练习结果暂存（页面 record → 返回首页 consume） ──
+    val sessionResultStore: SessionResultStore by lazy {
+        SessionResultStore()
+    }
+
+    // ── V2：任务配置服务端同步（家长保存→推送；登录/启动→拉取；打卡→上报完成度） ──
+    val trainingPlanSync: TrainingPlanSync by lazy {
+        TrainingPlanSync(httpClient, trainingPlanStore)
     }
 }

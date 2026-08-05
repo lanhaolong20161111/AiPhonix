@@ -21,6 +21,7 @@ private data class EnglishWordEntry(
     val phonetic: String,
     val meanings: List<String>,
     val emoji: String = "",
+    val phonemes: List<String>? = null,
 )
 
 @Serializable
@@ -46,7 +47,7 @@ class ContentRepositoryImpl(
         englishWords?.let { return it }
         val data = context.assets.open("english_vocabulary.json").bufferedReader().use { it.readText() }
         val vocab = json.decodeFromString<EnglishVocabulary>(data)
-        return vocab.words.map { EnglishWord(word = it.word, phonetic = it.phonetic, meanings = it.meanings, emoji = it.emoji) }
+        return vocab.words.map { EnglishWord(word = it.word, phonetic = it.phonetic, meanings = it.meanings, emoji = it.emoji, phonemes = it.phonemes ?: emptyList()) }
             .also { englishWords = it }
     }
 

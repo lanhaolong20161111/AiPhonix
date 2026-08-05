@@ -70,7 +70,9 @@ class RecognitionViewModel(
     private val wordBankRepo: WordBankRepository,
     private val wordInfoRepo: WordInfoRepository,
     private val speechRepository: SpeechRepository,
+    private val sessionResultStore: com.example.ai.data.training.SessionResultStore,
 ) : ViewModel() {
+
 
     companion object {
         private const val TAG = "RecognitionVM"
@@ -367,7 +369,19 @@ class RecognitionViewModel(
         val nextIndex = s.currentIndex + 1
         if (nextIndex >= s.items.size) {
             _state.value = s.copy(finished = true)
+            // V2：认字 20 题做完即达完成标准，回传真实结果（返回首页时打卡）
+            val itemId = com.example.ai.data.training.ActiveTrainingSession.itemId
+            if (itemId != null) {
+                sessionResultStore.record(
+                    itemId,
+                    com.example.ai.data.training.PlanResult(
+                        count = s.items.size,
+                        correct = s.results.count { it.isCorrect },
+                    )
+                )
+            }
         } else {
+
             val nextChar = s.items.getOrNull(nextIndex)?.text ?: ""
             val ctx = if (polyphoneMap.containsKey(nextChar)) {
                 val info = polyphoneMap[nextChar]

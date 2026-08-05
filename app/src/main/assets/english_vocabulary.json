@@ -8,7 +8,11 @@
       "meanings": [
         "空气"
       ],
-      "emoji": "💨"
+      "emoji": "💨",
+      "phonemes": [
+        "eə",
+        "r"
+      ]
     },
     {
       "word": "animal",
@@ -16,7 +20,14 @@
       "meanings": [
         "动物"
       ],
-      "emoji": "🐾"
+      "emoji": "🐾",
+      "phonemes": [
+        "æ",
+        "n",
+        "ɪ",
+        "m",
+        "l"
+      ]
     },
     {
       "word": "apple",
@@ -24,7 +35,12 @@
       "meanings": [
         "苹果"
       ],
-      "emoji": "🍎"
+      "emoji": "🍎",
+      "phonemes": [
+        "æ",
+        "p",
+        "l"
+      ]
     },
     {
       "word": "arm",
@@ -32,7 +48,11 @@
       "meanings": [
         "胳膊"
       ],
-      "emoji": "💪"
+      "emoji": "💪",
+      "phonemes": [
+        "ɑː",
+        "m"
+      ]
     },
     {
       "word": "aunt",
@@ -44,7 +64,12 @@
         "姑母",
         "姨母"
       ],
-      "emoji": "👩"
+      "emoji": "👩",
+      "phonemes": [
+        "ɑː",
+        "n",
+        "t"
+      ]
     },
     {
       "word": "baby",
@@ -52,7 +77,12 @@
       "meanings": [
         "婴儿"
       ],
-      "emoji": "👶"
+      "emoji": "👶",
+      "phonemes": [
+        "b",
+        "eɪ",
+        "b"
+      ]
     },
     {
       "word": "banana",
@@ -60,7 +90,15 @@
       "meanings": [
         "香蕉"
       ],
-      "emoji": "🍌"
+      "emoji": "🍌",
+      "phonemes": [
+        "b",
+        "ə",
+        "n",
+        "ɑː",
+        "n",
+        "ə"
+      ]
     },
     {
       "word": "bear",
@@ -68,7 +106,12 @@
       "meanings": [
         "熊"
       ],
-      "emoji": "🐻"
+      "emoji": "🐻",
+      "phonemes": [
+        "b",
+        "eə",
+        "r"
+      ]
     },
     {
       "word": "big",
@@ -76,7 +119,12 @@
       "meanings": [
         "大的"
       ],
-      "emoji": "📏"
+      "emoji": "📏",
+      "phonemes": [
+        "b",
+        "ɪ",
+        "ɡ"
+      ]
     },
     {
       "word": "bird",
@@ -84,7 +132,12 @@
       "meanings": [
         "鸟"
       ],
-      "emoji": "🐦"
+      "emoji": "🐦",
+      "phonemes": [
+        "b",
+        "ɜː",
+        "d"
+      ]
     },
     {
       "word": "black",
@@ -93,7 +146,13 @@
         "黑色",
         "黑色的"
       ],
-      "emoji": "⚫"
+      "emoji": "⚫",
+      "phonemes": [
+        "b",
+        "l",
+        "æ",
+        "k"
+      ]
     },
     {
       "word": "blue",
@@ -102,7 +161,12 @@
         "蓝色",
         "蓝色的"
       ],
-      "emoji": "🔵"
+      "emoji": "🔵",
+      "phonemes": [
+        "b",
+        "l",
+        "uː"
+      ]
     },
     {
       "word": "brother",
@@ -111,7 +175,15 @@
         "哥",
         "弟"
       ],
-      "emoji": "👦"
+      "emoji": "👦",
+      "phonemes": [
+        "b",
+        "r",
+        "ʌ",
+        "ð",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "brown",
@@ -120,7 +192,13 @@
         "棕色",
         "棕色的"
       ],
-      "emoji": "🟤"
+      "emoji": "🟤",
+      "phonemes": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ]
     },
     {
       "word": "cake",
@@ -128,7 +206,12 @@
       "meanings": [
         "蛋糕"
       ],
-      "emoji": "🎂"
+      "emoji": "🎂",
+      "phonemes": [
+        "k",
+        "eɪ",
+        "k"
+      ]
     },
     {
       "word": "can",
@@ -136,7 +219,15 @@
       "meanings": [
         "可以"
       ],
-      "emoji": "🥫"
+      "emoji": "🥫",
+      "phonemes": [
+        "k",
+        "ə",
+        "n",
+        "k",
+        "æ",
+        "n"
+      ]
     },
     {
       "word": "cat",
@@ -144,7 +235,12 @@
       "meanings": [
         "猫"
       ],
-      "emoji": "🐱"
+      "emoji": "🐱",
+      "phonemes": [
+        "k",
+        "æ",
+        "t"
+      ]
     },
     {
       "word": "colour",
@@ -152,7 +248,14 @@
       "meanings": [
         "颜色"
       ],
-      "emoji": "🎨"
+      "emoji": "🎨",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "l",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "cousin",
@@ -161,7 +264,13 @@
         "堂（表）兄弟",
         "堂（表）姐妹"
       ],
-      "emoji": "👧"
+      "emoji": "👧",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "z",
+        "n"
+      ]
     },
     {
       "word": "cut",
@@ -169,7 +278,12 @@
       "meanings": [
         "切块"
       ],
-      "emoji": "✂️"
+      "emoji": "✂️",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "t"
+      ]
     },
     {
       "word": "cute",
@@ -177,7 +291,13 @@
       "meanings": [
         "可爱的"
       ],
-      "emoji": "😊"
+      "emoji": "😊",
+      "phonemes": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ]
     },
     {
       "word": "dad",
@@ -186,7 +306,12 @@
         "（口语）爸爸",
         "爹爹"
       ],
-      "emoji": "👨"
+      "emoji": "👨",
+      "phonemes": [
+        "d",
+        "æ",
+        "d"
+      ]
     },
     {
       "word": "dog",
@@ -194,7 +319,12 @@
       "meanings": [
         "狗"
       ],
-      "emoji": "🐶"
+      "emoji": "🐶",
+      "phonemes": [
+        "d",
+        "ɒ",
+        "ɡ"
+      ]
     },
     {
       "word": "draw",
@@ -202,7 +332,11 @@
       "meanings": [
         "画"
       ],
-      "emoji": "✏️"
+      "emoji": "✏️",
+      "phonemes": [
+        "dr",
+        "ɔː"
+      ]
     },
     {
       "word": "duck",
@@ -210,7 +344,12 @@
       "meanings": [
         "鸭"
       ],
-      "emoji": "🦆"
+      "emoji": "🦆",
+      "phonemes": [
+        "d",
+        "ʌ",
+        "k"
+      ]
     },
     {
       "word": "ear",
@@ -218,7 +357,11 @@
       "meanings": [
         "耳朵"
       ],
-      "emoji": "👂"
+      "emoji": "👂",
+      "phonemes": [
+        "ɪə",
+        "r"
+      ]
     },
     {
       "word": "eat",
@@ -226,7 +369,11 @@
       "meanings": [
         "吃"
       ],
-      "emoji": "🍽️"
+      "emoji": "🍽️",
+      "phonemes": [
+        "iː",
+        "t"
+      ]
     },
     {
       "word": "eight",
@@ -234,7 +381,11 @@
       "meanings": [
         "八"
       ],
-      "emoji": "8️⃣"
+      "emoji": "8️⃣",
+      "phonemes": [
+        "eɪ",
+        "t"
+      ]
     },
     {
       "word": "elephant",
@@ -242,7 +393,16 @@
       "meanings": [
         "大象"
       ],
-      "emoji": "🐘"
+      "emoji": "🐘",
+      "phonemes": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
+      ]
     },
     {
       "word": "eye",
@@ -250,7 +410,10 @@
       "meanings": [
         "眼睛"
       ],
-      "emoji": "👁️"
+      "emoji": "👁️",
+      "phonemes": [
+        "aɪ"
+      ]
     },
     {
       "word": "family",
@@ -259,7 +422,14 @@
         "家",
         "家庭"
       ],
-      "emoji": "👪"
+      "emoji": "👪",
+      "phonemes": [
+        "f",
+        "æ",
+        "m",
+        "ə",
+        "l"
+      ]
     },
     {
       "word": "farm",
@@ -267,7 +437,12 @@
       "meanings": [
         "农场"
       ],
-      "emoji": "🌾"
+      "emoji": "🌾",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "m"
+      ]
     },
     {
       "word": "fast",
@@ -275,7 +450,13 @@
       "meanings": [
         "快的"
       ],
-      "emoji": "🏃"
+      "emoji": "🏃",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "s",
+        "t"
+      ]
     },
     {
       "word": "father",
@@ -284,7 +465,14 @@
         "父亲",
         "爸爸"
       ],
-      "emoji": "👨"
+      "emoji": "👨",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "fish",
@@ -293,7 +481,12 @@
         "鱼",
         "鱼肉"
       ],
-      "emoji": "🐟"
+      "emoji": "🐟",
+      "phonemes": [
+        "f",
+        "ɪ",
+        "ʃ"
+      ]
     },
     {
       "word": "five",
@@ -301,7 +494,12 @@
       "meanings": [
         "五"
       ],
-      "emoji": "5️⃣"
+      "emoji": "5️⃣",
+      "phonemes": [
+        "f",
+        "aɪ",
+        "v"
+      ]
     },
     {
       "word": "flower",
@@ -310,7 +508,14 @@
         "花",
         "花朵"
       ],
-      "emoji": "🌸"
+      "emoji": "🌸",
+      "phonemes": [
+        "f",
+        "l",
+        "aʊ",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "four",
@@ -318,7 +523,12 @@
       "meanings": [
         "四"
       ],
-      "emoji": "4️⃣"
+      "emoji": "4️⃣",
+      "phonemes": [
+        "f",
+        "ɔː",
+        "r"
+      ]
     },
     {
       "word": "fox",
@@ -326,7 +536,13 @@
       "meanings": [
         "狐狸"
       ],
-      "emoji": "🦊"
+      "emoji": "🦊",
+      "phonemes": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ]
     },
     {
       "word": "friend",
@@ -334,7 +550,14 @@
       "meanings": [
         "朋友"
       ],
-      "emoji": "🤝"
+      "emoji": "🤝",
+      "phonemes": [
+        "f",
+        "r",
+        "e",
+        "n",
+        "d"
+      ]
     },
     {
       "word": "garden",
@@ -342,7 +565,13 @@
       "meanings": [
         "花园"
       ],
-      "emoji": "🌻"
+      "emoji": "🌻",
+      "phonemes": [
+        "ɡ",
+        "ɑː",
+        "d",
+        "n"
+      ]
     },
     {
       "word": "giraffe",
@@ -350,7 +579,14 @@
       "meanings": [
         "长颈鹿"
       ],
-      "emoji": "🦒"
+      "emoji": "🦒",
+      "phonemes": [
+        "dʒ",
+        "ə",
+        "r",
+        "ɑː",
+        "f"
+      ]
     },
     {
       "word": "give",
@@ -358,7 +594,12 @@
       "meanings": [
         "给"
       ],
-      "emoji": "🎁"
+      "emoji": "🎁",
+      "phonemes": [
+        "ɡ",
+        "ɪ",
+        "v"
+      ]
     },
     {
       "word": "go",
@@ -367,7 +608,11 @@
         "去",
         "走"
       ],
-      "emoji": "🚶"
+      "emoji": "🚶",
+      "phonemes": [
+        "ɡ",
+        "əʊ"
+      ]
     },
     {
       "word": "good",
@@ -375,7 +620,12 @@
       "meanings": [
         "好的"
       ],
-      "emoji": "👍"
+      "emoji": "👍",
+      "phonemes": [
+        "ɡ",
+        "ʊ",
+        "d"
+      ]
     },
     {
       "word": "grandfather",
@@ -386,7 +636,18 @@
         "姥爷",
         "外公"
       ],
-      "emoji": "👴"
+      "emoji": "👴",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "æ",
+        "n",
+        "f",
+        "ɑː",
+        "ð",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "grandma",
@@ -395,7 +656,15 @@
         "奶奶",
         "姥姥"
       ],
-      "emoji": "👵"
+      "emoji": "👵",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ɑː"
+      ]
     },
     {
       "word": "grandmother",
@@ -406,7 +675,18 @@
         "姥姥",
         "外婆"
       ],
-      "emoji": "👵"
+      "emoji": "👵",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ʌ",
+        "ð",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "grandpa",
@@ -415,7 +695,15 @@
         "爷爷",
         "姥爷"
       ],
-      "emoji": "👴"
+      "emoji": "👴",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "æ",
+        "n",
+        "p",
+        "ɑː"
+      ]
     },
     {
       "word": "grape",
@@ -423,7 +711,13 @@
       "meanings": [
         "葡萄"
       ],
-      "emoji": "🍇"
+      "emoji": "🍇",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "eɪ",
+        "p"
+      ]
     },
     {
       "word": "grass",
@@ -432,7 +726,13 @@
         "草",
         "草地"
       ],
-      "emoji": "🌿"
+      "emoji": "🌿",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "ɑː",
+        "s"
+      ]
     },
     {
       "word": "green",
@@ -441,7 +741,13 @@
         "绿色",
         "绿色的"
       ],
-      "emoji": "🟢"
+      "emoji": "🟢",
+      "phonemes": [
+        "ɡ",
+        "r",
+        "iː",
+        "n"
+      ]
     },
     {
       "word": "hand",
@@ -449,7 +755,13 @@
       "meanings": [
         "手"
       ],
-      "emoji": "🤚"
+      "emoji": "🤚",
+      "phonemes": [
+        "h",
+        "æ",
+        "n",
+        "d"
+      ]
     },
     {
       "word": "have",
@@ -457,7 +769,12 @@
       "meanings": [
         "有"
       ],
-      "emoji": "📥"
+      "emoji": "📥",
+      "phonemes": [
+        "h",
+        "æ",
+        "v"
+      ]
     },
     {
       "word": "help",
@@ -465,7 +782,13 @@
       "meanings": [
         "帮助"
       ],
-      "emoji": "🆘"
+      "emoji": "🆘",
+      "phonemes": [
+        "h",
+        "e",
+        "l",
+        "p"
+      ]
     },
     {
       "word": "like",
@@ -473,7 +796,12 @@
       "meanings": [
         "喜欢"
       ],
-      "emoji": "❤️"
+      "emoji": "❤️",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "k"
+      ]
     },
     {
       "word": "lion",
@@ -482,7 +810,13 @@
         "狮",
         "狮子"
       ],
-      "emoji": "🦁"
+      "emoji": "🦁",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
+      ]
     },
     {
       "word": "listen",
@@ -491,7 +825,13 @@
         "听",
         "倾听"
       ],
-      "emoji": "🎧"
+      "emoji": "🎧",
+      "phonemes": [
+        "l",
+        "ɪ",
+        "s",
+        "n"
+      ]
     },
     {
       "word": "make",
@@ -500,7 +840,12 @@
         "使出现",
         "做"
       ],
-      "emoji": "🔨"
+      "emoji": "🔨",
+      "phonemes": [
+        "m",
+        "eɪ",
+        "k"
+      ]
     },
     {
       "word": "me",
@@ -508,7 +853,11 @@
       "meanings": [
         "我"
       ],
-      "emoji": "🙋"
+      "emoji": "🙋",
+      "phonemes": [
+        "m",
+        "iː"
+      ]
     },
     {
       "word": "Miss",
@@ -517,7 +866,12 @@
         "（学生对女教师的称呼）老师",
         "女士"
       ],
-      "emoji": "👩‍🏫"
+      "emoji": "👩‍🏫",
+      "phonemes": [
+        "m",
+        "ɪ",
+        "s"
+      ]
     },
     {
       "word": "monkey",
@@ -525,7 +879,13 @@
       "meanings": [
         "猴子"
       ],
-      "emoji": "🐵"
+      "emoji": "🐵",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "word": "mother",
@@ -534,7 +894,14 @@
         "母亲",
         "妈妈"
       ],
-      "emoji": "👩"
+      "emoji": "👩",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "mouth",
@@ -542,7 +909,12 @@
       "meanings": [
         "嘴"
       ],
-      "emoji": "👄"
+      "emoji": "👄",
+      "phonemes": [
+        "m",
+        "aʊ",
+        "θ"
+      ]
     },
     {
       "word": "mum",
@@ -550,7 +922,12 @@
       "meanings": [
         "（口语）妈妈"
       ],
-      "emoji": "👩"
+      "emoji": "👩",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "m"
+      ]
     },
     {
       "word": "name",
@@ -558,7 +935,12 @@
       "meanings": [
         "名字"
       ],
-      "emoji": "🏷️"
+      "emoji": "🏷️",
+      "phonemes": [
+        "n",
+        "eɪ",
+        "m"
+      ]
     },
     {
       "word": "need",
@@ -566,7 +948,12 @@
       "meanings": [
         "需要"
       ],
-      "emoji": "❗"
+      "emoji": "❗",
+      "phonemes": [
+        "n",
+        "iː",
+        "d"
+      ]
     },
     {
       "word": "new",
@@ -574,7 +961,12 @@
       "meanings": [
         "新的"
       ],
-      "emoji": "🆕"
+      "emoji": "🆕",
+      "phonemes": [
+        "n",
+        "j",
+        "uː"
+      ]
     },
     {
       "word": "nice",
@@ -583,7 +975,12 @@
         "令人愉快的",
         "友好的"
       ],
-      "emoji": "😃"
+      "emoji": "😃",
+      "phonemes": [
+        "n",
+        "aɪ",
+        "s"
+      ]
     },
     {
       "word": "nine",
@@ -591,7 +988,12 @@
       "meanings": [
         "九"
       ],
-      "emoji": "9️⃣"
+      "emoji": "9️⃣",
+      "phonemes": [
+        "n",
+        "aɪ",
+        "n"
+      ]
     },
     {
       "word": "o'clock",
@@ -599,7 +1001,14 @@
       "meanings": [
         "（表示整点）……点钟"
       ],
-      "emoji": "🕐"
+      "emoji": "🕐",
+      "phonemes": [
+        "ə",
+        "k",
+        "l",
+        "ɒ",
+        "k"
+      ]
     },
     {
       "word": "old",
@@ -609,7 +1018,12 @@
         "年纪",
         "旧的"
       ],
-      "emoji": "👴"
+      "emoji": "👴",
+      "phonemes": [
+        "əʊ",
+        "l",
+        "d"
+      ]
     },
     {
       "word": "one",
@@ -617,7 +1031,12 @@
       "meanings": [
         "一"
       ],
-      "emoji": "1️⃣"
+      "emoji": "1️⃣",
+      "phonemes": [
+        "w",
+        "ʌ",
+        "n"
+      ]
     },
     {
       "word": "orange",
@@ -628,7 +1047,14 @@
         "橙红色",
         "橙红色的"
       ],
-      "emoji": "🍊"
+      "emoji": "🍊",
+      "phonemes": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
+      ]
     },
     {
       "word": "panda",
@@ -636,7 +1062,14 @@
       "meanings": [
         "大熊猫"
       ],
-      "emoji": "🐼"
+      "emoji": "🐼",
+      "phonemes": [
+        "p",
+        "æ",
+        "n",
+        "d",
+        "ə"
+      ]
     },
     {
       "word": "pet",
@@ -644,7 +1077,12 @@
       "meanings": [
         "宠物"
       ],
-      "emoji": "🐕"
+      "emoji": "🐕",
+      "phonemes": [
+        "p",
+        "e",
+        "t"
+      ]
     },
     {
       "word": "pink",
@@ -653,7 +1091,13 @@
         "粉色",
         "粉色的"
       ],
-      "emoji": "🩷"
+      "emoji": "🩷",
+      "phonemes": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "word": "plant",
@@ -662,7 +1106,14 @@
         "种植",
         "植物"
       ],
-      "emoji": "🌱"
+      "emoji": "🌱",
+      "phonemes": [
+        "p",
+        "l",
+        "ɑː",
+        "n",
+        "t"
+      ]
     },
     {
       "word": "purple",
@@ -671,7 +1122,13 @@
         "紫色",
         "紫色的"
       ],
-      "emoji": "🟣"
+      "emoji": "🟣",
+      "phonemes": [
+        "p",
+        "ɜː",
+        "p",
+        "l"
+      ]
     },
     {
       "word": "rabbit",
@@ -679,7 +1136,14 @@
       "meanings": [
         "兔"
       ],
-      "emoji": "🐰"
+      "emoji": "🐰",
+      "phonemes": [
+        "r",
+        "æ",
+        "b",
+        "ɪ",
+        "t"
+      ]
     },
     {
       "word": "red",
@@ -688,7 +1152,12 @@
         "红色",
         "红色的"
       ],
-      "emoji": "🔴"
+      "emoji": "🔴",
+      "phonemes": [
+        "r",
+        "e",
+        "d"
+      ]
     },
     {
       "word": "say",
@@ -697,7 +1166,11 @@
         "说",
         "讲"
       ],
-      "emoji": "💬"
+      "emoji": "💬",
+      "phonemes": [
+        "s",
+        "eɪ"
+      ]
     },
     {
       "word": "school",
@@ -705,7 +1178,13 @@
       "meanings": [
         "学校"
       ],
-      "emoji": "🏫"
+      "emoji": "🏫",
+      "phonemes": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ]
     },
     {
       "word": "sea",
@@ -714,7 +1193,11 @@
         "海",
         "海洋"
       ],
-      "emoji": "🌊"
+      "emoji": "🌊",
+      "phonemes": [
+        "s",
+        "iː"
+      ]
     },
     {
       "word": "seven",
@@ -722,7 +1205,13 @@
       "meanings": [
         "七"
       ],
-      "emoji": "7️⃣"
+      "emoji": "7️⃣",
+      "phonemes": [
+        "s",
+        "e",
+        "v",
+        "n"
+      ]
     },
     {
       "word": "share",
@@ -730,7 +1219,12 @@
       "meanings": [
         "分享"
       ],
-      "emoji": "🤲"
+      "emoji": "🤲",
+      "phonemes": [
+        "ʃ",
+        "eə",
+        "r"
+      ]
     },
     {
       "word": "sister",
@@ -739,7 +1233,15 @@
         "姐",
         "妹"
       ],
-      "emoji": "👧"
+      "emoji": "👧",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "s",
+        "t",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "six",
@@ -747,7 +1249,13 @@
       "meanings": [
         "六"
       ],
-      "emoji": "6️⃣"
+      "emoji": "6️⃣",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
+      ]
     },
     {
       "word": "small",
@@ -755,7 +1263,13 @@
       "meanings": [
         "小的"
       ],
-      "emoji": "🐭"
+      "emoji": "🐭",
+      "phonemes": [
+        "s",
+        "m",
+        "ɔː",
+        "l"
+      ]
     },
     {
       "word": "smile",
@@ -764,7 +1278,13 @@
         "微笑",
         "笑"
       ],
-      "emoji": "😄"
+      "emoji": "😄",
+      "phonemes": [
+        "s",
+        "m",
+        "aɪ",
+        "l"
+      ]
     },
     {
       "word": "some",
@@ -772,7 +1292,15 @@
       "meanings": [
         "一些"
       ],
-      "emoji": "🤷"
+      "emoji": "🤷",
+      "phonemes": [
+        "s",
+        "ə",
+        "m",
+        "s",
+        "ʌ",
+        "m"
+      ]
     },
     {
       "word": "sun",
@@ -781,7 +1309,12 @@
         "阳光",
         "太阳"
       ],
-      "emoji": "☀️"
+      "emoji": "☀️",
+      "phonemes": [
+        "s",
+        "ʌ",
+        "n"
+      ]
     },
     {
       "word": "tall",
@@ -789,7 +1322,12 @@
       "meanings": [
         "高的"
       ],
-      "emoji": "🧍"
+      "emoji": "🧍",
+      "phonemes": [
+        "t",
+        "ɔː",
+        "l"
+      ]
     },
     {
       "word": "ten",
@@ -797,7 +1335,12 @@
       "meanings": [
         "十"
       ],
-      "emoji": "🔟"
+      "emoji": "🔟",
+      "phonemes": [
+        "t",
+        "e",
+        "n"
+      ]
     },
     {
       "word": "them",
@@ -807,7 +1350,15 @@
         "他们",
         "她们"
       ],
-      "emoji": "👥"
+      "emoji": "👥",
+      "phonemes": [
+        "ð",
+        "ə",
+        "m",
+        "ð",
+        "e",
+        "m"
+      ]
     },
     {
       "word": "three",
@@ -815,7 +1366,12 @@
       "meanings": [
         "三"
       ],
-      "emoji": "3️⃣"
+      "emoji": "3️⃣",
+      "phonemes": [
+        "θ",
+        "r",
+        "iː"
+      ]
     },
     {
       "word": "tiger",
@@ -823,7 +1379,14 @@
       "meanings": [
         "老虎"
       ],
-      "emoji": "🐯"
+      "emoji": "🐯",
+      "phonemes": [
+        "t",
+        "aɪ",
+        "ɡ",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "tree",
@@ -831,7 +1394,11 @@
       "meanings": [
         "树"
       ],
-      "emoji": "🌳"
+      "emoji": "🌳",
+      "phonemes": [
+        "tr",
+        "iː"
+      ]
     },
     {
       "word": "two",
@@ -839,7 +1406,11 @@
       "meanings": [
         "二"
       ],
-      "emoji": "2️⃣"
+      "emoji": "2️⃣",
+      "phonemes": [
+        "t",
+        "uː"
+      ]
     },
     {
       "word": "uncle",
@@ -851,7 +1422,13 @@
         "姑父",
         "姨父"
       ],
-      "emoji": "👨"
+      "emoji": "👨",
+      "phonemes": [
+        "ʌ",
+        "ŋ",
+        "k",
+        "l"
+      ]
     },
     {
       "word": "water",
@@ -860,7 +1437,14 @@
         "给……浇水",
         "水"
       ],
-      "emoji": "💧"
+      "emoji": "💧",
+      "phonemes": [
+        "w",
+        "ɔː",
+        "t",
+        "ə",
+        "r"
+      ]
     },
     {
       "word": "white",
@@ -869,7 +1453,12 @@
         "白色",
         "白色的"
       ],
-      "emoji": "⚪"
+      "emoji": "⚪",
+      "phonemes": [
+        "w",
+        "aɪ",
+        "t"
+      ]
     },
     {
       "word": "year",
@@ -878,7 +1467,12 @@
         "年纪",
         "年"
       ],
-      "emoji": "📅"
+      "emoji": "📅",
+      "phonemes": [
+        "j",
+        "ɪə",
+        "r"
+      ]
     },
     {
       "word": "yellow",
@@ -887,7 +1481,13 @@
         "黄色",
         "黄色的"
       ],
-      "emoji": "🟡"
+      "emoji": "🟡",
+      "phonemes": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
+      ]
     },
     {
       "word": "zoo",
@@ -895,7 +1495,11 @@
       "meanings": [
         "动物园"
       ],
-      "emoji": "🏛️"
+      "emoji": "🏛️",
+      "phonemes": [
+        "z",
+        "uː"
+      ]
     }
   ]
 }

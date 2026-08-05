@@ -53,7 +53,7 @@ class PronunciationViewModel(
                         text = ew.word,
                         ipa = ew.phonetic,
                         letter = ew.firstLetter,
-                        phonemes = emptyList(),
+                        phonemes = ew.phonemes,
                         emoji = null,
                         difficulty = 1,
                     )

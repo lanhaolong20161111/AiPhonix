@@ -48,7 +48,7 @@ fun VideoPracticeScreen(
     onBack: () -> Unit,
     onNavigate: (NavKey) -> Unit = {},
     container: AppContainer,
-    viewModel: VideoPracticeViewModel = viewModel { VideoPracticeViewModel(container.speechRepository) },
+    viewModel: VideoPracticeViewModel = viewModel { VideoPracticeViewModel(container.speechRepository, container.sessionResultStore) },
 ) {
     val context = LocalContext.current
     val vmState by viewModel.state.collectAsState()

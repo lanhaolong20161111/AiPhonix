@@ -17,8 +17,13 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.ai.data.charimage.PendingFeedbackStore
+import com.example.ai.data.training.ActiveTrainingSession
+import com.example.ai.data.training.PlanItem
+import com.example.ai.data.training.PlanResult
 import com.example.ai.ui.chinesepractice.ChinesePracticeScreen
 import com.example.ai.ui.chinesepractice.DictationScreen
 import com.example.ai.ui.chinesepractice.DictationViewModel
@@ -47,6 +52,7 @@ import com.example.ai.ui.login.LoginScreen
 import com.example.ai.ui.login.LoginViewModel
 import com.example.ai.ui.quiz.QuizScreen
 import com.example.ai.ui.dailypractice.DailyPracticeScreen
+import com.example.ai.ui.dailypractice.DailyPracticeViewModel
 import com.example.ai.ui.userimport.ImportScreen
 import com.example.ai.ui.userimport.ImportViewModel
 import com.example.ai.ui.mylearning.MyLearningScreen
@@ -77,18 +83,38 @@ fun MainNavigation(container: AppContainer) {
     if (TokenManager.isLoggedIn) Home else Login
   )
 
-  // ── 打卡：记录当前正在训练的任务项；栈回到首页（size==1）时自动标记完成 ──
+  // ── 打卡（V2）：记录当前正在训练的任务项；栈回到首页（size==1）时，
+  // 仅当页面回传了真实结果才标记完成并上报服务端；无结果则不标记（下次重新练）。
   var activePlanItemId by remember { mutableStateOf<String?>(null) }
+  val scope = rememberCoroutineScope()
   val trainingPlanStore = container.trainingPlanStore
+  val sessionResultStore = container.sessionResultStore
+  val trainingPlanSync = container.trainingPlanSync
   LaunchedEffect(backStack.size) {
     if (backStack.size == 1) {
       val itemId = activePlanItemId
       if (itemId != null) {
-        trainingPlanStore.markDoneAsync(itemId)
+        val result = sessionResultStore.consume(itemId)
+        if (result != null) {
+          val plan = trainingPlanStore.plan.value
+          val item = plan?.items?.find { it.id == itemId }
+          if (item != null) {
+            trainingPlanStore.markDoneWithResult(itemId, result)
+            scope.launch {
+              try {
+                withContext(Dispatchers.IO) { trainingPlanSync.reportProgress(item, result) }
+                withContext(Dispatchers.IO) { trainingPlanSync.pushPlan(plan) }
+              } catch (_: Exception) { /* 网络容错：本地打卡已落盘，下次启动会再拉取 */ }
+            }
+          }
+        }
+        // 无 result → 未达完成标准，done 保持 false，学生下次进入重新练
+        ActiveTrainingSession.clear()
         activePlanItemId = null
       }
     }
   }
+
 
   NavDisplay(
     backStack = backStack,
@@ -97,8 +123,9 @@ fun MainNavigation(container: AppContainer) {
       entryProvider {
         entry<Home> {
           HomeScreen(
-            onStartItem = { itemId, navKey ->
-              activePlanItemId = itemId
+            onStartItem = { item, navKey ->
+              activePlanItemId = item.id
+              ActiveTrainingSession.start(item.id, item.featureId)
               backStack.add(navKey)
             },
             onOpenAccount = { backStack.add(Account) },
@@ -107,6 +134,7 @@ fun MainNavigation(container: AppContainer) {
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
         }
+
         entry<Account> {
           AccountScreen(
             onBack = { backStack.removeLastOrNull() },
@@ -145,7 +173,10 @@ fun MainNavigation(container: AppContainer) {
           )
         }
         entry<DailyPractice> {
+          val vm = remember { DailyPracticeViewModel(container.wordBankRepository, container.sessionResultStore) }
+          LaunchedEffect(Unit) { vm.setTaskItemId(ActiveTrainingSession.itemId) }
           DailyPracticeScreen(
+            viewModel = vm,
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -222,7 +253,11 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<EnglishLearning> {
           EnglishLearningScreen(
-            onNavigate = { backStack.add(it as NavKey) },
+            onNavigate = {
+              ActiveTrainingSession.itemId?.let { sessionResultStore.record(it, PlanResult(count = 1)) }
+              backStack.add(it as NavKey)
+            },
+
             onBack = { backStack.removeLastOrNull() },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
@@ -293,12 +328,25 @@ fun MainNavigation(container: AppContainer) {
         // 语文练习
         entry<ChinesePractice> {
           ChinesePracticeScreen(
-            onNavigateToRecognition = { backStack.add(Recognition) },
-            onNavigateToDictation = { backStack.add(Dictation) },
-            onNavigateToWordPractice = { backStack.add(WordPractice) },
-            onNavigateToOralWriting = { backStack.add(OralWriting) },
+            onNavigateToRecognition = {
+              ActiveTrainingSession.itemId?.let { sessionResultStore.record(it, PlanResult(count = 1)) }
+              backStack.add(Recognition)
+            },
+            onNavigateToDictation = {
+              ActiveTrainingSession.itemId?.let { sessionResultStore.record(it, PlanResult(count = 1)) }
+              backStack.add(Dictation)
+            },
+            onNavigateToWordPractice = {
+              ActiveTrainingSession.itemId?.let { sessionResultStore.record(it, PlanResult(count = 1)) }
+              backStack.add(WordPractice)
+            },
+            onNavigateToOralWriting = {
+              ActiveTrainingSession.itemId?.let { sessionResultStore.record(it, PlanResult(count = 1)) }
+              backStack.add(OralWriting)
+            },
             onBack = { backStack.removeLastOrNull() }
           )
+
         }
         entry<Recognition> {
           val scope = rememberCoroutineScope()
@@ -306,8 +354,10 @@ fun MainNavigation(container: AppContainer) {
             RecognitionViewModel(
               wordBankRepo = container.wordBankRepository,
               wordInfoRepo = container.wordInfoRepository,
-              speechRepository = container.speechRepository
+              speechRepository = container.speechRepository,
+              sessionResultStore = container.sessionResultStore
             )
+
           }
           RecognitionScreen(
             viewModel = recognitionVm,
@@ -327,8 +377,10 @@ fun MainNavigation(container: AppContainer) {
             viewModel = viewModel {
               DictationViewModel(
                 wordBankRepo = container.wordBankRepository,
-                wordInfoRepo = container.wordInfoRepository
+                wordInfoRepo = container.wordInfoRepository,
+                sessionResultStore = container.sessionResultStore
               )
+
             },
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() }
@@ -340,8 +392,10 @@ fun MainNavigation(container: AppContainer) {
             viewModel = viewModel {
               WordPracticeViewModel(
                 wordBankRepo = container.wordBankRepository,
-                wordInfoRepo = container.wordInfoRepository
+                wordInfoRepo = container.wordInfoRepository,
+                sessionResultStore = container.sessionResultStore
               )
+
             },
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() }
@@ -364,7 +418,7 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<CharImageList> { route ->
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context)) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
           LaunchedEffect(route) { vm.load(route.grade, route.semester, route.type_) }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
@@ -376,7 +430,7 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<VocabularyPractice> {
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context)) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
           LaunchedEffect(Unit) { vm.load("", "", "英词") }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
@@ -388,7 +442,7 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<SentencePractice> {
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context)) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
           LaunchedEffect(Unit) { vm.load("", "", "英句") }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
@@ -400,7 +454,7 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<OralWriting> {
           OralWritingScreen(
-            viewModel = viewModel { OralWritingViewModel(serverBase = ServiceModule.serverBase) },
+            viewModel = viewModel { OralWritingViewModel(serverBase = ServiceModule.serverBase, sessionResultStore = container.sessionResultStore) },
             onBack = { backStack.removeLastOrNull() },
           )
         }

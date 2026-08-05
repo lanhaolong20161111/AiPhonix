@@ -43,7 +43,7 @@ import com.example.ai.VideoPractice
  */
 @Composable
 fun HomeScreen(
-    onStartItem: (itemId: String, navKey: NavKey) -> Unit,
+    onStartItem: (item: PlanItem, navKey: NavKey) -> Unit,
     onOpenAccount: () -> Unit,
     onOpenParent: () -> Unit,
     container: AppContainer,
@@ -137,7 +137,7 @@ fun HomeScreen(
                     TaskItemCard(
                         item = item,
                         feature = feature,
-                        onClick = { onStartItem(item.id, navKey) },
+                        onClick = { onStartItem(item, navKey) },
                     )
                     Spacer(Modifier.height(12.dp))
                 }

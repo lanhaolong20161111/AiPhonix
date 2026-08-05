@@ -70,6 +70,7 @@ private data class ItemEntry(
 class CharImageViewModel(
     private val serverBase: String,
     private val pendingStore: PendingFeedbackStore,
+    private val sessionResultStore: com.example.ai.data.training.SessionResultStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharImageUiState())
@@ -473,8 +474,28 @@ class CharImageViewModel(
         return if (gradeStr.isBlank()) typeStr else "$gradeStr · $typeStr"
     }
 
+    // V2：本轮会话浏览过的字（去重）与提交过的“认识”数；返回首页时若浏览≥3 字即算完成
+    private val viewedChars = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val knownChars = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    private fun recordProgress() {
+        val itemId = com.example.ai.data.training.ActiveTrainingSession.itemId ?: return
+        if (viewedChars.size < 3) return // 低于完成标准不 record → 返回首页不打卡
+        sessionResultStore.record(
+            itemId,
+            com.example.ai.data.training.PlanResult(
+                count = viewedChars.size,
+                correct = knownChars.size,
+            )
+        )
+    }
+
     fun setCurrentIndex(index: Int) {
         val s = _uiState.value
+        if (index in s.items.indices) {
+            viewedChars.add(s.items[index].char)
+            recordProgress()
+        }
         _uiState.value = s.copy(currentIndex = index)
         // 翻页即持久化：正常退出/意外退出后都能恢复到上次位置
         if (filterType.isNotEmpty()) {
@@ -505,6 +526,12 @@ class CharImageViewModel(
                 }
             }
             refreshPendingCount()
+            // V2：反馈提交（无论成败，本地视角也算“看过”）→ 更新完成度
+            knownChars.add(if (learningStatus == "correct") char else "") // 占位防重复添加；下面统一按状态处理
+            knownChars.remove("")
+            if (learningStatus == "correct") knownChars.add(char)
+            viewedChars.add(char)
+            recordProgress()
             if (ok) {
                 _feedbackResult.emit("ok")
                 // 提交成功说明网络可用，顺带把历史暂存记录一起同步

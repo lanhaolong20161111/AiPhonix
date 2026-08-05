@@ -47,6 +47,7 @@ data class WordPracticeUiState(
 class WordPracticeViewModel(
     private val wordBankRepo: WordBankRepository,
     private val wordInfoRepo: WordInfoRepository,
+    private val sessionResultStore: com.example.ai.data.training.SessionResultStore,
 ) : ViewModel() {
 
     companion object {
@@ -238,6 +239,19 @@ class WordPracticeViewModel(
                 submitted = ok,
                 message = if (ok) "记录已保存" else "提交失败"
             )
+            // V2：词语提交成功即达完成标准，回传真实结果（返回首页时打卡）
+            if (ok) {
+                val itemId = com.example.ai.data.training.ActiveTrainingSession.itemId
+                if (itemId != null) {
+                    sessionResultStore.record(
+                        itemId,
+                        com.example.ai.data.training.PlanResult(
+                            count = s.items.size,
+                            correct = correctCount,
+                        )
+                    )
+                }
+            }
         }
     }
 }
