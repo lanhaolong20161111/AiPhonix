@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun DictationScreen(
     viewModel: DictationViewModel,
+    speaking: Boolean,
     onPlayTts: (String) -> Unit,
     onBack: () -> Unit
 ) {
@@ -64,6 +65,7 @@ fun DictationScreen(
             ReadingPhase(
                 viewModel = viewModel,
                 state = state,
+                speaking = speaking,
                 modifier = Modifier.padding(padding)
             )
             return@Scaffold
@@ -89,6 +91,7 @@ fun DictationScreen(
 private fun ReadingPhase(
     viewModel: DictationViewModel,
     state: DictationUiState,
+    speaking: Boolean,
     modifier: Modifier = Modifier
 ) {
     val current = state.items.getOrNull(state.currentIndex)
@@ -165,7 +168,7 @@ private fun ReadingPhase(
         Spacer(Modifier.height(24.dp))
 
         // 重播按钮
-        OutlinedButton(onClick = { viewModel.reRead() }) {
+        OutlinedButton(onClick = { viewModel.reRead() }, enabled = !speaking) {
             Text("🔊 再听一遍")
         }
     }

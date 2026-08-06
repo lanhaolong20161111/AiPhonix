@@ -2114,5 +2114,33 @@
   "艾草": {
     "sentence": "艾草有淡淡清香。",
     "source": "llm"
+  },
+  "宽度": {
+    "sentence": "这条河的宽度很宽。",
+    "source": "llm"
+  },
+  "试用": {
+    "sentence": "我试用新文具盒。",
+    "source": "llm"
+  },
+  "渔夫": {
+    "sentence": "渔夫在海上打鱼。",
+    "source": "llm"
+  },
+  "烧烤": {
+    "sentence": "我们一起去吃烧烤。",
+    "source": "llm"
+  },
+  "敌人": {
+    "sentence": "敌人是我们要打败的坏人。",
+    "source": "llm"
+  },
+  "传递": {
+    "sentence": "老师传递知识给我们。",
+    "source": "llm"
+  },
+  "航空": {
+    "sentence": "飞机在航空中飞行。",
+    "source": "llm"
   }
 }

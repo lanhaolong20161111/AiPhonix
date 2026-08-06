@@ -4,7 +4,7 @@
   "words": [
     {
       "word": "air",
-      "phonetic": "/eə(r)/",
+      "phonetic": "/eər/",
       "meanings": [
         "空气"
       ],
@@ -12,6 +12,10 @@
       "phonemes": [
         "eə",
         "r"
+      ],
+      "ipa_uk": "/eə/",
+      "phonemes_uk": [
+        "eə"
       ]
     },
     {
@@ -22,6 +26,14 @@
       ],
       "emoji": "🐾",
       "phonemes": [
+        "æ",
+        "n",
+        "ɪ",
+        "m",
+        "l"
+      ],
+      "ipa_uk": "/ˈænɪml/",
+      "phonemes_uk": [
         "æ",
         "n",
         "ɪ",
@@ -39,24 +51,38 @@
       "phonemes": [
         "æ",
         "p",
+        "ə",
+        "l"
+      ],
+      "ipa_uk": "/ˈæpəl/",
+      "phonemes_uk": [
+        "æ",
+        "p",
+        "ə",
         "l"
       ]
     },
     {
       "word": "arm",
-      "phonetic": "/ɑːm/",
+      "phonetic": "/ɑːrm/",
       "meanings": [
         "胳膊"
       ],
       "emoji": "💪",
       "phonemes": [
         "ɑː",
+        "r",
+        "m"
+      ],
+      "ipa_uk": "/ɑːm/",
+      "phonemes_uk": [
+        "ɑː",
         "m"
       ]
     },
     {
       "word": "aunt",
-      "phonetic": "/ɑːnt/",
+      "phonetic": "/ænt/",
       "meanings": [
         "伯母",
         "婶母",
@@ -66,6 +92,12 @@
       ],
       "emoji": "👩",
       "phonemes": [
+        "æ",
+        "n",
+        "t"
+      ],
+      "ipa_uk": "/ɑːnt/",
+      "phonemes_uk": [
         "ɑː",
         "n",
         "t"
@@ -81,17 +113,34 @@
       "phonemes": [
         "b",
         "eɪ",
-        "b"
+        "b",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈbeɪbi/",
+      "phonemes_uk": [
+        "b",
+        "eɪ",
+        "b",
+        "ɪ"
       ]
     },
     {
       "word": "banana",
-      "phonetic": "/bəˈnɑːnə/",
+      "phonetic": "/bəˈnænə/",
       "meanings": [
         "香蕉"
       ],
       "emoji": "🍌",
       "phonemes": [
+        "b",
+        "ə",
+        "n",
+        "æ",
+        "n",
+        "ə"
+      ],
+      "ipa_uk": "/bəˈnɑːnə/",
+      "phonemes_uk": [
         "b",
         "ə",
         "n",
@@ -102,7 +151,7 @@
     },
     {
       "word": "bear",
-      "phonetic": "/beə(r)/",
+      "phonetic": "/bɛər/",
       "meanings": [
         "熊"
       ],
@@ -111,11 +160,16 @@
         "b",
         "eə",
         "r"
+      ],
+      "ipa_uk": "/beə/",
+      "phonemes_uk": [
+        "b",
+        "eə"
       ]
     },
     {
       "word": "big",
-      "phonetic": "/bɪɡ/",
+      "phonetic": "/bɪg/",
       "meanings": [
         "大的"
       ],
@@ -123,7 +177,13 @@
       "phonemes": [
         "b",
         "ɪ",
-        "ɡ"
+        "g"
+      ],
+      "ipa_uk": "/bɪg/",
+      "phonemes_uk": [
+        "b",
+        "ɪ",
+        "g"
       ]
     },
     {
@@ -134,6 +194,12 @@
       ],
       "emoji": "🐦",
       "phonemes": [
+        "b",
+        "ɜː",
+        "d"
+      ],
+      "ipa_uk": "/bɜːd/",
+      "phonemes_uk": [
         "b",
         "ɜː",
         "d"
@@ -152,6 +218,13 @@
         "l",
         "æ",
         "k"
+      ],
+      "ipa_uk": "/blæk/",
+      "phonemes_uk": [
+        "b",
+        "l",
+        "æ",
+        "k"
       ]
     },
     {
@@ -163,6 +236,12 @@
       ],
       "emoji": "🔵",
       "phonemes": [
+        "b",
+        "l",
+        "uː"
+      ],
+      "ipa_uk": "/bluː/",
+      "phonemes_uk": [
         "b",
         "l",
         "uː"
@@ -181,8 +260,15 @@
         "r",
         "ʌ",
         "ð",
-        "ə",
-        "r"
+        "ə"
+      ],
+      "ipa_uk": "/ˈbrʌðə/",
+      "phonemes_uk": [
+        "b",
+        "r",
+        "ʌ",
+        "ð",
+        "ə"
       ]
     },
     {
@@ -194,6 +280,13 @@
       ],
       "emoji": "🟤",
       "phonemes": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ],
+      "ipa_uk": "/braʊn/",
+      "phonemes_uk": [
         "b",
         "r",
         "aʊ",
@@ -211,6 +304,12 @@
         "k",
         "eɪ",
         "k"
+      ],
+      "ipa_uk": "/keɪk/",
+      "phonemes_uk": [
+        "k",
+        "eɪ",
+        "k"
       ]
     },
     {
@@ -222,8 +321,11 @@
       "emoji": "🥫",
       "phonemes": [
         "k",
-        "ə",
-        "n",
+        "æ",
+        "n"
+      ],
+      "ipa_uk": "/kæn/",
+      "phonemes_uk": [
         "k",
         "æ",
         "n"
@@ -240,6 +342,12 @@
         "k",
         "æ",
         "t"
+      ],
+      "ipa_uk": "/kæt/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "t"
       ]
     },
     {
@@ -253,8 +361,14 @@
         "k",
         "ʌ",
         "l",
-        "ə",
-        "r"
+        "ə"
+      ],
+      "ipa_uk": "/ˈkʌlə/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "l",
+        "ə"
       ]
     },
     {
@@ -269,6 +383,15 @@
         "k",
         "ʌ",
         "z",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈkʌzən/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "z",
+        "ə",
         "n"
       ]
     },
@@ -283,6 +406,12 @@
         "k",
         "ʌ",
         "t"
+      ],
+      "ipa_uk": "/kʌt/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "t"
       ]
     },
     {
@@ -293,6 +422,13 @@
       ],
       "emoji": "😊",
       "phonemes": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ],
+      "ipa_uk": "/kjuːt/",
+      "phonemes_uk": [
         "k",
         "j",
         "uː",
@@ -311,11 +447,17 @@
         "d",
         "æ",
         "d"
+      ],
+      "ipa_uk": "/dæd/",
+      "phonemes_uk": [
+        "d",
+        "æ",
+        "d"
       ]
     },
     {
       "word": "dog",
-      "phonetic": "/dɒɡ/",
+      "phonetic": "/dɒg/",
       "meanings": [
         "狗"
       ],
@@ -323,7 +465,13 @@
       "phonemes": [
         "d",
         "ɒ",
-        "ɡ"
+        "g"
+      ],
+      "ipa_uk": "/dɒg/",
+      "phonemes_uk": [
+        "d",
+        "ɒ",
+        "g"
       ]
     },
     {
@@ -334,6 +482,11 @@
       ],
       "emoji": "✏️",
       "phonemes": [
+        "dr",
+        "ɔː"
+      ],
+      "ipa_uk": "/drɔː/",
+      "phonemes_uk": [
         "dr",
         "ɔː"
       ]
@@ -349,11 +502,17 @@
         "d",
         "ʌ",
         "k"
+      ],
+      "ipa_uk": "/dʌk/",
+      "phonemes_uk": [
+        "d",
+        "ʌ",
+        "k"
       ]
     },
     {
       "word": "ear",
-      "phonetic": "/ɪə(r)/",
+      "phonetic": "/ɪər/",
       "meanings": [
         "耳朵"
       ],
@@ -361,6 +520,10 @@
       "phonemes": [
         "ɪə",
         "r"
+      ],
+      "ipa_uk": "/ɪə/",
+      "phonemes_uk": [
+        "ɪə"
       ]
     },
     {
@@ -373,6 +536,11 @@
       "phonemes": [
         "iː",
         "t"
+      ],
+      "ipa_uk": "/iːt/",
+      "phonemes_uk": [
+        "iː",
+        "t"
       ]
     },
     {
@@ -383,6 +551,11 @@
       ],
       "emoji": "8️⃣",
       "phonemes": [
+        "eɪ",
+        "t"
+      ],
+      "ipa_uk": "/eɪt/",
+      "phonemes_uk": [
         "eɪ",
         "t"
       ]
@@ -402,6 +575,16 @@
         "ə",
         "n",
         "t"
+      ],
+      "ipa_uk": "/ˈelɪfənt/",
+      "phonemes_uk": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
       ]
     },
     {
@@ -412,6 +595,10 @@
       ],
       "emoji": "👁️",
       "phonemes": [
+        "aɪ"
+      ],
+      "ipa_uk": "/aɪ/",
+      "phonemes_uk": [
         "aɪ"
       ]
     },
@@ -428,12 +615,22 @@
         "æ",
         "m",
         "ə",
-        "l"
+        "l",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈfæməlɪ/",
+      "phonemes_uk": [
+        "f",
+        "æ",
+        "m",
+        "ə",
+        "l",
+        "ɪ"
       ]
     },
     {
       "word": "farm",
-      "phonetic": "/fɑːm/",
+      "phonetic": "/fɑːrm/",
       "meanings": [
         "农场"
       ],
@@ -441,17 +638,31 @@
       "phonemes": [
         "f",
         "ɑː",
+        "r",
+        "m"
+      ],
+      "ipa_uk": "/fɑːm/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
         "m"
       ]
     },
     {
       "word": "fast",
-      "phonetic": "/fɑːst/",
+      "phonetic": "/fæst/",
       "meanings": [
         "快的"
       ],
       "emoji": "🏃",
       "phonemes": [
+        "f",
+        "æ",
+        "s",
+        "t"
+      ],
+      "ipa_uk": "/fɑːst/",
+      "phonemes_uk": [
         "f",
         "ɑː",
         "s",
@@ -460,7 +671,7 @@
     },
     {
       "word": "father",
-      "phonetic": "/ˈfɑːðə(r)/",
+      "phonetic": "/ˈfɑːðər/",
       "meanings": [
         "父亲",
         "爸爸"
@@ -472,6 +683,13 @@
         "ð",
         "ə",
         "r"
+      ],
+      "ipa_uk": "/ˈfɑːðə/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə"
       ]
     },
     {
@@ -486,6 +704,12 @@
         "f",
         "ɪ",
         "ʃ"
+      ],
+      "ipa_uk": "/fɪʃ/",
+      "phonemes_uk": [
+        "f",
+        "ɪ",
+        "ʃ"
       ]
     },
     {
@@ -496,6 +720,12 @@
       ],
       "emoji": "5️⃣",
       "phonemes": [
+        "f",
+        "aɪ",
+        "v"
+      ],
+      "ipa_uk": "/faɪv/",
+      "phonemes_uk": [
         "f",
         "aɪ",
         "v"
@@ -513,8 +743,14 @@
         "f",
         "l",
         "aʊ",
-        "ə",
-        "r"
+        "ə"
+      ],
+      "ipa_uk": "/ˈflaʊə/",
+      "phonemes_uk": [
+        "f",
+        "l",
+        "aʊ",
+        "ə"
       ]
     },
     {
@@ -526,8 +762,12 @@
       "emoji": "4️⃣",
       "phonemes": [
         "f",
-        "ɔː",
-        "r"
+        "ɔː"
+      ],
+      "ipa_uk": "/fɔː/",
+      "phonemes_uk": [
+        "f",
+        "ɔː"
       ]
     },
     {
@@ -538,6 +778,13 @@
       ],
       "emoji": "🦊",
       "phonemes": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ],
+      "ipa_uk": "/fɒks/",
+      "phonemes_uk": [
         "f",
         "ɒ",
         "k",
@@ -557,30 +804,56 @@
         "e",
         "n",
         "d"
+      ],
+      "ipa_uk": "/frend/",
+      "phonemes_uk": [
+        "f",
+        "r",
+        "e",
+        "n",
+        "d"
       ]
     },
     {
       "word": "garden",
-      "phonetic": "/ˈɡɑːdn/",
+      "phonetic": "/ˈgɑːrdn/",
       "meanings": [
         "花园"
       ],
       "emoji": "🌻",
       "phonemes": [
-        "ɡ",
+        "g",
+        "ɑː",
+        "r",
+        "d",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈgɑːdən/",
+      "phonemes_uk": [
+        "g",
         "ɑː",
         "d",
+        "ə",
         "n"
       ]
     },
     {
       "word": "giraffe",
-      "phonetic": "/dʒəˈrɑːf/",
+      "phonetic": "/dʒəˈræf/",
       "meanings": [
         "长颈鹿"
       ],
       "emoji": "🦒",
       "phonemes": [
+        "dʒ",
+        "ə",
+        "r",
+        "æ",
+        "f"
+      ],
+      "ipa_uk": "/dʒəˈrɑːf/",
+      "phonemes_uk": [
         "dʒ",
         "ə",
         "r",
@@ -590,46 +863,63 @@
     },
     {
       "word": "give",
-      "phonetic": "/ɡɪv/",
+      "phonetic": "/gɪv/",
       "meanings": [
         "给"
       ],
       "emoji": "🎁",
       "phonemes": [
-        "ɡ",
+        "g",
+        "ɪ",
+        "v"
+      ],
+      "ipa_uk": "/gɪv/",
+      "phonemes_uk": [
+        "g",
         "ɪ",
         "v"
       ]
     },
     {
       "word": "go",
-      "phonetic": "/ɡəʊ/",
+      "phonetic": "/gəʊ/",
       "meanings": [
         "去",
         "走"
       ],
       "emoji": "🚶",
       "phonemes": [
-        "ɡ",
+        "g",
+        "əʊ"
+      ],
+      "ipa_uk": "/gəʊ/",
+      "phonemes_uk": [
+        "g",
         "əʊ"
       ]
     },
     {
       "word": "good",
-      "phonetic": "/ɡʊd/",
+      "phonetic": "/gʊd/",
       "meanings": [
         "好的"
       ],
       "emoji": "👍",
       "phonemes": [
-        "ɡ",
+        "g",
+        "ʊ",
+        "d"
+      ],
+      "ipa_uk": "/gʊd/",
+      "phonemes_uk": [
+        "g",
         "ʊ",
         "d"
       ]
     },
     {
       "word": "grandfather",
-      "phonetic": "/ˈɡrænfɑːðə(r)/",
+      "phonetic": "/ˈgrænfɑːðər/",
       "meanings": [
         "（外）祖父",
         "爷爷",
@@ -638,7 +928,7 @@
       ],
       "emoji": "👴",
       "phonemes": [
-        "ɡ",
+        "g",
         "r",
         "æ",
         "n",
@@ -647,18 +937,38 @@
         "ð",
         "ə",
         "r"
+      ],
+      "ipa_uk": "/ˈgrænfɑːðə/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "f",
+        "ɑː",
+        "ð",
+        "ə"
       ]
     },
     {
       "word": "grandma",
-      "phonetic": "/ˈɡrænmɑː/",
+      "phonetic": "/ˈgrænmɑː/",
       "meanings": [
         "奶奶",
         "姥姥"
       ],
       "emoji": "👵",
       "phonemes": [
-        "ɡ",
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ɑː"
+      ],
+      "ipa_uk": "/ˈɡrænmɑː/",
+      "phonemes_uk": [
+        "g",
         "r",
         "æ",
         "n",
@@ -668,7 +978,7 @@
     },
     {
       "word": "grandmother",
-      "phonetic": "/ˈɡrænmʌðə(r)/",
+      "phonetic": "/ˈgrænmʌðə(r)/",
       "meanings": [
         "（外）祖母",
         "奶奶",
@@ -677,27 +987,46 @@
       ],
       "emoji": "👵",
       "phonemes": [
-        "ɡ",
+        "g",
         "r",
         "æ",
         "n",
         "m",
         "ʌ",
         "ð",
-        "ə",
-        "r"
+        "ə"
+      ],
+      "ipa_uk": "/ˈgrænmʌðə/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
       ]
     },
     {
       "word": "grandpa",
-      "phonetic": "/ˈɡrænpɑː/",
+      "phonetic": "/ˈgrænpɑː/",
       "meanings": [
         "爷爷",
         "姥爷"
       ],
       "emoji": "👴",
       "phonemes": [
-        "ɡ",
+        "g",
+        "r",
+        "æ",
+        "n",
+        "p",
+        "ɑː"
+      ],
+      "ipa_uk": "/ˈgrænpɑː/",
+      "phonemes_uk": [
+        "g",
         "r",
         "æ",
         "n",
@@ -707,13 +1036,20 @@
     },
     {
       "word": "grape",
-      "phonetic": "/ɡreɪp/",
+      "phonetic": "/greɪp/",
       "meanings": [
         "葡萄"
       ],
       "emoji": "🍇",
       "phonemes": [
-        "ɡ",
+        "g",
+        "r",
+        "eɪ",
+        "p"
+      ],
+      "ipa_uk": "/greɪp/",
+      "phonemes_uk": [
+        "g",
         "r",
         "eɪ",
         "p"
@@ -721,14 +1057,21 @@
     },
     {
       "word": "grass",
-      "phonetic": "/ɡrɑːs/",
+      "phonetic": "/græs/",
       "meanings": [
         "草",
         "草地"
       ],
       "emoji": "🌿",
       "phonemes": [
-        "ɡ",
+        "g",
+        "r",
+        "æ",
+        "s"
+      ],
+      "ipa_uk": "/ɡrɑːs/",
+      "phonemes_uk": [
+        "g",
         "r",
         "ɑː",
         "s"
@@ -736,14 +1079,21 @@
     },
     {
       "word": "green",
-      "phonetic": "/ɡriːn/",
+      "phonetic": "/griːn/",
       "meanings": [
         "绿色",
         "绿色的"
       ],
       "emoji": "🟢",
       "phonemes": [
-        "ɡ",
+        "g",
+        "r",
+        "iː",
+        "n"
+      ],
+      "ipa_uk": "/griːn/",
+      "phonemes_uk": [
+        "g",
         "r",
         "iː",
         "n"
@@ -761,6 +1111,13 @@
         "æ",
         "n",
         "d"
+      ],
+      "ipa_uk": "/hænd/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "n",
+        "d"
       ]
     },
     {
@@ -771,6 +1128,12 @@
       ],
       "emoji": "📥",
       "phonemes": [
+        "h",
+        "æ",
+        "v"
+      ],
+      "ipa_uk": "/hæv/",
+      "phonemes_uk": [
         "h",
         "æ",
         "v"
@@ -788,6 +1151,13 @@
         "e",
         "l",
         "p"
+      ],
+      "ipa_uk": "/help/",
+      "phonemes_uk": [
+        "h",
+        "e",
+        "l",
+        "p"
       ]
     },
     {
@@ -798,6 +1168,12 @@
       ],
       "emoji": "❤️",
       "phonemes": [
+        "l",
+        "aɪ",
+        "k"
+      ],
+      "ipa_uk": "/laɪk/",
+      "phonemes_uk": [
         "l",
         "aɪ",
         "k"
@@ -816,6 +1192,13 @@
         "aɪ",
         "ə",
         "n"
+      ],
+      "ipa_uk": "/ˈlaɪən/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
       ]
     },
     {
@@ -830,6 +1213,15 @@
         "l",
         "ɪ",
         "s",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈlɪsən/",
+      "phonemes_uk": [
+        "l",
+        "ɪ",
+        "s",
+        "ə",
         "n"
       ]
     },
@@ -845,6 +1237,12 @@
         "m",
         "eɪ",
         "k"
+      ],
+      "ipa_uk": "/meɪk/",
+      "phonemes_uk": [
+        "m",
+        "eɪ",
+        "k"
       ]
     },
     {
@@ -855,6 +1253,11 @@
       ],
       "emoji": "🙋",
       "phonemes": [
+        "m",
+        "iː"
+      ],
+      "ipa_uk": "/miː/",
+      "phonemes_uk": [
         "m",
         "iː"
       ]
@@ -871,6 +1274,12 @@
         "m",
         "ɪ",
         "s"
+      ],
+      "ipa_uk": "/mɪs/",
+      "phonemes_uk": [
+        "m",
+        "ɪ",
+        "s"
       ]
     },
     {
@@ -884,12 +1293,21 @@
         "m",
         "ʌ",
         "ŋ",
-        "k"
+        "k",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈmʌŋkɪ/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k",
+        "ɪ"
       ]
     },
     {
       "word": "mother",
-      "phonetic": "/ˈmʌðə(r)/",
+      "phonetic": "/ˈmʌðər/",
       "meanings": [
         "母亲",
         "妈妈"
@@ -901,6 +1319,13 @@
         "ð",
         "ə",
         "r"
+      ],
+      "ipa_uk": "/ˈmʌðə/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
       ]
     },
     {
@@ -911,6 +1336,12 @@
       ],
       "emoji": "👄",
       "phonemes": [
+        "m",
+        "aʊ",
+        "θ"
+      ],
+      "ipa_uk": "/maʊθ/",
+      "phonemes_uk": [
         "m",
         "aʊ",
         "θ"
@@ -927,6 +1358,12 @@
         "m",
         "ʌ",
         "m"
+      ],
+      "ipa_uk": "/mʌm/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "m"
       ]
     },
     {
@@ -937,6 +1374,12 @@
       ],
       "emoji": "🏷️",
       "phonemes": [
+        "n",
+        "eɪ",
+        "m"
+      ],
+      "ipa_uk": "/neɪm/",
+      "phonemes_uk": [
         "n",
         "eɪ",
         "m"
@@ -953,6 +1396,12 @@
         "n",
         "iː",
         "d"
+      ],
+      "ipa_uk": "/niːd/",
+      "phonemes_uk": [
+        "n",
+        "iː",
+        "d"
       ]
     },
     {
@@ -963,6 +1412,12 @@
       ],
       "emoji": "🆕",
       "phonemes": [
+        "n",
+        "j",
+        "uː"
+      ],
+      "ipa_uk": "/njuː/",
+      "phonemes_uk": [
         "n",
         "j",
         "uː"
@@ -980,6 +1435,12 @@
         "n",
         "aɪ",
         "s"
+      ],
+      "ipa_uk": "/naɪs/",
+      "phonemes_uk": [
+        "n",
+        "aɪ",
+        "s"
       ]
     },
     {
@@ -993,6 +1454,12 @@
         "n",
         "aɪ",
         "n"
+      ],
+      "ipa_uk": "/naɪn/",
+      "phonemes_uk": [
+        "n",
+        "aɪ",
+        "n"
       ]
     },
     {
@@ -1003,6 +1470,14 @@
       ],
       "emoji": "🕐",
       "phonemes": [
+        "ə",
+        "k",
+        "l",
+        "ɒ",
+        "k"
+      ],
+      "ipa_uk": "/əˈklɒk/",
+      "phonemes_uk": [
         "ə",
         "k",
         "l",
@@ -1023,6 +1498,12 @@
         "əʊ",
         "l",
         "d"
+      ],
+      "ipa_uk": "/əʊld/",
+      "phonemes_uk": [
+        "əʊ",
+        "l",
+        "d"
       ]
     },
     {
@@ -1033,6 +1514,12 @@
       ],
       "emoji": "1️⃣",
       "phonemes": [
+        "w",
+        "ʌ",
+        "n"
+      ],
+      "ipa_uk": "/wʌn/",
+      "phonemes_uk": [
         "w",
         "ʌ",
         "n"
@@ -1054,6 +1541,14 @@
         "ɪ",
         "n",
         "dʒ"
+      ],
+      "ipa_uk": "/ˈɒrɪndʒ/",
+      "phonemes_uk": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
       ]
     },
     {
@@ -1064,6 +1559,14 @@
       ],
       "emoji": "🐼",
       "phonemes": [
+        "p",
+        "æ",
+        "n",
+        "d",
+        "ə"
+      ],
+      "ipa_uk": "/ˈpændə/",
+      "phonemes_uk": [
         "p",
         "æ",
         "n",
@@ -1082,6 +1585,12 @@
         "p",
         "e",
         "t"
+      ],
+      "ipa_uk": "/pet/",
+      "phonemes_uk": [
+        "p",
+        "e",
+        "t"
       ]
     },
     {
@@ -1097,17 +1606,32 @@
         "ɪ",
         "ŋ",
         "k"
+      ],
+      "ipa_uk": "/pɪŋk/",
+      "phonemes_uk": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
       ]
     },
     {
       "word": "plant",
-      "phonetic": "/plɑːnt/",
+      "phonetic": "/plænt/",
       "meanings": [
         "种植",
         "植物"
       ],
       "emoji": "🌱",
       "phonemes": [
+        "p",
+        "l",
+        "æ",
+        "n",
+        "t"
+      ],
+      "ipa_uk": "/plɑːnt/",
+      "phonemes_uk": [
         "p",
         "l",
         "ɑː",
@@ -1127,6 +1651,15 @@
         "p",
         "ɜː",
         "p",
+        "ə",
+        "l"
+      ],
+      "ipa_uk": "/ˈpɜːpəl/",
+      "phonemes_uk": [
+        "p",
+        "ɜː",
+        "p",
+        "ə",
         "l"
       ]
     },
@@ -1138,6 +1671,14 @@
       ],
       "emoji": "🐰",
       "phonemes": [
+        "r",
+        "æ",
+        "b",
+        "ɪ",
+        "t"
+      ],
+      "ipa_uk": "/ˈræbɪt/",
+      "phonemes_uk": [
         "r",
         "æ",
         "b",
@@ -1157,6 +1698,12 @@
         "r",
         "e",
         "d"
+      ],
+      "ipa_uk": "/red/",
+      "phonemes_uk": [
+        "r",
+        "e",
+        "d"
       ]
     },
     {
@@ -1170,6 +1717,11 @@
       "phonemes": [
         "s",
         "eɪ"
+      ],
+      "ipa_uk": "/seɪ/",
+      "phonemes_uk": [
+        "s",
+        "eɪ"
       ]
     },
     {
@@ -1180,6 +1732,13 @@
       ],
       "emoji": "🏫",
       "phonemes": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ],
+      "ipa_uk": "/skuːl/",
+      "phonemes_uk": [
         "s",
         "k",
         "uː",
@@ -1197,6 +1756,11 @@
       "phonemes": [
         "s",
         "iː"
+      ],
+      "ipa_uk": "/siː/",
+      "phonemes_uk": [
+        "s",
+        "iː"
       ]
     },
     {
@@ -1210,6 +1774,15 @@
         "s",
         "e",
         "v",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈsevən/",
+      "phonemes_uk": [
+        "s",
+        "e",
+        "v",
+        "ə",
         "n"
       ]
     },
@@ -1222,8 +1795,12 @@
       "emoji": "🤲",
       "phonemes": [
         "ʃ",
-        "eə",
-        "r"
+        "eə"
+      ],
+      "ipa_uk": "/ʃeə/",
+      "phonemes_uk": [
+        "ʃ",
+        "eə"
       ]
     },
     {
@@ -1239,8 +1816,15 @@
         "ɪ",
         "s",
         "t",
-        "ə",
-        "r"
+        "ə"
+      ],
+      "ipa_uk": "/ˈsɪstə/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "s",
+        "t",
+        "ə"
       ]
     },
     {
@@ -1255,6 +1839,13 @@
         "ɪ",
         "k",
         "s"
+      ],
+      "ipa_uk": "/sɪks/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
       ]
     },
     {
@@ -1265,6 +1856,13 @@
       ],
       "emoji": "🐭",
       "phonemes": [
+        "s",
+        "m",
+        "ɔː",
+        "l"
+      ],
+      "ipa_uk": "/smɔːl/",
+      "phonemes_uk": [
         "s",
         "m",
         "ɔː",
@@ -1284,6 +1882,13 @@
         "m",
         "aɪ",
         "l"
+      ],
+      "ipa_uk": "/smaɪl/",
+      "phonemes_uk": [
+        "s",
+        "m",
+        "aɪ",
+        "l"
       ]
     },
     {
@@ -1295,8 +1900,11 @@
       "emoji": "🤷",
       "phonemes": [
         "s",
-        "ə",
-        "m",
+        "ʌ",
+        "m"
+      ],
+      "ipa_uk": "/sʌm/",
+      "phonemes_uk": [
         "s",
         "ʌ",
         "m"
@@ -1314,6 +1922,12 @@
         "s",
         "ʌ",
         "n"
+      ],
+      "ipa_uk": "/sʌn/",
+      "phonemes_uk": [
+        "s",
+        "ʌ",
+        "n"
       ]
     },
     {
@@ -1327,6 +1941,12 @@
         "t",
         "ɔː",
         "l"
+      ],
+      "ipa_uk": "/tɔːl/",
+      "phonemes_uk": [
+        "t",
+        "ɔː",
+        "l"
       ]
     },
     {
@@ -1337,6 +1957,12 @@
       ],
       "emoji": "🔟",
       "phonemes": [
+        "t",
+        "e",
+        "n"
+      ],
+      "ipa_uk": "/ten/",
+      "phonemes_uk": [
         "t",
         "e",
         "n"
@@ -1354,9 +1980,12 @@
       "phonemes": [
         "ð",
         "ə",
-        "m",
+        "m"
+      ],
+      "ipa_uk": "/ðəm/",
+      "phonemes_uk": [
         "ð",
-        "e",
+        "ə",
         "m"
       ]
     },
@@ -1371,11 +2000,17 @@
         "θ",
         "r",
         "iː"
+      ],
+      "ipa_uk": "/θriː/",
+      "phonemes_uk": [
+        "θ",
+        "r",
+        "iː"
       ]
     },
     {
       "word": "tiger",
-      "phonetic": "/ˈtaɪɡə(r)/",
+      "phonetic": "/ˈtaɪgə(r)/",
       "meanings": [
         "老虎"
       ],
@@ -1383,9 +2018,15 @@
       "phonemes": [
         "t",
         "aɪ",
-        "ɡ",
-        "ə",
-        "r"
+        "g",
+        "ə"
+      ],
+      "ipa_uk": "/ˈtaɪgə/",
+      "phonemes_uk": [
+        "t",
+        "aɪ",
+        "g",
+        "ə"
       ]
     },
     {
@@ -1398,6 +2039,11 @@
       "phonemes": [
         "tr",
         "iː"
+      ],
+      "ipa_uk": "/triː/",
+      "phonemes_uk": [
+        "tr",
+        "iː"
       ]
     },
     {
@@ -1408,6 +2054,11 @@
       ],
       "emoji": "2️⃣",
       "phonemes": [
+        "t",
+        "uː"
+      ],
+      "ipa_uk": "/tuː/",
+      "phonemes_uk": [
         "t",
         "uː"
       ]
@@ -1427,12 +2078,21 @@
         "ʌ",
         "ŋ",
         "k",
+        "ə",
+        "l"
+      ],
+      "ipa_uk": "/ˈʌŋkəl/",
+      "phonemes_uk": [
+        "ʌ",
+        "ŋ",
+        "k",
+        "ə",
         "l"
       ]
     },
     {
       "word": "water",
-      "phonetic": "/ˈwɔːtə(r)/",
+      "phonetic": "/ˈwɔːtər/",
       "meanings": [
         "给……浇水",
         "水"
@@ -1444,6 +2104,13 @@
         "t",
         "ə",
         "r"
+      ],
+      "ipa_uk": "/ˈwɔːtə/",
+      "phonemes_uk": [
+        "w",
+        "ɔː",
+        "t",
+        "ə"
       ]
     },
     {
@@ -1455,6 +2122,12 @@
       ],
       "emoji": "⚪",
       "phonemes": [
+        "w",
+        "aɪ",
+        "t"
+      ],
+      "ipa_uk": "/waɪt/",
+      "phonemes_uk": [
         "w",
         "aɪ",
         "t"
@@ -1470,8 +2143,12 @@
       "emoji": "📅",
       "phonemes": [
         "j",
-        "ɪə",
-        "r"
+        "ɪə"
+      ],
+      "ipa_uk": "/jɪə/",
+      "phonemes_uk": [
+        "j",
+        "ɪə"
       ]
     },
     {
@@ -1487,6 +2164,13 @@
         "e",
         "l",
         "əʊ"
+      ],
+      "ipa_uk": "/ˈjeləʊ/",
+      "phonemes_uk": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
       ]
     },
     {
@@ -1497,6 +2181,11 @@
       ],
       "emoji": "🏛️",
       "phonemes": [
+        "z",
+        "uː"
+      ],
+      "ipa_uk": "/zuː/",
+      "phonemes_uk": [
         "z",
         "uː"
       ]

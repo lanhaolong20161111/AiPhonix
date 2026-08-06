@@ -13,6 +13,7 @@ data class Phoneme(
     val commonMistakes: List<String> = emptyList(),
     val exampleWords: List<String> = emptyList(),
     val englishWordIds: List<String> = emptyList(),
+    val mnemonic: String = "",  // 发音口诀（如 "穿件毛衣"）
 )
 
 enum class PhonemeCategory {

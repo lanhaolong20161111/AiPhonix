@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +30,8 @@ fun QuizScreen(
     container: com.example.ai.AppContainer,
 ) {
     val state by viewModel.state.collectAsState()
+    // TTS 全局朗读状态：朗读中禁用"听发音"（防重复播放）
+    val ttsSpeaking by container.ttsEngine.isSpeaking.collectAsStateWithLifecycle()
 
     LaunchedEffect(videoName) {
         viewModel.loadQuiz(videoName, srtPath)
@@ -88,6 +91,7 @@ fun QuizScreen(
                 else -> {
                     QuizContent(
                         state = state,
+                        ttsSpeaking = ttsSpeaking,
                         onInputChange = { index, value -> viewModel.updateInput(index, value) },
                         onSubmit = { viewModel.submit() },
                         onHint = { viewModel.hint() },
@@ -110,6 +114,7 @@ fun QuizScreen(
 @Composable
 private fun QuizContent(
     state: QuizState,
+    ttsSpeaking: Boolean,
     onInputChange: (Int, String) -> Unit,
     onSubmit: () -> Unit,
     onHint: () -> Unit,
@@ -366,6 +371,7 @@ private fun QuizContent(
                         // 听发音按钮（常驻，左）
                         OutlinedButton(
                             onClick = onSpeakHint,
+                            enabled = !ttsSpeaking,
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                         ) {

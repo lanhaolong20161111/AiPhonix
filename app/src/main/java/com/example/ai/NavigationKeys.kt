@@ -64,3 +64,10 @@ import kotlinx.serialization.Serializable
 
 // 家长设置（PIN 保护：家长动态决定学生首页的页面集合/今日任务）
 @Serializable data object ParentSettings : NavKey                     // 家长设置
+
+// AI 陪我练（LangGraph 多轮引导对话）
+@Serializable data object AiPractice : NavKey                          // AI 陪我练主页（导入+历史）
+@Serializable data class AiPracticeChat(
+    val sessionId: Int,
+    val content: String = "",
+) : NavKey                                                             // 会话页（active 续聊 / done 只读）

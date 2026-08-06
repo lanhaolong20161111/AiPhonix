@@ -27,9 +27,6 @@ object ServiceModule {
     val quizGenerator: QuizGenerator by lazy {
         QuizGenerator(llmRepository)
     }
-
-    /** TTS 引擎 */
-    fun ttsEngine(context: Context): TtsEngine = TtsEngine(context)
 }
 
 /**

@@ -1,0 +1,12256 @@
+{
+ "date": "2026-08-05",
+ "items": [
+  {
+   "word": "apple",
+   "ipa": "/ˈæp.əl/",
+   "old_phonemes": [
+    "æ",
+    "p",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "æ",
+    "p",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ant",
+   "ipa": "",
+   "old_phonemes": [
+    "æ",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "æ",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "all",
+   "ipa": "",
+   "old_phonemes": [
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bat",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "æ",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "æ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bed",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "e",
+    "d"
+   ],
+   "phonemes": [
+    "b",
+    "e",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "big",
+   "ipa": "/bɪɡ/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "g"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "g"
+   ],
+   "ok": false,
+   "issues": "最后一个辅音音素应为国际音标符号/ɡ/，与实际发音的浊软腭塞音一致",
+   "error": false
+  },
+  {
+   "word": "cat",
+   "ipa": "/kæt/",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cup",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "p"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dog",
+   "ipa": "/dɒɡ/",
+   "old_phonemes": [
+    "d",
+    "ɒ",
+    "g"
+   ],
+   "phonemes": [
+    "d",
+    "ɒ",
+    "g"
+   ],
+   "ok": false,
+   "issues": "最后一个辅音音素应为国际音标符号/ɡ/，与实际发音的浊软腭塞音一致",
+   "error": false
+  },
+  {
+   "word": "duck",
+   "ipa": "/dʌk/",
+   "old_phonemes": [
+    "d",
+    "ʌ",
+    "k"
+   ],
+   "phonemes": [
+    "d",
+    "ʌ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "egg",
+   "ipa": "/eɡ/",
+   "old_phonemes": [
+    "e",
+    "g"
+   ],
+   "phonemes": [
+    "e",
+    "g"
+   ],
+   "ok": false,
+   "issues": "第二个辅音音素应为国际音标符号/ɡ/，与实际发音的浊软腭塞音一致",
+   "error": false
+  },
+  {
+   "word": "elephant",
+   "ipa": "/ˈel.ɪ.fənt/",
+   "old_phonemes": [
+    "e",
+    "l",
+    "ɪ",
+    "f",
+    "ə",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "e",
+    "l",
+    "ɪ",
+    "f",
+    "ə",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fish",
+   "ipa": "/fɪʃ/",
+   "old_phonemes": [
+    "f",
+    "ɪ",
+    "ʃ"
+   ],
+   "phonemes": [
+    "f",
+    "ɪ",
+    "ʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fox",
+   "ipa": "/fɒks/",
+   "old_phonemes": [
+    "f",
+    "ɒ",
+    "k",
+    "s"
+   ],
+   "phonemes": [
+    "f",
+    "ɒ",
+    "k",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "goat",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "əʊ",
+    "t"
+   ],
+   "phonemes": [
+    "g",
+    "əʊ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "第一个辅音音素应为国际音标符号/ɡ/，与实际发音的浊软腭塞音一致",
+   "error": false
+  },
+  {
+   "word": "hat",
+   "ipa": "/hæt/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "t"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hand",
+   "ipa": "/hænd/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "igloo",
+   "ipa": "",
+   "old_phonemes": [
+    "ɪ",
+    "g",
+    "l",
+    "uː"
+   ],
+   "phonemes": [
+    "ɪ",
+    "g",
+    "l",
+    "uː"
+   ],
+   "ok": false,
+   "issues": "第二个辅音音素应为国际音标符号/ɡ/，与实际发音的浊软腭塞音一致",
+   "error": false
+  },
+  {
+   "word": "ink",
+   "ipa": "",
+   "old_phonemes": [
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "jam",
+   "ipa": "",
+   "old_phonemes": [
+    "dʒ",
+    "æ",
+    "m"
+   ],
+   "phonemes": [
+    "dʒ",
+    "æ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "kite",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "key",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "iː"
+   ],
+   "phonemes": [
+    "k",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "lion",
+   "ipa": "/ˈlaɪ.ən/",
+   "old_phonemes": [
+    "l",
+    "aɪ",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "l",
+    "aɪ",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "lamp",
+   "ipa": "",
+   "old_phonemes": [
+    "l",
+    "æ",
+    "m",
+    "p"
+   ],
+   "phonemes": [
+    "l",
+    "æ",
+    "m",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "monkey",
+   "ipa": "/ˈmʌŋ.ki/",
+   "old_phonemes": [
+    "m",
+    "ʌ",
+    "ŋ",
+    "k",
+    "ɪ"
+   ],
+   "phonemes": [
+    "m",
+    "ʌ",
+    "ŋ",
+    "k",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个元音音素应为/i/而非/ɪ/，与/ˈmʌŋki/的实际发音一致",
+   "error": false
+  },
+  {
+   "word": "map",
+   "ipa": "/mæp/",
+   "old_phonemes": [
+    "m",
+    "æ",
+    "p"
+   ],
+   "phonemes": [
+    "m",
+    "æ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "nest",
+   "ipa": "",
+   "old_phonemes": [
+    "n",
+    "e",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "n",
+    "e",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "nose",
+   "ipa": "/noʊz/",
+   "old_phonemes": [
+    "n",
+    "əʊ",
+    "z"
+   ],
+   "phonemes": [
+    "n",
+    "əʊ",
+    "z"
+   ],
+   "ok": false,
+   "issues": "IPA 使用美式 /oʊ/，英式 RP 应为 /əʊ/。",
+   "error": false
+  },
+  {
+   "word": "orange",
+   "ipa": "/ˈɒr.ɪndʒ/",
+   "old_phonemes": [
+    "ɒ",
+    "r",
+    "ɪ",
+    "n",
+    "dʒ"
+   ],
+   "phonemes": [
+    "ɒ",
+    "r",
+    "ɪ",
+    "n",
+    "dʒ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pig",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "ɪ",
+    "g"
+   ],
+   "phonemes": [
+    "p",
+    "ɪ",
+    "g"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pen",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "e",
+    "n"
+   ],
+   "phonemes": [
+    "p",
+    "e",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "queen",
+   "ipa": "/kwiːn/",
+   "old_phonemes": [
+    "k",
+    "w",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "k",
+    "w",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rat",
+   "ipa": "",
+   "old_phonemes": [
+    "r",
+    "æ",
+    "t"
+   ],
+   "phonemes": [
+    "r",
+    "æ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "run",
+   "ipa": "/rʌn/",
+   "old_phonemes": [
+    "r",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "r",
+    "ʌ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sun",
+   "ipa": "/sʌn/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "star",
+   "ipa": "",
+   "old_phonemes": [
+    "s",
+    "t",
+    "ɑː",
+    "r"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "ɑː"
+   ],
+   "ok": false,
+   "issues": "RP 中 star 末尾 r 不发音，不应包含音素 /r/。",
+   "error": false
+  },
+  {
+   "word": "top",
+   "ipa": "/tɒp/",
+   "old_phonemes": [
+    "t",
+    "ɒ",
+    "p"
+   ],
+   "phonemes": [
+    "t",
+    "ɒ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tree",
+   "ipa": "/triː/",
+   "old_phonemes": [
+    "tr",
+    "iː"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "/tr/ 是辅音连缀，应拆分为 /t/ 和 /r/ 两个音素。",
+   "error": false
+  },
+  {
+   "word": "umbrella",
+   "ipa": "",
+   "old_phonemes": [
+    "ʌ",
+    "m",
+    "b",
+    "r",
+    "e",
+    "l",
+    "ə"
+   ],
+   "phonemes": [
+    "ʌ",
+    "m",
+    "b",
+    "r",
+    "e",
+    "l",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "van",
+   "ipa": "",
+   "old_phonemes": [
+    "v",
+    "æ",
+    "n"
+   ],
+   "phonemes": [
+    "v",
+    "æ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "water",
+   "ipa": "/ˈwɔː.tər/",
+   "old_phonemes": [
+    "w",
+    "ɔː",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "w",
+    "ɔː",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "RP 中 water 末尾 r 不发音，不应包含音素 /r/。",
+   "error": false
+  },
+  {
+   "word": "web",
+   "ipa": "",
+   "old_phonemes": [
+    "w",
+    "e",
+    "b"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "b"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "yellow",
+   "ipa": "/ˈjel.oʊ/",
+   "old_phonemes": [
+    "j",
+    "e",
+    "l",
+    "əʊ"
+   ],
+   "phonemes": [
+    "j",
+    "e",
+    "l",
+    "əʊ"
+   ],
+   "ok": false,
+   "issues": "IPA 使用美式 /oʊ/，英式 RP 应为 /əʊ/。",
+   "error": false
+  },
+  {
+   "word": "zebra",
+   "ipa": "",
+   "old_phonemes": [
+    "z",
+    "iː",
+    "b",
+    "r",
+    "ə"
+   ],
+   "phonemes": [
+    "z",
+    "e",
+    "b",
+    "r",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式 RP 中 zebra 首音节元音为 /e/，不是 /iː/。",
+   "error": false
+  },
+  {
+   "word": "cake",
+   "ipa": "/keɪk/",
+   "old_phonemes": [
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "face",
+   "ipa": "",
+   "old_phonemes": [
+    "f",
+    "eɪ",
+    "s"
+   ],
+   "phonemes": [
+    "f",
+    "eɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rain",
+   "ipa": "/reɪn/",
+   "old_phonemes": [
+    "r",
+    "eɪ",
+    "n"
+   ],
+   "phonemes": [
+    "r",
+    "eɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cow",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "aʊ"
+   ],
+   "phonemes": [
+    "k",
+    "aʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "house",
+   "ipa": "",
+   "old_phonemes": [
+    "h",
+    "aʊ",
+    "s"
+   ],
+   "phonemes": [
+    "h",
+    "aʊ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "mouse",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "aʊ",
+    "s"
+   ],
+   "phonemes": [
+    "m",
+    "aʊ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "boy",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɔɪ"
+   ],
+   "phonemes": [
+    "b",
+    "ɔɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "toy",
+   "ipa": "",
+   "old_phonemes": [
+    "t",
+    "ɔɪ"
+   ],
+   "phonemes": [
+    "t",
+    "ɔɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "coin",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "ɔɪ",
+    "n"
+   ],
+   "phonemes": [
+    "k",
+    "ɔɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thumb",
+   "ipa": "",
+   "old_phonemes": [
+    "θ",
+    "ʌ",
+    "m"
+   ],
+   "phonemes": [
+    "θ",
+    "ʌ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "mouth",
+   "ipa": "/maʊθ/",
+   "old_phonemes": [
+    "m",
+    "aʊ",
+    "θ"
+   ],
+   "phonemes": [
+    "m",
+    "aʊ",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bath",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɑː",
+    "θ"
+   ],
+   "phonemes": [
+    "b",
+    "ɑː",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "this",
+   "ipa": "",
+   "old_phonemes": [
+    "ð",
+    "ɪ",
+    "s"
+   ],
+   "phonemes": [
+    "ð",
+    "ɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "feather",
+   "ipa": "",
+   "old_phonemes": [
+    "f",
+    "e",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "f",
+    "e",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾的r不发音，不应包含音素/r/",
+   "error": false
+  },
+  {
+   "word": "mother",
+   "ipa": "/ˈmʌð.ər/",
+   "old_phonemes": [
+    "m",
+    "ʌ",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "ʌ",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾的r不发音，不应包含音素/r/，原IPA标注不符合英式RP规范",
+   "error": false
+  },
+  {
+   "word": "bird",
+   "ipa": "/bɜːd/",
+   "old_phonemes": [
+    "b",
+    "ɜː",
+    "d"
+   ],
+   "phonemes": [
+    "b",
+    "ɜː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "girl",
+   "ipa": "/ɡɜːl/",
+   "old_phonemes": [
+    "g",
+    "ɜː",
+    "l"
+   ],
+   "phonemes": [
+    "g",
+    "ɜː",
+    "l"
+   ],
+   "ok": false,
+   "issues": "表示浊软腭塞音应使用标准IPA符号/ɡ/，而非字母g",
+   "error": false
+  },
+  {
+   "word": "television",
+   "ipa": "",
+   "old_phonemes": [
+    "t",
+    "e",
+    "l",
+    "ɪ",
+    "v",
+    "ɪ",
+    "ʒ",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "l",
+    "ɪ",
+    "v",
+    "ɪ",
+    "ʒ",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "see",
+   "ipa": "/siː/",
+   "old_phonemes": [
+    "s",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tea",
+   "ipa": "",
+   "old_phonemes": [
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "t",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bee",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "iː"
+   ],
+   "phonemes": [
+    "b",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "feet",
+   "ipa": "",
+   "old_phonemes": [
+    "f",
+    "iː",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "iː",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "car",
+   "ipa": "/kɑː(r)/",
+   "old_phonemes": [
+    "k",
+    "ɑː",
+    "r"
+   ],
+   "phonemes": [
+    "k",
+    "ɑː"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾的r不发音，不应包含音素/r/，原IPA标注不符合英式RP规范",
+   "error": false
+  },
+  {
+   "word": "farm",
+   "ipa": "/fɑːm/",
+   "old_phonemes": [
+    "f",
+    "ɑː",
+    "m"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "park",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "ɑː",
+    "k"
+   ],
+   "phonemes": [
+    "p",
+    "ɑː",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "glass",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "l",
+    "ɑː",
+    "s"
+   ],
+   "phonemes": [
+    "g",
+    "l",
+    "ɑː",
+    "s"
+   ],
+   "ok": false,
+   "issues": "表示浊软腭塞音应使用标准IPA符号/ɡ/，而非字母g",
+   "error": false
+  },
+  {
+   "word": "door",
+   "ipa": "/dɔː(r)/",
+   "old_phonemes": [
+    "d",
+    "ɔː",
+    "r"
+   ],
+   "phonemes": [
+    "d",
+    "ɔː"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾的r不发音，不应包含音素/r/，原IPA标注不符合英式RP规范",
+   "error": false
+  },
+  {
+   "word": "ball",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "horse",
+   "ipa": "",
+   "old_phonemes": [
+    "h",
+    "ɔː",
+    "s"
+   ],
+   "phonemes": [
+    "h",
+    "ɔː",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "short",
+   "ipa": "/ʃɔːt/",
+   "old_phonemes": [
+    "ʃ",
+    "ɔː",
+    "t"
+   ],
+   "phonemes": [
+    "ʃ",
+    "ɔː",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "draw",
+   "ipa": "/drɔː/",
+   "old_phonemes": [
+    "dr",
+    "ɔː"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "ɔː"
+   ],
+   "ok": false,
+   "issues": "/dr/为辅音连缀，应拆分为/d/和/r/两个独立音素",
+   "error": false
+  },
+  {
+   "word": "nurse",
+   "ipa": "/nɜːs/",
+   "old_phonemes": [
+    "n",
+    "ɜː",
+    "s"
+   ],
+   "phonemes": [
+    "n",
+    "ɜː",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "skirt",
+   "ipa": "/skɜːt/",
+   "old_phonemes": [
+    "s",
+    "k",
+    "ɜː",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "k",
+    "ɜː",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "work",
+   "ipa": "",
+   "old_phonemes": [
+    "w",
+    "ɜː",
+    "k"
+   ],
+   "phonemes": [
+    "w",
+    "ɜː",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "zoo",
+   "ipa": "/zuː/",
+   "old_phonemes": [
+    "z",
+    "uː"
+   ],
+   "phonemes": [
+    "z",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "food",
+   "ipa": "/fuːd/",
+   "old_phonemes": [
+    "f",
+    "uː",
+    "d"
+   ],
+   "phonemes": [
+    "f",
+    "uː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "moon",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "uː",
+    "n"
+   ],
+   "phonemes": [
+    "m",
+    "uː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "blue",
+   "ipa": "/bluː/",
+   "old_phonemes": [
+    "b",
+    "l",
+    "uː"
+   ],
+   "phonemes": [
+    "b",
+    "l",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "school",
+   "ipa": "/skuːl/",
+   "old_phonemes": [
+    "s",
+    "k",
+    "uː",
+    "l"
+   ],
+   "phonemes": [
+    "s",
+    "k",
+    "uː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sit",
+   "ipa": "",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "milk",
+   "ipa": "/mɪlk/",
+   "old_phonemes": [
+    "m",
+    "ɪ",
+    "l",
+    "k"
+   ],
+   "phonemes": [
+    "m",
+    "ɪ",
+    "l",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "red",
+   "ipa": "/red/",
+   "old_phonemes": [
+    "r",
+    "e",
+    "d"
+   ],
+   "phonemes": [
+    "r",
+    "e",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "desk",
+   "ipa": "",
+   "old_phonemes": [
+    "d",
+    "e",
+    "s",
+    "k"
+   ],
+   "phonemes": [
+    "d",
+    "e",
+    "s",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bag",
+   "ipa": "/bæɡ/",
+   "old_phonemes": [
+    "b",
+    "æ",
+    "g"
+   ],
+   "phonemes": [
+    "b",
+    "æ",
+    "g"
+   ],
+   "ok": false,
+   "issues": "音素符号错误，浊软腭塞音应使用IPA符号ɡ而非普通字母g",
+   "error": false
+  },
+  {
+   "word": "bus",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ʌ",
+    "s"
+   ],
+   "phonemes": [
+    "b",
+    "ʌ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hot",
+   "ipa": "/hɒt/",
+   "old_phonemes": [
+    "h",
+    "ɒ",
+    "t"
+   ],
+   "phonemes": [
+    "h",
+    "ɒ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "box",
+   "ipa": "/bɒks/",
+   "old_phonemes": [
+    "b",
+    "ɒ",
+    "k",
+    "s"
+   ],
+   "phonemes": [
+    "b",
+    "ɒ",
+    "k",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "shop",
+   "ipa": "",
+   "old_phonemes": [
+    "ʃ",
+    "ɒ",
+    "p"
+   ],
+   "phonemes": [
+    "ʃ",
+    "ɒ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "frog",
+   "ipa": "",
+   "old_phonemes": [
+    "f",
+    "r",
+    "ɒ",
+    "g"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "ɒ",
+    "g"
+   ],
+   "ok": false,
+   "issues": "音素符号错误，末尾浊软腭塞音应使用IPA符号ɡ而非普通字母g",
+   "error": false
+  },
+  {
+   "word": "book",
+   "ipa": "/bʊk/",
+   "old_phonemes": [
+    "b",
+    "ʊ",
+    "k"
+   ],
+   "phonemes": [
+    "b",
+    "ʊ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "look",
+   "ipa": "/lʊk/",
+   "old_phonemes": [
+    "l",
+    "ʊ",
+    "k"
+   ],
+   "phonemes": [
+    "l",
+    "ʊ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "good",
+   "ipa": "/ɡʊd/",
+   "old_phonemes": [
+    "g",
+    "ʊ",
+    "d"
+   ],
+   "phonemes": [
+    "g",
+    "ʊ",
+    "d"
+   ],
+   "ok": false,
+   "issues": "音素符号错误，开头浊软腭塞音应使用IPA符号ɡ而非普通字母g",
+   "error": false
+  },
+  {
+   "word": "foot",
+   "ipa": "/fʊt/",
+   "old_phonemes": [
+    "f",
+    "ʊ",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "ʊ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cook",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "ʊ",
+    "k"
+   ],
+   "phonemes": [
+    "k",
+    "ʊ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "teacher",
+   "ipa": "/ˈtiːtʃə(r)/",
+   "old_phonemes": [
+    "t",
+    "iː",
+    "tʃ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "t",
+    "iː",
+    "tʃ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾r不发音，phonemes包含多余的不发音/r/音素",
+   "error": false
+  },
+  {
+   "word": "ruler",
+   "ipa": "",
+   "old_phonemes": [
+    "r",
+    "uː",
+    "l",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "r",
+    "uː",
+    "l",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾r不发音，phonemes包含多余的不发音/r/音素",
+   "error": false
+  },
+  {
+   "word": "about",
+   "ipa": "",
+   "old_phonemes": [
+    "ə",
+    "b",
+    "aʊ",
+    "t"
+   ],
+   "phonemes": [
+    "ə",
+    "b",
+    "aʊ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "banana",
+   "ipa": "/bəˈnɑːnə/",
+   "old_phonemes": [
+    "b",
+    "ə",
+    "n",
+    "ɑː",
+    "n",
+    "ə"
+   ],
+   "phonemes": [
+    "b",
+    "ə",
+    "n",
+    "ɑː",
+    "n",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "doctor",
+   "ipa": "/ˈdɒktə(r)/",
+   "old_phonemes": [
+    "d",
+    "ɒ",
+    "k",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "d",
+    "ɒ",
+    "k",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中doctor的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "name",
+   "ipa": "/neɪm/",
+   "old_phonemes": [
+    "n",
+    "eɪ",
+    "m"
+   ],
+   "phonemes": [
+    "n",
+    "eɪ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "day",
+   "ipa": "",
+   "old_phonemes": [
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "play",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "l",
+    "eɪ"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bike",
+   "ipa": "/baɪk/",
+   "old_phonemes": [
+    "b",
+    "aɪ",
+    "k"
+   ],
+   "phonemes": [
+    "b",
+    "aɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "like",
+   "ipa": "/laɪk/",
+   "old_phonemes": [
+    "l",
+    "aɪ",
+    "k"
+   ],
+   "phonemes": [
+    "l",
+    "aɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "five",
+   "ipa": "/faɪv/",
+   "old_phonemes": [
+    "f",
+    "aɪ",
+    "v"
+   ],
+   "phonemes": [
+    "f",
+    "aɪ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sky",
+   "ipa": "",
+   "old_phonemes": [
+    "s",
+    "k",
+    "aɪ"
+   ],
+   "phonemes": [
+    "s",
+    "k",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "light",
+   "ipa": "",
+   "old_phonemes": [
+    "l",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "l",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "oil",
+   "ipa": "",
+   "old_phonemes": [
+    "ɔɪ",
+    "l"
+   ],
+   "phonemes": [
+    "ɔɪ",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "noise",
+   "ipa": "/nɔɪz/",
+   "old_phonemes": [
+    "n",
+    "ɔɪ",
+    "z"
+   ],
+   "phonemes": [
+    "n",
+    "ɔɪ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "now",
+   "ipa": "/naʊ/",
+   "old_phonemes": [
+    "n",
+    "aʊ"
+   ],
+   "phonemes": [
+    "n",
+    "aʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "brown",
+   "ipa": "/braʊn/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "aʊ",
+    "n"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "aʊ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "home",
+   "ipa": "",
+   "old_phonemes": [
+    "h",
+    "əʊ",
+    "m"
+   ],
+   "phonemes": [
+    "h",
+    "əʊ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "go",
+   "ipa": "/ɡəʊ/",
+   "old_phonemes": [
+    "g",
+    "əʊ"
+   ],
+   "phonemes": [
+    "g",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "boat",
+   "ipa": "/bəʊt/",
+   "old_phonemes": [
+    "b",
+    "əʊ",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "əʊ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "snow",
+   "ipa": "",
+   "old_phonemes": [
+    "s",
+    "n",
+    "əʊ"
+   ],
+   "phonemes": [
+    "s",
+    "n",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ear",
+   "ipa": "/ɪə(r)/",
+   "old_phonemes": [
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中ear的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "here",
+   "ipa": "/hɪə(r)/",
+   "old_phonemes": [
+    "h",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "h",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中here的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "beer",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "b",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中beer的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "near",
+   "ipa": "/nɪə(r)/",
+   "old_phonemes": [
+    "n",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "n",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中near的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "clear",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "l",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "k",
+    "l",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中clear的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "pear",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中pear的尾字母r不发音，phonemes包含多余的不发音音素/r/",
+   "error": false
+  },
+  {
+   "word": "air",
+   "ipa": "/eə(r)/",
+   "old_phonemes": [
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "eə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "bear",
+   "ipa": "/beə(r)/",
+   "old_phonemes": [
+    "b",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "b",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "chair",
+   "ipa": "/tʃeə(r)/",
+   "old_phonemes": [
+    "tʃ",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "tʃ",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "where",
+   "ipa": "/weə(r)/",
+   "old_phonemes": [
+    "w",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "w",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "sure",
+   "ipa": "",
+   "old_phonemes": [
+    "ʃ",
+    "ʊə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "ʊə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "tour",
+   "ipa": "",
+   "old_phonemes": [
+    "t",
+    "ʊə",
+    "r"
+   ],
+   "phonemes": [
+    "t",
+    "ʊə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "poor",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "ʊə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "ʊə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "cure",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "j",
+    "ʊə",
+    "r"
+   ],
+   "phonemes": [
+    "k",
+    "j",
+    "ʊə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "pure",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "j",
+    "ʊə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "j",
+    "ʊə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中词尾的r不发音，不应作为音素。",
+   "error": false
+  },
+  {
+   "word": "cap",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "p"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ten",
+   "ipa": "/ten/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "n"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dad",
+   "ipa": "/dæd/",
+   "old_phonemes": [
+    "d",
+    "æ",
+    "d"
+   ],
+   "phonemes": [
+    "d",
+    "æ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fly",
+   "ipa": "/flaɪ/",
+   "old_phonemes": [
+    "f",
+    "l",
+    "aɪ"
+   ],
+   "phonemes": [
+    "f",
+    "l",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "live",
+   "ipa": "",
+   "old_phonemes": [
+    "l",
+    "ɪ",
+    "v"
+   ],
+   "phonemes": [
+    "l",
+    "ɪ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "vest",
+   "ipa": "",
+   "old_phonemes": [
+    "v",
+    "e",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "v",
+    "e",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "love",
+   "ipa": "/lʌv/",
+   "old_phonemes": [
+    "l",
+    "ʌ",
+    "v"
+   ],
+   "phonemes": [
+    "l",
+    "ʌ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "six",
+   "ipa": "/sɪks/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rose",
+   "ipa": "/rəʊz/",
+   "old_phonemes": [
+    "r",
+    "əʊ",
+    "z"
+   ],
+   "phonemes": [
+    "r",
+    "əʊ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bags",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "æ",
+    "g",
+    "z"
+   ],
+   "phonemes": [
+    "b",
+    "æ",
+    "g",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "boys",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɔɪ",
+    "z"
+   ],
+   "phonemes": [
+    "b",
+    "ɔɪ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thin",
+   "ipa": "",
+   "old_phonemes": [
+    "θ",
+    "ɪ",
+    "n"
+   ],
+   "phonemes": [
+    "θ",
+    "ɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "three",
+   "ipa": "/θriː/",
+   "old_phonemes": [
+    "θ",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "θ",
+    "r",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "think",
+   "ipa": "",
+   "old_phonemes": [
+    "θ",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "θ",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "that",
+   "ipa": "",
+   "old_phonemes": [
+    "ð",
+    "æ",
+    "t"
+   ],
+   "phonemes": [
+    "ð",
+    "æ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "they",
+   "ipa": "",
+   "old_phonemes": [
+    "ð",
+    "eɪ"
+   ],
+   "phonemes": [
+    "ð",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "father",
+   "ipa": "/ˈfɑːðə(r)/",
+   "old_phonemes": [
+    "f",
+    "ɑː",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌发音，father末尾的r不发音，phonemes中多余音素/r/",
+   "error": false
+  },
+  {
+   "word": "ship",
+   "ipa": "",
+   "old_phonemes": [
+    "ʃ",
+    "ɪ",
+    "p"
+   ],
+   "phonemes": [
+    "ʃ",
+    "ɪ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sheep",
+   "ipa": "",
+   "old_phonemes": [
+    "ʃ",
+    "iː",
+    "p"
+   ],
+   "phonemes": [
+    "ʃ",
+    "iː",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pleasure",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "l",
+    "e",
+    "ʒ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "e",
+    "ʒ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌发音，pleasure末尾的r不发音，phonemes中多余音素/r/",
+   "error": false
+  },
+  {
+   "word": "vision",
+   "ipa": "",
+   "old_phonemes": [
+    "v",
+    "ɪ",
+    "ʒ",
+    "n"
+   ],
+   "phonemes": [
+    "v",
+    "ɪ",
+    "ʒ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "measure",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "e",
+    "ʒ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "e",
+    "ʒ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌发音，measure末尾的r不发音，phonemes中多余音素/r/",
+   "error": false
+  },
+  {
+   "word": "happy",
+   "ipa": "/ˈhæpi/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ɪ"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "p",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个音素使用错误，标准英式RP发音/ˈhæpi/中对应音素为/i/，不应为/ɪ/",
+   "error": false
+  },
+  {
+   "word": "hill",
+   "ipa": "/hɪl/",
+   "old_phonemes": [
+    "h",
+    "ɪ",
+    "l"
+   ],
+   "phonemes": [
+    "h",
+    "ɪ",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "chicken",
+   "ipa": "",
+   "old_phonemes": [
+    "tʃ",
+    "ɪ",
+    "k",
+    "ɪ",
+    "n"
+   ],
+   "phonemes": [
+    "tʃ",
+    "ɪ",
+    "k",
+    "ɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "watch",
+   "ipa": "",
+   "old_phonemes": [
+    "w",
+    "ɒ",
+    "tʃ"
+   ],
+   "phonemes": [
+    "w",
+    "ɒ",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "teach",
+   "ipa": "/tiːtʃ/",
+   "old_phonemes": [
+    "t",
+    "iː",
+    "tʃ"
+   ],
+   "phonemes": [
+    "t",
+    "iː",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "lunch",
+   "ipa": "/lʌntʃ/",
+   "old_phonemes": [
+    "l",
+    "ʌ",
+    "n",
+    "tʃ"
+   ],
+   "phonemes": [
+    "l",
+    "ʌ",
+    "n",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "jump",
+   "ipa": "/dʒʌmp/",
+   "old_phonemes": [
+    "dʒ",
+    "ʌ",
+    "m",
+    "p"
+   ],
+   "phonemes": [
+    "dʒ",
+    "ʌ",
+    "m",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "juice",
+   "ipa": "",
+   "old_phonemes": [
+    "dʒ",
+    "uː",
+    "s"
+   ],
+   "phonemes": [
+    "dʒ",
+    "uː",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "job",
+   "ipa": "/dʒɒb/",
+   "old_phonemes": [
+    "dʒ",
+    "ɒ",
+    "b"
+   ],
+   "phonemes": [
+    "dʒ",
+    "ɒ",
+    "b"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bridge",
+   "ipa": "/brɪdʒ/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "ɪ",
+    "dʒ"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "ɪ",
+    "dʒ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "train",
+   "ipa": "",
+   "old_phonemes": [
+    "tr",
+    "eɪ",
+    "n"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "eɪ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/tr/合并为单个音素，应拆分为独立音素/t/和/r/",
+   "error": false
+  },
+  {
+   "word": "trousers",
+   "ipa": "",
+   "old_phonemes": [
+    "tr",
+    "aʊ",
+    "z",
+    "ə",
+    "z"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "aʊ",
+    "z",
+    "ə",
+    "z"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/tr/合并为单个音素，应拆分为独立音素/t/和/r/",
+   "error": false
+  },
+  {
+   "word": "trip",
+   "ipa": "",
+   "old_phonemes": [
+    "tr",
+    "ɪ",
+    "p"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "ɪ",
+    "p"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/tr/合并为单个音素，应拆分为独立音素/t/和/r/",
+   "error": false
+  },
+  {
+   "word": "trap",
+   "ipa": "",
+   "old_phonemes": [
+    "tr",
+    "æ",
+    "p"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "æ",
+    "p"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/tr/合并为单个音素，应拆分为独立音素/t/和/r/",
+   "error": false
+  },
+  {
+   "word": "dress",
+   "ipa": "/dres/",
+   "old_phonemes": [
+    "dr",
+    "e",
+    "s"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "e",
+    "s"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/dr/合并为单个音素，应拆分为独立音素/d/和/r/",
+   "error": false
+  },
+  {
+   "word": "drink",
+   "ipa": "/drɪŋk/",
+   "old_phonemes": [
+    "dr",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/dr/合并为单个音素，应拆分为独立音素/d/和/r/",
+   "error": false
+  },
+  {
+   "word": "dream",
+   "ipa": "",
+   "old_phonemes": [
+    "dr",
+    "iː",
+    "m"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "iː",
+    "m"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/dr/合并为单个音素，应拆分为独立音素/d/和/r/",
+   "error": false
+  },
+  {
+   "word": "drive",
+   "ipa": "/draɪv/",
+   "old_phonemes": [
+    "dr",
+    "aɪ",
+    "v"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "aɪ",
+    "v"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/dr/合并为单个音素，应拆分为独立音素/d/和/r/",
+   "error": false
+  },
+  {
+   "word": "dragon",
+   "ipa": "",
+   "old_phonemes": [
+    "dr",
+    "æ",
+    "g",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "æ",
+    "g",
+    "ə",
+    "n"
+   ],
+   "ok": false,
+   "issues": "错误将辅音连缀/dr/合并为单个音素，应拆分为独立音素/d/和/r/",
+   "error": false
+  },
+  {
+   "word": "cats",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "ts"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "t",
+    "s"
+   ],
+   "ok": false,
+   "issues": "将音素/t/和/s/错误合并为/ts/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "hats",
+   "ipa": "",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "ts"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "t",
+    "s"
+   ],
+   "ok": false,
+   "issues": "将音素/t/和/s/错误合并为/ts/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "boats",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "əʊ",
+    "ts"
+   ],
+   "phonemes": [
+    "b",
+    "əʊ",
+    "t",
+    "s"
+   ],
+   "ok": false,
+   "issues": "将音素/t/和/s/错误合并为/ts/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "gates",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "eɪ",
+    "ts"
+   ],
+   "phonemes": [
+    "g",
+    "eɪ",
+    "t",
+    "s"
+   ],
+   "ok": false,
+   "issues": "将音素/t/和/s/错误合并为/ts/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "pets",
+   "ipa": "",
+   "old_phonemes": [
+    "p",
+    "e",
+    "ts"
+   ],
+   "phonemes": [
+    "p",
+    "e",
+    "t",
+    "s"
+   ],
+   "ok": false,
+   "issues": "将音素/t/和/s/错误合并为/ts/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "beds",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "e",
+    "dz"
+   ],
+   "phonemes": [
+    "b",
+    "e",
+    "d",
+    "z"
+   ],
+   "ok": false,
+   "issues": "将音素/d/和/z/错误合并为/dz/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "hands",
+   "ipa": "",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "n",
+    "dz"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "n",
+    "d",
+    "z"
+   ],
+   "ok": false,
+   "issues": "将音素/d/和/z/错误合并为/dz/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "kids",
+   "ipa": "",
+   "old_phonemes": [
+    "k",
+    "ɪ",
+    "dz"
+   ],
+   "phonemes": [
+    "k",
+    "ɪ",
+    "d",
+    "z"
+   ],
+   "ok": false,
+   "issues": "将音素/d/和/z/错误合并为/dz/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "birds",
+   "ipa": "",
+   "old_phonemes": [
+    "b",
+    "ɜː",
+    "dz"
+   ],
+   "phonemes": [
+    "b",
+    "ɜː",
+    "d",
+    "z"
+   ],
+   "ok": false,
+   "issues": "将音素/d/和/z/错误合并为/dz/，应拆分为两个独立音素",
+   "error": false
+  },
+  {
+   "word": "mom",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "ɒ",
+    "m"
+   ],
+   "phonemes": [
+    "m",
+    "ɒ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "man",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "æ",
+    "n"
+   ],
+   "phonemes": [
+    "m",
+    "æ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "nine",
+   "ipa": "/naɪn/",
+   "old_phonemes": [
+    "n",
+    "aɪ",
+    "n"
+   ],
+   "phonemes": [
+    "n",
+    "aɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sing",
+   "ipa": "",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "king",
+   "ipa": "/kɪŋ/",
+   "old_phonemes": [
+    "k",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "k",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "song",
+   "ipa": "/sɒŋ/",
+   "old_phonemes": [
+    "s",
+    "ɒ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "ɒ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "morning",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "ɔː",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "m",
+    "ɔː",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pink",
+   "ipa": "/pɪŋk/",
+   "old_phonemes": [
+    "p",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "p",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "leg",
+   "ipa": "/leɡ/",
+   "old_phonemes": [
+    "l",
+    "e",
+    "g"
+   ],
+   "phonemes": [
+    "l",
+    "e",
+    "g"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rice",
+   "ipa": "/raɪs/",
+   "old_phonemes": [
+    "r",
+    "aɪ",
+    "s"
+   ],
+   "phonemes": [
+    "r",
+    "aɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "river",
+   "ipa": "/ˈrɪvə(r)/",
+   "old_phonemes": [
+    "r",
+    "ɪ",
+    "v",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "r",
+    "ɪ",
+    "v",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非儿化发音，单词末尾的r不发音，不应包含音素r",
+   "error": false
+  },
+  {
+   "word": "we",
+   "ipa": "",
+   "old_phonemes": [
+    "w",
+    "iː"
+   ],
+   "phonemes": [
+    "w",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "white",
+   "ipa": "/waɪt/",
+   "old_phonemes": [
+    "w",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "window",
+   "ipa": "/ˈwɪndəʊ/",
+   "old_phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "d",
+    "əʊ"
+   ],
+   "phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "d",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "wait",
+   "ipa": "/weɪt/",
+   "old_phonemes": [
+    "w",
+    "eɪ",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "eɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "yes",
+   "ipa": "/jes/",
+   "old_phonemes": [
+    "j",
+    "e",
+    "s"
+   ],
+   "phonemes": [
+    "j",
+    "e",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "you",
+   "ipa": "",
+   "old_phonemes": [
+    "j",
+    "uː"
+   ],
+   "phonemes": [
+    "ju"
+   ],
+   "ok": false,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "young",
+   "ipa": "",
+   "old_phonemes": [
+    "j",
+    "ʌ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "j",
+    "ʌ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cute",
+   "ipa": "/kjuːt/",
+   "old_phonemes": [
+    "k",
+    "j",
+    "uː",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "ju",
+    "t"
+   ],
+   "ok": false,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "animal",
+   "ipa": "/ˈænɪml/",
+   "old_phonemes": [
+    "æ",
+    "n",
+    "ɪ",
+    "m",
+    "l"
+   ],
+   "phonemes": [
+    "æ",
+    "n",
+    "ɪ",
+    "m",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "arm",
+   "ipa": "/ɑːm/",
+   "old_phonemes": [
+    "ɑː",
+    "m"
+   ],
+   "phonemes": [
+    "ɑː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "aunt",
+   "ipa": "/ɑːnt/",
+   "old_phonemes": [
+    "ɑː",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "ɑː",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "baby",
+   "ipa": "/ˈbeɪ.bi/",
+   "old_phonemes": [
+    "b",
+    "eɪ",
+    "b",
+    "iː"
+   ],
+   "phonemes": [
+    "b",
+    "eɪ",
+    "b",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "第二个音节的元音音值错误，标准英式RP中该元音为/ɪ/（或/i/），而非长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "black",
+   "ipa": "/blæk/",
+   "old_phonemes": [
+    "b",
+    "l",
+    "æ",
+    "k"
+   ],
+   "phonemes": [
+    "b",
+    "l",
+    "æ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "brother",
+   "ipa": "/ˈbrʌðə(r)/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "ʌ",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "ʌ",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "多了不发音的词尾/r/，标准英式RP中brother单独发音时词尾r不发音",
+   "error": false
+  },
+  {
+   "word": "can",
+   "ipa": "/kæn/",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "n"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "colour",
+   "ipa": "/ˈkʌl.ər/",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "l",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "l",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "多了不发音的词尾/r/，标准英式RP中colour单独发音时词尾r不发音",
+   "error": false
+  },
+  {
+   "word": "cousin",
+   "ipa": "/ˈkʌz.ən/",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "z",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "z",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cut",
+   "ipa": "/kʌt/",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eat",
+   "ipa": "/iːt/",
+   "old_phonemes": [
+    "iː",
+    "t"
+   ],
+   "phonemes": [
+    "iː",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eight",
+   "ipa": "/eɪt/",
+   "old_phonemes": [
+    "eɪ",
+    "t"
+   ],
+   "phonemes": [
+    "eɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eye",
+   "ipa": "/aɪ/",
+   "old_phonemes": [
+    "aɪ"
+   ],
+   "phonemes": [
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "family",
+   "ipa": "/ˈfæm.ə.li/",
+   "old_phonemes": [
+    "f",
+    "æ",
+    "m",
+    "ə",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "f",
+    "æ",
+    "m",
+    "ə",
+    "l",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "词尾元音音值错误，标准英式RP中该元音为/ɪ/（或/i/），而非长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "fast",
+   "ipa": "/fɑːst/",
+   "old_phonemes": [
+    "f",
+    "ɑː",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "flower",
+   "ipa": "/ˈflaʊ.ə/",
+   "old_phonemes": [
+    "f",
+    "l",
+    "aʊ",
+    "ə"
+   ],
+   "phonemes": [
+    "f",
+    "l",
+    "aʊ",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "four",
+   "ipa": "/fɔː/",
+   "old_phonemes": [
+    "f",
+    "ɔː"
+   ],
+   "phonemes": [
+    "f",
+    "ɔː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "friend",
+   "ipa": "/frend/",
+   "old_phonemes": [
+    "f",
+    "r",
+    "e",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "e",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "garden",
+   "ipa": "/ˈɡɑː.dən/",
+   "old_phonemes": [
+    "g",
+    "ɑː",
+    "d",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "g",
+    "ɑː",
+    "d",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "giraffe",
+   "ipa": "/dʒəˈræf/",
+   "old_phonemes": [
+    "dʒ",
+    "ə",
+    "r",
+    "æ",
+    "f"
+   ],
+   "phonemes": [
+    "dʒ",
+    "ə",
+    "r",
+    "ɑː",
+    "f"
+   ],
+   "ok": false,
+   "issues": "第二个音节的元音音值错误，标准英式RP中为/ɑː/，而非/æ/（/æ/为美式发音）",
+   "error": false
+  },
+  {
+   "word": "give",
+   "ipa": "/ɡɪv/",
+   "old_phonemes": [
+    "g",
+    "ɪ",
+    "v"
+   ],
+   "phonemes": [
+    "g",
+    "ɪ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "grandfather",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "f",
+    "ɑː",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "f",
+    "ɑː",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "多了不发音的词尾/r/，标准英式RP中grandfather单独发音时词尾r不发音",
+   "error": false
+  },
+  {
+   "word": "grandma",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "m",
+    "ɑː"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "m",
+    "ɑː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "grandmother",
+   "ipa": "",
+   "old_phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "m",
+    "ʌ",
+    "ð",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "m",
+    "ʌ",
+    "ð",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中单词尾音r不发音，phonemes包含了不发音的/r/",
+   "error": false
+  },
+  {
+   "word": "grandpa",
+   "ipa": "/ˈɡræn.pɑː/",
+   "old_phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "p",
+    "ɑː"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "æ",
+    "n",
+    "p",
+    "ɑː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "grape",
+   "ipa": "/ɡreɪp/",
+   "old_phonemes": [
+    "g",
+    "r",
+    "eɪ",
+    "p"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "eɪ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "grass",
+   "ipa": "/ɡrɑːs/",
+   "old_phonemes": [
+    "g",
+    "r",
+    "ɑː",
+    "s"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "ɑː",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "green",
+   "ipa": "/ɡriːn/",
+   "old_phonemes": [
+    "g",
+    "r",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "have",
+   "ipa": "/hæv/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "v"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "help",
+   "ipa": "/help/",
+   "old_phonemes": [
+    "h",
+    "e",
+    "l",
+    "p"
+   ],
+   "phonemes": [
+    "h",
+    "e",
+    "l",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "listen",
+   "ipa": "/ˈlɪs.ən/",
+   "old_phonemes": [
+    "l",
+    "ɪ",
+    "s",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "l",
+    "ɪ",
+    "s",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "make",
+   "ipa": "/meɪk/",
+   "old_phonemes": [
+    "m",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "m",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "me",
+   "ipa": "/miː/",
+   "old_phonemes": [
+    "m",
+    "iː"
+   ],
+   "phonemes": [
+    "m",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "Miss",
+   "ipa": "",
+   "old_phonemes": [
+    "m",
+    "ɪ",
+    "s"
+   ],
+   "phonemes": [
+    "m",
+    "ɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "mum",
+   "ipa": "/mʌm/",
+   "old_phonemes": [
+    "m",
+    "ʌ",
+    "m"
+   ],
+   "phonemes": [
+    "m",
+    "ʌ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "need",
+   "ipa": "/niːd/",
+   "old_phonemes": [
+    "n",
+    "iː",
+    "d"
+   ],
+   "phonemes": [
+    "n",
+    "iː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "new",
+   "ipa": "/njuː/",
+   "old_phonemes": [
+    "n",
+    "ju"
+   ],
+   "phonemes": [
+    "n",
+    "ju"
+   ],
+   "ok": false,
+   "issues": "将辅音/j/与长元音/uː/错误合并为/ju/，且遗漏长元音的长音符号，音素拆分不符合实际发音",
+   "error": false
+  },
+  {
+   "word": "nice",
+   "ipa": "/naɪs/",
+   "old_phonemes": [
+    "n",
+    "aɪ",
+    "s"
+   ],
+   "phonemes": [
+    "n",
+    "aɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "o'clock",
+   "ipa": "",
+   "old_phonemes": [
+    "ə",
+    "k",
+    "l",
+    "ɒ",
+    "k"
+   ],
+   "phonemes": [
+    "ə",
+    "k",
+    "l",
+    "ɒ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "old",
+   "ipa": "/əʊld/",
+   "old_phonemes": [
+    "əʊ",
+    "l",
+    "d"
+   ],
+   "phonemes": [
+    "əʊ",
+    "l",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "one",
+   "ipa": "/wʌn/",
+   "old_phonemes": [
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "panda",
+   "ipa": "/ˈpæn.də/",
+   "old_phonemes": [
+    "p",
+    "æ",
+    "n",
+    "d",
+    "ə"
+   ],
+   "phonemes": [
+    "p",
+    "æ",
+    "n",
+    "d",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pet",
+   "ipa": "/pet/",
+   "old_phonemes": [
+    "p",
+    "e",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "e",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "plant",
+   "ipa": "/plɑːnt/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "ɑː",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "ɑː",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "purple",
+   "ipa": "/ˈpɜː.pəl/",
+   "old_phonemes": [
+    "p",
+    "ɜː",
+    "p",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "p",
+    "ɜː",
+    "p",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rabbit",
+   "ipa": "/ˈræb.ɪt/",
+   "old_phonemes": [
+    "r",
+    "æ",
+    "b",
+    "ɪ",
+    "t"
+   ],
+   "phonemes": [
+    "r",
+    "æ",
+    "b",
+    "ɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "say",
+   "ipa": "/seɪ/",
+   "old_phonemes": [
+    "s",
+    "eɪ"
+   ],
+   "phonemes": [
+    "s",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sea",
+   "ipa": "/siː/",
+   "old_phonemes": [
+    "s",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "seven",
+   "ipa": "/ˈsev.ən/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "share",
+   "ipa": "/ʃeə(r)/",
+   "old_phonemes": [
+    "ʃ",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "英式RP中词尾r不发音，不应包含在音素中。",
+   "error": false
+  },
+  {
+   "word": "sister",
+   "ipa": "/ˈsɪs.tər/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "s",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "s",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中词尾r不发音，不应包含在音素中。",
+   "error": false
+  },
+  {
+   "word": "small",
+   "ipa": "/smɔːl/",
+   "old_phonemes": [
+    "s",
+    "m",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "s",
+    "m",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "smile",
+   "ipa": "/smaɪl/",
+   "old_phonemes": [
+    "s",
+    "m",
+    "aɪ",
+    "l"
+   ],
+   "phonemes": [
+    "s",
+    "m",
+    "aɪ",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "some",
+   "ipa": "/sʌm/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "m"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tall",
+   "ipa": "/tɔːl/",
+   "old_phonemes": [
+    "t",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "t",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "them",
+   "ipa": "/ðəm/",
+   "old_phonemes": [
+    "ð",
+    "ə",
+    "m"
+   ],
+   "phonemes": [
+    "ð",
+    "ə",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tiger",
+   "ipa": "/ˈtaɪ.ɡə/",
+   "old_phonemes": [
+    "t",
+    "aɪ",
+    "g",
+    "ə"
+   ],
+   "phonemes": [
+    "t",
+    "aɪ",
+    "g",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "two",
+   "ipa": "/tuː/",
+   "old_phonemes": [
+    "t",
+    "uː"
+   ],
+   "phonemes": [
+    "t",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "uncle",
+   "ipa": "/ˈʌŋ.kəl/",
+   "old_phonemes": [
+    "ʌ",
+    "ŋ",
+    "g",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "ʌ",
+    "ŋ",
+    "k",
+    "ə",
+    "l"
+   ],
+   "ok": false,
+   "issues": "字母c发/k/音，原音素中的g错误，应为k。",
+   "error": false
+  },
+  {
+   "word": "year",
+   "ipa": "/jɪə/",
+   "old_phonemes": [
+    "j",
+    "ɪə"
+   ],
+   "phonemes": [
+    "j",
+    "ɪə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "Great!",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "g",
+    "r",
+    "eɪ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "ipa为空，按标准英式发音应为/ɡreɪt/，原音素缺失。",
+   "error": false
+  },
+  {
+   "word": "guest",
+   "ipa": "/ɡest/",
+   "old_phonemes": [
+    "g",
+    "e",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "g",
+    "e",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hello",
+   "ipa": "/hə.ˈləʊ/",
+   "old_phonemes": [
+    "h",
+    "ə",
+    "l",
+    "əʊ"
+   ],
+   "phonemes": [
+    "h",
+    "ə",
+    "l",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hi",
+   "ipa": "/haɪ/",
+   "old_phonemes": [
+    "h",
+    "aɪ"
+   ],
+   "phonemes": [
+    "h",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "evening",
+   "ipa": "/ˈiːv.nɪŋ/",
+   "old_phonemes": [
+    "iː",
+    "v",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "iː",
+    "v",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "goodbye",
+   "ipa": "/ˌɡʊd.ˈbaɪ/",
+   "old_phonemes": [
+    "g",
+    "ʊ",
+    "d",
+    "b",
+    "aɪ"
+   ],
+   "phonemes": [
+    "g",
+    "ʊ",
+    "d",
+    "b",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "strong",
+   "ipa": "/strɒŋ/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "r",
+    "ɒ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "r",
+    "ɒ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "beautiful",
+   "ipa": "/ˈbjuː.tɪ.fəl/",
+   "old_phonemes": [
+    "b",
+    "ju",
+    "t",
+    "ɪ",
+    "f",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "b",
+    "ju",
+    "t",
+    "ɪ",
+    "f",
+    "ə",
+    "l"
+   ],
+   "ok": false,
+   "issues": "/juː/应拆分为/j/和/uː/两个音素，且原/uː/漏写长音符号。",
+   "error": false
+  },
+  {
+   "word": "clever",
+   "ipa": "/ˈklev.ə/",
+   "old_phonemes": [
+    "k",
+    "l",
+    "e",
+    "v",
+    "ə"
+   ],
+   "phonemes": [
+    "k",
+    "l",
+    "e",
+    "v",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "brave",
+   "ipa": "/breɪv/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "eɪ",
+    "v"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "eɪ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cold",
+   "ipa": "/kəʊld/",
+   "old_phonemes": [
+    "k",
+    "əʊ",
+    "l",
+    "d"
+   ],
+   "phonemes": [
+    "k",
+    "əʊ",
+    "l",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "wet",
+   "ipa": "/wet/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dry",
+   "ipa": "/draɪ/",
+   "old_phonemes": [
+    "d",
+    "r",
+    "aɪ"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hungry",
+   "ipa": "/ˈhʌŋ.ɡri/",
+   "old_phonemes": [
+    "h",
+    "ʌ",
+    "ŋ",
+    "g",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "h",
+    "ʌ",
+    "ŋ",
+    "g",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "thirsty",
+   "ipa": "/ˈθɜː.sti/",
+   "old_phonemes": [
+    "θ",
+    "ɜː",
+    "s",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "s",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "tired",
+   "ipa": "/ˈtaɪəd/",
+   "old_phonemes": [
+    "t",
+    "aɪ",
+    "ə",
+    "d"
+   ],
+   "phonemes": [
+    "t",
+    "aɪ",
+    "ə",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "lovely",
+   "ipa": "/ˈlʌv.li/",
+   "old_phonemes": [
+    "l",
+    "ʌ",
+    "v",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "l",
+    "ʌ",
+    "v",
+    "l",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "delicious",
+   "ipa": "/dɪˈlɪʃ.əs/",
+   "old_phonemes": [
+    "d",
+    "ɪ",
+    "l",
+    "ɪ",
+    "ʃ",
+    "ə",
+    "s"
+   ],
+   "phonemes": [
+    "d",
+    "ɪ",
+    "l",
+    "ɪ",
+    "ʃ",
+    "ə",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "yummy",
+   "ipa": "/ˈjʌm.i/",
+   "old_phonemes": [
+    "j",
+    "ʌ",
+    "m",
+    "iː"
+   ],
+   "phonemes": [
+    "j",
+    "ʌ",
+    "m",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "horrible",
+   "ipa": "/ˈhɒ.rə.bl/",
+   "old_phonemes": [
+    "h",
+    "ɒ",
+    "r",
+    "ə",
+    "b",
+    "l"
+   ],
+   "phonemes": [
+    "h",
+    "ɒ",
+    "r",
+    "ə",
+    "b",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "terrible",
+   "ipa": "/ˈterəbl/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "r",
+    "ə",
+    "b",
+    "l"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "r",
+    "ə",
+    "b",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fantastic",
+   "ipa": "/fænˈtæs.tɪk/",
+   "old_phonemes": [
+    "f",
+    "æ",
+    "n",
+    "t",
+    "æ",
+    "s",
+    "t",
+    "ɪ",
+    "k"
+   ],
+   "phonemes": [
+    "f",
+    "æ",
+    "n",
+    "t",
+    "æ",
+    "s",
+    "t",
+    "ɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "silly",
+   "ipa": "/ˈsɪl.i/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "l",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "naughty",
+   "ipa": "/ˈnɔː.ti/",
+   "old_phonemes": [
+    "n",
+    "ɔː",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "n",
+    "ɔː",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "quick",
+   "ipa": "/kwɪk/",
+   "old_phonemes": [
+    "k",
+    "w",
+    "ɪ",
+    "k"
+   ],
+   "phonemes": [
+    "k",
+    "w",
+    "ɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "careful",
+   "ipa": "/ˈkeə.fəl/",
+   "old_phonemes": [
+    "k",
+    "eə",
+    "f",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "k",
+    "eə",
+    "f",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rude",
+   "ipa": "/ruːd/",
+   "old_phonemes": [
+    "r",
+    "uː",
+    "d"
+   ],
+   "phonemes": [
+    "r",
+    "uː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "polite",
+   "ipa": "/pəˈlaɪt/",
+   "old_phonemes": [
+    "p",
+    "ə",
+    "l",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "ə",
+    "l",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "wrong",
+   "ipa": "/rɒŋ/",
+   "old_phonemes": [
+    "r",
+    "ɒ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "r",
+    "ɒ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "right",
+   "ipa": "/raɪt/",
+   "old_phonemes": [
+    "r",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "r",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "busy",
+   "ipa": "/ˈbɪ.zi/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "z",
+    "iː"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "z",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "well",
+   "ipa": "/wel/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "l"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "better",
+   "ipa": "/ˈbetə(r)/",
+   "old_phonemes": [
+    "b",
+    "e",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "b",
+    "e",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中词尾r后无元音时不发音，不应包含音素/r/",
+   "error": false
+  },
+  {
+   "word": "important",
+   "ipa": "/ɪmˈpɔː.tnt/",
+   "old_phonemes": [
+    "ɪ",
+    "m",
+    "p",
+    "ɔː",
+    "t",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "ɪ",
+    "m",
+    "p",
+    "ɔː",
+    "t",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "deep",
+   "ipa": "/diːp/",
+   "old_phonemes": [
+    "d",
+    "iː",
+    "p"
+   ],
+   "phonemes": [
+    "d",
+    "iː",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "funny",
+   "ipa": "/ˈfʌn.i/",
+   "old_phonemes": [
+    "f",
+    "ʌ",
+    "n",
+    "iː"
+   ],
+   "phonemes": [
+    "f",
+    "ʌ",
+    "n",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "非重读音节词尾的y应发/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "awful",
+   "ipa": "/ˈɔːfl/",
+   "old_phonemes": [
+    "ɔː",
+    "f",
+    "l"
+   ],
+   "phonemes": [
+    "ɔː",
+    "f",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "huge",
+   "ipa": "/hjuːdʒ/",
+   "old_phonemes": [
+    "h",
+    "ju",
+    "dʒ"
+   ],
+   "phonemes": [
+    "h",
+    "ju",
+    "dʒ"
+   ],
+   "ok": false,
+   "issues": "将辅音音素/j/与长元音音素/uː/错误合并，且元音音值错误，应为长元音/uː/",
+   "error": false
+  },
+  {
+   "word": "wide",
+   "ipa": "/waɪd/",
+   "old_phonemes": [
+    "w",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "w",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "narrow",
+   "ipa": "/ˈnær.əʊ/",
+   "old_phonemes": [
+    "n",
+    "æ",
+    "r",
+    "əʊ"
+   ],
+   "phonemes": [
+    "n",
+    "æ",
+    "r",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "invisible",
+   "ipa": "/ɪnˈvɪz.ə.bl/",
+   "old_phonemes": [
+    "ɪ",
+    "n",
+    "v",
+    "ɪ",
+    "z",
+    "ə",
+    "b",
+    "l"
+   ],
+   "phonemes": [
+    "ɪ",
+    "n",
+    "v",
+    "ɪ",
+    "z",
+    "ə",
+    "b",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "safe",
+   "ipa": "/seɪf/",
+   "old_phonemes": [
+    "s",
+    "eɪ",
+    "f"
+   ],
+   "phonemes": [
+    "s",
+    "eɪ",
+    "f"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dangerous",
+   "ipa": "/ˈdeɪn.dʒər.əs/",
+   "old_phonemes": [
+    "d",
+    "eɪ",
+    "n",
+    "dʒ",
+    "ə",
+    "r",
+    "ə",
+    "s"
+   ],
+   "phonemes": [
+    "d",
+    "eɪ",
+    "n",
+    "dʒ",
+    "ə",
+    "r",
+    "ə",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "far",
+   "ipa": "/fɑː/",
+   "old_phonemes": [
+    "f",
+    "ɑː"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "there",
+   "ipa": "/ðeə(r)/",
+   "old_phonemes": [
+    "ð",
+    "eə",
+    "r"
+   ],
+   "phonemes": [
+    "ð",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "多包含了标准英式RP中不发音的尾音r",
+   "error": false
+  },
+  {
+   "word": "up",
+   "ipa": "/ʌp/",
+   "old_phonemes": [
+    "ʌ",
+    "p"
+   ],
+   "phonemes": [
+    "ʌ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "down",
+   "ipa": "/daʊn/",
+   "old_phonemes": [
+    "d",
+    "aʊ",
+    "n"
+   ],
+   "phonemes": [
+    "d",
+    "aʊ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "under",
+   "ipa": "/ˈʌn.də/",
+   "old_phonemes": [
+    "ʌ",
+    "n",
+    "d",
+    "ə"
+   ],
+   "phonemes": [
+    "ʌ",
+    "n",
+    "d",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "behind",
+   "ipa": "/bɪˈhaɪnd/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "h",
+    "aɪ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "h",
+    "aɪ",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "beside",
+   "ipa": "/bɪˈsaɪd/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "by",
+   "ipa": "/baɪ/",
+   "old_phonemes": [
+    "b",
+    "aɪ"
+   ],
+   "phonemes": [
+    "b",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "against",
+   "ipa": "/əˈɡenst/",
+   "old_phonemes": [
+    "ə",
+    "g",
+    "e",
+    "n",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "ə",
+    "g",
+    "e",
+    "n",
+    "s",
+    "t"
+   ],
+   "ok": false,
+   "issues": "音素符号错误，浊软腭塞音应使用国际音标/ɡ/而非字母g",
+   "error": false
+  },
+  {
+   "word": "left",
+   "ipa": "/left/",
+   "old_phonemes": [
+    "l",
+    "e",
+    "f",
+    "t"
+   ],
+   "phonemes": [
+    "l",
+    "e",
+    "f",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "middle",
+   "ipa": "/ˈmɪd.əl/",
+   "old_phonemes": [
+    "m",
+    "ɪ",
+    "d",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "m",
+    "ɪ",
+    "d",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "upstairs",
+   "ipa": "/ˌʌpˈsteəz/",
+   "old_phonemes": [
+    "ʌ",
+    "p",
+    "s",
+    "t",
+    "eə",
+    "z"
+   ],
+   "phonemes": [
+    "ʌ",
+    "p",
+    "s",
+    "t",
+    "eə",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "downstairs",
+   "ipa": "/ˌdaʊnˈsteəz/",
+   "old_phonemes": [
+    "d",
+    "aʊ",
+    "n",
+    "s",
+    "t",
+    "eə",
+    "z"
+   ],
+   "phonemes": [
+    "d",
+    "aʊ",
+    "n",
+    "s",
+    "t",
+    "eə",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "west",
+   "ipa": "/west/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "south",
+   "ipa": "/saʊθ/",
+   "old_phonemes": [
+    "s",
+    "aʊ",
+    "θ"
+   ],
+   "phonemes": [
+    "s",
+    "aʊ",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "between",
+   "ipa": "/bɪˈtwiːn/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "t",
+    "w",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "t",
+    "w",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "inside",
+   "ipa": "/ˌɪn.ˈsaɪd/",
+   "old_phonemes": [
+    "ɪ",
+    "n",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "ɪ",
+    "n",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "outside",
+   "ipa": "/ˌaʊtˈsaɪd/",
+   "old_phonemes": [
+    "aʊ",
+    "t",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "aʊ",
+    "t",
+    "s",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bottom",
+   "ipa": "/ˈbɒtəm/",
+   "old_phonemes": [
+    "b",
+    "ɒ",
+    "t",
+    "ə",
+    "m"
+   ],
+   "phonemes": [
+    "b",
+    "ɒ",
+    "t",
+    "ə",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "along",
+   "ipa": "/əˈlɒŋ/",
+   "old_phonemes": [
+    "ə",
+    "l",
+    "ɒ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "ə",
+    "l",
+    "ɒ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "around",
+   "ipa": "/əˈraʊnd/",
+   "old_phonemes": [
+    "ə",
+    "r",
+    "aʊ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "ə",
+    "r",
+    "aʊ",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "into",
+   "ipa": "/ˈɪn.tuː/",
+   "old_phonemes": [
+    "ɪ",
+    "n",
+    "t",
+    "uː"
+   ],
+   "phonemes": [
+    "ɪ",
+    "n",
+    "t",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "above",
+   "ipa": "/əˈbʌv/",
+   "old_phonemes": [
+    "ə",
+    "b",
+    "ʌ",
+    "v"
+   ],
+   "phonemes": [
+    "ə",
+    "b",
+    "ʌ",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eleven",
+   "ipa": "/ɪˈlev.ən/",
+   "old_phonemes": [
+    "ɪ",
+    "l",
+    "e",
+    "v",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "ɪ",
+    "l",
+    "e",
+    "v",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "twelve",
+   "ipa": "/twelv/",
+   "old_phonemes": [
+    "t",
+    "w",
+    "e",
+    "l",
+    "v"
+   ],
+   "phonemes": [
+    "t",
+    "w",
+    "e",
+    "l",
+    "v"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thirteen",
+   "ipa": "/ˌθɜːˈtiːn/",
+   "old_phonemes": [
+    "θ",
+    "ɜː",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fourteen",
+   "ipa": "/ˌfɔːˈtiːn/",
+   "old_phonemes": [
+    "f",
+    "ɔː",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "f",
+    "ɔː",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sixteen",
+   "ipa": "/ˌsɪksˈtiːn/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "seventeen",
+   "ipa": "/ˌsev.ənˈtiːn/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eighteen",
+   "ipa": "/ˌeɪˈtiːn/",
+   "old_phonemes": [
+    "eɪ",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "eɪ",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "nineteen",
+   "ipa": "/ˌnaɪnˈtiːn/",
+   "old_phonemes": [
+    "n",
+    "aɪ",
+    "n",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "n",
+    "aɪ",
+    "n",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "twenty",
+   "ipa": "/ˈtwen.ti/",
+   "old_phonemes": [
+    "t",
+    "w",
+    "e",
+    "n",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "t",
+    "w",
+    "e",
+    "n",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个音素应为/i/，与给定英式RP发音/ˈtwen.ti/不符，误用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "thirty",
+   "ipa": "/ˈθɜː.ti/",
+   "old_phonemes": [
+    "θ",
+    "ɜː",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个音素应为/i/，与给定英式RP发音/ˈθɜː.ti/不符，误用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "hundred",
+   "ipa": "/ˈhʌn.drəd/",
+   "old_phonemes": [
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d"
+   ],
+   "phonemes": [
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "early",
+   "ipa": "/ˈɜː.li/",
+   "old_phonemes": [
+    "ɜː",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "ɜː",
+    "l",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个音素应为/i/，与给定英式RP发音/ˈɜː.li/不符，误用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "late",
+   "ipa": "/leɪt/",
+   "old_phonemes": [
+    "l",
+    "eɪ",
+    "t"
+   ],
+   "phonemes": [
+    "l",
+    "eɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "today",
+   "ipa": "/təˈdeɪ/",
+   "old_phonemes": [
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "yesterday",
+   "ipa": "/ˈjestə.deɪ/",
+   "old_phonemes": [
+    "j",
+    "e",
+    "s",
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "j",
+    "e",
+    "s",
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tomorrow",
+   "ipa": "/təˈmɒr.əʊ/",
+   "old_phonemes": [
+    "t",
+    "ə",
+    "m",
+    "ɒ",
+    "r",
+    "əʊ"
+   ],
+   "phonemes": [
+    "t",
+    "ə",
+    "m",
+    "ɒ",
+    "r",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "then",
+   "ipa": "/ðen/",
+   "old_phonemes": [
+    "ð",
+    "e",
+    "n"
+   ],
+   "phonemes": [
+    "ð",
+    "e",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "date",
+   "ipa": "/deɪt/",
+   "old_phonemes": [
+    "d",
+    "eɪ",
+    "t"
+   ],
+   "phonemes": [
+    "d",
+    "eɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "holiday",
+   "ipa": "/ˈhɒ.lə.deɪ/",
+   "old_phonemes": [
+    "h",
+    "ɒ",
+    "l",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "h",
+    "ɒ",
+    "l",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dark",
+   "ipa": "/dɑːk/",
+   "old_phonemes": [
+    "d",
+    "ɑː",
+    "k"
+   ],
+   "phonemes": [
+    "d",
+    "ɑː",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "nearly",
+   "ipa": "/ˈnɪə.li/",
+   "old_phonemes": [
+    "n",
+    "ɪə",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "n",
+    "ɪə",
+    "l",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个音素应为/i/，与给定英式RP发音/ˈnɪə.li/不符，误用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "spring",
+   "ipa": "/sprɪŋ/",
+   "old_phonemes": [
+    "s",
+    "p",
+    "r",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "p",
+    "r",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "summer",
+   "ipa": "/ˈsʌmə(r)/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "标准英式 RP 中词尾 r 不发音，不应包含 /r/。",
+   "error": false
+  },
+  {
+   "word": "autumn",
+   "ipa": "/ˈɔːtəm/",
+   "old_phonemes": [
+    "ɔː",
+    "t",
+    "ə",
+    "m"
+   ],
+   "phonemes": [
+    "ɔː",
+    "t",
+    "ə",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "winter",
+   "ipa": "/ˈwɪn.tə/",
+   "old_phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "t",
+    "ə"
+   ],
+   "phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "t",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "january",
+   "ipa": "/ˈdʒæn.ju.ə.ri/",
+   "old_phonemes": [
+    "d",
+    "ʒ",
+    "æ",
+    "n",
+    "ju",
+    "ə",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "dʒ",
+    "æ",
+    "n",
+    "ju",
+    "ə",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "塞擦音 /dʒ/ 不应拆分；/j/ 与 /u/ 应分立；词尾应为 /i/ 而非 /iː/。",
+   "error": false
+  },
+  {
+   "word": "february",
+   "ipa": "/ˈfeb.rə.weə/",
+   "old_phonemes": [
+    "f",
+    "e",
+    "b",
+    "r",
+    "ə",
+    "w",
+    "eə"
+   ],
+   "phonemes": [
+    "f",
+    "e",
+    "b",
+    "r",
+    "uː",
+    "ə",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "标准英式发音为 /ˈfebruəri/，原拆分多出 /w/、/eə/，遗漏 /u/ 和 /i/。",
+   "error": false
+  },
+  {
+   "word": "march",
+   "ipa": "/mɑːtʃ/",
+   "old_phonemes": [
+    "m",
+    "ɑː",
+    "tʃ"
+   ],
+   "phonemes": [
+    "m",
+    "ɑː",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "april",
+   "ipa": "/ˈeɪprəl/",
+   "old_phonemes": [
+    "eɪ",
+    "p",
+    "r",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "eɪ",
+    "p",
+    "r",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "may",
+   "ipa": "/meɪ/",
+   "old_phonemes": [
+    "m",
+    "eɪ"
+   ],
+   "phonemes": [
+    "m",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "june",
+   "ipa": "/dʒuːn/",
+   "old_phonemes": [
+    "dʒ",
+    "uː",
+    "n"
+   ],
+   "phonemes": [
+    "dʒ",
+    "uː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "july",
+   "ipa": "/dʒuˈlaɪ/",
+   "old_phonemes": [
+    "d",
+    "ʒ",
+    "uː",
+    "l",
+    "aɪ"
+   ],
+   "phonemes": [
+    "dʒ",
+    "uː",
+    "l",
+    "aɪ"
+   ],
+   "ok": false,
+   "issues": "塞擦音 /dʒ/ 不应拆分为 /d/ 和 /ʒ/。",
+   "error": false
+  },
+  {
+   "word": "august",
+   "ipa": "/ˈɔːɡəst/",
+   "old_phonemes": [
+    "ɔː",
+    "g",
+    "ə",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "ɔː",
+    "g",
+    "ə",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "september",
+   "ipa": "/sepˈtembə(r)/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "p",
+    "t",
+    "e",
+    "m",
+    "b",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "p",
+    "t",
+    "e",
+    "m",
+    "b",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "标准英式 RP 中词尾 r 不发音，不应包含 /r/。",
+   "error": false
+  },
+  {
+   "word": "october",
+   "ipa": "/ɒkˈtəʊ.bər/",
+   "old_phonemes": [
+    "ɒ",
+    "k",
+    "t",
+    "əʊ",
+    "b",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "ɒ",
+    "k",
+    "t",
+    "əʊ",
+    "b",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "标准英式 RP 中词尾 r 不发音，不应包含 /r/。",
+   "error": false
+  },
+  {
+   "word": "november",
+   "ipa": "/nəʊˈvem.bər/",
+   "old_phonemes": [
+    "n",
+    "əʊ",
+    "v",
+    "e",
+    "m",
+    "b",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "n",
+    "əʊ",
+    "v",
+    "e",
+    "m",
+    "b",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "标准英式 RP 中词尾 r 不发音，不应包含 /r/。",
+   "error": false
+  },
+  {
+   "word": "december",
+   "ipa": "/dɪˈsemb.ə/",
+   "old_phonemes": [
+    "d",
+    "ɪ",
+    "s",
+    "e",
+    "m",
+    "b",
+    "ə"
+   ],
+   "phonemes": [
+    "d",
+    "ɪ",
+    "s",
+    "e",
+    "m",
+    "b",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "monday",
+   "ipa": "/ˈmʌn.deɪ/",
+   "old_phonemes": [
+    "m",
+    "ʌ",
+    "n",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "m",
+    "ʌ",
+    "n",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tuesday",
+   "ipa": "/ˈtjuː.zdeɪ/",
+   "old_phonemes": [
+    "t",
+    "ju",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "t",
+    "ju",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "ok": false,
+   "issues": "/j/ 与 /uː/ 应分立，且元音应为长音 /uː/。",
+   "error": false
+  },
+  {
+   "word": "wednesday",
+   "ipa": "/ˈwenz.deɪ/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "n",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "n",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thursday",
+   "ipa": "/ˈθɜːz.deɪ/",
+   "old_phonemes": [
+    "θ",
+    "ɜː",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "z",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "friday",
+   "ipa": "/ˈfraɪ.deɪ/",
+   "old_phonemes": [
+    "f",
+    "r",
+    "aɪ",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "aɪ",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "saturday",
+   "ipa": "/ˈsæt.ə.deɪ/",
+   "old_phonemes": [
+    "s",
+    "æ",
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "s",
+    "æ",
+    "t",
+    "ə",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sunday",
+   "ipa": "/ˈsʌndeɪ/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "n",
+    "d",
+    "eɪ"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "n",
+    "d",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "head",
+   "ipa": "/hed/",
+   "old_phonemes": [
+    "h",
+    "e",
+    "d"
+   ],
+   "phonemes": [
+    "h",
+    "e",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "neck",
+   "ipa": "/nek/",
+   "old_phonemes": [
+    "n",
+    "e",
+    "k"
+   ],
+   "phonemes": [
+    "n",
+    "e",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "shoulder",
+   "ipa": "/ˈʃəʊldə(r)/",
+   "old_phonemes": [
+    "ʃ",
+    "əʊ",
+    "l",
+    "d",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "əʊ",
+    "l",
+    "d",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌音，词尾r不发音，音素中包含不应发音的r",
+   "error": false
+  },
+  {
+   "word": "finger",
+   "ipa": "/ˈfɪŋ.ɡə/",
+   "old_phonemes": [
+    "f",
+    "ɪ",
+    "ŋ",
+    "g",
+    "ə"
+   ],
+   "phonemes": [
+    "f",
+    "ɪ",
+    "ŋ",
+    "g",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "toe",
+   "ipa": "/təʊ/",
+   "old_phonemes": [
+    "t",
+    "əʊ"
+   ],
+   "phonemes": [
+    "t",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tooth",
+   "ipa": "/tuːθ/",
+   "old_phonemes": [
+    "t",
+    "uː",
+    "θ"
+   ],
+   "phonemes": [
+    "t",
+    "uː",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "headache",
+   "ipa": "/ˈhe.deɪk/",
+   "old_phonemes": [
+    "h",
+    "e",
+    "d",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "h",
+    "e",
+    "d",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "stomachache",
+   "ipa": "/ˈstʌmək.eɪk/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "ʌ",
+    "m",
+    "ə",
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "ʌ",
+    "m",
+    "ə",
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "toothache",
+   "ipa": "/ˈtuːθ.eɪk/",
+   "old_phonemes": [
+    "t",
+    "uː",
+    "θ",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "t",
+    "uː",
+    "θ",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "backache",
+   "ipa": "/ˈbækeɪk/",
+   "old_phonemes": [
+    "b",
+    "æ",
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "b",
+    "æ",
+    "k",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "plum",
+   "ipa": "/plʌm/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "ʌ",
+    "m"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "ʌ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "peach",
+   "ipa": "/piːtʃ/",
+   "old_phonemes": [
+    "p",
+    "iː",
+    "tʃ"
+   ],
+   "phonemes": [
+    "p",
+    "iː",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "salad",
+   "ipa": "/ˈsæl.əd/",
+   "old_phonemes": [
+    "s",
+    "æ",
+    "l",
+    "ə",
+    "d"
+   ],
+   "phonemes": [
+    "s",
+    "æ",
+    "l",
+    "ə",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hamburger",
+   "ipa": "/ˈhæm.bɜː.ɡə/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "m",
+    "b",
+    "ɜː",
+    "g",
+    "ə"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "m",
+    "b",
+    "ɜː",
+    "g",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "breakfast",
+   "ipa": "/ˈbrekfəst/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "e",
+    "k",
+    "f",
+    "ə",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "e",
+    "k",
+    "f",
+    "ə",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "dinner",
+   "ipa": "/ˈdɪn.ər/",
+   "old_phonemes": [
+    "d",
+    "ɪ",
+    "n",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "d",
+    "ɪ",
+    "n",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌音，词尾r不发音，音素中包含不应发音的r",
+   "error": false
+  },
+  {
+   "word": "sugar",
+   "ipa": "/ˈʃʊɡə(r)/",
+   "old_phonemes": [
+    "ʃ",
+    "ʊ",
+    "g",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "ʊ",
+    "g",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌音，词尾r不发音，音素中包含不应发音的r",
+   "error": false
+  },
+  {
+   "word": "butter",
+   "ipa": "/ˈbʌt.ər/",
+   "old_phonemes": [
+    "b",
+    "ʌ",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "b",
+    "ʌ",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌音，词尾r不发音，音素中包含不应发音的r",
+   "error": false
+  },
+  {
+   "word": "currants",
+   "ipa": "/ˈkʌr.ənts/",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "r",
+    "ə",
+    "n",
+    "t",
+    "s"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "r",
+    "ə",
+    "n",
+    "t",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "salt",
+   "ipa": "/sɔːlt/",
+   "old_phonemes": [
+    "s",
+    "ɔː",
+    "l",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "ɔː",
+    "l",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pepper",
+   "ipa": "/ˈpep.ər/",
+   "old_phonemes": [
+    "p",
+    "e",
+    "p",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "e",
+    "p",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌音，词尾r不发音，音素中包含不应发音的r",
+   "error": false
+  },
+  {
+   "word": "cheese",
+   "ipa": "/tʃiːz/",
+   "old_phonemes": [
+    "tʃ",
+    "iː",
+    "z"
+   ],
+   "phonemes": [
+    "tʃ",
+    "iː",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bottle",
+   "ipa": "/ˈbɒtl/",
+   "old_phonemes": [
+    "b",
+    "ɒ",
+    "t",
+    "l"
+   ],
+   "phonemes": [
+    "b",
+    "ɒ",
+    "t",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cookie",
+   "ipa": "/ˈkʊk.i/",
+   "old_phonemes": [
+    "k",
+    "ʊ",
+    "k",
+    "iː"
+   ],
+   "phonemes": [
+    "k",
+    "ʊ",
+    "k",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "音素将词尾短元音/i/错误写为长元音/iː/，与实际发音音值不符",
+   "error": false
+  },
+  {
+   "word": "peanuts",
+   "ipa": "/ˈpiː.nʌts/",
+   "old_phonemes": [
+    "p",
+    "iː",
+    "n",
+    "ʌ",
+    "t",
+    "s"
+   ],
+   "phonemes": [
+    "p",
+    "iː",
+    "n",
+    "ʌ",
+    "t",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "crisps",
+   "ipa": "/krɪsps/",
+   "old_phonemes": [
+    "k",
+    "r",
+    "ɪ",
+    "s",
+    "p",
+    "s"
+   ],
+   "phonemes": [
+    "k",
+    "r",
+    "ɪ",
+    "s",
+    "p",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "biscuits",
+   "ipa": "/ˈbɪskɪts/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "s",
+    "k",
+    "ɪ",
+    "t",
+    "s"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "s",
+    "k",
+    "ɪ",
+    "t",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "buns",
+   "ipa": "/bʌnz/",
+   "old_phonemes": [
+    "b",
+    "ʌ",
+    "n",
+    "z"
+   ],
+   "phonemes": [
+    "b",
+    "ʌ",
+    "n",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "lemonade",
+   "ipa": "/ˌlem.əˈneɪd/",
+   "old_phonemes": [
+    "l",
+    "e",
+    "m",
+    "ə",
+    "n",
+    "eɪ",
+    "d"
+   ],
+   "phonemes": [
+    "l",
+    "e",
+    "m",
+    "ə",
+    "n",
+    "eɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pizza",
+   "ipa": "/ˈpiːts.ə/",
+   "old_phonemes": [
+    "p",
+    "iː",
+    "t",
+    "s",
+    "ə"
+   ],
+   "phonemes": [
+    "p",
+    "iː",
+    "t",
+    "s",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pies",
+   "ipa": "/paɪz/",
+   "old_phonemes": [
+    "p",
+    "aɪ",
+    "z"
+   ],
+   "phonemes": [
+    "p",
+    "aɪ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "spaghetti",
+   "ipa": "/spəˈɡet.i/",
+   "old_phonemes": [
+    "s",
+    "p",
+    "ə",
+    "g",
+    "e",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "p",
+    "ə",
+    "g",
+    "e",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "The consonant should be /ɡ/ not /g/, and the final vowel is /i/ not /iː/.",
+   "error": false
+  },
+  {
+   "word": "soup",
+   "ipa": "/suːp/",
+   "old_phonemes": [
+    "s",
+    "uː",
+    "p"
+   ],
+   "phonemes": [
+    "s",
+    "uː",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bush",
+   "ipa": "/bʊʃ/",
+   "old_phonemes": [
+    "b",
+    "ʊ",
+    "ʃ"
+   ],
+   "phonemes": [
+    "b",
+    "ʊ",
+    "ʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "palace",
+   "ipa": "/ˈpæl.əs/",
+   "old_phonemes": [
+    "p",
+    "æ",
+    "l",
+    "ə",
+    "s"
+   ],
+   "phonemes": [
+    "p",
+    "æ",
+    "l",
+    "ə",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "prison",
+   "ipa": "/ˈprɪz.ən/",
+   "old_phonemes": [
+    "p",
+    "r",
+    "ɪ",
+    "z",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "p",
+    "r",
+    "ɪ",
+    "z",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "kitchen",
+   "ipa": "/ˈkɪtʃ.ɪn/",
+   "old_phonemes": [
+    "k",
+    "ɪ",
+    "t",
+    "ʃ",
+    "ɪ",
+    "n"
+   ],
+   "phonemes": [
+    "k",
+    "ɪ",
+    "tʃ",
+    "ɪ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "/tʃ/ is a single affricate phoneme and should not be split into /t/ and /ʃ/.",
+   "error": false
+  },
+  {
+   "word": "bathroom",
+   "ipa": "/ˈbɑːθruːm/",
+   "old_phonemes": [
+    "b",
+    "ɑː",
+    "θ",
+    "r",
+    "uː",
+    "m"
+   ],
+   "phonemes": [
+    "b",
+    "ɑː",
+    "θ",
+    "r",
+    "uː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bedroom",
+   "ipa": "/ˈbedruːm/",
+   "old_phonemes": [
+    "b",
+    "e",
+    "d",
+    "r",
+    "uː",
+    "m"
+   ],
+   "phonemes": [
+    "b",
+    "e",
+    "d",
+    "r",
+    "uː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "road",
+   "ipa": "/rəʊd/",
+   "old_phonemes": [
+    "r",
+    "əʊ",
+    "d"
+   ],
+   "phonemes": [
+    "r",
+    "əʊ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rock",
+   "ipa": "/rɒk/",
+   "old_phonemes": [
+    "r",
+    "ɒ",
+    "k"
+   ],
+   "phonemes": [
+    "r",
+    "ɒ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "france",
+   "ipa": "/frɑːns/",
+   "old_phonemes": [
+    "f",
+    "r",
+    "ɑː",
+    "n",
+    "s"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "ɑː",
+    "n",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "china",
+   "ipa": "/ˈtʃaɪ.nə/",
+   "old_phonemes": [
+    "tʃ",
+    "aɪ",
+    "n",
+    "ə"
+   ],
+   "phonemes": [
+    "tʃ",
+    "aɪ",
+    "n",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "greece",
+   "ipa": "/ɡriːs/",
+   "old_phonemes": [
+    "g",
+    "r",
+    "iː",
+    "s"
+   ],
+   "phonemes": [
+    "g",
+    "r",
+    "iː",
+    "s"
+   ],
+   "ok": false,
+   "issues": "The first consonant is /ɡ/, not /g/.",
+   "error": false
+  },
+  {
+   "word": "japan",
+   "ipa": "/dʒə.ˈpæn/",
+   "old_phonemes": [
+    "dʒ",
+    "ə",
+    "p",
+    "æ",
+    "n"
+   ],
+   "phonemes": [
+    "dʒ",
+    "ə",
+    "p",
+    "æ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "gondoland",
+   "ipa": "/ˈɡɒn.dəʊ.lænd/",
+   "old_phonemes": [
+    "g",
+    "ɒ",
+    "n",
+    "d",
+    "əʊ",
+    "l",
+    "æ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "g",
+    "ɒ",
+    "n",
+    "d",
+    "əʊ",
+    "l",
+    "æ",
+    "n",
+    "d"
+   ],
+   "ok": false,
+   "issues": "The first consonant is /ɡ/, not /g/.",
+   "error": false
+  },
+  {
+   "word": "clock",
+   "ipa": "/klɒk/",
+   "old_phonemes": [
+    "k",
+    "l",
+    "ɒ",
+    "k"
+   ],
+   "phonemes": [
+    "k",
+    "l",
+    "ɒ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "plate",
+   "ipa": "/pleɪt/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "eɪ",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "eɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bell",
+   "ipa": "/bel/",
+   "old_phonemes": [
+    "b",
+    "e",
+    "l"
+   ],
+   "phonemes": [
+    "b",
+    "e",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fireplace",
+   "ipa": "/ˈfaɪə.pleɪs/",
+   "old_phonemes": [
+    "f",
+    "aɪ",
+    "ə",
+    "p",
+    "l",
+    "eɪ",
+    "s"
+   ],
+   "phonemes": [
+    "f",
+    "aɪ",
+    "ə",
+    "p",
+    "l",
+    "eɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "chandelier",
+   "ipa": "/ˌʃæn.dəˈlɪə(r)/",
+   "old_phonemes": [
+    "ʃ",
+    "æ",
+    "n",
+    "d",
+    "ə",
+    "l",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "æ",
+    "n",
+    "d",
+    "ə",
+    "l",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "Word-final /r/ is not pronounced in RP.",
+   "error": false
+  },
+  {
+   "word": "shower",
+   "ipa": "/ˈʃaʊə(r)/",
+   "old_phonemes": [
+    "ʃ",
+    "aʊ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "ʃ",
+    "aʊ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "Word-final /r/ is not pronounced in RP.",
+   "error": false
+  },
+  {
+   "word": "towel",
+   "ipa": "/ˈtaʊ.əl/",
+   "old_phonemes": [
+    "t",
+    "aʊ",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "t",
+    "aʊ",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sweater",
+   "ipa": "/ˈswetə(r)/",
+   "old_phonemes": [
+    "s",
+    "w",
+    "e",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "s",
+    "w",
+    "e",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "音素数组包含英式RP中不发音的词尾卷舌音/r/，应删除。",
+   "error": false
+  },
+  {
+   "word": "pants",
+   "ipa": "/pænts/",
+   "old_phonemes": [
+    "p",
+    "æ",
+    "n",
+    "t",
+    "s"
+   ],
+   "phonemes": [
+    "p",
+    "æ",
+    "n",
+    "t",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "basket",
+   "ipa": "/ˈbɑːskɪt/",
+   "old_phonemes": [
+    "b",
+    "ɑː",
+    "s",
+    "k",
+    "ɪ",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "ɑː",
+    "s",
+    "k",
+    "ɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "button",
+   "ipa": "/ˈbʌt.ən/",
+   "old_phonemes": [
+    "b",
+    "ʌ",
+    "t",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "b",
+    "ʌ",
+    "t",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "handle",
+   "ipa": "/ˈhæn.dl/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "n",
+    "d",
+    "l"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "n",
+    "d",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "switch",
+   "ipa": "/swɪtʃ/",
+   "old_phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "t",
+    "ʃ"
+   ],
+   "phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "tʃ"
+   ],
+   "ok": false,
+   "issues": "音素数组将塞擦音/tʃ/错误拆分为/t/和/ʃ/两个独立音素，应合并为/tʃ/。",
+   "error": false
+  },
+  {
+   "word": "plug",
+   "ipa": "/plʌɡ/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "ʌ",
+    "g"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "ʌ",
+    "g"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "camera",
+   "ipa": "/ˈkæm.rə/",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "m",
+    "r",
+    "ə"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "m",
+    "r",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "motorbike",
+   "ipa": "/ˈməʊ.tə.baɪk/",
+   "old_phonemes": [
+    "m",
+    "əʊ",
+    "t",
+    "ə",
+    "b",
+    "aɪ",
+    "k"
+   ],
+   "phonemes": [
+    "m",
+    "əʊ",
+    "t",
+    "ə",
+    "b",
+    "aɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "helicopter",
+   "ipa": "/ˈhel.ɪ.kɒp.tə/",
+   "old_phonemes": [
+    "h",
+    "e",
+    "l",
+    "ɪ",
+    "k",
+    "ɒ",
+    "p",
+    "t",
+    "ə"
+   ],
+   "phonemes": [
+    "h",
+    "e",
+    "l",
+    "ɪ",
+    "k",
+    "ɒ",
+    "p",
+    "t",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "spaceship",
+   "ipa": "/ˈspeɪs.ʃɪp/",
+   "old_phonemes": [
+    "s",
+    "p",
+    "eɪ",
+    "s",
+    "ʃ",
+    "ɪ",
+    "p"
+   ],
+   "phonemes": [
+    "s",
+    "p",
+    "eɪ",
+    "s",
+    "ʃ",
+    "ɪ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "typewriter",
+   "ipa": "/ˈtaɪpˌraɪ.tə/",
+   "old_phonemes": [
+    "t",
+    "aɪ",
+    "p",
+    "r",
+    "aɪ",
+    "t",
+    "ə"
+   ],
+   "phonemes": [
+    "t",
+    "aɪ",
+    "p",
+    "r",
+    "aɪ",
+    "t",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "computer",
+   "ipa": "/kəmˈpjuː.tər/",
+   "old_phonemes": [
+    "k",
+    "ə",
+    "m",
+    "p",
+    "ju",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "k",
+    "ə",
+    "m",
+    "p",
+    "ju",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "音素数组错误将辅音/j/和长元音/uː/合并为不规范的「ju」，且包含英式RP不发音的词尾卷舌音/r/，应拆分为/j/、/uː/并删除/r/。",
+   "error": false
+  },
+  {
+   "word": "telephone",
+   "ipa": "/ˈtelɪfəʊn/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "l",
+    "ɪ",
+    "f",
+    "əʊ",
+    "n"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "l",
+    "ɪ",
+    "f",
+    "əʊ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "radio",
+   "ipa": "/ˈreɪ.di.əʊ/",
+   "old_phonemes": [
+    "r",
+    "eɪ",
+    "d",
+    "iː",
+    "əʊ"
+   ],
+   "phonemes": [
+    "r",
+    "eɪ",
+    "d",
+    "ɪ",
+    "əʊ"
+   ],
+   "ok": false,
+   "issues": "音素数组将非重读音节的短元音/ɪ/错误标注为长元音/iː/，应修正为/ɪ/。",
+   "error": false
+  },
+  {
+   "word": "rubbish",
+   "ipa": "/ˈrʌb.ɪʃ/",
+   "old_phonemes": [
+    "r",
+    "ʌ",
+    "b",
+    "ɪ",
+    "ʃ"
+   ],
+   "phonemes": [
+    "r",
+    "ʌ",
+    "b",
+    "ɪ",
+    "ʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thing",
+   "ipa": "/θɪŋ/",
+   "old_phonemes": [
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "story",
+   "ipa": "/ˈstɔː.ri/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "ɔː",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "ɔː",
+    "r",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "音素数组将非重读音节的短元音/ɪ/错误标注为长元音/iː/，应修正为/ɪ/。",
+   "error": false
+  },
+  {
+   "word": "party",
+   "ipa": "/ˈpɑː.ti/",
+   "old_phonemes": [
+    "p",
+    "ɑː",
+    "t",
+    "iː"
+   ],
+   "phonemes": [
+    "p",
+    "ɑː",
+    "t",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "音素数组将非重读音节的短元音/ɪ/错误标注为长元音/iː/，应修正为/ɪ/。",
+   "error": false
+  },
+  {
+   "word": "entrance",
+   "ipa": "/ˈen.trəns/",
+   "old_phonemes": [
+    "e",
+    "n",
+    "t",
+    "r",
+    "ə",
+    "n",
+    "s"
+   ],
+   "phonemes": [
+    "e",
+    "n",
+    "t",
+    "r",
+    "ə",
+    "n",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "exit",
+   "ipa": "/ˈek.sɪt/",
+   "old_phonemes": [
+    "e",
+    "k",
+    "s",
+    "ɪ",
+    "t"
+   ],
+   "phonemes": [
+    "e",
+    "k",
+    "s",
+    "ɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "kilometre",
+   "ipa": "/ˈkɪ.lə.miː.tə/",
+   "old_phonemes": [
+    "k",
+    "ɪ",
+    "l",
+    "ə",
+    "m",
+    "iː",
+    "t",
+    "ə"
+   ],
+   "phonemes": [
+    "k",
+    "ɪ",
+    "l",
+    "ə",
+    "m",
+    "iː",
+    "t",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "metre",
+   "ipa": "/ˈmiː.tər/",
+   "old_phonemes": [
+    "m",
+    "iː",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "iː",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "音素数组包含英式RP中不发音的词尾卷舌音/r/，应删除。",
+   "error": false
+  },
+  {
+   "word": "degree",
+   "ipa": "/dɪˈɡriː/",
+   "old_phonemes": [
+    "d",
+    "ɪ",
+    "g",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "d",
+    "ɪ",
+    "g",
+    "r",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "speed",
+   "ipa": "/spiːd/",
+   "old_phonemes": [
+    "s",
+    "p",
+    "iː",
+    "d"
+   ],
+   "phonemes": [
+    "s",
+    "p",
+    "iː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "temperature",
+   "ipa": "/ˈtemprətʃə(r)/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "m",
+    "p",
+    "r",
+    "ə",
+    "t",
+    "ʃ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "m",
+    "p",
+    "r",
+    "ə",
+    "tʃ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "将塞擦音/tʃ/拆成了/t/和/ʃ，且RP中词尾r不发音。",
+   "error": false
+  },
+  {
+   "word": "tennis",
+   "ipa": "/ˈtenɪs/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "n",
+    "ɪ",
+    "s"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "n",
+    "ɪ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "golf",
+   "ipa": "/ɡɒlf/",
+   "old_phonemes": [
+    "g",
+    "ɒ",
+    "l",
+    "f"
+   ],
+   "phonemes": [
+    "g",
+    "ɒ",
+    "l",
+    "f"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "swimming",
+   "ipa": "/ˈswɪmɪŋ/",
+   "old_phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "m",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "m",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "exercise",
+   "ipa": "/ˈek.sə.saɪz/",
+   "old_phonemes": [
+    "e",
+    "k",
+    "s",
+    "ə",
+    "s",
+    "aɪ",
+    "z"
+   ],
+   "phonemes": [
+    "e",
+    "k",
+    "s",
+    "ə",
+    "s",
+    "aɪ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "wash",
+   "ipa": "/wɒʃ/",
+   "old_phonemes": [
+    "w",
+    "ɒ",
+    "ʃ"
+   ],
+   "phonemes": [
+    "w",
+    "ɒ",
+    "ʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "come",
+   "ipa": "/kʌm/",
+   "old_phonemes": [
+    "k",
+    "ʌ",
+    "m"
+   ],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "follow",
+   "ipa": "/ˈfɒl.əʊ/",
+   "old_phonemes": [
+    "f",
+    "ɒ",
+    "l",
+    "əʊ"
+   ],
+   "phonemes": [
+    "f",
+    "ɒ",
+    "l",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "stop",
+   "ipa": "/stɒp/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "ɒ",
+    "p"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "ɒ",
+    "p"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hear",
+   "ipa": "/hɪə/",
+   "old_phonemes": [
+    "h",
+    "ɪ",
+    "ə"
+   ],
+   "phonemes": [
+    "h",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "/ɪə/是双元音音素，不应拆分为/ɪ/和/ə/。",
+   "error": false
+  },
+  {
+   "word": "swim",
+   "ipa": "/swɪm/",
+   "old_phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "m"
+   ],
+   "phonemes": [
+    "s",
+    "w",
+    "ɪ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "try",
+   "ipa": "/traɪ/",
+   "old_phonemes": [
+    "t",
+    "r",
+    "aɪ"
+   ],
+   "phonemes": [
+    "t",
+    "r",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "take",
+   "ipa": "/teɪk/",
+   "old_phonemes": [
+    "t",
+    "eɪ",
+    "k"
+   ],
+   "phonemes": [
+    "t",
+    "eɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "push",
+   "ipa": "/pʊʃ/",
+   "old_phonemes": [
+    "p",
+    "ʊ",
+    "ʃ"
+   ],
+   "phonemes": [
+    "p",
+    "ʊ",
+    "ʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "open",
+   "ipa": "/ˈəʊ.pən/",
+   "old_phonemes": [
+    "əʊ",
+    "p",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "əʊ",
+    "p",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "close",
+   "ipa": "/kləʊz/",
+   "old_phonemes": [
+    "k",
+    "l",
+    "əʊ",
+    "z"
+   ],
+   "phonemes": [
+    "k",
+    "l",
+    "əʊ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "carry",
+   "ipa": "/ˈkær.i/",
+   "old_phonemes": [
+    "k",
+    "æ",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "k",
+    "æ",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "词尾元音为/i/，不是长元音/iː/。",
+   "error": false
+  },
+  {
+   "word": "bring",
+   "ipa": "/brɪŋ/",
+   "old_phonemes": [
+    "b",
+    "r",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "b",
+    "r",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "get",
+   "ipa": "/ɡet/",
+   "old_phonemes": [
+    "g",
+    "e",
+    "t"
+   ],
+   "phonemes": [
+    "g",
+    "e",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "appear",
+   "ipa": "/əˈpɪə(r)/",
+   "old_phonemes": [
+    "ə",
+    "p",
+    "ɪə",
+    "r"
+   ],
+   "phonemes": [
+    "ə",
+    "p",
+    "ɪə"
+   ],
+   "ok": false,
+   "issues": "RP中词尾r不发音，应删除。",
+   "error": false
+  },
+  {
+   "word": "pick",
+   "ipa": "/pɪk/",
+   "old_phonemes": [
+    "p",
+    "ɪ",
+    "k"
+   ],
+   "phonemes": [
+    "p",
+    "ɪ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "bounce",
+   "ipa": "/baʊns/",
+   "old_phonemes": [
+    "b",
+    "aʊ",
+    "n",
+    "s"
+   ],
+   "phonemes": [
+    "b",
+    "aʊ",
+    "n",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "slide",
+   "ipa": "/slaɪd/",
+   "old_phonemes": [
+    "s",
+    "l",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "s",
+    "l",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "reach",
+   "ipa": "/riːtʃ/",
+   "old_phonemes": [
+    "r",
+    "iː",
+    "tʃ"
+   ],
+   "phonemes": [
+    "r",
+    "iː",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "mend",
+   "ipa": "/mend/",
+   "old_phonemes": [
+    "m",
+    "e",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "m",
+    "e",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ride",
+   "ipa": "/raɪd/",
+   "old_phonemes": [
+    "r",
+    "aɪ",
+    "d"
+   ],
+   "phonemes": [
+    "r",
+    "aɪ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "want",
+   "ipa": "/wɒnt/",
+   "old_phonemes": [
+    "w",
+    "ɒ",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "ɒ",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "learn",
+   "ipa": "/lɜːn/",
+   "old_phonemes": [
+    "l",
+    "ɜː",
+    "n"
+   ],
+   "phonemes": [
+    "l",
+    "ɜː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "marry",
+   "ipa": "/ˈmær.i/",
+   "old_phonemes": [
+    "m",
+    "æ",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "m",
+    "æ",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "词尾元音应为短元音/i/，错误使用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "argue",
+   "ipa": "/ˈɑːɡ.juː/",
+   "old_phonemes": [
+    "ɑː",
+    "g",
+    "ju"
+   ],
+   "phonemes": [
+    "ɑː",
+    "g",
+    "ju"
+   ],
+   "ok": false,
+   "issues": "辅音/ɡ/误写为字母g，且未拆分辅音/j/与元音/uː/，错误合并为/ju/，遗漏/uː/的长音符号",
+   "error": false
+  },
+  {
+   "word": "bite",
+   "ipa": "/baɪt/",
+   "old_phonemes": [
+    "b",
+    "aɪ",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "aɪ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sink",
+   "ipa": "/sɪŋk/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "ŋ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "pour",
+   "ipa": "/pɔː(r)/",
+   "old_phonemes": [
+    "p",
+    "ɔː",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "ɔː"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾r不发音，错误包含不发音的/r/音素",
+   "error": false
+  },
+  {
+   "word": "warm",
+   "ipa": "/wɔːm/",
+   "old_phonemes": [
+    "w",
+    "ɔː",
+    "m"
+   ],
+   "phonemes": [
+    "w",
+    "ɔː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "please",
+   "ipa": "/pliːz/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "iː",
+    "z"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "iː",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "what",
+   "ipa": "/wɒt/",
+   "old_phonemes": [
+    "w",
+    "ɒ",
+    "t"
+   ],
+   "phonemes": [
+    "w",
+    "ɒ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "who",
+   "ipa": "/huː/",
+   "old_phonemes": [
+    "h",
+    "uː"
+   ],
+   "phonemes": [
+    "h",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "whose",
+   "ipa": "/huːz/",
+   "old_phonemes": [
+    "h",
+    "uː",
+    "z"
+   ],
+   "phonemes": [
+    "h",
+    "uː",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "why",
+   "ipa": "/waɪ/",
+   "old_phonemes": [
+    "w",
+    "aɪ"
+   ],
+   "phonemes": [
+    "w",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "when",
+   "ipa": "/wen/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "n"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "how",
+   "ipa": "/haʊ/",
+   "old_phonemes": [
+    "h",
+    "aʊ"
+   ],
+   "phonemes": [
+    "h",
+    "aʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "no",
+   "ipa": "/nəʊ/",
+   "old_phonemes": [
+    "n",
+    "əʊ"
+   ],
+   "phonemes": [
+    "n",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thank",
+   "ipa": "/θæŋk/",
+   "old_phonemes": [
+    "θ",
+    "æ",
+    "ŋ",
+    "k"
+   ],
+   "phonemes": [
+    "θ",
+    "æ",
+    "ŋ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "quiet",
+   "ipa": "/ˈkwaɪət/",
+   "old_phonemes": [
+    "k",
+    "w",
+    "aɪ",
+    "ə",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "w",
+    "aɪ",
+    "ə",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "north",
+   "ipa": "/nɔːθ/",
+   "old_phonemes": [
+    "n",
+    "ɔː",
+    "θ"
+   ],
+   "phonemes": [
+    "n",
+    "ɔː",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "danger",
+   "ipa": "/ˈdeɪn.dʒər/",
+   "old_phonemes": [
+    "d",
+    "eɪ",
+    "n",
+    "dʒ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "d",
+    "eɪ",
+    "n",
+    "dʒ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP发音中词尾r不发音，错误包含不发音的/r/音素",
+   "error": false
+  },
+  {
+   "word": "football",
+   "ipa": "/ˈfʊt.bɔːl/",
+   "old_phonemes": [
+    "f",
+    "ʊ",
+    "t",
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "f",
+    "ʊ",
+    "t",
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "basketball",
+   "ipa": "/ˈbɑːskɪtbɔːl/",
+   "old_phonemes": [
+    "b",
+    "ɑː",
+    "s",
+    "k",
+    "ɪ",
+    "t",
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "b",
+    "ɑː",
+    "s",
+    "k",
+    "ɪ",
+    "t",
+    "b",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "press",
+   "ipa": "/pres/",
+   "old_phonemes": [
+    "p",
+    "r",
+    "e",
+    "s"
+   ],
+   "phonemes": [
+    "p",
+    "r",
+    "e",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "put",
+   "ipa": "/pʊt/",
+   "old_phonemes": [
+    "p",
+    "ʊ",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "ʊ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "cry",
+   "ipa": "/kraɪ/",
+   "old_phonemes": [
+    "k",
+    "r",
+    "aɪ"
+   ],
+   "phonemes": [
+    "k",
+    "r",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thanks",
+   "ipa": "/θæŋks/",
+   "old_phonemes": [
+    "θ",
+    "æ",
+    "ŋ",
+    "k",
+    "s"
+   ],
+   "phonemes": [
+    "θ",
+    "æ",
+    "ŋ",
+    "k",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "again",
+   "ipa": "/əˈɡeɪn/",
+   "old_phonemes": [
+    "ə",
+    "g",
+    "eɪ",
+    "n"
+   ],
+   "phonemes": [
+    "ə",
+    "g",
+    "eɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "just",
+   "ipa": "/dʒʌst/",
+   "old_phonemes": [
+    "dʒ",
+    "ʌ",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "dʒ",
+    "ʌ",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "any",
+   "ipa": "/ˈɛn.i/",
+   "old_phonemes": [
+    "e",
+    "n",
+    "iː"
+   ],
+   "phonemes": [
+    "e",
+    "n",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中any的词尾元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "more",
+   "ipa": "/mɔːr/",
+   "old_phonemes": [
+    "m",
+    "ɔː",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "ɔː"
+   ],
+   "ok": false,
+   "issues": "标准英式RP为非卷舌音，more单独发音时尾字母r不发音，phonemes中多出冗余的/r/音素",
+   "error": false
+  },
+  {
+   "word": "everything",
+   "ipa": "/ˈev.ri.θɪŋ/",
+   "old_phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中everything的第二个音节元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "something",
+   "ipa": "/ˈsʌm.θɪŋ/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "anything",
+   "ipa": "/ˈɛn.i.θɪŋ/",
+   "old_phonemes": [
+    "e",
+    "n",
+    "iː",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "e",
+    "n",
+    "iː",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中anything的第二个音节元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "nothing",
+   "ipa": "/ˈnʌθ.ɪŋ/",
+   "old_phonemes": [
+    "n",
+    "ʌ",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "n",
+    "ʌ",
+    "θ",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "someone",
+   "ipa": "/ˈsʌm.wʌn/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "anyone",
+   "ipa": "/ˈɛn.i.wʌn/",
+   "old_phonemes": [
+    "e",
+    "n",
+    "iː",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "e",
+    "n",
+    "iː",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中anyone的第二个音节元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "somebody",
+   "ipa": "/ˈsʌm.bɒd.i/",
+   "old_phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "b",
+    "ɒ",
+    "d",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "ʌ",
+    "m",
+    "b",
+    "ɒ",
+    "d",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中somebody的词尾元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "nobody",
+   "ipa": "/ˈnəʊ.bɒd.i/",
+   "old_phonemes": [
+    "n",
+    "əʊ",
+    "b",
+    "ɒ",
+    "d",
+    "iː"
+   ],
+   "phonemes": [
+    "n",
+    "əʊ",
+    "b",
+    "ɒ",
+    "d",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中nobody的词尾元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "because",
+   "ipa": "/bɪˈkɒz/",
+   "old_phonemes": [
+    "b",
+    "ɪ",
+    "k",
+    "ɒ",
+    "z"
+   ],
+   "phonemes": [
+    "b",
+    "ɪ",
+    "k",
+    "ɒ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "and",
+   "ipa": "/ænd/",
+   "old_phonemes": [
+    "æ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "æ",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "but",
+   "ipa": "/bʌt/",
+   "old_phonemes": [
+    "b",
+    "ʌ",
+    "t"
+   ],
+   "phonemes": [
+    "b",
+    "ʌ",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "or",
+   "ipa": "/ɔːr/",
+   "old_phonemes": [
+    "ɔː",
+    "r"
+   ],
+   "phonemes": [
+    "ɔː"
+   ],
+   "ok": false,
+   "issues": "标准英式RP为非卷舌音，or单独发音时尾字母r不发音，phonemes中多出冗余的/r/音素",
+   "error": false
+  },
+  {
+   "word": "for",
+   "ipa": "/fɔː/",
+   "old_phonemes": [
+    "f",
+    "ɔː"
+   ],
+   "phonemes": [
+    "f",
+    "ɔː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "from",
+   "ipa": "/frɒm/",
+   "old_phonemes": [
+    "f",
+    "r",
+    "ɒ",
+    "m"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "ɒ",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "away",
+   "ipa": "/əˈweɪ/",
+   "old_phonemes": [
+    "ə",
+    "w",
+    "eɪ"
+   ],
+   "phonemes": [
+    "ə",
+    "w",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "back",
+   "ipa": "/bæk/",
+   "old_phonemes": [
+    "b",
+    "æ",
+    "k"
+   ],
+   "phonemes": [
+    "b",
+    "æ",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "together",
+   "ipa": "/təˈɡe.ðə/",
+   "old_phonemes": [
+    "t",
+    "ə",
+    "g",
+    "e",
+    "ð",
+    "ə"
+   ],
+   "phonemes": [
+    "t",
+    "ə",
+    "g",
+    "e",
+    "ð",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "everywhere",
+   "ipa": "/ˈev.ri.weə/",
+   "old_phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "w",
+    "eə"
+   ],
+   "phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "w",
+    "eə"
+   ],
+   "ok": false,
+   "issues": "标准英式RP中everywhere的第二个音节元音为短元音/i/，并非长元音/iː/，音素音值错误",
+   "error": false
+  },
+  {
+   "word": "entry",
+   "ipa": "/ˈen.tri/",
+   "old_phonemes": [
+    "e",
+    "n",
+    "t",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "e",
+    "n",
+    "t",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "最后一个元音音素应为/i/，错误使用了长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "gotcha",
+   "ipa": "/ˈɡɒ.tʃə/",
+   "old_phonemes": [
+    "g",
+    "ɒ",
+    "t",
+    "ʃ",
+    "ə"
+   ],
+   "phonemes": [
+    "g",
+    "ɒ",
+    "tʃ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "/tʃ/是单个塞擦音音素，不应拆分为/t/和/ʃ/",
+   "error": false
+  },
+  {
+   "word": "hurray",
+   "ipa": "/hʊ.ˈreɪ/",
+   "old_phonemes": [
+    "h",
+    "ʊ",
+    "r",
+    "eɪ"
+   ],
+   "phonemes": [
+    "h",
+    "ʊ",
+    "r",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "hooray",
+   "ipa": "/hʊ.ˈreɪ/",
+   "old_phonemes": [
+    "h",
+    "ʊ",
+    "r",
+    "eɪ"
+   ],
+   "phonemes": [
+    "h",
+    "ʊ",
+    "r",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "achoo",
+   "ipa": "/əˈtʃuː/",
+   "old_phonemes": [
+    "ə",
+    "tʃ",
+    "uː"
+   ],
+   "phonemes": [
+    "ə",
+    "tʃ",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "wonderful",
+   "ipa": "/ˈwʌn.də.fəl/",
+   "old_phonemes": [
+    "w",
+    "ʌ",
+    "n",
+    "d",
+    "ə",
+    "f",
+    "l"
+   ],
+   "phonemes": [
+    "w",
+    "ʌ",
+    "n",
+    "d",
+    "ə",
+    "f",
+    "ə",
+    "l"
+   ],
+   "ok": false,
+   "issues": "遗漏了第三个音节中的/ə/音素",
+   "error": false
+  },
+  {
+   "word": "surprise",
+   "ipa": "/səˈpraɪz/",
+   "old_phonemes": [
+    "s",
+    "ə",
+    "p",
+    "r",
+    "aɪ",
+    "z"
+   ],
+   "phonemes": [
+    "s",
+    "ə",
+    "p",
+    "r",
+    "aɪ",
+    "z"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "secret",
+   "ipa": "/ˈsiː.krət/",
+   "old_phonemes": [
+    "s",
+    "iː",
+    "k",
+    "r",
+    "ə",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "iː",
+    "k",
+    "r",
+    "ə",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "matter",
+   "ipa": "/ˈmæt.ər/",
+   "old_phonemes": [
+    "m",
+    "æ",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "æ",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中词尾r后无元音时不发音，不应包含/r/音素",
+   "error": false
+  },
+  {
+   "word": "fault",
+   "ipa": "/fɔːlt/",
+   "old_phonemes": [
+    "f",
+    "ɔː",
+    "l",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "ɔː",
+    "l",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "happiness",
+   "ipa": "/ˈhæ.pɪ.nəs/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ɪ",
+    "n",
+    "ə",
+    "s"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ɪ",
+    "n",
+    "ə",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fun",
+   "ipa": "/fʌn/",
+   "old_phonemes": [
+    "f",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "f",
+    "ʌ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "happen",
+   "ipa": "/ˈhæ.pən/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "happening",
+   "ipa": "/ˈhæ.pə.nɪŋ/",
+   "old_phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ə",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "phonemes": [
+    "h",
+    "æ",
+    "p",
+    "ə",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "rest",
+   "ipa": "/rest/",
+   "old_phonemes": [
+    "r",
+    "e",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "r",
+    "e",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "free",
+   "ipa": "/friː/",
+   "old_phonemes": [
+    "f",
+    "r",
+    "iː"
+   ],
+   "phonemes": [
+    "f",
+    "r",
+    "iː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "age",
+   "ipa": "/eɪdʒ/",
+   "old_phonemes": [
+    "eɪ",
+    "dʒ"
+   ],
+   "phonemes": [
+    "eɪ",
+    "dʒ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "weather",
+   "ipa": "/ˈweð.ə/",
+   "old_phonemes": [
+    "w",
+    "e",
+    "ð",
+    "ə"
+   ],
+   "phonemes": [
+    "w",
+    "e",
+    "ð",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "village",
+   "ipa": "/ˈvɪl.ɪdʒ/",
+   "old_phonemes": [
+    "v",
+    "ɪ",
+    "l",
+    "ɪ",
+    "dʒ"
+   ],
+   "phonemes": [
+    "v",
+    "ɪ",
+    "l",
+    "ɪ",
+    "dʒ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "street",
+   "ipa": "/striːt/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "r",
+    "iː",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "r",
+    "iː",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "forest",
+   "ipa": "/ˈfɒr.ɪst/",
+   "old_phonemes": [
+    "f",
+    "ɒ",
+    "r",
+    "ɪ",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "ɒ",
+    "r",
+    "ɪ",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "beach",
+   "ipa": "/biːtʃ/",
+   "old_phonemes": [
+    "b",
+    "iː",
+    "tʃ"
+   ],
+   "phonemes": [
+    "b",
+    "iː",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "season",
+   "ipa": "/ˈsiː.zən/",
+   "old_phonemes": [
+    "s",
+    "iː",
+    "z",
+    "ə",
+    "n"
+   ],
+   "phonemes": [
+    "s",
+    "iː",
+    "z",
+    "ə",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "festival",
+   "ipa": "/ˈfest.ɪ.vəl/",
+   "old_phonemes": [
+    "f",
+    "e",
+    "s",
+    "t",
+    "ɪ",
+    "v",
+    "ə",
+    "l"
+   ],
+   "phonemes": [
+    "f",
+    "e",
+    "s",
+    "t",
+    "ɪ",
+    "v",
+    "ə",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "present",
+   "ipa": "/ˈprez.ənt/",
+   "old_phonemes": [
+    "p",
+    "r",
+    "e",
+    "z",
+    "ə",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "p",
+    "r",
+    "e",
+    "z",
+    "ə",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "card",
+   "ipa": "/kɑːd/",
+   "old_phonemes": [
+    "k",
+    "ɑː",
+    "d"
+   ],
+   "phonemes": [
+    "k",
+    "ɑː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "letter",
+   "ipa": "/ˈlet.ər/",
+   "old_phonemes": [
+    "l",
+    "e",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "l",
+    "e",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP为非卷舌口音，单词尾音r不发音，原音素错误包含不发音的r，原IPA带r不符合英式发音规范",
+   "error": false
+  },
+  {
+   "word": "game",
+   "ipa": "/ɡeɪm/",
+   "old_phonemes": [
+    "g",
+    "eɪ",
+    "m"
+   ],
+   "phonemes": [
+    "g",
+    "eɪ",
+    "m"
+   ],
+   "ok": false,
+   "issues": "首音素符号书写错误，浊软腭塞音应使用国际音标/ɡ/而非字母g",
+   "error": false
+  },
+  {
+   "word": "team",
+   "ipa": "/tiːm/",
+   "old_phonemes": [
+    "t",
+    "iː",
+    "m"
+   ],
+   "phonemes": [
+    "t",
+    "iː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "class",
+   "ipa": "/klɑːs/",
+   "old_phonemes": [
+    "k",
+    "l",
+    "ɑː",
+    "s"
+   ],
+   "phonemes": [
+    "k",
+    "l",
+    "ɑː",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "student",
+   "ipa": "/ˈstjuːdnt/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "ju",
+    "d",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "ju",
+    "d",
+    "n",
+    "t"
+   ],
+   "ok": false,
+   "issues": "原音素错误将半元音/j/和长元音/uː/合并为「ju」且遗漏长音符号，应拆分为两个独立音素/j/和/uː/",
+   "error": false
+  },
+  {
+   "word": "driver",
+   "ipa": "/ˈdraɪ.vər/",
+   "old_phonemes": [
+    "d",
+    "r",
+    "aɪ",
+    "v",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "d",
+    "r",
+    "aɪ",
+    "v",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中尾音r不发音，原音素错误包含不发音的r，原IPA带r不符合英式发音规范",
+   "error": false
+  },
+  {
+   "word": "farmer",
+   "ipa": "/ˈfɑː.mə/",
+   "old_phonemes": [
+    "f",
+    "ɑː",
+    "m",
+    "ə"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː",
+    "m",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "worker",
+   "ipa": "/ˈwɜː.kə/",
+   "old_phonemes": [
+    "w",
+    "ɜː",
+    "k",
+    "ə"
+   ],
+   "phonemes": [
+    "w",
+    "ɜː",
+    "k",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "player",
+   "ipa": "/ˈpleɪ.ə(r)/",
+   "old_phonemes": [
+    "p",
+    "l",
+    "eɪ",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "p",
+    "l",
+    "eɪ",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中尾音r仅在后续接元音时连读，单独发音时不发声，原音素错误包含r",
+   "error": false
+  },
+  {
+   "word": "winner",
+   "ipa": "/ˈwɪn.ə/",
+   "old_phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "ə"
+   ],
+   "phonemes": [
+    "w",
+    "ɪ",
+    "n",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "loser",
+   "ipa": "/ˈluː.zər/",
+   "old_phonemes": [
+    "l",
+    "uː",
+    "z",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "l",
+    "uː",
+    "z",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中尾音r不发音，原音素错误包含不发音的r，原IPA带r不符合英式发音规范",
+   "error": false
+  },
+  {
+   "word": "firstly",
+   "ipa": "/ˈfɜːst.li/",
+   "old_phonemes": [
+    "f",
+    "ɜː",
+    "s",
+    "t",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "f",
+    "ɜː",
+    "s",
+    "t",
+    "l",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "词尾后缀-ly的元音为短元音/ɪ/，原音素错误写为长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "secondly",
+   "ipa": "/ˈsek.ənd.li/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "k",
+    "ə",
+    "n",
+    "d",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "k",
+    "ə",
+    "n",
+    "d",
+    "l",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "词尾后缀-ly的元音为短元音/ɪ/，原音素错误写为长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "finally",
+   "ipa": "/ˈfaɪ.nə.li/",
+   "old_phonemes": [
+    "f",
+    "aɪ",
+    "n",
+    "ə",
+    "l",
+    "iː"
+   ],
+   "phonemes": [
+    "f",
+    "aɪ",
+    "n",
+    "ə",
+    "l",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "词尾后缀-ly的元音为短元音/ɪ/，原音素错误写为长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "princess",
+   "ipa": "/ˌprɪnˈses/",
+   "old_phonemes": [
+    "p",
+    "r",
+    "ɪ",
+    "n",
+    "s",
+    "e",
+    "s"
+   ],
+   "phonemes": [
+    "p",
+    "r",
+    "ɪ",
+    "n",
+    "s",
+    "e",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "gardener",
+   "ipa": "/ˈɡɑː.dən.ə/",
+   "old_phonemes": [
+    "g",
+    "ɑː",
+    "d",
+    "ə",
+    "n",
+    "ə"
+   ],
+   "phonemes": [
+    "g",
+    "ɑː",
+    "d",
+    "n",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "原音素首音素错误使用字母g而非国际音标/ɡ/，且错误在/d/与/n/之间添加元音/ə/，英式RP中该位置为成音节辅音/n/，无/ə/",
+   "error": false
+  },
+  {
+   "word": "monster",
+   "ipa": "/ˈmɒn.stər/",
+   "old_phonemes": [
+    "m",
+    "ɒ",
+    "n",
+    "s",
+    "t",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "m",
+    "ɒ",
+    "n",
+    "s",
+    "t",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中尾音r不发音，原音素错误包含不发音的r，原IPA带r不符合英式发音规范",
+   "error": false
+  },
+  {
+   "word": "enormous",
+   "ipa": "/ɪˈnɔː.məs/",
+   "old_phonemes": [
+    "ɪ",
+    "n",
+    "ɔː",
+    "m",
+    "ə",
+    "s"
+   ],
+   "phonemes": [
+    "ɪ",
+    "n",
+    "ɔː",
+    "m",
+    "ə",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "mummy",
+   "ipa": "/ˈmʌm.i/",
+   "old_phonemes": [
+    "m",
+    "ʌ",
+    "m",
+    "iː"
+   ],
+   "phonemes": [
+    "m",
+    "ʌ",
+    "m",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "词尾元音为短元音/ɪ/，原音素错误写为长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "daddy",
+   "ipa": "/ˈdæ.di/",
+   "old_phonemes": [
+    "d",
+    "æ",
+    "d",
+    "iː"
+   ],
+   "phonemes": [
+    "d",
+    "æ",
+    "d",
+    "ɪ"
+   ],
+   "ok": false,
+   "issues": "词尾元音为短元音/ɪ/，原音素错误写为长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "good morning",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "g",
+    "ʊ",
+    "d",
+    "m",
+    "ɔː",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": false,
+   "issues": "原内容缺失正确的IPA和音素拆分，已补全标准英式RP发音对应内容",
+   "error": false
+  },
+  {
+   "word": "good evening",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "g",
+    "ʊ",
+    "d",
+    "iː",
+    "v",
+    "n",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": false,
+   "issues": "原内容缺失正确的IPA和音素拆分，已补全标准英式RP发音对应内容",
+   "error": false
+  },
+  {
+   "word": "bye",
+   "ipa": "/baɪ/",
+   "old_phonemes": [
+    "b",
+    "aɪ"
+   ],
+   "phonemes": [
+    "b",
+    "aɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fine",
+   "ipa": "/faɪn/",
+   "old_phonemes": [
+    "f",
+    "aɪ",
+    "n"
+   ],
+   "phonemes": [
+    "f",
+    "aɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "heavy",
+   "ipa": "/ˈhev.i/",
+   "old_phonemes": [
+    "h",
+    "e",
+    "v",
+    "iː"
+   ],
+   "phonemes": [
+    "h",
+    "e",
+    "v",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "词尾元音音值错误，应为短元音/i/，错误使用长元音/iː/",
+   "error": false
+  },
+  {
+   "word": "pull",
+   "ipa": "/pʊl/",
+   "old_phonemes": [
+    "p",
+    "ʊ",
+    "l"
+   ],
+   "phonemes": [
+    "p",
+    "ʊ",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "in",
+   "ipa": "/ɪn/",
+   "old_phonemes": [
+    "ɪ",
+    "n"
+   ],
+   "phonemes": [
+    "ɪ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "on",
+   "ipa": "/ɒn/",
+   "old_phonemes": [
+    "ɒ",
+    "n"
+   ],
+   "phonemes": [
+    "ɒ",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "east",
+   "ipa": "/iːst/",
+   "old_phonemes": [
+    "iː",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "iː",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "over",
+   "ipa": "/ˈəʊ.vər/",
+   "old_phonemes": [
+    "əʊ",
+    "v",
+    "ə",
+    "r"
+   ],
+   "phonemes": [
+    "əʊ",
+    "v",
+    "ə"
+   ],
+   "ok": false,
+   "issues": "英式RP中单个单词词尾的r不发音，不应包含音素/r/",
+   "error": false
+  },
+  {
+   "word": "which",
+   "ipa": "/wɪtʃ/",
+   "old_phonemes": [
+    "w",
+    "ɪ",
+    "tʃ"
+   ],
+   "phonemes": [
+    "w",
+    "ɪ",
+    "tʃ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "what about",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "w",
+    "ɒ",
+    "t",
+    "ə",
+    "b",
+    "aʊ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "音素数组为空，未包含标准英式RP发音的所有音素",
+   "error": false
+  },
+  {
+   "word": "fifteen",
+   "ipa": "/ˌfɪfˈtiːn/",
+   "old_phonemes": [
+    "f",
+    "ɪ",
+    "f",
+    "t",
+    "iː",
+    "n"
+   ],
+   "phonemes": [
+    "f",
+    "ɪ",
+    "f",
+    "t",
+    "iː",
+    "n"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "count",
+   "ipa": "/kaʊnt/",
+   "old_phonemes": [
+    "k",
+    "aʊ",
+    "n",
+    "t"
+   ],
+   "phonemes": [
+    "k",
+    "aʊ",
+    "n",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "a hundred and eight",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d",
+    "ə",
+    "n",
+    "eɪ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "音素数组为空，未包含标准英式RP发音的所有音素",
+   "error": false
+  },
+  {
+   "word": "a hundred and nine",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d",
+    "ə",
+    "n",
+    "n",
+    "aɪ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "音素数组为空，未包含标准英式RP发音的所有音素",
+   "error": false
+  },
+  {
+   "word": "a hundred and ten",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d",
+    "ə",
+    "n",
+    "t",
+    "e",
+    "n"
+   ],
+   "ok": false,
+   "issues": "音素数组为空，未包含标准英式RP发音的所有音素",
+   "error": false
+  },
+  {
+   "word": "a hundred and fifty",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "h",
+    "ʌ",
+    "n",
+    "d",
+    "r",
+    "ə",
+    "d",
+    "ə",
+    "n",
+    "f",
+    "ɪ",
+    "f",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "音素数组为空，未包含标准英式RP发音的所有音素",
+   "error": false
+  },
+  {
+   "word": "first",
+   "ipa": "/fɜːst/",
+   "old_phonemes": [
+    "f",
+    "ɜː",
+    "s",
+    "t"
+   ],
+   "phonemes": [
+    "f",
+    "ɜː",
+    "s",
+    "t"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "second",
+   "ipa": "/ˈsek.ənd/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "k",
+    "ə",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "k",
+    "ə",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "third",
+   "ipa": "/θɜːd/",
+   "old_phonemes": [
+    "θ",
+    "ɜː",
+    "d"
+   ],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fourth",
+   "ipa": "/fɔːθ/",
+   "old_phonemes": [
+    "f",
+    "ɔː",
+    "θ"
+   ],
+   "phonemes": [
+    "f",
+    "ɔː",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "fifth",
+   "ipa": "/fɪfθ/",
+   "old_phonemes": [
+    "f",
+    "ɪ",
+    "f",
+    "θ"
+   ],
+   "phonemes": [
+    "f",
+    "ɪ",
+    "f",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "sixth",
+   "ipa": "/sɪksθ/",
+   "old_phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s",
+    "θ"
+   ],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "k",
+    "s",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "seventh",
+   "ipa": "/ˈsev.ənθ/",
+   "old_phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "θ"
+   ],
+   "phonemes": [
+    "s",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eighth",
+   "ipa": "/eɪtθ/",
+   "old_phonemes": [
+    "eɪ",
+    "t",
+    "θ"
+   ],
+   "phonemes": [
+    "eɪ",
+    "t",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ninth",
+   "ipa": "/naɪnθ/",
+   "old_phonemes": [
+    "n",
+    "aɪ",
+    "n",
+    "θ"
+   ],
+   "phonemes": [
+    "n",
+    "aɪ",
+    "n",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "tenth",
+   "ipa": "/tenθ/",
+   "old_phonemes": [
+    "t",
+    "e",
+    "n",
+    "θ"
+   ],
+   "phonemes": [
+    "t",
+    "e",
+    "n",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "eleventh",
+   "ipa": "/ɪˈlev.ənθ/",
+   "old_phonemes": [
+    "ɪ",
+    "l",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "θ"
+   ],
+   "phonemes": [
+    "ɪ",
+    "l",
+    "e",
+    "v",
+    "ə",
+    "n",
+    "θ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "thirty-first",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "θ",
+    "ɜː",
+    "t",
+    "iː",
+    "f",
+    "ɜː",
+    "s",
+    "t"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "number one",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "n",
+    "ʌ",
+    "m",
+    "b",
+    "ə",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "number two",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "n",
+    "ʌ",
+    "m",
+    "b",
+    "ə",
+    "t",
+    "uː"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "number three",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "n",
+    "ʌ",
+    "m",
+    "b",
+    "ə",
+    "θ",
+    "r",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "half past five",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "h",
+    "ɑː",
+    "f",
+    "p",
+    "ɑː",
+    "s",
+    "t",
+    "f",
+    "aɪ",
+    "v"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "quarter past ten",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "k",
+    "w",
+    "ɔː",
+    "t",
+    "ə",
+    "p",
+    "ɑː",
+    "s",
+    "t",
+    "t",
+    "e",
+    "n"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "quarter to eleven",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "k",
+    "w",
+    "ɔː",
+    "t",
+    "ə",
+    "t",
+    "uː",
+    "ɪ",
+    "l",
+    "e",
+    "v",
+    "n"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "lunch-time",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "l",
+    "ʌ",
+    "n",
+    "tʃ",
+    "t",
+    "aɪ",
+    "m"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "dinner-time",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "d",
+    "ɪ",
+    "n",
+    "ə",
+    "t",
+    "aɪ",
+    "m"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "acho",
+   "ipa": "/ˈætʃ.əʊ/",
+   "old_phonemes": [
+    "æ",
+    "tʃ",
+    "əʊ"
+   ],
+   "phonemes": [
+    "æ",
+    "tʃ",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "ice-cream",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "aɪ",
+    "s",
+    "k",
+    "r",
+    "iː",
+    "m"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "chocolate ice",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "tʃ",
+    "ɒ",
+    "k",
+    "l",
+    "ə",
+    "t",
+    "aɪ",
+    "s"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "flour",
+   "ipa": "/ˈflaʊ.ə/",
+   "old_phonemes": [
+    "f",
+    "l",
+    "aʊ",
+    "ə"
+   ],
+   "phonemes": [
+    "f",
+    "l",
+    "aʊ",
+    "ə"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "a cup of tea",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "k",
+    "ʌ",
+    "p",
+    "ə",
+    "v",
+    "t",
+    "iː"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "strawberry ice",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "s",
+    "t",
+    "r",
+    "ɔː",
+    "b",
+    "ə",
+    "r",
+    "iː",
+    "aɪ",
+    "s"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "small house",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "s",
+    "m",
+    "ɔː",
+    "l",
+    "h",
+    "aʊ",
+    "s"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "room",
+   "ipa": "/ruːm/",
+   "old_phonemes": [
+    "r",
+    "uː",
+    "m"
+   ],
+   "phonemes": [
+    "r",
+    "uː",
+    "m"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "statue",
+   "ipa": "/ˈstætʃuː/",
+   "old_phonemes": [
+    "s",
+    "t",
+    "æ",
+    "t",
+    "ʃ",
+    "uː"
+   ],
+   "phonemes": [
+    "s",
+    "t",
+    "æ",
+    "tʃ",
+    "uː"
+   ],
+   "ok": false,
+   "issues": "将单个塞擦音音素/tʃ/错误拆分为/t/和/ʃ/两个音素",
+   "error": false
+  },
+  {
+   "word": "sitting-room",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "s",
+    "ɪ",
+    "t",
+    "ɪ",
+    "ŋ",
+    "r",
+    "uː",
+    "m"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "wall",
+   "ipa": "/wɔːl/",
+   "old_phonemes": [
+    "w",
+    "ɔː",
+    "l"
+   ],
+   "phonemes": [
+    "w",
+    "ɔː",
+    "l"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "a pair of shoes",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "p",
+    "eə",
+    "r",
+    "ə",
+    "v",
+    "ʃ",
+    "uː",
+    "z"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "a pair of socks",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ə",
+    "p",
+    "eə",
+    "r",
+    "ə",
+    "v",
+    "s",
+    "ɒ",
+    "k",
+    "s"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "roller-skating",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "r",
+    "əʊ",
+    "l",
+    "ə",
+    "s",
+    "k",
+    "eɪ",
+    "t",
+    "ɪ",
+    "ŋ"
+   ],
+   "ok": false,
+   "issues": "原音素数组为空，未完整拆分该词汇实际发音的音素",
+   "error": false
+  },
+  {
+   "word": "talk",
+   "ipa": "/tɔːk/",
+   "old_phonemes": [
+    "t",
+    "ɔː",
+    "k"
+   ],
+   "phonemes": [
+    "t",
+    "ɔː",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "walk",
+   "ipa": "/wɔːk/",
+   "old_phonemes": [
+    "w",
+    "ɔː",
+    "k"
+   ],
+   "phonemes": [
+    "w",
+    "ɔː",
+    "k"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "put down",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "p",
+    "ʊ",
+    "t",
+    "d",
+    "aʊ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "come back",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "k",
+    "ʌ",
+    "m",
+    "b",
+    "æ",
+    "k"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "go back",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "g",
+    "əʊ",
+    "b",
+    "æ",
+    "k"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "go away",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "g",
+    "əʊ",
+    "ə",
+    "w",
+    "eɪ"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "find",
+   "ipa": "/faɪnd/",
+   "old_phonemes": [
+    "f",
+    "aɪ",
+    "n",
+    "d"
+   ],
+   "phonemes": [
+    "f",
+    "aɪ",
+    "n",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "that's it",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "ð",
+    "æ",
+    "t",
+    "s",
+    "ɪ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "know",
+   "ipa": "/nəʊ/",
+   "old_phonemes": [
+    "n",
+    "əʊ"
+   ],
+   "phonemes": [
+    "n",
+    "əʊ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "have got",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "h",
+    "æ",
+    "v",
+    "g",
+    "ɒ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "too",
+   "ipa": "/tuː/",
+   "old_phonemes": [
+    "t",
+    "uː"
+   ],
+   "phonemes": [
+    "t",
+    "uː"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "welcome to",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "w",
+    "e",
+    "l",
+    "k",
+    "ə",
+    "m",
+    "t",
+    "uː"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "everyone",
+   "ipa": "/ˈev.ri.wʌn/",
+   "old_phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "phonemes": [
+    "e",
+    "v",
+    "r",
+    "iː",
+    "w",
+    "ʌ",
+    "n"
+   ],
+   "ok": false,
+   "issues": "/iː/ 应为 /i/，第二音节元音不是长元音。",
+   "error": false
+  },
+  {
+   "word": "how about",
+   "ipa": "",
+   "old_phonemes": [],
+   "phonemes": [
+    "h",
+    "aʊ",
+    "ə",
+    "b",
+    "aʊ",
+    "t"
+   ],
+   "ok": false,
+   "issues": "原音素拆分缺失，已按英式发音补全。",
+   "error": false
+  },
+  {
+   "word": "sad",
+   "ipa": "/sæd/",
+   "old_phonemes": [
+    "s",
+    "æ",
+    "d"
+   ],
+   "phonemes": [
+    "s",
+    "æ",
+    "d"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "faraway",
+   "ipa": "/ˈfɑː.rə.weɪ/",
+   "old_phonemes": [
+    "f",
+    "ɑː",
+    "r",
+    "ə",
+    "w",
+    "eɪ"
+   ],
+   "phonemes": [
+    "f",
+    "ɑː",
+    "r",
+    "ə",
+    "w",
+    "eɪ"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  },
+  {
+   "word": "across",
+   "ipa": "/əˈkrɒs/",
+   "old_phonemes": [
+    "ə",
+    "k",
+    "r",
+    "ɒ",
+    "s"
+   ],
+   "phonemes": [
+    "ə",
+    "k",
+    "r",
+    "ɒ",
+    "s"
+   ],
+   "ok": true,
+   "issues": "",
+   "error": false
+  }
+ ]
+}

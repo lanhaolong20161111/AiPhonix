@@ -3,8 +3,11 @@ package com.example.ai.ui.pronunciation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.data.model.*
+import com.example.ai.data.audio.PronunciationStyle
+import com.example.ai.data.audio.PronunciationStyleStore
 import com.example.ai.data.repository.ContentRepository
 import com.example.ai.data.repository.SpeechRepository
+import com.example.ai.data.repository.WordImageRepository
 import com.example.ai.data.tts.TtsEngine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +25,8 @@ data class PronunciationUiState(
     val displayPhonemes: List<String> = emptyList(),
     /** 每个展示音素对应的 Phonics 页面 index（-1 表示未找到） */
     val phonemeToPhonicsIndex: Map<String, Int> = emptyMap(),
+    /** 单词图片 URL（服务端图片库，无图时为 null → UI 回退 emoji） */
+    val wordImageUrl: String? = null,
 )
 
 enum class PronunciationStep {
@@ -35,6 +40,8 @@ class PronunciationViewModel(
     private val contentRepository: ContentRepository,
     private val speechRepository: SpeechRepository,
     private val ttsEngine: TtsEngine,
+    private val wordImageRepository: WordImageRepository,
+    private val styleStore: PronunciationStyleStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PronunciationUiState())
@@ -43,17 +50,21 @@ class PronunciationViewModel(
     fun loadWord(wordId: String) {
         viewModelScope.launch {
             _uiState.update { PronunciationUiState() }
-            // 先从词库找
+            // 先从词库找（按当前发音风格选英式/美式标注）
             var word = contentRepository.getAllWords().find { it.text == wordId }
+            val useUk = styleStore.style.value == PronunciationStyle.UK
+            if (word != null && useUk && word.ipaUk.isNotEmpty()) {
+                word = word.copy(ipa = word.ipaUk, phonemes = word.phonemesUk.ifEmpty { word.phonemes })
+            }
             if (word == null) {
                 // 再从三年级英语词汇降级查找
                 val ew = contentRepository.getAllEnglishWords().find { it.word == wordId }
                 if (ew != null) {
                     word = Word(
                         text = ew.word,
-                        ipa = ew.phonetic,
+                        ipa = if (useUk && ew.ipaUk.isNotEmpty()) ew.ipaUk else ew.phonetic,
                         letter = ew.firstLetter,
-                        phonemes = ew.phonemes,
+                        phonemes = if (useUk && ew.phonemesUk.isNotEmpty()) ew.phonemesUk else ew.phonemes,
                         emoji = null,
                         difficulty = 1,
                     )
@@ -65,29 +76,36 @@ class PronunciationViewModel(
             allPhonemes.forEachIndexed { i, ph ->
                 phonemeToIndex[ph.symbol.trim('/')] = i
             }
-            // 合并辅音连缀（如 t+r→tr）
+            // 合并辅音连缀（如 t+r→tr），但合并结果必须能在音素表找到音频，
+            // 否则回退为原始音素逐个显示（如 grape 的 gr 不在 48 音素表 → 拆回 g、r 各自发音）
             val wordPhonemes = word?.phonemes ?: emptyList()
             val mergedPhonemes = mergeBlends(wordPhonemes)
-            // 每个展示音素找 Phonics index：优先查合并后的音素，找不到再用首个原始音素
-            val resultMap = mutableMapOf<String, Int>()
+            val displayPhonemes = mutableListOf<String>()
             var j = 0
             for (merged in mergedPhonemes) {
-                val len = blendedLength(merged)  // 由几个原始音素合并而成
-                val firstOrig = wordPhonemes.getOrNull(j) ?: ""
-                val idx = if (len > 1) {
-                    // 合并后的音素本身可能在音素表里（如 tr→/tr/），优先用这个
-                    phonemeToIndex[merged] ?: -1
+                val len = blendedLength(merged)
+                val origs = wordPhonemes.subList(j, j + len)
+                if (len > 1 && !phonemeToIndex.containsKey(merged)) {
+                    displayPhonemes.addAll(origs)
                 } else {
-                    phonemeToIndex[firstOrig] ?: -1
+                    displayPhonemes.add(merged)
                 }
-                resultMap[merged] = idx
                 j += len
+            }
+            // 每个展示音素找 Phonics index
+            val resultMap = displayPhonemes.associateWith { phonemeToIndex[it] ?: -1 }
+            // 查询单词图片（失败静默回退 emoji）
+            val imageUrl = try {
+                word?.let { wordImageRepository.getImageUrl(it.text) }
+            } catch (e: Exception) {
+                null
             }
             _uiState.update {
                 it.copy(
                     word = word,
-                    displayPhonemes = mergedPhonemes,
+                    displayPhonemes = displayPhonemes,
                     phonemeToPhonicsIndex = resultMap,
+                    wordImageUrl = imageUrl,
                 )
             }
         }
@@ -198,6 +216,7 @@ class PronunciationViewModel(
 
     fun reset() {
         val currentWord = _uiState.value.word
-        _uiState.update { PronunciationUiState(word = currentWord) }
+        val imageUrl = _uiState.value.wordImageUrl
+        _uiState.update { PronunciationUiState(word = currentWord, wordImageUrl = imageUrl) }
     }
 }

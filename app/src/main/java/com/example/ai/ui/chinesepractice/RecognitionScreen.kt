@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun RecognitionScreen(
     viewModel: RecognitionViewModel,
+    speaking: Boolean,
     onPlayTts: (String) -> Unit,
     onStartRecording: (String) -> Unit,  // refText
     onStopRecording: () -> Unit,
@@ -300,6 +301,7 @@ fun RecognitionScreen(
                 if (state.isCorrect != true) {
                     Button(
                         onClick = { onPlayTts(state.ttsHint.ifEmpty { currentChar }) },
+                        enabled = !speaking,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
@@ -495,6 +497,7 @@ fun RecognitionScreen(
                                 hint.words.forEach { word ->
                                     SuggestionChip(
                                         onClick = { onPlayTts(word) },
+                                        enabled = !speaking,
                                         label = { Text(word, fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                                         icon = { Text("🔊", fontSize = 14.sp) }
                                     )

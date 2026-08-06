@@ -31,6 +31,7 @@ import com.example.ai.data.training.TrainingPlan
 import com.example.ai.ImportCenter
 import com.example.ai.MyImports
 import com.example.ai.MyLearning
+import com.example.ai.AiPractice
 import com.example.ai.OralWriting
 import com.example.ai.Recognition
 import com.example.ai.Dictation
@@ -172,6 +173,7 @@ private fun FeatureId.toNavKey(): NavKey? = when (this) {
     FeatureId.VIDEO_PRACTICE -> VideoPractice
     FeatureId.DAILY_PRACTICE -> DailyPractice
     FeatureId.MY_LEARNING -> MyLearning
+    FeatureId.AI_PRACTICE -> AiPractice
     FeatureId.IMPORT_CENTER -> ImportCenter
     FeatureId.MY_IMPORTS -> MyImports
 }

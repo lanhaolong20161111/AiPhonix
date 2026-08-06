@@ -5,9 +5,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +63,9 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.ai.ui.components.PhonemeHeatmap
+import com.example.ai.data.chinesepractice.parsePinyin
+import com.example.ai.data.audio.IpaAudioPlayer
+import com.example.ai.data.audio.PinyinAudioPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.content.Context
@@ -88,6 +94,7 @@ import androidx.compose.runtime.setValue
 @Composable
 fun CharImageScreen(
     viewModel: CharImageViewModel,
+    speaking: Boolean = false,
     onBack: () -> Unit,
     onPlayTts: ((String) -> Unit)? = null,
 ) {
@@ -233,7 +240,7 @@ fun CharImageScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) { page ->
                         val item = state.items[page]
-                        CharImagePage(item = item, viewModel = viewModel, onPlayTts = onPlayTts)
+                        CharImagePage(item = item, viewModel = viewModel, onPlayTts = onPlayTts, speaking = speaking)
                     }
 
                     // 页码指示器 + 滑动提示
@@ -338,12 +345,25 @@ fun CharImageScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, onPlayTts: ((String) -> Unit)? = null) {
+private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, onPlayTts: ((String) -> Unit)? = null, speaking: Boolean = false) {
     var learningStatus by remember { mutableStateOf<String?>(null) }
     val soeState by viewModel.soeState.collectAsState()
     val isEnglish = item.type == "英词" || item.type == "英句"
     val isRecording = soeState is CharImageViewModel.SoeState.Recording &&
             (soeState as CharImageViewModel.SoeState.Recording).text == item.char
+    // 英词音标：本地词库匹配（wordbank/english_vocabulary 预置拆分），点击音素播放 assets/ipa 音频
+    val context = LocalContext.current
+    val appContainer = (context.applicationContext as com.example.ai.AiApplication).container
+    val ipaPlayer = remember { appContainer.ipaAudioPlayer() }
+    val pinyinPlayer = remember { PinyinAudioPlayer(viewModel.serverBaseUrl) }
+    // 拼音播放器页面销毁时释放（单点释放，防 MediaPlayer 泄漏）
+    DisposableEffect(Unit) {
+        onDispose { pinyinPlayer.stop() }
+    }
+    val pronMap by viewModel.wordPronInfo.collectAsState()
+    val pronInfo = pronMap[item.char]
+    // 发音风格（英式/美式）：音标标注与音素拆分按风格显示（该页无切换按钮，跟随全局）
+    val style by appContainer.pronunciationStyleStore.style.collectAsStateWithLifecycle()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -366,14 +386,12 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
-                        // 拼音
-                        Text(
-                            text = pinyinParts.getOrElse(index) { "" },
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontSize = 14.sp,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        // 拼音（可点击声母/介母/韵母/整体认读 chips）
+                        PinyinChips(
+                            pinyin = pinyinParts.getOrElse(index) { "" },
+                            player = pinyinPlayer,
                         )
+                        Spacer(Modifier.height(2.dp))
                         // 汉字
                         Text(
                             text = c.toString(),
@@ -388,12 +406,9 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
         } else {
             // 单字：拼音在上，汉字在下
             if (item.pinyin.isNotBlank()) {
-                Text(
-                    text = item.pinyin,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        letterSpacing = 2.sp,
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                PinyinChips(
+                    pinyin = item.pinyin,
+                    player = pinyinPlayer,
                     modifier = Modifier.padding(bottom = 2.dp),
                 )
             }
@@ -405,8 +420,44 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                     letterSpacing = if (item.char.length > 1) 8.sp else 0.sp,
                 ),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = if (pronInfo != null) 2.dp else 8.dp),
             )
+            // 英词：IPA 音标 + 可点击音素（点击播放对应音标音频，按风格显示英美标注）
+            if (pronInfo != null) {
+                val useUk = style == com.example.ai.data.audio.PronunciationStyle.UK
+                val dispIpa = if (useUk && pronInfo.ipaUk.isNotEmpty()) pronInfo.ipaUk else pronInfo.ipa
+                val dispPhonemes = if (useUk && pronInfo.phonemesUk.isNotEmpty()) pronInfo.phonemesUk else pronInfo.phonemes
+                Text(
+                    text = dispIpa,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    modifier = Modifier.padding(bottom = 6.dp),
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                ) {
+                    dispPhonemes.forEach { ph ->
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                                .clickable { ipaPlayer.play(ph) },
+                        ) {
+                            Text(
+                                text = ph,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // 图片（延迟 5 秒揭示：先回忆思考，再揭晓图片）
@@ -534,6 +585,7 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                 horizontalArrangement = Arrangement.Center,
             ) {
                 TextButton(onClick = { onPlayTts?.invoke(item.char) },
+                    enabled = !speaking,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     Text("\uD83D\uDD0A", fontSize = 18.sp)
                     Spacer(Modifier.width(4.dp)); Text("朗读", fontSize = 12.sp)
@@ -736,6 +788,92 @@ private fun CharImagePage(item: CharImageItem, viewModel: CharImageViewModel, on
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
             ) {
                 Text("提交", fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+/** 拼音可点击块：label（显示文本，带声调）+ audioPath（服务端相对路径） */
+private data class PinyinBlock(
+    val label: String,
+    val audioPath: String,
+    val kind: String,
+)
+
+/** 构建拼音的声母/介母/韵母/整体认读块；无法解析（如英文）返回 null */
+private fun buildPinyinBlocks(pinyin: String): List<PinyinBlock>? {
+    val trimmed = pinyin.trim()
+    if (trimmed.isEmpty()) return null
+    val parts = parsePinyin(trimmed)
+    val path = PinyinAudioPlayer.audioPathFor(parts) ?: return null
+    if (parts.isOverall) {
+        // 整体认读音节：label 用原串（带声调，如 zhī），音频按声调
+        val label = trimmed.removeSuffix(parts.tone.toString())
+        return listOf(PinyinBlock(label, path, "overall"))
+    }
+    val pathParts = path.split(",")
+    val blocks = mutableListOf<PinyinBlock>()
+    var idx = 0
+    if (parts.initial.isNotEmpty()) {
+        blocks += PinyinBlock(parts.initial, pathParts[idx++], "initial")
+    }
+    if (parts.medial.isNotEmpty()) {
+        blocks += PinyinBlock(parts.medial, pathParts[idx++], "medial")
+    }
+    // 韵母显示文本：从原串提取（保留声调符号，如 biāo -> āo；yān -> ān），数字格式则去掉尾数字
+    val rawRest = trimmed.removePrefix(parts.initial).removePrefix(parts.medial)
+    val finalLabel = rawRest.removeSuffix(parts.tone.toString()).ifEmpty { parts.final }
+    blocks += PinyinBlock(finalLabel, pathParts[idx], "final")
+    return blocks
+}
+
+/** 拼音可点击 chips：声母/介母/韵母/整体认读音节，点击播放对应发音 */
+@Composable
+private fun PinyinChips(
+    pinyin: String,
+    player: PinyinAudioPlayer,
+    modifier: Modifier = Modifier,
+) {
+    val blocks = remember(pinyin) { buildPinyinBlocks(pinyin) }
+    if (blocks == null) {
+        // 无法解析（英文等）：退化为纯文本
+        Text(
+            text = pinyin,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 14.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier,
+        )
+        return
+    }
+    FlowRow(
+        horizontalArrangement = Arrangement.Start,
+        modifier = modifier,
+    ) {
+        blocks.forEach { block ->
+            val bg = when (block.kind) {
+                "initial" -> MaterialTheme.colorScheme.primaryContainer   // 声母：蓝系
+                "medial" -> MaterialTheme.colorScheme.surfaceVariant     // 介母：灰白
+                "overall" -> MaterialTheme.colorScheme.secondaryContainer // 整体认读
+                else -> MaterialTheme.colorScheme.tertiaryContainer      // 韵母：绿系
+            }
+            val fg = when (block.kind) {
+                "medial" -> MaterialTheme.colorScheme.onSurfaceVariant
+                else -> MaterialTheme.colorScheme.onPrimaryContainer
+            }
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = bg,
+                modifier = Modifier
+                    .padding(horizontal = 2.dp, vertical = 1.dp)
+                    .clickable { player.play(block.audioPath) },
+            ) {
+                Text(
+                    text = block.label,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = fg,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                )
             }
         }
     }

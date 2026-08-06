@@ -2,6 +2,8 @@ package com.example.ai
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.ai.data.audio.IpaAudioPlayer
+import com.example.ai.data.audio.PronunciationStyleStore
 import com.example.ai.data.articlereading.ArticleReadingStore
 import com.example.ai.data.chinesepractice.WordInfoRepository
 import com.example.ai.data.repository.ContentRepository
@@ -9,6 +11,7 @@ import com.example.ai.data.quiz.QuizRepository
 import com.example.ai.data.repository.ContentRepositoryImpl
 import com.example.ai.data.repository.SpeechRepository
 import com.example.ai.data.repository.ProxySpeechRepository
+import com.example.ai.data.repository.WordImageRepository
 import com.example.ai.data.tts.TtsEngine
 import com.example.ai.data.training.ActiveTrainingSession
 import com.example.ai.data.training.SessionResultStore
@@ -38,8 +41,13 @@ class AppContainer(context: Context) {
         ProxySpeechRepository(httpClient)
     }
 
+    // ── 单词图片（服务端 char_image_index type=英词） ──
+    val wordImageRepository: WordImageRepository by lazy {
+        WordImageRepository(httpClient, ServiceModule.serverBase)
+    }
+
     val ttsEngine: TtsEngine by lazy {
-        TtsEngine(appContext)
+        TtsEngine(appContext, pronunciationStyleStore)
     }
 
     // ── 测验 ──
@@ -71,6 +79,18 @@ class AppContainer(context: Context) {
     val articleReadingStore: ArticleReadingStore by lazy {
         ArticleReadingStore(appContext)
     }
+
+    // ── 音素发音风格（美式/英式，持久化） ──
+    val pronunciationStyleStore: PronunciationStyleStore by lazy {
+        PronunciationStyleStore(appContext)
+    }
+
+    // ── 音素发音播放器（跟随发音风格） ──
+    fun ipaAudioPlayer(): IpaAudioPlayer = IpaAudioPlayer(appContext, pronunciationStyleStore)
+
+    /** 音素播放器（+20dB 增益，字母详情页自然拼读 chip 用） */
+    fun ipaAudioPlayerBoosted(): IpaAudioPlayer =
+        IpaAudioPlayer(appContext, pronunciationStyleStore, boostDb = 2000)
 
     // ── 家长训练任务（家长动态决定的学生页面集合 + 家长 PIN） ──
     val trainingPlanStore: TrainingPlanStore by lazy {

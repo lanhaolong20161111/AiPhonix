@@ -25,6 +25,7 @@ enum class FeatureId(
     VIDEO_PRACTICE("video_practice", "🎬", "视频跟读", "跟读视频练发音"),
     DAILY_PRACTICE("daily_practice", "🏆", "每日一练", "语文 · 数学 · 英语"),
     MY_LEARNING("my_learning", "📊", "我的学习", "用导入内容练习"),
+    AI_PRACTICE("ai_practice", "🤖", "AI 陪我练", "导入主题，AI 多轮引导练习"),
     IMPORT_CENTER("import_center", "📥", "导入学习内容", "词汇 · 文章 · 句子 · 题目", isTraining = false),
     MY_IMPORTS("my_imports", "📋", "我的导入", "查看 / 删除已导入内容", isTraining = false),
     ;

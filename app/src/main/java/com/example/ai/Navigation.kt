@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -74,6 +75,11 @@ import com.example.ai.Account
 import com.example.ai.ui.videopractice.VideoPracticeScreen
 import com.example.ai.di.ServiceModule
 import com.example.ai.data.auth.TokenManager
+import com.example.ai.data.aipractice.AiPracticeRepository
+import com.example.ai.ui.aipractice.AiPracticeChatScreen
+import com.example.ai.ui.aipractice.AiPracticeChatViewModel
+import com.example.ai.ui.aipractice.AiPracticeScreen
+import com.example.ai.ui.aipractice.AiPracticeViewModel
 import android.widget.Toast
 
 @Composable
@@ -87,6 +93,8 @@ fun MainNavigation(container: AppContainer) {
   // 仅当页面回传了真实结果才标记完成并上报服务端；无结果则不标记（下次重新练）。
   var activePlanItemId by remember { mutableStateOf<String?>(null) }
   val scope = rememberCoroutineScope()
+  // TTS 全局朗读状态：朗读期间所有页面朗读按钮禁用置灰（TtsEngine 单例）
+  val ttsSpeaking by container.ttsEngine.isSpeaking.collectAsStateWithLifecycle()
   val trainingPlanStore = container.trainingPlanStore
   val sessionResultStore = container.sessionResultStore
   val trainingPlanSync = container.trainingPlanSync
@@ -201,6 +209,27 @@ fun MainNavigation(container: AppContainer) {
             onOpenQuizPractice = { backStack.add(QuizPractice) },
             onOpenSentencePractice = { backStack.add(SentenceReading) },
             onOpenArticleList = { backStack.add(ArticleList) },
+            onOpenAiPractice = { backStack.add(AiPractice) },
+          )
+        }
+        entry<AiPractice> {
+          AiPracticeScreen(
+            viewModel = viewModel { AiPracticeViewModel(repository = AiPracticeRepository()) },
+            onBack = { backStack.removeLastOrNull() },
+            onOpenChat = { sessionId, content -> backStack.add(AiPracticeChat(sessionId, content)) },
+          )
+        }
+        entry<AiPracticeChat> { route ->
+          AiPracticeChatScreen(
+            viewModel = viewModel {
+              AiPracticeChatViewModel(
+                repository = AiPracticeRepository(),
+                ttsEngine = container.ttsEngine,
+                appContext = container.appContext,
+              ).also { it.initSession(route.sessionId, route.content) }
+            },
+            ttsEngine = container.ttsEngine,
+            onBack = { backStack.removeLastOrNull() },
           )
         }
         entry<QuizPractice> {
@@ -361,6 +390,7 @@ fun MainNavigation(container: AppContainer) {
           }
           RecognitionScreen(
             viewModel = recognitionVm,
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onStartRecording = { refText ->
               recognitionVm.startVoiceEvaluation()
@@ -382,6 +412,7 @@ fun MainNavigation(container: AppContainer) {
               )
 
             },
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() }
           )
@@ -397,6 +428,7 @@ fun MainNavigation(container: AppContainer) {
               )
 
             },
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() }
           )
@@ -418,36 +450,39 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<CharImageList> { route ->
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore, contentRepository = container.contentRepository) }
           LaunchedEffect(route) { vm.load(route.grade, route.semester, route.type_) }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
           CharImageScreen(
             viewModel = vm,
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() },
           )
         }
         entry<VocabularyPractice> {
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore, contentRepository = container.contentRepository) }
           LaunchedEffect(Unit) { vm.load("", "", "英词") }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
           CharImageScreen(
             viewModel = vm,
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() },
           )
         }
         entry<SentencePractice> {
           val context = LocalContext.current
-          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore) }
+          val vm = remember { CharImageViewModel(serverBase = ServiceModule.serverBase, pendingStore = PendingFeedbackStore(context), sessionResultStore = container.sessionResultStore, contentRepository = container.contentRepository) }
           LaunchedEffect(Unit) { vm.load("", "", "英句") }
           LaunchedEffect(Unit) { vm.setSpeechRepository(container.speechRepository) }
           val scope = rememberCoroutineScope()
           CharImageScreen(
             viewModel = vm,
+            speaking = ttsSpeaking,
             onPlayTts = { text -> scope.launch { if (!container.ttsEngine.speak(text)) Toast.makeText(context, "朗读失败，请检查网络", Toast.LENGTH_SHORT).show() } },
             onBack = { backStack.removeLastOrNull() },
           )

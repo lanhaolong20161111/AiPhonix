@@ -187,6 +187,43 @@ class PracticeSessionRow(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
+# ── ai陪我练：会话表 ──
+class AiPracticeSessionRow(Base):
+    """ai陪我练会话：一个导入主题（字/词/句/文章）一次多轮练习。
+
+    - plan_json：LangGraph planner 生成的引导计划（步骤+目标）
+    - status: active | done
+    """
+
+    __tablename__ = "ai_practice_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    content_type: Mapped[str] = mapped_column(String(16), default="sentence")  # char|word|sentence|article
+    content: Mapped[str] = mapped_column(Text, default="")  # 导入的主题文本
+    task: Mapped[str] = mapped_column(String(32), default="")  # 任务类型：认读/造句/问答/翻译/考题
+    plan_json: Mapped[str] = mapped_column(Text, default="")  # LangGraph planner 输出
+    status: Mapped[str] = mapped_column(String(16), default="active", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+# ── ai陪我练：对话轮次表 ──
+class AiPracticeTurnRow(Base):
+    """ai陪我练单条对话：学生回答 或 AI 回复（含纠正/表扬）。"""
+
+    __tablename__ = "ai_practice_turns"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    session_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String(8), default="ai")  # ai | user
+    text: Mapped[str] = mapped_column(Text, default="")
+    correction: Mapped[str] = mapped_column(Text, default="")  # 学生回答的纠正（空=无需纠正）
+    praise: Mapped[str] = mapped_column(Text, default="")  # 表扬语（纠正为空时）
+    audio_path: Mapped[str] = mapped_column(String(256), default="")  # 学生录音保存路径
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 # ── 数据库初始化 ──
 async def init_db():
     """创建所有表（如不存在）"""

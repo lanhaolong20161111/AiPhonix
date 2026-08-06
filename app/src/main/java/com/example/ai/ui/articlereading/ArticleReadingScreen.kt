@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -90,9 +91,9 @@ fun ArticleReadingScreen(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .clickable(enabled = state.paragraphs.isNotEmpty()) { viewModel.playFull() }
+                        .clickable(enabled = state.paragraphs.isNotEmpty() && !state.ttsSpeaking) { viewModel.playFull() }
                         .background(
-                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = if (state.ttsSpeaking) 0.38f else 1f),
                             RoundedCornerShape(8.dp),
                         )
                         .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -123,6 +124,7 @@ fun ArticleReadingScreen(
                         text = paragraph,
                         summary = state.summaries.firstOrNull { it.index == index },
                         isRecording = state.recordingIndex == index,
+                        speaking = state.ttsSpeaking,
                         partialText = if (state.recordingIndex == index) state.partialText else "",
                         onPlay = { viewModel.playParagraph(index) },
                         onRecord = { viewModel.toggleRecord(index) },
@@ -152,6 +154,7 @@ private fun ParagraphCard(
     text: String,
     summary: ParagraphSummary?,
     isRecording: Boolean,
+    speaking: Boolean,
     partialText: String,
     onPlay: () -> Unit,
     onRecord: () -> Unit,
@@ -180,8 +183,8 @@ private fun ParagraphCard(
 
             // 段落操作：喇叭（朗读）+ 麦克风（口述概括）
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onPlay) {
-                    Text("🔊", fontSize = 20.sp)
+                IconButton(onClick = onPlay, enabled = !speaking) {
+                    Text("🔊", fontSize = 20.sp, modifier = Modifier.alpha(if (speaking) 0.38f else 1f))
                 }
                 IconButton(onClick = onRecord) {
                     Text(if (isRecording) "⏹" else "🎤", fontSize = 20.sp)

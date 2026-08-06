@@ -1,6 +1,7 @@
-"""DeepSeek LLM 服务 — OpenAI 兼容 API"""
+"""DeepSeek LLM 服务 — OpenAI 兼容 API（免费优先：火山 Ark 可用时先走免费链路）"""
 
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass, field, asdict
@@ -9,6 +10,8 @@ from typing import Optional
 import httpx
 
 from config import DeepSeekConfig
+
+logger = logging.getLogger(__name__)
 
 COST_PER_M_INPUT = 0.5
 COST_PER_M_OUTPUT = 2.0
@@ -148,7 +151,10 @@ class DeepSeekService:
         max_tokens: int = 2048,
         caller: str = "",
     ) -> str:
-        """调用 DeepSeek Chat，返回回复文本"""
+        """LLM 调用：免费优先（火山 Ark doubao），失败自动回退 DeepSeek（付费）。
+
+        业务路由全部经由本方法，因此切换免费模型对所有功能一次性生效。
+        """
         caller = caller or self.caller
         start = time.time()
 
@@ -160,6 +166,65 @@ class DeepSeekService:
             user_prompt=user_prompt,
         )
 
+        # ── 免费优先：火山 Ark 可用则走免费链路（跳过预算守卫，cost=0） ──
+        ark = self._ark_service()
+        if ark is not None:
+            log.model = ark.config.model
+            try:
+                return self._chat_ark(ark, system_prompt, user_prompt, max_tokens, log, start)
+            except Exception as e:
+                # 免费模型失败 → 回退付费 DeepSeek，保证功能可用
+                logger.warning("Ark 免费模型调用失败（caller=%s），回退 DeepSeek: %s", caller, e)
+
+        return self._chat_deepseek(system_prompt, user_prompt, max_tokens, log, start)
+
+    # ── 免费链路：火山 Ark（doubao-seed，送 token） ──
+
+    def _ark_service(self) -> Optional["ArkChatService"]:
+        """懒加载免费 Ark 服务；未配置 / 不可用时返回 None"""
+        try:
+            from services import free_llm
+            svc = free_llm.get_service()
+            return svc if svc.enabled else None
+        except Exception:
+            return None
+
+    def _chat_ark(self, ark, system_prompt: str, user_prompt: str, max_tokens: int, log: LLMCallLog, start: float) -> str:
+        """调用免费 Ark 模型，记录调用日志（费用恒为 0，不扣预算）"""
+        try:
+            content = ark.chat(user_prompt, system_prompt=system_prompt, max_tokens=max_tokens)
+            usage = getattr(ark, "last_usage", None) or {}
+            log.prompt_tokens = usage.get("input_tokens", 0)
+            log.comp_tokens = usage.get("output_tokens", 0)
+            log.total_tokens = log.prompt_tokens + log.comp_tokens
+            log.cost_yuan = 0.0
+
+            if not content:
+                log.success = False
+                log.error = "empty content"
+                _finish_log(log, start)
+                raise ValueError("Ark 免费模型返回空内容")
+            log.success = True
+            _finish_log(log, start)
+            return content
+        except Exception as e:
+            log.success = False
+            log.error = str(e)
+            _finish_log(log, start)
+            raise
+
+    # ── 付费链路：DeepSeek（预算守卫 + 计费） ──
+
+    def _chat_deepseek(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        max_tokens: int,
+        log: LLMCallLog,
+        start: float,
+    ) -> str:
+        """调用 DeepSeek Chat，返回回复文本"""
+        log.model = self.config.model  # 回退路径：日志模型名恢复为 DeepSeek
         # ── 预算守卫（调用前拒绝） ──
         input_len = len(system_prompt) + len(user_prompt)
         if input_len > self.config.max_input_chars:
@@ -222,6 +287,7 @@ class DeepSeekService:
                 return ""
 
             log.success = True
+            log.error = ""  # 回退成功后清掉免费链路的超时错误
             _finish_log(log, start)
             _record_cost(log.cost_yuan)
             return content

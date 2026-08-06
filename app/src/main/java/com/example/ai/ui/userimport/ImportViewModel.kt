@@ -162,7 +162,7 @@ class ImportViewModel(
         val prompt = state.generatedPrompt ?: return
         if (state.freeGenerating) return
         if (template.inputType == "image" && state.photoUris.isEmpty()) {
-            _uiState.value = state.copy(error = "请先至少拍一张照片，再使用 AI 生成")
+            _uiState.value = state.copy(error = "请先拍照或从相册选择至少一张图片，再使用 AI 生成")
             return
         }
         _uiState.value = state.copy(freeGenerating = true, error = null)

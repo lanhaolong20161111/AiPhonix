@@ -41,6 +41,7 @@ fun MyLearningScreen(
     onOpenQuizPractice: () -> Unit,
     onOpenSentencePractice: () -> Unit,
     onOpenArticleList: () -> Unit,
+    onOpenAiPractice: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -144,6 +145,13 @@ fun MyLearningScreen(
                 title = "文章跟读",
                 subtitle = "朗读课文 · 段落口述 · 读后问答，${state.counts["article"] ?: 0} 篇可读",
                 onClick = onOpenArticleList,
+            )
+            Spacer(Modifier.height(8.dp))
+            TrainingEntry(
+                emoji = "🤖",
+                title = "AI 陪我练记录",
+                subtitle = "导入主题多轮对话，查看回答与纠正对比",
+                onClick = onOpenAiPractice,
             )
         }
     }

@@ -32,8 +32,9 @@ class BaiduTtsCache(
     companion object {
         private const val TAG = "BaiduTtsCache"
         private const val CACHE_DIR = "tts_cache"
-        /** 百度在线发音人：5118=度小雯（女声童音） */
-        private const val SPEAKER = "5118"
+        /** 百度在线发音人：5118=度小雯（英式无卷舌），106=度小美情感（美式卷舌） */
+        const val SPEAKER_US = "106"
+        const val SPEAKER_UK = "5118"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
 
@@ -43,10 +44,11 @@ class BaiduTtsCache(
 
     /**
      * 播放文本的语音。如果本地已缓存则直接播放，否则先下载缓存。
+     * @param speaker 百度发音人（美式 106 / 英式 5118）
      * 返回 true 表示播放成功，false 表示失败。
      */
-    suspend fun play(text: String): Boolean {
-        val file = getOrDownload(text) ?: return false
+    suspend fun play(text: String, speaker: String = SPEAKER_UK): Boolean {
+        val file = getOrDownload(text, speaker) ?: return false
         return playFile(file)
     }
 
@@ -58,22 +60,22 @@ class BaiduTtsCache(
 
     // ---------- 内部实现 ----------
 
-    private suspend fun getOrDownload(text: String): File? {
-        val file = cacheFile(text)
+    private suspend fun getOrDownload(text: String, speaker: String): File? {
+        val file = cacheFile(text, speaker)
         if (file.exists()) {
             Log.d(TAG, "缓存命中: $text")
             return file
         }
 
-        Log.d(TAG, "缓存未命中，下载: $text")
-        return download(text, file)
+        Log.d(TAG, "缓存未命中，下载: $text (speaker=$speaker)")
+        return download(text, speaker, file)
     }
 
-    private suspend fun download(text: String, file: File): File? {
+    private suspend fun download(text: String, speaker: String, file: File): File? {
         val serverUrl = getServerUrl()
         val jsonBody = JSONObject().apply {
             put("text", text)
-            put("speaker", SPEAKER)
+            put("speaker", speaker)
             put("speed", 5)
         }
 
@@ -135,9 +137,9 @@ class BaiduTtsCache(
         }
     }
 
-    private fun cacheFile(text: String): File {
+    private fun cacheFile(text: String, speaker: String): File {
         val hash = MessageDigest.getInstance("MD5")
-            .digest(text.toByteArray())
+            .digest((text + "|" + speaker).toByteArray())
             .joinToString("") { "%02x".format(it) }
         return File(cacheDir, "$hash.mp3")
     }

@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun WordPracticeScreen(
     viewModel: WordPracticeViewModel,
+    speaking: Boolean,
     onPlayTts: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -71,6 +72,7 @@ fun WordPracticeScreen(
                 ReadingPhase(
                     viewModel = viewModel,
                     state = state,
+                    speaking = speaking,
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -82,6 +84,7 @@ fun WordPracticeScreen(
 private fun ReadingPhase(
     viewModel: WordPracticeViewModel,
     state: WordPracticeUiState,
+    speaking: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -155,7 +158,7 @@ private fun ReadingPhase(
         Spacer(Modifier.height(24.dp))
 
         // 重播按钮
-        OutlinedButton(onClick = { viewModel.reRead() }) {
+        OutlinedButton(onClick = { viewModel.reRead() }, enabled = !speaking) {
             Text("🔊 再听一遍")
         }
     }

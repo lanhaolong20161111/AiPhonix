@@ -5,6 +5,7 @@ import com.example.ai.data.model.EnglishWord
 import com.example.ai.data.model.Letter
 import com.example.ai.data.model.Phoneme
 import com.example.ai.data.model.Word
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -22,6 +23,10 @@ private data class EnglishWordEntry(
     val meanings: List<String>,
     val emoji: String = "",
     val phonemes: List<String>? = null,
+    @SerialName("ipa_uk")
+    val ipaUk: String = "",
+    @SerialName("phonemes_uk")
+    val phonemesUk: List<String>? = null,
 )
 
 @Serializable
@@ -47,7 +52,7 @@ class ContentRepositoryImpl(
         englishWords?.let { return it }
         val data = context.assets.open("english_vocabulary.json").bufferedReader().use { it.readText() }
         val vocab = json.decodeFromString<EnglishVocabulary>(data)
-        return vocab.words.map { EnglishWord(word = it.word, phonetic = it.phonetic, meanings = it.meanings, emoji = it.emoji, phonemes = it.phonemes ?: emptyList()) }
+        return vocab.words.map { EnglishWord(word = it.word, phonetic = it.phonetic, meanings = it.meanings, emoji = it.emoji, phonemes = it.phonemes ?: emptyList(), ipaUk = it.ipaUk, phonemesUk = it.phonemesUk ?: emptyList()) }
             .also { englishWords = it }
     }
 

@@ -163,7 +163,7 @@ private fun TemplateSelectSection(state: ImportUiState, viewModel: ImportViewMod
     Spacer(Modifier.height(16.dp))
     Text("📷 图片识别", fontWeight = FontWeight.Bold, fontSize = 17.sp)
     Text(
-        "拍照教辅，把提示词和图片一起发给 LLM 识别",
+        "拍照或从相册选择教辅图片，把提示词和图片一起发给 LLM 识别",
         fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Spacer(Modifier.height(8.dp))
@@ -255,11 +255,21 @@ private fun PhotoSection(
     OutlinedButton(onClick = { launchCamera() }, modifier = Modifier.fillMaxWidth()) {
         Text(if (photoUris.isEmpty()) "📷 拍照（可连续拍多张）" else "📷 继续拍照")
     }
+    Spacer(Modifier.height(8.dp))
+    // 从相册/本地文件选择（ACTION_GET_CONTENT 多选，免权限、无需 Google Play，全版本可用）
+    val pickFromGallery = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        uris.forEach { onAddPhoto(it.toString()) }
+    }
+    OutlinedButton(onClick = { pickFromGallery.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
+        Text("🖼️ 从相册选择（可多选）")
+    }
 
     if (photoUris.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         Text(
-            "已拍 ${photoUris.size} 张（自动存入相册）",
+            "已选 ${photoUris.size} 张",
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

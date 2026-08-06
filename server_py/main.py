@@ -45,9 +45,9 @@ app.add_middleware(
 )
 
 
-def _init_routes():
+async def _init_routes():
     """初始化所有路由（延迟导入，解决循环依赖）"""
-    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users, uploads, import_templates, user_imports, free_llm, training
+    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users, uploads, import_templates, user_imports, free_llm, training, pinyin_audio, ipa_audio, ai_practice
 
     # 加载配置
     cfg_path = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -66,7 +66,10 @@ def _init_routes():
     essays.init(cfg)
     english  # no init needed
     char_images.init()
+    pinyin_audio.init()
+    ipa_audio.init()
     import_templates.init("data")
+    await ai_practice.init(cfg)
 
     from services import ark_image as ark_svc
     ark_svc.init(cfg.ark_image)
@@ -86,6 +89,8 @@ def _init_routes():
     app.include_router(word_suggestions.router, prefix="/api/v1")
     app.include_router(english.router, prefix="/api/v1")
     app.include_router(char_images.router, prefix="/api/v1")
+    app.include_router(pinyin_audio.router, prefix="/api/v1")
+    app.include_router(ipa_audio.router, prefix="/api/v1")
     app.include_router(ark_image.router, prefix="/api/v1")
     app.include_router(essays.router, prefix="/api/v1")
     app.include_router(auth.router)
@@ -95,6 +100,7 @@ def _init_routes():
     app.include_router(user_imports.router, prefix="/api/v1")
     app.include_router(free_llm.router, prefix="/api/v1")
     app.include_router(training.router, prefix="/api/v1")
+    app.include_router(ai_practice.router, prefix="/api/v1")
 
     # 移动端网页（上传工具），构建产物在 static/web/
     from fastapi.staticfiles import StaticFiles
@@ -113,7 +119,7 @@ async def startup():
     # 初始化数据库
     from database import init_db
     await init_db()
-    _cfg = _init_routes()
+    _cfg = await _init_routes()
     model = _cfg.deepseek.model
     addr = f"{_cfg.server.host}:{_cfg.server.port}"
     logger.info("AiPhonix 服务器启动: %s (模型: %s)", addr, model)

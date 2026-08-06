@@ -15,7 +15,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "doubao-seed-2-0-mini-260428"
+DEFAULT_MODEL = "doubao-seed-evolving"
 BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
 
 _MIME_BY_EXT = {
@@ -37,6 +37,7 @@ class ArkChatService:
     def __init__(self, config: ArkChatConfig):
         self.config = config
         self._client = None
+        self.last_usage: Optional[dict] = None  # 最近一次调用的 token 用量
 
     @property
     def enabled(self) -> bool:
@@ -50,6 +51,8 @@ class ArkChatService:
             self._client = Ark(
                 base_url=BASE_URL,
                 api_key=self.config.api_key or os.environ.get("ARK_API_KEY", ""),
+                timeout=30,  # 免费模型 30s 内不出结果即回退付费链路（避免客户端超时）
+                max_retries=0,  # 禁用 SDK 内部重试（默认重试会把 30s 放大成 90s）
             )
         return self._client
 
@@ -65,9 +68,11 @@ class ArkChatService:
             content.append({"type": "input_image", "image_url": f"data:{mime};base64,{b64}"})
         return content
 
-    def chat(self, prompt: str, image_paths: list[str] | None = None) -> str:
+    def chat(self, prompt: str, system_prompt: str = "", image_paths: list[str] | None = None, max_tokens: int = 2048) -> str:
         """文本 / 文本+图片 推理，返回模型输出文本。
 
+        system_prompt 非空时以 system 角色消息发出（业务链路原始语义）；
+        max_tokens 映射到 max_output_tokens，防止免费模型长推理输出失控。
         Raises:
             ValueError: 未配置 API Key
         """
@@ -78,9 +83,14 @@ class ArkChatService:
         model = self.config.model or os.environ.get("ARK_CHAT_MODEL", DEFAULT_MODEL)
 
         content = self._build_content(prompt, image_paths or [])
+        messages: list[dict] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": content})
         resp = client.responses.create(
             model=model,
-            input=[{"role": "user", "content": content}],
+            input=messages,
+            max_output_tokens=max_tokens,
         )
 
         # OpenAI Responses 兼容：优先 output_text 字段
@@ -92,6 +102,16 @@ class ArkChatService:
                     if getattr(c, "type", "") == "output_text":
                         parts.append(getattr(c, "text", ""))
             text = "".join(parts)
+
+        # 记录本次 token 用量（供调用日志；模型对象字段差异时留空）
+        try:
+            usage = getattr(resp, "usage", None)
+            self.last_usage = {
+                "input_tokens": getattr(usage, "input_tokens", 0),
+                "output_tokens": getattr(usage, "output_tokens", 0),
+            }
+        except Exception:
+            self.last_usage = None
         return text or ""
 
 

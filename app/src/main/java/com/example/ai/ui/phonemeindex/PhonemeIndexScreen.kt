@@ -32,7 +32,7 @@ fun PhonemeIndexScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
-    val player = remember { IpaAudioPlayer(context) }
+    val player = remember { container.ipaAudioPlayer() }
     DisposableEffect(Unit) { onDispose { player.stop() } }
 
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 20.dp)) {
@@ -46,7 +46,7 @@ fun PhonemeIndexScreen(
             text = "点击 ▶ 听发音  ·  点击符号看详情",
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 12.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
         )
 
         if (state.isLoading) {
@@ -150,7 +150,7 @@ private fun PhonemeCell(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = 1.dp,
-        modifier = modifier.height(56.dp),
+        modifier = modifier.height(if (phoneme.mnemonic.isNotEmpty()) 68.dp else 56.dp),
     ) {
         Box(contentAlignment = Alignment.Center) {
             Column(
@@ -166,6 +166,15 @@ private fun PhonemeCell(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
+                if (phoneme.mnemonic.isNotEmpty()) {
+                    Text(
+                        text = phoneme.mnemonic,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             // 播放按钮 - 右下角小图标
             IconButton(

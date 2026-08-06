@@ -67,7 +67,7 @@
       "lowercase": "g",
       "order": 7,
       "pronunciations": [
-        "/ɡ/"
+        "/g/"
       ]
     },
     {
@@ -264,7 +264,7 @@
   "words": [
     {
       "text": "apple",
-      "ipa": "/ˈæp.əl/",
+      "ipa": "/ˈæpl/",
       "letter": "a",
       "phonemes": [
         "æ",
@@ -273,7 +273,14 @@
         "l"
       ],
       "emoji": "🍎",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈæpəl/",
+      "phonemes_uk": [
+        "æ",
+        "p",
+        "ə",
+        "l"
+      ]
     },
     {
       "text": "ant",
@@ -285,7 +292,13 @@
         "t"
       ],
       "emoji": "🐜",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ænt/",
+      "phonemes_uk": [
+        "æ",
+        "n",
+        "t"
+      ]
     },
     {
       "text": "all",
@@ -296,7 +309,12 @@
         "l"
       ],
       "emoji": "🌍",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ɔːl/",
+      "phonemes_uk": [
+        "ɔː",
+        "l"
+      ]
     },
     {
       "text": "bat",
@@ -308,7 +326,13 @@
         "t"
       ],
       "emoji": "🏏",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bæt/",
+      "phonemes_uk": [
+        "b",
+        "æ",
+        "t"
+      ]
     },
     {
       "text": "bed",
@@ -320,19 +344,31 @@
         "d"
       ],
       "emoji": "🛏️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bed/",
+      "phonemes_uk": [
+        "b",
+        "e",
+        "d"
+      ]
     },
     {
       "text": "big",
-      "ipa": "/bɪɡ/",
+      "ipa": "/bɪg/",
       "letter": "b",
       "phonemes": [
         "b",
         "ɪ",
-        "ɡ"
+        "g"
       ],
       "emoji": "🦍",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bɪg/",
+      "phonemes_uk": [
+        "b",
+        "ɪ",
+        "g"
+      ]
     },
     {
       "text": "cat",
@@ -344,7 +380,13 @@
         "t"
       ],
       "emoji": "🐱",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/kæt/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "t"
+      ]
     },
     {
       "text": "cup",
@@ -356,19 +398,31 @@
         "p"
       ],
       "emoji": "☕",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/kʌp/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "p"
+      ]
     },
     {
       "text": "dog",
-      "ipa": "/dɒɡ/",
+      "ipa": "/dɒg/",
       "letter": "d",
       "phonemes": [
         "d",
         "ɒ",
-        "ɡ"
+        "g"
       ],
       "emoji": "🐕",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/dɒg/",
+      "phonemes_uk": [
+        "d",
+        "ɒ",
+        "g"
+      ]
     },
     {
       "text": "duck",
@@ -380,22 +434,33 @@
         "k"
       ],
       "emoji": "🦆",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/dʌk/",
+      "phonemes_uk": [
+        "d",
+        "ʌ",
+        "k"
+      ]
     },
     {
       "text": "egg",
-      "ipa": "/eɡ/",
+      "ipa": "/eg/",
       "letter": "e",
       "phonemes": [
         "e",
-        "ɡ"
+        "g"
       ],
       "emoji": "🥚",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/eg/",
+      "phonemes_uk": [
+        "e",
+        "g"
+      ]
     },
     {
       "text": "elephant",
-      "ipa": "/ˈel.ɪ.fənt/",
+      "ipa": "/ˈelɪfənt/",
       "letter": "e",
       "phonemes": [
         "e",
@@ -407,7 +472,17 @@
         "t"
       ],
       "emoji": "🐘",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈelɪfənt/",
+      "phonemes_uk": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
+      ]
     },
     {
       "text": "fish",
@@ -419,7 +494,13 @@
         "ʃ"
       ],
       "emoji": "🐟",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/fɪʃ/",
+      "phonemes_uk": [
+        "f",
+        "ɪ",
+        "ʃ"
+      ]
     },
     {
       "text": "fox",
@@ -432,19 +513,32 @@
         "s"
       ],
       "emoji": "🦊",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/fɒks/",
+      "phonemes_uk": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ]
     },
     {
       "text": "goat",
-      "ipa": "/ɡoʊt/",
+      "ipa": "/goʊt/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "əʊ",
         "t"
       ],
       "emoji": "🐐",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/gəʊt/",
+      "phonemes_uk": [
+        "g",
+        "əʊ",
+        "t"
+      ]
     },
     {
       "text": "hat",
@@ -456,7 +550,13 @@
         "t"
       ],
       "emoji": "🎩",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/hæt/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "t"
+      ]
     },
     {
       "text": "hand",
@@ -469,20 +569,34 @@
         "d"
       ],
       "emoji": "✋",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/hænd/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "n",
+        "d"
+      ]
     },
     {
       "text": "igloo",
-      "ipa": "/ˈɪɡ.luː/",
+      "ipa": "/ˈɪg.luː/",
       "letter": "i",
       "phonemes": [
         "ɪ",
-        "ɡ",
+        "g",
         "l",
         "uː"
       ],
       "emoji": "🏔️",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈɪgluː/",
+      "phonemes_uk": [
+        "ɪ",
+        "g",
+        "l",
+        "uː"
+      ]
     },
     {
       "text": "ink",
@@ -494,7 +608,13 @@
         "k"
       ],
       "emoji": "🖊️",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ɪŋk/",
+      "phonemes_uk": [
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "text": "jam",
@@ -506,7 +626,13 @@
         "m"
       ],
       "emoji": "🍓",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/dʒæm/",
+      "phonemes_uk": [
+        "dʒ",
+        "æ",
+        "m"
+      ]
     },
     {
       "text": "kite",
@@ -518,7 +644,13 @@
         "t"
       ],
       "emoji": "🪁",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/kaɪt/",
+      "phonemes_uk": [
+        "k",
+        "aɪ",
+        "t"
+      ]
     },
     {
       "text": "key",
@@ -529,11 +661,16 @@
         "iː"
       ],
       "emoji": "🔑",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/kiː/",
+      "phonemes_uk": [
+        "k",
+        "iː"
+      ]
     },
     {
       "text": "lion",
-      "ipa": "/ˈlaɪ.ən/",
+      "ipa": "/ˈlaɪən/",
       "letter": "l",
       "phonemes": [
         "l",
@@ -542,7 +679,14 @@
         "n"
       ],
       "emoji": "🦁",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈlaɪən/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
+      ]
     },
     {
       "text": "lamp",
@@ -555,11 +699,18 @@
         "p"
       ],
       "emoji": "💡",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/læmp/",
+      "phonemes_uk": [
+        "l",
+        "æ",
+        "m",
+        "p"
+      ]
     },
     {
       "text": "monkey",
-      "ipa": "/ˈmʌŋ.ki/",
+      "ipa": "/ˈmʌŋki/",
       "letter": "m",
       "phonemes": [
         "m",
@@ -569,7 +720,15 @@
         "ɪ"
       ],
       "emoji": "🐵",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈmʌŋkɪ/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k",
+        "ɪ"
+      ]
     },
     {
       "text": "map",
@@ -581,7 +740,13 @@
         "p"
       ],
       "emoji": "🗺️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/mæp/",
+      "phonemes_uk": [
+        "m",
+        "æ",
+        "p"
+      ]
     },
     {
       "text": "nest",
@@ -594,7 +759,14 @@
         "t"
       ],
       "emoji": "🪺",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/nest/",
+      "phonemes_uk": [
+        "n",
+        "e",
+        "s",
+        "t"
+      ]
     },
     {
       "text": "nose",
@@ -606,11 +778,17 @@
         "z"
       ],
       "emoji": "👃",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/nəʊz/",
+      "phonemes_uk": [
+        "n",
+        "əʊ",
+        "z"
+      ]
     },
     {
       "text": "orange",
-      "ipa": "/ˈɒr.ɪndʒ/",
+      "ipa": "/ˈɒrɪndʒ/",
       "letter": "o",
       "phonemes": [
         "ɒ",
@@ -620,19 +798,33 @@
         "dʒ"
       ],
       "emoji": "🍊",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈɒrɪndʒ/",
+      "phonemes_uk": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
+      ]
     },
     {
       "text": "pig",
-      "ipa": "/pɪɡ/",
+      "ipa": "/pɪg/",
       "letter": "p",
       "phonemes": [
         "p",
         "ɪ",
-        "ɡ"
+        "g"
       ],
       "emoji": "🐷",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/pɪg/",
+      "phonemes_uk": [
+        "p",
+        "ɪ",
+        "g"
+      ]
     },
     {
       "text": "pen",
@@ -644,7 +836,13 @@
         "n"
       ],
       "emoji": "🖊️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/pen/",
+      "phonemes_uk": [
+        "p",
+        "e",
+        "n"
+      ]
     },
     {
       "text": "queen",
@@ -657,7 +855,14 @@
         "n"
       ],
       "emoji": "👑",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/kwiːn/",
+      "phonemes_uk": [
+        "k",
+        "w",
+        "iː",
+        "n"
+      ]
     },
     {
       "text": "rat",
@@ -669,7 +874,13 @@
         "t"
       ],
       "emoji": "🐀",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ræt/",
+      "phonemes_uk": [
+        "r",
+        "æ",
+        "t"
+      ]
     },
     {
       "text": "run",
@@ -681,7 +892,13 @@
         "n"
       ],
       "emoji": "🏃",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/rʌn/",
+      "phonemes_uk": [
+        "r",
+        "ʌ",
+        "n"
+      ]
     },
     {
       "text": "sun",
@@ -693,7 +910,13 @@
         "n"
       ],
       "emoji": "☀️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/sʌn/",
+      "phonemes_uk": [
+        "s",
+        "ʌ",
+        "n"
+      ]
     },
     {
       "text": "star",
@@ -706,7 +929,13 @@
         "r"
       ],
       "emoji": "⭐",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/stɑː/",
+      "phonemes_uk": [
+        "s",
+        "t",
+        "ɑː"
+      ]
     },
     {
       "text": "top",
@@ -718,7 +947,13 @@
         "p"
       ],
       "emoji": "🔝",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/tɒp/",
+      "phonemes_uk": [
+        "t",
+        "ɒ",
+        "p"
+      ]
     },
     {
       "text": "tree",
@@ -729,7 +964,12 @@
         "iː"
       ],
       "emoji": "🌳",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/triː/",
+      "phonemes_uk": [
+        "tr",
+        "iː"
+      ]
     },
     {
       "text": "umbrella",
@@ -745,7 +985,17 @@
         "ə"
       ],
       "emoji": "☂️",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ʌmˈbrelə/",
+      "phonemes_uk": [
+        "ʌ",
+        "m",
+        "b",
+        "r",
+        "e",
+        "l",
+        "ə"
+      ]
     },
     {
       "text": "van",
@@ -757,11 +1007,17 @@
         "n"
       ],
       "emoji": "🚐",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/væn/",
+      "phonemes_uk": [
+        "v",
+        "æ",
+        "n"
+      ]
     },
     {
       "text": "water",
-      "ipa": "/ˈwɔː.tər/",
+      "ipa": "/ˈwɔːtər/",
       "letter": "w",
       "phonemes": [
         "w",
@@ -771,7 +1027,14 @@
         "r"
       ],
       "emoji": "💧",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈwɔːtə/",
+      "phonemes_uk": [
+        "w",
+        "ɔː",
+        "t",
+        "ə"
+      ]
     },
     {
       "text": "web",
@@ -783,11 +1046,17 @@
         "b"
       ],
       "emoji": "🕸️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/web/",
+      "phonemes_uk": [
+        "w",
+        "e",
+        "b"
+      ]
     },
     {
       "text": "yellow",
-      "ipa": "/ˈjel.oʊ/",
+      "ipa": "/ˈjeləʊ/",
       "letter": "y",
       "phonemes": [
         "j",
@@ -796,7 +1065,14 @@
         "əʊ"
       ],
       "emoji": "🟡",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈjeləʊ/",
+      "phonemes_uk": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
+      ]
     },
     {
       "text": "zebra",
@@ -810,7 +1086,15 @@
         "ə"
       ],
       "emoji": "🦓",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈzebrə/",
+      "phonemes_uk": [
+        "z",
+        "e",
+        "b",
+        "r",
+        "ə"
+      ]
     },
     {
       "text": "cake",
@@ -822,7 +1106,13 @@
         "k"
       ],
       "emoji": "🎂",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/keɪk/",
+      "phonemes_uk": [
+        "k",
+        "eɪ",
+        "k"
+      ]
     },
     {
       "text": "face",
@@ -834,7 +1124,13 @@
         "s"
       ],
       "emoji": "😊",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/feɪs/",
+      "phonemes_uk": [
+        "f",
+        "eɪ",
+        "s"
+      ]
     },
     {
       "text": "rain",
@@ -846,7 +1142,13 @@
         "n"
       ],
       "emoji": "🌧️",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/reɪn/",
+      "phonemes_uk": [
+        "r",
+        "eɪ",
+        "n"
+      ]
     },
     {
       "text": "cow",
@@ -857,7 +1159,12 @@
         "aʊ"
       ],
       "emoji": "🐄",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/kaʊ/",
+      "phonemes_uk": [
+        "k",
+        "aʊ"
+      ]
     },
     {
       "text": "house",
@@ -869,7 +1176,13 @@
         "s"
       ],
       "emoji": "🏠",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/haʊs/",
+      "phonemes_uk": [
+        "h",
+        "aʊ",
+        "s"
+      ]
     },
     {
       "text": "mouse",
@@ -881,7 +1194,13 @@
         "s"
       ],
       "emoji": "🐭",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/maʊs/",
+      "phonemes_uk": [
+        "m",
+        "aʊ",
+        "s"
+      ]
     },
     {
       "text": "boy",
@@ -892,7 +1211,12 @@
         "ɔɪ"
       ],
       "emoji": "👦",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bɔɪ/",
+      "phonemes_uk": [
+        "b",
+        "ɔɪ"
+      ]
     },
     {
       "text": "toy",
@@ -903,7 +1227,12 @@
         "ɔɪ"
       ],
       "emoji": "🧸",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/tɔɪ/",
+      "phonemes_uk": [
+        "t",
+        "ɔɪ"
+      ]
     },
     {
       "text": "coin",
@@ -915,7 +1244,13 @@
         "n"
       ],
       "emoji": "🪙",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/kɔɪn/",
+      "phonemes_uk": [
+        "k",
+        "ɔɪ",
+        "n"
+      ]
     },
     {
       "text": "thumb",
@@ -927,7 +1262,13 @@
         "m"
       ],
       "emoji": "👍",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/θʌm/",
+      "phonemes_uk": [
+        "θ",
+        "ʌ",
+        "m"
+      ]
     },
     {
       "text": "mouth",
@@ -939,19 +1280,31 @@
         "θ"
       ],
       "emoji": "👄",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/maʊθ/",
+      "phonemes_uk": [
+        "m",
+        "aʊ",
+        "θ"
+      ]
     },
     {
       "text": "bath",
-      "ipa": "/bɑːθ/",
+      "ipa": "/bæθ/",
       "letter": "b",
       "phonemes": [
         "b",
-        "ɑː",
+        "æ",
         "θ"
       ],
       "emoji": "🛁",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bɑːθ/",
+      "phonemes_uk": [
+        "b",
+        "ɑː",
+        "θ"
+      ]
     },
     {
       "text": "this",
@@ -963,7 +1316,13 @@
         "s"
       ],
       "emoji": "👈",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ðɪs/",
+      "phonemes_uk": [
+        "ð",
+        "ɪ",
+        "s"
+      ]
     },
     {
       "text": "feather",
@@ -977,11 +1336,18 @@
         "r"
       ],
       "emoji": "🪶",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈfeðə/",
+      "phonemes_uk": [
+        "f",
+        "e",
+        "ð",
+        "ə"
+      ]
     },
     {
       "text": "mother",
-      "ipa": "/ˈmʌð.ər/",
+      "ipa": "/ˈmʌðər/",
       "letter": "m",
       "phonemes": [
         "m",
@@ -991,7 +1357,14 @@
         "r"
       ],
       "emoji": "👩",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/ˈmʌðə/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
+      ]
     },
     {
       "text": "bird",
@@ -1003,19 +1376,31 @@
         "d"
       ],
       "emoji": "🐦",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/bɜːd/",
+      "phonemes_uk": [
+        "b",
+        "ɜː",
+        "d"
+      ]
     },
     {
       "text": "girl",
-      "ipa": "/ɡɜːl/",
+      "ipa": "/gɜːl/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "ɜː",
         "l"
       ],
       "emoji": "👧",
-      "difficulty": 1
+      "difficulty": 1,
+      "ipa_uk": "/gɜːl/",
+      "phonemes_uk": [
+        "g",
+        "ɜː",
+        "l"
+      ]
     },
     {
       "text": "television",
@@ -1033,7 +1418,18 @@
         "n"
       ],
       "emoji": "📺",
-      "difficulty": 2
+      "difficulty": 2,
+      "ipa_uk": "/ˈtelɪvɪʒn/",
+      "phonemes_uk": [
+        "t",
+        "e",
+        "l",
+        "ɪ",
+        "v",
+        "ɪ",
+        "ʒ",
+        "n"
+      ]
     },
     {
       "text": "see",
@@ -1045,7 +1441,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "看见"
+      "translation": "看见",
+      "ipa_uk": "/siː/",
+      "phonemes_uk": [
+        "s",
+        "iː"
+      ]
     },
     {
       "text": "tea",
@@ -1057,7 +1458,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "茶"
+      "translation": "茶",
+      "ipa_uk": "/tiː/",
+      "phonemes_uk": [
+        "t",
+        "iː"
+      ]
     },
     {
       "text": "bee",
@@ -1069,7 +1475,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "蜜蜂"
+      "translation": "蜜蜂",
+      "ipa_uk": "/biː/",
+      "phonemes_uk": [
+        "b",
+        "iː"
+      ]
     },
     {
       "text": "feet",
@@ -1082,11 +1493,17 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "脚"
+      "translation": "脚",
+      "ipa_uk": "/fiːt/",
+      "phonemes_uk": [
+        "f",
+        "iː",
+        "t"
+      ]
     },
     {
       "text": "car",
-      "ipa": "/kɑː(r)/",
+      "ipa": "/kɑːr/",
       "letter": "c",
       "phonemes": [
         "k",
@@ -1095,47 +1512,73 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "汽车"
+      "translation": "汽车",
+      "ipa_uk": "/kɑː/",
+      "phonemes_uk": [
+        "k",
+        "ɑː"
+      ]
     },
     {
       "text": "farm",
-      "ipa": "/fɑːm/",
+      "ipa": "/fɑːrm/",
       "letter": "f",
       "phonemes": [
         "f",
         "ɑː",
+        "r",
         "m"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "农场"
+      "translation": "农场",
+      "ipa_uk": "/fɑːm/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "m"
+      ]
     },
     {
       "text": "park",
-      "ipa": "/pɑːk/",
+      "ipa": "/pɑːrk/",
       "letter": "p",
       "phonemes": [
         "p",
         "ɑː",
+        "r",
         "k"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "公园"
+      "translation": "公园",
+      "ipa_uk": "/pɑːk/",
+      "phonemes_uk": [
+        "p",
+        "ɑː",
+        "k"
+      ]
     },
     {
       "text": "glass",
-      "ipa": "/ɡlɑːs/",
+      "ipa": "/glæs/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "l",
-        "ɑː",
+        "æ",
         "s"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "玻璃杯"
+      "translation": "玻璃杯",
+      "ipa_uk": "/glɑːs/",
+      "phonemes_uk": [
+        "g",
+        "l",
+        "ɑː",
+        "s"
+      ]
     },
     {
       "text": "door",
@@ -1148,7 +1591,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "门"
+      "translation": "门",
+      "ipa_uk": "/dɔː/",
+      "phonemes_uk": [
+        "d",
+        "ɔː"
+      ]
     },
     {
       "text": "ball",
@@ -1161,7 +1609,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "球"
+      "translation": "球",
+      "ipa_uk": "/bɔːl/",
+      "phonemes_uk": [
+        "b",
+        "ɔː",
+        "l"
+      ]
     },
     {
       "text": "horse",
@@ -1174,7 +1628,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "马"
+      "translation": "马",
+      "ipa_uk": "/hɔːs/",
+      "phonemes_uk": [
+        "h",
+        "ɔː",
+        "s"
+      ]
     },
     {
       "text": "short",
@@ -1187,7 +1647,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "短的"
+      "translation": "短的",
+      "ipa_uk": "/ʃɔːt/",
+      "phonemes_uk": [
+        "ʃ",
+        "ɔː",
+        "t"
+      ]
     },
     {
       "text": "draw",
@@ -1199,7 +1665,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "画画"
+      "translation": "画画",
+      "ipa_uk": "/drɔː/",
+      "phonemes_uk": [
+        "dr",
+        "ɔː"
+      ]
     },
     {
       "text": "nurse",
@@ -1212,7 +1683,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "护士"
+      "translation": "护士",
+      "ipa_uk": "/nɜːs/",
+      "phonemes_uk": [
+        "n",
+        "ɜː",
+        "s"
+      ]
     },
     {
       "text": "skirt",
@@ -1226,7 +1703,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "短裙"
+      "translation": "短裙",
+      "ipa_uk": "/skɜːt/",
+      "phonemes_uk": [
+        "s",
+        "k",
+        "ɜː",
+        "t"
+      ]
     },
     {
       "text": "work",
@@ -1239,7 +1723,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "工作"
+      "translation": "工作",
+      "ipa_uk": "/wɜːk/",
+      "phonemes_uk": [
+        "w",
+        "ɜː",
+        "k"
+      ]
     },
     {
       "text": "zoo",
@@ -1251,7 +1741,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "动物园"
+      "translation": "动物园",
+      "ipa_uk": "/zuː/",
+      "phonemes_uk": [
+        "z",
+        "uː"
+      ]
     },
     {
       "text": "food",
@@ -1264,7 +1759,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "食物"
+      "translation": "食物",
+      "ipa_uk": "/fuːd/",
+      "phonemes_uk": [
+        "f",
+        "uː",
+        "d"
+      ]
     },
     {
       "text": "moon",
@@ -1277,7 +1778,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "月亮"
+      "translation": "月亮",
+      "ipa_uk": "/muːn/",
+      "phonemes_uk": [
+        "m",
+        "uː",
+        "n"
+      ]
     },
     {
       "text": "blue",
@@ -1290,7 +1797,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "蓝色"
+      "translation": "蓝色",
+      "ipa_uk": "/bluː/",
+      "phonemes_uk": [
+        "b",
+        "l",
+        "uː"
+      ]
     },
     {
       "text": "school",
@@ -1304,7 +1817,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "学校"
+      "translation": "学校",
+      "ipa_uk": "/skuːl/",
+      "phonemes_uk": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ]
     },
     {
       "text": "sit",
@@ -1317,7 +1837,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "坐"
+      "translation": "坐",
+      "ipa_uk": "/sɪt/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "t"
+      ]
     },
     {
       "text": "milk",
@@ -1331,7 +1857,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "牛奶"
+      "translation": "牛奶",
+      "ipa_uk": "/mɪlk/",
+      "phonemes_uk": [
+        "m",
+        "ɪ",
+        "l",
+        "k"
+      ]
     },
     {
       "text": "red",
@@ -1344,7 +1877,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "红色"
+      "translation": "红色",
+      "ipa_uk": "/red/",
+      "phonemes_uk": [
+        "r",
+        "e",
+        "d"
+      ]
     },
     {
       "text": "desk",
@@ -1358,20 +1897,33 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "书桌"
+      "translation": "书桌",
+      "ipa_uk": "/desk/",
+      "phonemes_uk": [
+        "d",
+        "e",
+        "s",
+        "k"
+      ]
     },
     {
       "text": "bag",
-      "ipa": "/bæɡ/",
+      "ipa": "/bæg/",
       "letter": "b",
       "phonemes": [
         "b",
         "æ",
-        "ɡ"
+        "g"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "书包"
+      "translation": "书包",
+      "ipa_uk": "/bæg/",
+      "phonemes_uk": [
+        "b",
+        "æ",
+        "g"
+      ]
     },
     {
       "text": "bus",
@@ -1384,7 +1936,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "公交"
+      "translation": "公交",
+      "ipa_uk": "/bʌs/",
+      "phonemes_uk": [
+        "b",
+        "ʌ",
+        "s"
+      ]
     },
     {
       "text": "hot",
@@ -1397,7 +1955,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "热"
+      "translation": "热",
+      "ipa_uk": "/hɒt/",
+      "phonemes_uk": [
+        "h",
+        "ɒ",
+        "t"
+      ]
     },
     {
       "text": "box",
@@ -1411,7 +1975,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "盒子"
+      "translation": "盒子",
+      "ipa_uk": "/bɒks/",
+      "phonemes_uk": [
+        "b",
+        "ɒ",
+        "k",
+        "s"
+      ]
     },
     {
       "text": "shop",
@@ -1424,21 +1995,34 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "商店"
+      "translation": "商店",
+      "ipa_uk": "/ʃɒp/",
+      "phonemes_uk": [
+        "ʃ",
+        "ɒ",
+        "p"
+      ]
     },
     {
       "text": "frog",
-      "ipa": "/frɒɡ/",
+      "ipa": "/frɒg/",
       "letter": "f",
       "phonemes": [
         "f",
         "r",
         "ɒ",
-        "ɡ"
+        "g"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "青蛙"
+      "translation": "青蛙",
+      "ipa_uk": "/frɒg/",
+      "phonemes_uk": [
+        "f",
+        "r",
+        "ɒ",
+        "g"
+      ]
     },
     {
       "text": "book",
@@ -1451,7 +2035,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "书"
+      "translation": "书",
+      "ipa_uk": "/bʊk/",
+      "phonemes_uk": [
+        "b",
+        "ʊ",
+        "k"
+      ]
     },
     {
       "text": "look",
@@ -1464,20 +2054,32 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "看"
+      "translation": "看",
+      "ipa_uk": "/lʊk/",
+      "phonemes_uk": [
+        "l",
+        "ʊ",
+        "k"
+      ]
     },
     {
       "text": "good",
-      "ipa": "/ɡʊd/",
+      "ipa": "/gʊd/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "ʊ",
         "d"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "好"
+      "translation": "好",
+      "ipa_uk": "/gʊd/",
+      "phonemes_uk": [
+        "g",
+        "ʊ",
+        "d"
+      ]
     },
     {
       "text": "foot",
@@ -1490,7 +2092,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "脚"
+      "translation": "脚",
+      "ipa_uk": "/fʊt/",
+      "phonemes_uk": [
+        "f",
+        "ʊ",
+        "t"
+      ]
     },
     {
       "text": "cook",
@@ -1503,7 +2111,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "烹饪"
+      "translation": "烹饪",
+      "ipa_uk": "/kʊk/",
+      "phonemes_uk": [
+        "k",
+        "ʊ",
+        "k"
+      ]
     },
     {
       "text": "teacher",
@@ -1518,7 +2132,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "老师"
+      "translation": "老师",
+      "ipa_uk": "/ˈtiːtʃə/",
+      "phonemes_uk": [
+        "t",
+        "iː",
+        "tʃ",
+        "ə"
+      ]
     },
     {
       "text": "ruler",
@@ -1533,7 +2154,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "尺子"
+      "translation": "尺子",
+      "ipa_uk": "/ˈruːlə/",
+      "phonemes_uk": [
+        "r",
+        "uː",
+        "l",
+        "ə"
+      ]
     },
     {
       "text": "about",
@@ -1547,23 +2175,39 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "关于"
+      "translation": "关于",
+      "ipa_uk": "/əˈbaʊt/",
+      "phonemes_uk": [
+        "ə",
+        "b",
+        "aʊ",
+        "t"
+      ]
     },
     {
       "text": "banana",
-      "ipa": "/bəˈnɑːnə/",
+      "ipa": "/bəˈnænə/",
       "letter": "b",
       "phonemes": [
+        "b",
+        "ə",
+        "n",
+        "æ",
+        "n",
+        "ə"
+      ],
+      "emoji": null,
+      "difficulty": 1,
+      "translation": "香蕉",
+      "ipa_uk": "/bəˈnɑːnə/",
+      "phonemes_uk": [
         "b",
         "ə",
         "n",
         "ɑː",
         "n",
         "ə"
-      ],
-      "emoji": null,
-      "difficulty": 1,
-      "translation": "香蕉"
+      ]
     },
     {
       "text": "doctor",
@@ -1579,7 +2223,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "医生"
+      "translation": "医生",
+      "ipa_uk": "/ˈdɒktə/",
+      "phonemes_uk": [
+        "d",
+        "ɒ",
+        "k",
+        "t",
+        "ə"
+      ]
     },
     {
       "text": "name",
@@ -1592,7 +2244,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "名字"
+      "translation": "名字",
+      "ipa_uk": "/neɪm/",
+      "phonemes_uk": [
+        "n",
+        "eɪ",
+        "m"
+      ]
     },
     {
       "text": "day",
@@ -1604,7 +2262,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "天"
+      "translation": "天",
+      "ipa_uk": "/deɪ/",
+      "phonemes_uk": [
+        "d",
+        "eɪ"
+      ]
     },
     {
       "text": "play",
@@ -1617,7 +2280,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "玩"
+      "translation": "玩",
+      "ipa_uk": "/pleɪ/",
+      "phonemes_uk": [
+        "p",
+        "l",
+        "eɪ"
+      ]
     },
     {
       "text": "bike",
@@ -1630,7 +2299,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "自行车"
+      "translation": "自行车",
+      "ipa_uk": "/baɪk/",
+      "phonemes_uk": [
+        "b",
+        "aɪ",
+        "k"
+      ]
     },
     {
       "text": "like",
@@ -1643,7 +2318,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "喜欢"
+      "translation": "喜欢",
+      "ipa_uk": "/laɪk/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "k"
+      ]
     },
     {
       "text": "five",
@@ -1656,7 +2337,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "五"
+      "translation": "五",
+      "ipa_uk": "/faɪv/",
+      "phonemes_uk": [
+        "f",
+        "aɪ",
+        "v"
+      ]
     },
     {
       "text": "sky",
@@ -1669,7 +2356,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "天空"
+      "translation": "天空",
+      "ipa_uk": "/skaɪ/",
+      "phonemes_uk": [
+        "s",
+        "k",
+        "aɪ"
+      ]
     },
     {
       "text": "light",
@@ -1682,7 +2375,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "灯光"
+      "translation": "灯光",
+      "ipa_uk": "/laɪt/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "t"
+      ]
     },
     {
       "text": "oil",
@@ -1694,7 +2393,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "油"
+      "translation": "油",
+      "ipa_uk": "/ɔɪl/",
+      "phonemes_uk": [
+        "ɔɪ",
+        "l"
+      ]
     },
     {
       "text": "noise",
@@ -1707,7 +2411,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "噪音"
+      "translation": "噪音",
+      "ipa_uk": "/nɔɪz/",
+      "phonemes_uk": [
+        "n",
+        "ɔɪ",
+        "z"
+      ]
     },
     {
       "text": "now",
@@ -1719,7 +2429,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "现在"
+      "translation": "现在",
+      "ipa_uk": "/naʊ/",
+      "phonemes_uk": [
+        "n",
+        "aʊ"
+      ]
     },
     {
       "text": "brown",
@@ -1733,7 +2448,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "棕色"
+      "translation": "棕色",
+      "ipa_uk": "/braʊn/",
+      "phonemes_uk": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ]
     },
     {
       "text": "home",
@@ -1746,19 +2468,30 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "家"
+      "translation": "家",
+      "ipa_uk": "/həʊm/",
+      "phonemes_uk": [
+        "h",
+        "əʊ",
+        "m"
+      ]
     },
     {
       "text": "go",
-      "ipa": "/ɡəʊ/",
+      "ipa": "/gəʊ/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "əʊ"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "走"
+      "translation": "走",
+      "ipa_uk": "/gəʊ/",
+      "phonemes_uk": [
+        "g",
+        "əʊ"
+      ]
     },
     {
       "text": "boat",
@@ -1771,7 +2504,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小船"
+      "translation": "小船",
+      "ipa_uk": "/bəʊt/",
+      "phonemes_uk": [
+        "b",
+        "əʊ",
+        "t"
+      ]
     },
     {
       "text": "snow",
@@ -1784,11 +2523,17 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "雪"
+      "translation": "雪",
+      "ipa_uk": "/snəʊ/",
+      "phonemes_uk": [
+        "s",
+        "n",
+        "əʊ"
+      ]
     },
     {
       "text": "ear",
-      "ipa": "/ɪə(r)/",
+      "ipa": "/ɪər/",
       "letter": "e",
       "phonemes": [
         "ɪə",
@@ -1796,7 +2541,11 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "耳朵"
+      "translation": "耳朵",
+      "ipa_uk": "/ɪə/",
+      "phonemes_uk": [
+        "ɪə"
+      ]
     },
     {
       "text": "here",
@@ -1809,7 +2558,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "这里"
+      "translation": "这里",
+      "ipa_uk": "/hɪə/",
+      "phonemes_uk": [
+        "h",
+        "ɪə"
+      ]
     },
     {
       "text": "beer",
@@ -1822,7 +2576,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "啤酒"
+      "translation": "啤酒",
+      "ipa_uk": "/bɪə/",
+      "phonemes_uk": [
+        "b",
+        "ɪə"
+      ]
     },
     {
       "text": "near",
@@ -1835,7 +2594,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "附近"
+      "translation": "附近",
+      "ipa_uk": "/nɪə/",
+      "phonemes_uk": [
+        "n",
+        "ɪə"
+      ]
     },
     {
       "text": "clear",
@@ -1849,7 +2613,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "清楚"
+      "translation": "清楚",
+      "ipa_uk": "/klɪə/",
+      "phonemes_uk": [
+        "k",
+        "l",
+        "ɪə"
+      ]
     },
     {
       "text": "pear",
@@ -1862,11 +2632,16 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "梨"
+      "translation": "梨",
+      "ipa_uk": "/peə/",
+      "phonemes_uk": [
+        "p",
+        "eə"
+      ]
     },
     {
       "text": "air",
-      "ipa": "/eə(r)/",
+      "ipa": "/eər/",
       "letter": "a",
       "phonemes": [
         "eə",
@@ -1874,11 +2649,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "空气"
+      "translation": "空气",
+      "ipa_uk": "/eə/",
+      "phonemes_uk": [
+        "eə"
+      ]
     },
     {
       "text": "bear",
-      "ipa": "/beə(r)/",
+      "ipa": "/bɛər/",
       "letter": "b",
       "phonemes": [
         "b",
@@ -1887,7 +2666,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "熊"
+      "translation": "熊",
+      "ipa_uk": "/beə/",
+      "phonemes_uk": [
+        "b",
+        "eə"
+      ]
     },
     {
       "text": "chair",
@@ -1900,7 +2684,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "椅子"
+      "translation": "椅子",
+      "ipa_uk": "/tʃeə/",
+      "phonemes_uk": [
+        "tʃ",
+        "eə"
+      ]
     },
     {
       "text": "where",
@@ -1913,7 +2702,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "哪里"
+      "translation": "哪里",
+      "ipa_uk": "/weə/",
+      "phonemes_uk": [
+        "w",
+        "eə"
+      ]
     },
     {
       "text": "sure",
@@ -1926,7 +2720,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "当然"
+      "translation": "当然",
+      "ipa_uk": "/ʃʊə/",
+      "phonemes_uk": [
+        "ʃ",
+        "ʊə"
+      ]
     },
     {
       "text": "tour",
@@ -1939,7 +2738,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "旅行"
+      "translation": "旅行",
+      "ipa_uk": "/tʊə/",
+      "phonemes_uk": [
+        "t",
+        "ʊə"
+      ]
     },
     {
       "text": "poor",
@@ -1952,7 +2756,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "贫穷"
+      "translation": "贫穷",
+      "ipa_uk": "/pʊə/",
+      "phonemes_uk": [
+        "p",
+        "ʊə"
+      ]
     },
     {
       "text": "cure",
@@ -1966,7 +2775,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "治愈"
+      "translation": "治愈",
+      "ipa_uk": "/kjʊə/",
+      "phonemes_uk": [
+        "k",
+        "j",
+        "ʊə"
+      ]
     },
     {
       "text": "pure",
@@ -1980,7 +2795,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "纯净"
+      "translation": "纯净",
+      "ipa_uk": "/pjʊə/",
+      "phonemes_uk": [
+        "p",
+        "j",
+        "ʊə"
+      ]
     },
     {
       "text": "cap",
@@ -1993,7 +2814,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "帽子"
+      "translation": "帽子",
+      "ipa_uk": "/kæp/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "p"
+      ]
     },
     {
       "text": "ten",
@@ -2006,7 +2833,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "十"
+      "translation": "十",
+      "ipa_uk": "/ten/",
+      "phonemes_uk": [
+        "t",
+        "e",
+        "n"
+      ]
     },
     {
       "text": "dad",
@@ -2019,7 +2852,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "爸爸"
+      "translation": "爸爸",
+      "ipa_uk": "/dæd/",
+      "phonemes_uk": [
+        "d",
+        "æ",
+        "d"
+      ]
     },
     {
       "text": "fly",
@@ -2032,7 +2871,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "飞"
+      "translation": "飞",
+      "ipa_uk": "/flaɪ/",
+      "phonemes_uk": [
+        "f",
+        "l",
+        "aɪ"
+      ]
     },
     {
       "text": "live",
@@ -2045,7 +2890,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "居住"
+      "translation": "居住",
+      "ipa_uk": "/lɪv/",
+      "phonemes_uk": [
+        "l",
+        "ɪ",
+        "v"
+      ]
     },
     {
       "text": "vest",
@@ -2059,7 +2910,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "背心"
+      "translation": "背心",
+      "ipa_uk": "/vest/",
+      "phonemes_uk": [
+        "v",
+        "e",
+        "s",
+        "t"
+      ]
     },
     {
       "text": "love",
@@ -2072,7 +2930,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "爱"
+      "translation": "爱",
+      "ipa_uk": "/lʌv/",
+      "phonemes_uk": [
+        "l",
+        "ʌ",
+        "v"
+      ]
     },
     {
       "text": "six",
@@ -2086,7 +2950,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "六"
+      "translation": "六",
+      "ipa_uk": "/sɪks/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
+      ]
     },
     {
       "text": "rose",
@@ -2099,21 +2970,34 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "玫瑰"
+      "translation": "玫瑰",
+      "ipa_uk": "/rəʊz/",
+      "phonemes_uk": [
+        "r",
+        "əʊ",
+        "z"
+      ]
     },
     {
       "text": "bags",
-      "ipa": "/bæɡz/",
+      "ipa": "/bægz/",
       "letter": "b",
       "phonemes": [
         "b",
         "æ",
-        "ɡ",
+        "g",
         "z"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "包"
+      "translation": "包",
+      "ipa_uk": "/bægz/",
+      "phonemes_uk": [
+        "b",
+        "æ",
+        "g",
+        "z"
+      ]
     },
     {
       "text": "boys",
@@ -2126,7 +3010,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "男孩们"
+      "translation": "男孩们",
+      "ipa_uk": "/bɔɪz/",
+      "phonemes_uk": [
+        "b",
+        "ɔɪ",
+        "z"
+      ]
     },
     {
       "text": "thin",
@@ -2139,7 +3029,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "瘦"
+      "translation": "瘦",
+      "ipa_uk": "/θɪn/",
+      "phonemes_uk": [
+        "θ",
+        "ɪ",
+        "n"
+      ]
     },
     {
       "text": "three",
@@ -2152,7 +3048,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "三"
+      "translation": "三",
+      "ipa_uk": "/θriː/",
+      "phonemes_uk": [
+        "θ",
+        "r",
+        "iː"
+      ]
     },
     {
       "text": "think",
@@ -2166,7 +3068,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "思考"
+      "translation": "思考",
+      "ipa_uk": "/θɪŋk/",
+      "phonemes_uk": [
+        "θ",
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "text": "that",
@@ -2179,7 +3088,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "那个"
+      "translation": "那个",
+      "ipa_uk": "/ðæt/",
+      "phonemes_uk": [
+        "ð",
+        "æ",
+        "t"
+      ]
     },
     {
       "text": "they",
@@ -2191,11 +3106,16 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "他们"
+      "translation": "他们",
+      "ipa_uk": "/ðeɪ/",
+      "phonemes_uk": [
+        "ð",
+        "eɪ"
+      ]
     },
     {
       "text": "father",
-      "ipa": "/ˈfɑːðə(r)/",
+      "ipa": "/ˈfɑːðər/",
       "letter": "f",
       "phonemes": [
         "f",
@@ -2206,7 +3126,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "爸爸"
+      "translation": "爸爸",
+      "ipa_uk": "/ˈfɑːðə/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə"
+      ]
     },
     {
       "text": "ship",
@@ -2219,7 +3146,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "轮船"
+      "translation": "轮船",
+      "ipa_uk": "/ʃɪp/",
+      "phonemes_uk": [
+        "ʃ",
+        "ɪ",
+        "p"
+      ]
     },
     {
       "text": "sheep",
@@ -2232,7 +3165,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "绵羊"
+      "translation": "绵羊",
+      "ipa_uk": "/ʃiːp/",
+      "phonemes_uk": [
+        "ʃ",
+        "iː",
+        "p"
+      ]
     },
     {
       "text": "pleasure",
@@ -2248,7 +3187,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "快乐"
+      "translation": "快乐",
+      "ipa_uk": "/ˈpleʒə/",
+      "phonemes_uk": [
+        "p",
+        "l",
+        "e",
+        "ʒ",
+        "ə"
+      ]
     },
     {
       "text": "vision",
@@ -2262,7 +3209,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "视力"
+      "translation": "视力",
+      "ipa_uk": "/ˈvɪʒn/",
+      "phonemes_uk": [
+        "v",
+        "ɪ",
+        "ʒ",
+        "n"
+      ]
     },
     {
       "text": "measure",
@@ -2277,7 +3231,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "测量"
+      "translation": "测量",
+      "ipa_uk": "/ˈmeʒə/",
+      "phonemes_uk": [
+        "m",
+        "e",
+        "ʒ",
+        "ə"
+      ]
     },
     {
       "text": "happy",
@@ -2291,7 +3252,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "开心"
+      "translation": "开心",
+      "ipa_uk": "/ˈhæpɪ/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "p",
+        "ɪ"
+      ]
     },
     {
       "text": "hill",
@@ -2304,7 +3272,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小山"
+      "translation": "小山",
+      "ipa_uk": "/hɪl/",
+      "phonemes_uk": [
+        "h",
+        "ɪ",
+        "l"
+      ]
     },
     {
       "text": "chicken",
@@ -2319,7 +3293,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小鸡"
+      "translation": "小鸡",
+      "ipa_uk": "/ˈtʃɪkɪn/",
+      "phonemes_uk": [
+        "tʃ",
+        "ɪ",
+        "k",
+        "ɪ",
+        "n"
+      ]
     },
     {
       "text": "watch",
@@ -2332,7 +3314,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "手表"
+      "translation": "手表",
+      "ipa_uk": "/wɒtʃ/",
+      "phonemes_uk": [
+        "w",
+        "ɒ",
+        "tʃ"
+      ]
     },
     {
       "text": "teach",
@@ -2345,7 +3333,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "教"
+      "translation": "教",
+      "ipa_uk": "/tiːtʃ/",
+      "phonemes_uk": [
+        "t",
+        "iː",
+        "tʃ"
+      ]
     },
     {
       "text": "lunch",
@@ -2359,7 +3353,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "午餐"
+      "translation": "午餐",
+      "ipa_uk": "/lʌntʃ/",
+      "phonemes_uk": [
+        "l",
+        "ʌ",
+        "n",
+        "tʃ"
+      ]
     },
     {
       "text": "jump",
@@ -2373,7 +3374,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "跳"
+      "translation": "跳",
+      "ipa_uk": "/dʒʌmp/",
+      "phonemes_uk": [
+        "dʒ",
+        "ʌ",
+        "m",
+        "p"
+      ]
     },
     {
       "text": "juice",
@@ -2386,7 +3394,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "果汁"
+      "translation": "果汁",
+      "ipa_uk": "/dʒuːs/",
+      "phonemes_uk": [
+        "dʒ",
+        "uː",
+        "s"
+      ]
     },
     {
       "text": "job",
@@ -2399,7 +3413,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "工作"
+      "translation": "工作",
+      "ipa_uk": "/dʒɒb/",
+      "phonemes_uk": [
+        "dʒ",
+        "ɒ",
+        "b"
+      ]
     },
     {
       "text": "bridge",
@@ -2413,7 +3433,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "桥"
+      "translation": "桥",
+      "ipa_uk": "/brɪdʒ/",
+      "phonemes_uk": [
+        "b",
+        "r",
+        "ɪ",
+        "dʒ"
+      ]
     },
     {
       "text": "train",
@@ -2426,7 +3453,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "火车"
+      "translation": "火车",
+      "ipa_uk": "/treɪn/",
+      "phonemes_uk": [
+        "tr",
+        "eɪ",
+        "n"
+      ]
     },
     {
       "text": "trousers",
@@ -2441,7 +3474,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "裤子"
+      "translation": "裤子",
+      "ipa_uk": "/ˈtraʊzəz/",
+      "phonemes_uk": [
+        "tr",
+        "aʊ",
+        "z",
+        "ə",
+        "z"
+      ]
     },
     {
       "text": "trip",
@@ -2454,7 +3495,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "旅行"
+      "translation": "旅行",
+      "ipa_uk": "/trɪp/",
+      "phonemes_uk": [
+        "tr",
+        "ɪ",
+        "p"
+      ]
     },
     {
       "text": "trap",
@@ -2467,7 +3514,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "陷阱"
+      "translation": "陷阱",
+      "ipa_uk": "/træp/",
+      "phonemes_uk": [
+        "tr",
+        "æ",
+        "p"
+      ]
     },
     {
       "text": "dress",
@@ -2480,7 +3533,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "连衣裙"
+      "translation": "连衣裙",
+      "ipa_uk": "/dres/",
+      "phonemes_uk": [
+        "dr",
+        "e",
+        "s"
+      ]
     },
     {
       "text": "drink",
@@ -2494,7 +3553,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "喝"
+      "translation": "喝",
+      "ipa_uk": "/drɪŋk/",
+      "phonemes_uk": [
+        "d",
+        "r",
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "text": "dream",
@@ -2507,7 +3574,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "梦"
+      "translation": "梦",
+      "ipa_uk": "/driːm/",
+      "phonemes_uk": [
+        "dr",
+        "iː",
+        "m"
+      ]
     },
     {
       "text": "drive",
@@ -2520,22 +3593,36 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "驾驶"
+      "translation": "驾驶",
+      "ipa_uk": "/draɪv/",
+      "phonemes_uk": [
+        "dr",
+        "aɪ",
+        "v"
+      ]
     },
     {
       "text": "dragon",
-      "ipa": "/ˈdræɡən/",
+      "ipa": "/ˈdrægən/",
       "letter": "d",
       "phonemes": [
         "dr",
         "æ",
-        "ɡ",
+        "g",
         "ə",
         "n"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "龙"
+      "translation": "龙",
+      "ipa_uk": "/ˈdrægən/",
+      "phonemes_uk": [
+        "dr",
+        "æ",
+        "g",
+        "ə",
+        "n"
+      ]
     },
     {
       "text": "cats",
@@ -2548,7 +3635,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "猫"
+      "translation": "猫",
+      "ipa_uk": "/kæts/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "ts"
+      ]
     },
     {
       "text": "hats",
@@ -2561,7 +3654,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "帽子"
+      "translation": "帽子",
+      "ipa_uk": "/hæts/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "ts"
+      ]
     },
     {
       "text": "boats",
@@ -2574,20 +3673,33 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小船"
+      "translation": "小船",
+      "ipa_uk": "/bəʊts/",
+      "phonemes_uk": [
+        "b",
+        "əʊ",
+        "t",
+        "s"
+      ]
     },
     {
       "text": "gates",
-      "ipa": "/ɡeɪts/",
+      "ipa": "/geɪts/",
       "letter": "g",
       "phonemes": [
-        "ɡ",
+        "g",
         "eɪ",
         "ts"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "大门"
+      "translation": "大门",
+      "ipa_uk": "/geɪts/",
+      "phonemes_uk": [
+        "g",
+        "eɪ",
+        "ts"
+      ]
     },
     {
       "text": "pets",
@@ -2600,7 +3712,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "宠物"
+      "translation": "宠物",
+      "ipa_uk": "/pets/",
+      "phonemes_uk": [
+        "p",
+        "e",
+        "ts"
+      ]
     },
     {
       "text": "beds",
@@ -2613,7 +3731,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "床"
+      "translation": "床",
+      "ipa_uk": "/bedz/",
+      "phonemes_uk": [
+        "b",
+        "e",
+        "dz"
+      ]
     },
     {
       "text": "hands",
@@ -2627,7 +3751,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "手"
+      "translation": "手",
+      "ipa_uk": "/hændz/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "n",
+        "dz"
+      ]
     },
     {
       "text": "kids",
@@ -2640,7 +3771,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小孩"
+      "translation": "小孩",
+      "ipa_uk": "/kɪdz/",
+      "phonemes_uk": [
+        "k",
+        "ɪ",
+        "dz"
+      ]
     },
     {
       "text": "birds",
@@ -2653,7 +3790,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小鸟"
+      "translation": "小鸟",
+      "ipa_uk": "/bɜːdz/",
+      "phonemes_uk": [
+        "b",
+        "ɜː",
+        "dz"
+      ]
     },
     {
       "text": "mom",
@@ -2666,7 +3809,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "妈妈"
+      "translation": "妈妈",
+      "ipa_uk": "/mɒm/",
+      "phonemes_uk": [
+        "m",
+        "ɒ",
+        "m"
+      ]
     },
     {
       "text": "man",
@@ -2679,7 +3828,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "男人"
+      "translation": "男人",
+      "ipa_uk": "/mæn/",
+      "phonemes_uk": [
+        "m",
+        "æ",
+        "n"
+      ]
     },
     {
       "text": "nine",
@@ -2692,7 +3847,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "九"
+      "translation": "九",
+      "ipa_uk": "/naɪn/",
+      "phonemes_uk": [
+        "n",
+        "aɪ",
+        "n"
+      ]
     },
     {
       "text": "sing",
@@ -2705,7 +3866,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "唱歌"
+      "translation": "唱歌",
+      "ipa_uk": "/sɪŋ/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "ŋ"
+      ]
     },
     {
       "text": "king",
@@ -2718,7 +3885,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "国王"
+      "translation": "国王",
+      "ipa_uk": "/kɪŋ/",
+      "phonemes_uk": [
+        "k",
+        "ɪ",
+        "ŋ"
+      ]
     },
     {
       "text": "song",
@@ -2731,7 +3904,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "歌曲"
+      "translation": "歌曲",
+      "ipa_uk": "/sɒŋ/",
+      "phonemes_uk": [
+        "s",
+        "ɒ",
+        "ŋ"
+      ]
     },
     {
       "text": "morning",
@@ -2746,7 +3925,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "早上"
+      "translation": "早上",
+      "ipa_uk": "/ˈmɔːnɪŋ/",
+      "phonemes_uk": [
+        "m",
+        "ɔː",
+        "n",
+        "ɪ",
+        "ŋ"
+      ]
     },
     {
       "text": "pink",
@@ -2760,20 +3947,33 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "粉色"
+      "translation": "粉色",
+      "ipa_uk": "/pɪŋk/",
+      "phonemes_uk": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
     },
     {
       "text": "leg",
-      "ipa": "/leɡ/",
+      "ipa": "/leg/",
       "letter": "l",
       "phonemes": [
         "l",
         "e",
-        "ɡ"
+        "g"
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "腿"
+      "translation": "腿",
+      "ipa_uk": "/leg/",
+      "phonemes_uk": [
+        "l",
+        "e",
+        "g"
+      ]
     },
     {
       "text": "rice",
@@ -2786,7 +3986,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "米饭"
+      "translation": "米饭",
+      "ipa_uk": "/raɪs/",
+      "phonemes_uk": [
+        "r",
+        "aɪ",
+        "s"
+      ]
     },
     {
       "text": "river",
@@ -2801,7 +4007,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "小河"
+      "translation": "小河",
+      "ipa_uk": "/ˈrɪvə/",
+      "phonemes_uk": [
+        "r",
+        "ɪ",
+        "v",
+        "ə"
+      ]
     },
     {
       "text": "we",
@@ -2813,7 +4026,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "我们"
+      "translation": "我们",
+      "ipa_uk": "/wiː/",
+      "phonemes_uk": [
+        "w",
+        "iː"
+      ]
     },
     {
       "text": "white",
@@ -2826,7 +4044,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "白色"
+      "translation": "白色",
+      "ipa_uk": "/waɪt/",
+      "phonemes_uk": [
+        "w",
+        "aɪ",
+        "t"
+      ]
     },
     {
       "text": "window",
@@ -2841,7 +4065,15 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "窗户"
+      "translation": "窗户",
+      "ipa_uk": "/ˈwɪndəʊ/",
+      "phonemes_uk": [
+        "w",
+        "ɪ",
+        "n",
+        "d",
+        "əʊ"
+      ]
     },
     {
       "text": "wait",
@@ -2854,7 +4086,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "等待"
+      "translation": "等待",
+      "ipa_uk": "/weɪt/",
+      "phonemes_uk": [
+        "w",
+        "eɪ",
+        "t"
+      ]
     },
     {
       "text": "yes",
@@ -2867,7 +4105,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "是的"
+      "translation": "是的",
+      "ipa_uk": "/jes/",
+      "phonemes_uk": [
+        "j",
+        "e",
+        "s"
+      ]
     },
     {
       "text": "you",
@@ -2879,7 +4123,12 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "你"
+      "translation": "你",
+      "ipa_uk": "/juː/",
+      "phonemes_uk": [
+        "j",
+        "uː"
+      ]
     },
     {
       "text": "young",
@@ -2892,7 +4141,13 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "年轻"
+      "translation": "年轻",
+      "ipa_uk": "/jʌŋ/",
+      "phonemes_uk": [
+        "j",
+        "ʌ",
+        "ŋ"
+      ]
     },
     {
       "text": "cute",
@@ -2906,7 +4161,14 @@
       ],
       "emoji": null,
       "difficulty": 1,
-      "translation": "可爱"
+      "translation": "可爱",
+      "ipa_uk": "/kjuːt/",
+      "phonemes_uk": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ]
     }
   ],
   "phonemes": [
@@ -2933,7 +4195,8 @@
         "need",
         "sea",
         "tree"
-      ]
+      ],
+      "mnemonic": "穿件毛衣"
     },
     {
       "symbol": "/ɪ/",
@@ -2957,7 +4220,8 @@
         "fish",
         "pink",
         "six"
-      ]
+      ],
+      "mnemonic": "喊句口号"
     },
     {
       "symbol": "/e/",
@@ -2981,7 +4245,8 @@
         "help",
         "red",
         "ten"
-      ]
+      ],
+      "mnemonic": "一指微笑"
     },
     {
       "symbol": "/æ/",
@@ -3005,7 +4270,8 @@
         "cat",
         "dad",
         "hand"
-      ]
+      ],
+      "mnemonic": "咧嘴大笑"
     },
     {
       "symbol": "/ʌ/",
@@ -3029,7 +4295,8 @@
         "duck",
         "mother",
         "sun"
-      ]
+      ],
+      "mnemonic": "尖角扎人"
     },
     {
       "symbol": "/ɑː/",
@@ -3050,7 +4317,8 @@
       ],
       "englishWordIds": [
         "arm"
-      ]
+      ],
+      "mnemonic": "大叫一声"
     },
     {
       "symbol": "/ɒ/",
@@ -3073,7 +4341,8 @@
         "dog",
         "fox",
         "orange"
-      ]
+      ],
+      "mnemonic": "半边圆圈"
     },
     {
       "symbol": "/ɔː/",
@@ -3096,7 +4365,8 @@
         "draw",
         "four",
         "tall"
-      ]
+      ],
+      "mnemonic": "公鸡打鸣"
     },
     {
       "symbol": "/ʊ/",
@@ -3117,7 +4387,8 @@
       ],
       "englishWordIds": [
         "good"
-      ]
+      ],
+      "mnemonic": "污污水坑"
     },
     {
       "symbol": "/uː/",
@@ -3141,7 +4412,8 @@
         "school",
         "two",
         "zoo"
-      ]
+      ],
+      "mnemonic": "一只乌鸦"
     },
     {
       "symbol": "/ɜː/",
@@ -3162,7 +4434,8 @@
       ],
       "englishWordIds": [
         "bird"
-      ]
+      ],
+      "mnemonic": "三天没吃"
     },
     {
       "symbol": "/ə/",
@@ -3188,7 +4461,8 @@
         "mother",
         "sister",
         "water"
-      ]
+      ],
+      "mnemonic": "回头小鹅"
     },
     {
       "symbol": "/eɪ/",
@@ -3213,7 +4487,8 @@
         "make",
         "name",
         "say"
-      ]
+      ],
+      "mnemonic": "应答一声"
     },
     {
       "symbol": "/aɪ/",
@@ -3238,7 +4513,8 @@
         "like",
         "nice",
         "white"
-      ]
+      ],
+      "mnemonic": "比个爱心"
     },
     {
       "symbol": "/ɔɪ/",
@@ -3256,7 +4532,8 @@
         "coin",
         "noise"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "熬夜男孩"
     },
     {
       "symbol": "/aʊ/",
@@ -3278,7 +4555,8 @@
       "englishWordIds": [
         "brown",
         "mouth"
-      ]
+      ],
+      "mnemonic": "老虎咆哮"
     },
     {
       "symbol": "/əʊ/",
@@ -3301,7 +4579,8 @@
         "go",
         "old",
         "yellow"
-      ]
+      ],
+      "mnemonic": "一只海鸥"
     },
     {
       "symbol": "/ɪə/",
@@ -3321,7 +4600,8 @@
       ],
       "englishWordIds": [
         "ear"
-      ]
+      ],
+      "mnemonic": "一只小鹅"
     },
     {
       "symbol": "/eə/",
@@ -3342,7 +4622,8 @@
       "englishWordIds": [
         "air",
         "bear"
-      ]
+      ],
+      "mnemonic": "挨饿小鹅"
     },
     {
       "symbol": "/ʊə/",
@@ -3360,7 +4641,8 @@
         "cure",
         "pure"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "五只小鹅"
     },
     {
       "symbol": "/p/",
@@ -3385,7 +4667,8 @@
         "panda",
         "pet",
         "pink"
-      ]
+      ],
+      "mnemonic": "皮皮泼水"
     },
     {
       "symbol": "/b/",
@@ -3410,7 +4693,8 @@
         "big",
         "bird",
         "brown"
-      ]
+      ],
+      "mnemonic": "收听广播"
     },
     {
       "symbol": "/t/",
@@ -3436,7 +4720,8 @@
         "ten",
         "tree",
         "two"
-      ]
+      ],
+      "mnemonic": "舌尖轻弹"
     },
     {
       "symbol": "/d/",
@@ -3463,7 +4748,8 @@
         "good",
         "hand",
         "red"
-      ]
+      ],
+      "mnemonic": "小马跑步"
     },
     {
       "symbol": "/k/",
@@ -3472,7 +4758,7 @@
       "tonguePosition": "舌后部抬起抵住软腭",
       "lipShape": "嘴唇自然张开",
       "commonMistakes": [
-        "发成/ɡ/不该震动",
+        "发成/g/不该震动",
         "舌位太靠前"
       ],
       "exampleWords": [
@@ -3490,10 +4776,11 @@
         "like",
         "pink",
         "school"
-      ]
+      ],
+      "mnemonic": "轻轻咳嗽"
     },
     {
-      "symbol": "/ɡ/",
+      "symbol": "/g/",
       "category": "PLOSIVE",
       "description": "舌后部抵住软腭，气流爆破，声带震动",
       "tonguePosition": "舌后部抬起抵住软腭",
@@ -3516,7 +4803,8 @@
         "go",
         "good",
         "green"
-      ]
+      ],
+      "mnemonic": "一只鸽子"
     },
     {
       "symbol": "/f/",
@@ -3542,7 +4830,8 @@
         "five",
         "four",
         "fox"
-      ]
+      ],
+      "mnemonic": "轻轻抚摸"
     },
     {
       "symbol": "/v/",
@@ -3565,7 +4854,8 @@
         "give",
         "have",
         "seven"
-      ]
+      ],
+      "mnemonic": "摩托加速"
     },
     {
       "symbol": "/θ/",
@@ -3587,7 +4877,8 @@
       "englishWordIds": [
         "mouth",
         "three"
-      ]
+      ],
+      "mnemonic": "轻咬舌尖"
     },
     {
       "symbol": "/ð/",
@@ -3611,7 +4902,8 @@
         "father",
         "mother",
         "them"
-      ]
+      ],
+      "mnemonic": "舌尖发麻"
     },
     {
       "symbol": "/s/",
@@ -3635,7 +4927,8 @@
         "six",
         "small",
         "sun"
-      ]
+      ],
+      "mnemonic": "春蚕吐丝"
     },
     {
       "symbol": "/z/",
@@ -3655,7 +4948,8 @@
       ],
       "englishWordIds": [
         "zoo"
-      ]
+      ],
+      "mnemonic": "电钻打洞"
     },
     {
       "symbol": "/ʃ/",
@@ -3676,7 +4970,8 @@
       ],
       "englishWordIds": [
         "fish"
-      ]
+      ],
+      "mnemonic": "不要说话 嘘嘘嘘"
     },
     {
       "symbol": "/ʒ/",
@@ -3692,7 +4987,8 @@
         "vision",
         "measure"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "风和日丽"
     },
     {
       "symbol": "/h/",
@@ -3714,7 +5010,8 @@
         "hand",
         "have",
         "help"
-      ]
+      ],
+      "mnemonic": "轻轻呵气"
     },
     {
       "symbol": "/tʃ/",
@@ -3733,7 +5030,8 @@
         "teach",
         "lunch"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "大口吃饭"
     },
     {
       "symbol": "/dʒ/",
@@ -3753,7 +5051,8 @@
       ],
       "englishWordIds": [
         "orange"
-      ]
+      ],
+      "mnemonic": "一只小鸡"
     },
     {
       "symbol": "/m/",
@@ -3776,7 +5075,8 @@
         "make",
         "mouth",
         "name"
-      ]
+      ],
+      "mnemonic": "嘴巴紧闭"
     },
     {
       "symbol": "/n/",
@@ -3802,7 +5102,8 @@
         "new",
         "nine",
         "sun"
-      ]
+      ],
+      "mnemonic": "舌尖抬起"
     },
     {
       "symbol": "/ŋ/",
@@ -3812,7 +5113,7 @@
       "lipShape": "嘴唇自然张开",
       "commonMistakes": [
         "发成/n/舌位太靠前",
-        "发成/ɡ/不该爆破"
+        "发成/g/不该爆破"
       ],
       "exampleWords": [
         "sing",
@@ -3823,7 +5124,8 @@
       ],
       "englishWordIds": [
         "pink"
-      ]
+      ],
+      "mnemonic": "舌根拱起"
     },
     {
       "symbol": "/l/",
@@ -3847,7 +5149,8 @@
         "blue",
         "like",
         "school"
-      ]
+      ],
+      "mnemonic": "生日快乐"
     },
     {
       "symbol": "/r/",
@@ -3869,7 +5172,8 @@
       "englishWordIds": [
         "rabbit",
         "red"
-      ]
+      ],
+      "mnemonic": "红红太阳"
     },
     {
       "symbol": "/j/",
@@ -3891,7 +5195,8 @@
         "cute",
         "year",
         "yellow"
-      ]
+      ],
+      "mnemonic": "一位爷爷"
     },
     {
       "symbol": "/w/",
@@ -3912,7 +5217,8 @@
       "englishWordIds": [
         "water",
         "white"
-      ]
+      ],
+      "mnemonic": "我是天才"
     },
     {
       "symbol": "/tr/",
@@ -3933,7 +5239,8 @@
       ],
       "englishWordIds": [
         "tree"
-      ]
+      ],
+      "mnemonic": "戳戳小脸"
     },
     {
       "symbol": "/dr/",
@@ -3954,7 +5261,8 @@
       ],
       "englishWordIds": [
         "draw"
-      ]
+      ],
+      "mnemonic": "小鸡琢米"
     },
     {
       "symbol": "/ts/",
@@ -3972,7 +5280,8 @@
         "gates",
         "pets"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "龇牙咧嘴"
     },
     {
       "symbol": "/dz/",
@@ -3990,7 +5299,8 @@
         "kids",
         "birds"
       ],
-      "englishWordIds": []
+      "englishWordIds": [],
+      "mnemonic": "水枪喷水"
     }
   ]
 }

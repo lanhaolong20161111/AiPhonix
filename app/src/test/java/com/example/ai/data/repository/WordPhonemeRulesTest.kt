@@ -26,11 +26,11 @@ class WordPhonemeRulesTest {
         "iː", "ɪ", "e", "æ", "ɜː", "ə", "ʌ", "ɔː", "ɒ", "ʊ", "uː", "ɑː",
         // 双元音
         "aɪ", "aʊ", "ɔɪ", "eɪ", "əʊ", "ɪə", "eə", "ʊə",
-        // 辅音（单个）
-        "p", "b", "t", "d", "k", "ɡ", "f", "v", "θ", "ð", "s", "z", "ʃ", "ʒ",
+        // 辅音（单个）——2026-08-05 音素核对后全量用 ASCII g（原 U+0261 ɡ 已废弃）
+        "p", "b", "t", "d", "k", "g", "f", "v", "θ", "ð", "s", "z", "ʃ", "ʒ",
         "h", "m", "n", "ŋ", "l", "r", "w", "j",
-        // 辅音组合
-        "tʃ", "dʒ", "tr", "dr", "ts", "dz",
+        // 辅音组合（08-05 核对后新增 ju 复合音素：you/cute/new）
+        "tʃ", "dʒ", "tr", "dr", "ts", "dz", "ju",
     )
 
     @Test
@@ -52,12 +52,20 @@ class WordPhonemeRulesTest {
         )
     }
 
+    /**
+     * 已知 IPA 与 phonemes 刻意不一致的词（2026-08-05 全量音素核对后）。
+     * phonemes 按教学英式拆法修正（zebra z iː→e；you/cute 合并 ju 复合音素），
+     * 而 ipa 字段按用户拍板保留词典美式标注（/ˈziː.brə/、/juː/）——两者允许不同。
+     */
+    private val knownIpaMismatch = setOf("zebra", "you", "cute")
+
     @Test
     fun `phonemes reconstruct the IPA`() {
         val words = loadAllWords()
         val errors = mutableListOf<String>()
 
         for (word in words) {
+            if (word.text.lowercase() in knownIpaMismatch) continue
             val cleaned = word.ipa
                 .trim('/')
                 .replace("ˈ", "")  // 主重音
@@ -125,6 +133,7 @@ class WordPhonemeRulesTest {
     /** 归一化 IPA 符号用于对比：AmE→BrE + 去除 r 差异 */
     private fun normalizeForCompare(s: String): String {
         return s
+            .replace("ɡ", "g")         // 词典标注 U+0261 → 项目规范 ASCII g
             .replace("oʊ", "əʊ")      // goat, nose, yellow
             .replace("ɝ", "ɜː")        // American r-colored vowel
             .replace("r", "")          // 容忍 (r) 差异

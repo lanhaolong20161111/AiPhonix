@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.Manifest
@@ -26,8 +27,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.example.ai.AppContainer
 import com.example.ai.data.audio.IpaAudioPlayer
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ai.ui.components.StarRating
 import com.example.ai.ui.components.PhonemeHeatmap
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 
 @Composable
 fun PronunciationScreen(
@@ -35,14 +40,20 @@ fun PronunciationScreen(
     onBack: () -> Unit,
     container: AppContainer,
     modifier: Modifier = Modifier,
-    viewModel: PronunciationViewModel = androidx.lifecycle.viewmodel.compose.viewModel { PronunciationViewModel(container.contentRepository, container.speechRepository, container.ttsEngine) },
+    viewModel: PronunciationViewModel = androidx.lifecycle.viewmodel.compose.viewModel { PronunciationViewModel(container.contentRepository, container.speechRepository, container.ttsEngine, container.wordImageRepository, container.pronunciationStyleStore) },
 ) {
     LaunchedEffect(wordText) { viewModel.loadWord(wordText) }
 
+    // 发音风格变化时重新加载（英式/美式标注切换）
+    val style by container.pronunciationStyleStore.style.collectAsStateWithLifecycle()
+    LaunchedEffect(style) { viewModel.loadWord(wordText) }
+
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    // TTS 全局朗读状态：朗读中禁用"播放发音"（防重复播放）
+    val ttsSpeaking by container.ttsEngine.isSpeaking.collectAsStateWithLifecycle()
 
-    val ipaPlayer = remember { IpaAudioPlayer(context) }
+    val ipaPlayer = remember { container.ipaAudioPlayer() }
     DisposableEffect(Unit) { onDispose { ipaPlayer.stop() } }
 
     // 运行时录音权限
@@ -76,22 +87,27 @@ fun PronunciationScreen(
             PronunciationStep.IDLE,
             PronunciationStep.PLAYING -> IdleContent(
                 word = state.word,
+                wordImageUrl = state.wordImageUrl,
                 phonemeToPhonicsIndex = state.phonemeToPhonicsIndex,
+                ttsSpeaking = ttsSpeaking,
                 onStart = onStartEval,
                 onPlaySound = { viewModel.playTts() },
                 onPlayPhoneme = { ipaPlayer.play(it) },
                 state = state,
             )
             PronunciationStep.ASSESSING -> AssessingContent(onStop = { viewModel.stopEvaluation() })
-            PronunciationStep.RESULT -> ResultContent(state.result, onRetry = { viewModel.reset() }, onBack = onBack, ipaPlayer = ipaPlayer)
+            PronunciationStep.RESULT -> ResultContent(state.result, state.wordImageUrl, onRetry = { viewModel.reset() }, onBack = onBack, ipaPlayer = ipaPlayer)
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun IdleContent(
     word: com.example.ai.data.model.Word?,
+    wordImageUrl: String?,
     phonemeToPhonicsIndex: Map<String, Int>,
+    ttsSpeaking: Boolean,
     onStart: () -> Unit,
     onPlaySound: () -> Unit,
     onPlayPhoneme: (String) -> Unit,  // 点击音素播放发音
@@ -103,10 +119,34 @@ private fun IdleContent(
         verticalArrangement = Arrangement.Center,
     ) {
         if (word != null) {
-            Text(
-                text = word.emoji ?: "",
-                fontSize = 64.sp,
-            )
+            if (wordImageUrl != null) {
+                // 数据库单词图片（加载失败回退 emoji）
+                SubcomposeAsyncImage(
+                    model = wordImageUrl,
+                    contentDescription = word.text,
+                    modifier = Modifier.fillMaxWidth().height(180.dp),
+                    contentScale = ContentScale.Fit,
+                ) {
+                    when (painter.state) {
+                        is AsyncImagePainter.State.Loading -> {
+                            Box(Modifier.height(120.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        is AsyncImagePainter.State.Error -> {
+                            Box(Modifier.height(120.dp), contentAlignment = Alignment.Center) {
+                                Text(text = word.emoji ?: "🖼️", fontSize = 64.sp)
+                            }
+                        }
+                        else -> SubcomposeAsyncImageContent()
+                    }
+                }
+            } else {
+                Text(
+                    text = word.emoji ?: "",
+                    fontSize = 64.sp,
+                )
+            }
             Spacer(Modifier.height(16.dp))
             Text(
                 text = word.text,
@@ -115,9 +155,9 @@ private fun IdleContent(
             )
             // 音素 chips（有 displayPhonemes 时显示为可点击 chip，否则显示原始 IPA）
             if (state.displayPhonemes.isNotEmpty()) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                FlowRow(
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     state.displayPhonemes.forEach { ph ->
                         val index = phonemeToPhonicsIndex[ph] ?: -1
@@ -136,7 +176,7 @@ private fun IdleContent(
                 )
             }
             Spacer(Modifier.height(8.dp))
-            TextButton(onClick = onPlaySound) {
+            TextButton(onClick = onPlaySound, enabled = !ttsSpeaking) {
                 Text("🔊 播放发音", fontSize = 14.sp)
             }
             Spacer(Modifier.height(16.dp))
@@ -169,6 +209,7 @@ private fun AssessingContent(onStop: () -> Unit) {
 @Composable
 private fun ResultContent(
     result: com.example.ai.data.model.PronunciationResult?,
+    wordImageUrl: String?,
     onRetry: () -> Unit,
     onBack: () -> Unit,
     ipaPlayer: com.example.ai.data.audio.IpaAudioPlayer,
@@ -180,7 +221,30 @@ private fun ResultContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(16.dp))
-        Text(text = result.word.emoji ?: "", fontSize = 48.sp)
+        if (wordImageUrl != null) {
+            SubcomposeAsyncImage(
+                model = wordImageUrl,
+                contentDescription = result.word.text,
+                modifier = Modifier.fillMaxWidth().height(140.dp),
+                contentScale = ContentScale.Fit,
+            ) {
+                when (painter.state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(Modifier.height(100.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is AsyncImagePainter.State.Error -> {
+                        Box(Modifier.height(100.dp), contentAlignment = Alignment.Center) {
+                            Text(text = result.word.emoji ?: "🖼️", fontSize = 48.sp)
+                        }
+                    }
+                    else -> SubcomposeAsyncImageContent()
+                }
+            }
+        } else {
+            Text(text = result.word.emoji ?: "", fontSize = 48.sp)
+        }
         Text(text = result.word.text, fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
 
@@ -251,13 +315,14 @@ private fun PhonemeChip(
         shape = RoundedCornerShape(8.dp),
         color = bg,
         modifier = Modifier
+            .padding(horizontal = 4.dp, vertical = 2.dp)
             .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier),
     ) {
         Text(
             text = phoneme,
             fontSize = 20.sp,
             color = fg,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
     }
 }

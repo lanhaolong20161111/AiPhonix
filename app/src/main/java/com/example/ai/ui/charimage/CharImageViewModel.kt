@@ -15,6 +15,7 @@ import com.example.ai.data.model.PhonemeScore
 import com.example.ai.data.model.PronunciationResult
 import com.example.ai.data.model.Word
 import com.example.ai.data.model.WordScore
+import com.example.ai.data.repository.ContentRepository
 import com.example.ai.data.repository.SpeechRepository
 import com.example.ai.di.NetworkModule
 import com.google.gson.Gson
@@ -52,6 +53,14 @@ data class CharImageUiState(
     val title: String = "看图识字",
 )
 
+/** 单词音标信息（来自本地词库 wordbank/english_vocabulary 的预置拆分） */
+data class WordPronInfo(
+    val ipa: String,
+    val phonemes: List<String>,
+    val ipaUk: String = "",
+    val phonemesUk: List<String> = emptyList(),
+)
+
 /** 服务器 API 返回的 JSON 结构 */
 private data class ListResponse(
     val total: Int,
@@ -71,10 +80,19 @@ class CharImageViewModel(
     private val serverBase: String,
     private val pendingStore: PendingFeedbackStore,
     private val sessionResultStore: com.example.ai.data.training.SessionResultStore,
+    private val contentRepository: ContentRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CharImageUiState())
     val uiState: StateFlow<CharImageUiState> = _uiState
+
+    /** 服务端基础地址（拼音音频 URL 拼接用） */
+    val serverBaseUrl: String get() = serverBase
+
+    /** 本地词库音标映射（word → IPA + 音素拆分），英词卡片展示音标用 */
+    private val _wordPronInfo = MutableStateFlow<Map<String, WordPronInfo>>(emptyMap())
+    val wordPronInfo: StateFlow<Map<String, WordPronInfo>> = _wordPronInfo.asStateFlow()
+    private var pronMapLoaded = false
 
     private val _pendingCount = MutableStateFlow(0)
     val pendingCount: StateFlow<Int> = _pendingCount.asStateFlow()
@@ -405,11 +423,62 @@ class CharImageViewModel(
         }
     }
 
+    /** 懒加载 ipa/phonemes 映射：服务端英词条目优先（533 全量），本地词库回退 */
+    fun ensureWordPronInfo() {
+        if (pronMapLoaded) return
+        pronMapLoaded = true
+        viewModelScope.launch {
+            try {
+                val map = withContext(Dispatchers.IO) {
+                    buildMap {
+                        contentRepository.getAllWords().forEach { put(it.text, WordPronInfo(it.ipa, it.phonemes, it.ipaUk, it.phonemesUk)) }
+                        contentRepository.getAllEnglishWords().forEach { put(it.word, WordPronInfo(it.phonetic, it.phonemes, it.ipaUk, it.phonemesUk)) }
+                        fetchServerPronInfo()?.forEach { (w, info) -> put(w, info) }
+                    }
+                }
+                _wordPronInfo.value = map
+            } catch (e: Exception) {
+                // 读取失败：不显示音标即可，不影响主流程
+            }
+        }
+    }
+
+    /** 从服务端拉取英词条目的 ipa/phonemes（char_image_index.json 已含生成结果） */
+    private fun fetchServerPronInfo(): Map<String, WordPronInfo>? = try {
+        val url = "$serverBase/api/v1/char-images?type_=${java.net.URLEncoder.encode("英词", "UTF-8")}&limit=1000"
+        val text = client.newCall(
+            okhttp3.Request.Builder().url(url).build()
+        ).execute().use { resp ->
+            if (!resp.isSuccessful) return null
+            resp.body?.string() ?: return null
+        }
+        val json = org.json.JSONObject(text)
+        val items = json.optJSONArray("items") ?: return null
+        buildMap {
+            for (i in 0 until items.length()) {
+                val it = items.optJSONObject(i) ?: continue
+                val w = it.optString("char").lowercase()
+                val ipa = it.optString("ipa")
+                val ipaUk = it.optString("ipa_uk")
+                val phArr = it.optJSONArray("phonemes")
+                val phUkArr = it.optJSONArray("phonemes_uk")
+                if (w.isNotEmpty() && ipa.isNotEmpty() && phArr != null && phArr.length() > 0) {
+                    val ph = buildList { for (j in 0 until phArr.length()) add(phArr.optString(j)) }
+                    val phUk = if (phUkArr != null && phUkArr.length() > 0) buildList { for (j in 0 until phUkArr.length()) add(phUkArr.optString(j)) } else emptyList()
+                    put(w, WordPronInfo(ipa, ph, ipaUk, phUk))
+                }
+            }
+        }
+    } catch (e: Exception) {
+        null
+    }
+
     /** 按年级/学期/类型加载图片，每次导航到新参数都会触发 */
     fun load(grade: String, semester: String, type_: String) {
         filterGrade = grade
         filterSemester = semester
         filterType = type_
+        ensureWordPronInfo()
         loadCharImages()
     }
 

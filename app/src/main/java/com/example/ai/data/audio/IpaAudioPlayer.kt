@@ -3,23 +3,32 @@ package com.example.ai.data.audio
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
 
 /**
  * 播放国际音标（IPA）读音的音频文件
  *
- * 音频文件存放在 assets/ipa/{音标符号}.aac
- * 例如 assets/ipa/æ.aac 对应音标 /æ/
+ * 美式音频: assets/ipa/{音标符号}.aac（如 assets/ipa/æ.aac）
+ * 英式音频: assets/ipa_uk/{音标符号}.mp3（新东方英式国际音标卡，48 个）
+ *
+ * 播放时按当前发音风格（PronunciationStyleStore）选择：
+ * - 美式：只试 ipa/xxx.aac
+ * - 英式：先试 ipa_uk/xxx.mp3，缺失（如 kw/ks/ju 等组合音）回退 ipa/xxx.aac
  */
-class IpaAudioPlayer(private val context: Context) {
+class IpaAudioPlayer(
+    private val context: Context,
+    private val styleStore: PronunciationStyleStore,
+    private val boostDb: Int = 0,
+) {
 
     private var currentPlayer: MediaPlayer? = null
+
+    /** 播放完成回调（用于 UI 复位播放状态图标） */
+    var onCompletion: (() -> Unit)? = null
 
     companion object {
         private const val TAG = "IpaAudioPlayer"
         private const val IPA_DIR = "ipa"
+        private const val IPA_UK_DIR = "ipa_uk"
     }
 
     /**
@@ -36,30 +45,50 @@ class IpaAudioPlayer(private val context: Context) {
             .removeSuffix("/")
             .trim()
 
-        val assetPath = "$IPA_DIR/$clean.aac"
-
-        try {
-            val afd = context.assets.openFd(assetPath)
-            currentPlayer = MediaPlayer().apply {
-                setDataSource(afd)
-                setOnCompletionListener {
-                    release()
-                    currentPlayer = null
-                }
-                setOnErrorListener { mp, what, extra ->
-                    Log.e(TAG, "播放错误: what=$what extra=$extra")
-                    mp.release()
-                    currentPlayer = null
-                    true
-                }
-                prepare()
-                start()
-            }
-            afd.close()
-            Log.d(TAG, "播放: $assetPath")
-        } catch (e: Exception) {
-            Log.w(TAG, "无法播放 $assetPath: ${e.message}")
+        val style = styleStore.style.value
+        val candidates = if (style == PronunciationStyle.UK) {
+            listOf("$IPA_UK_DIR/$clean.mp3", "$IPA_DIR/$clean.aac")
+        } else {
+            listOf("$IPA_DIR/$clean.aac")
         }
+
+        for (assetPath in candidates) {
+            try {
+                val afd = context.assets.openFd(assetPath)
+                currentPlayer = MediaPlayer().apply {
+                    setDataSource(afd)
+                    setOnCompletionListener {
+                        release()
+                        currentPlayer = null
+                        onCompletion?.invoke()
+                    }
+                    setOnErrorListener { mp, what, extra ->
+                        Log.e(TAG, "播放错误: what=$what extra=$extra")
+                        mp.release()
+                        currentPlayer = null
+                        onCompletion?.invoke()
+                        true
+                    }
+                    prepare()
+                    // 可选增益增强（如字母页 +20dB）
+                    if (boostDb > 0) {
+                        try {
+                            val enhancer = android.media.audiofx.LoudnessEnhancer(audioSessionId)
+                            enhancer.setTargetGain(boostDb)
+                            enhancer.enabled = true
+                        } catch (_: Exception) {}
+                    }
+                    start()
+                }
+                afd.close()
+                Log.d(TAG, "播放($style): $assetPath")
+                return
+            } catch (e: Exception) {
+                // 尝试下一个候选路径
+                Log.d(TAG, "跳过不可用 $assetPath: ${e.message}")
+            }
+        }
+        Log.w(TAG, "无法播放 $clean（候选: $candidates）")
     }
 
     /**

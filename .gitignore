@@ -110,3 +110,15 @@ server_py/_*.py
 
 # ·şÎñ¶ËÔËĞĞÊ±×´Ì¬
 server_py/data/llm_budget.json
+
+# aié™ªæˆ‘ç»ƒ LangGraph checkpointerï¼ˆè¿è¡Œæ—¶çŠ¶æ€ï¼Œä¸æäº¤ï¼‰
+server_py/data/ai_practice_checkpoints.sqlite*
+server_py/data/quiz_cache_*.json
+server_py/data/_*.json
+server_py/data/ipa_audio/
+server_py/data/pinyin_audio/
+downloads/
+cache/
+build_install_log.txt
+ph_out.txt
+*.verify.png
