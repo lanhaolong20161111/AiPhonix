@@ -122,3 +122,4 @@ cache/
 build_install_log.txt
 ph_out.txt
 *.verify.png
+server_py/data/ai_practice_store.sqlite*

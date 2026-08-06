@@ -85,7 +85,7 @@ async def create_session(
 
     try:
         question = await ai_svc.start_session(
-            row.id, row.content_type, row.content, row.task
+            row.id, user.id, row.content_type, row.content, row.task
         )
     except Exception as e:
         logger.exception("ai陪我练 创建会话失败 session=%s", row.id)
@@ -133,7 +133,7 @@ async def chat(
         raise HTTPException(status_code=409, detail="会话已结束")
 
     try:
-        result = await ai_svc.send_answer(session_id, text)
+        result = await ai_svc.send_answer(session_id, user.id, text)
     except Exception as e:
         logger.exception("ai陪我练 对话失败 session=%s", session_id)
         raise HTTPException(status_code=502, detail=f"AI 响应失败：{e}")
