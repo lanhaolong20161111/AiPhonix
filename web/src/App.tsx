@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import "./App.css"
 import SoeDemo from "./SoeDemo"
 import { listUploads, uploadPhoto, uploadText, type UploadItem } from "./services/uploads"
 
