@@ -111,7 +111,7 @@ server_py/_*.py
 # ·şÎñ¶ËÔËĞĞÊ±×´Ì¬
 server_py/data/llm_budget.json
 
-# aié™ªæˆ‘ç»ƒ LangGraph checkpointerï¼ˆè¿è¡Œæ—¶çŠ¶æ€ï¼Œä¸æäº¤ï¼‰
+# aié™ªæˆ‘ç»? LangGraph checkpointerï¼ˆè¿è¡Œæ—¶çŠ¶æ€ï¼Œä¸æäº¤ï¼‰
 server_py/data/ai_practice_checkpoints.sqlite*
 server_py/data/quiz_cache_*.json
 server_py/data/_*.json
@@ -123,3 +123,52 @@ build_install_log.txt
 ph_out.txt
 *.verify.png
 server_py/data/ai_practice_store.sqlite*
+
+# â”€â”€ æœåŠ¡ç«¯æ ¹ç›®å½•æ¸…ç†ï¼?2026-08-20 æ¶æ„è¯„å®¡ï¼‰â”€â”€
+server_py/app.db
+server_py/*.db
+server_py/.mypy_cache/
+server_py/__pycache__/
+server_py/cache/
+server_py/*.log
+server_py/*_start.log
+server_py/_tencent_sdk_temp/
+server_py/static/letter_clips/
+server_py/static/videos/
+
+# ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
+# AiPhonix ºó¶ËÔ´ÂëÈë¿â¼Ó¹Ì£¨2026-09 ¼Ü¹¹ÆÀÉó P0-1£©
+# Ä¿±ê£ºÈÃ server_cf / server_ts / web Ô´Âë¿É°²È«ÄÉÈë git£¬
+# ¶øÃ÷ÎÄÃÜÔ¿ÓëÔËĞĞÊ±´óÎÄ¼ş¾ø²»Èë¿â£¨±ÜÃâ `git add .` °Ñ config.yaml / 4GB Êı¾İ´øÈëÀúÊ·£©¡£
+# ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
+
+# Ã÷ÎÄÃÜÔ¿£¨shared/config.yaml º¬ 6 ×éÕæÊµÃÜÔ¿£¬¾ø²»Èë¿â£©
+shared/config.yaml
+*.key
+.dev.vars
+*.local
+
+# ÃÜÔ¿¿ÉÄÜËæ»á»°µ¼³öÎÄ¼şĞ¹Â¶£¬ÎğÈë¿â
+memory-export-*.md
+session-export-*.md
+
+# ÔËĞĞÊ±´óÎÄ¼ş£¨shared/data ~4GB Ã½Ìå/¿â£»shared/static 435MB Ã½Ìå£©
+shared/data/
+shared/static/
+
+# ¹¹½¨²úÎï£¨Ç°¶Ë dist / server_cf ¾²Ì¬×ÊÔ´ / ÎÛÈ¾±¸·İÄ¿Â¼£©
+server_cf/static_assets/web/
+server_cf/static_assets/web_bak*/
+web/dist*/
+.wrangler/
+server_cf/.dev_log.txt
+.thumbs*/
+server_ts/dist/
+web/certs/
+web/test-results/
+web/.devserver.pid
+web/_shot_*.cjs
+server_ts/subcap_out.txt
+
+# È¡ÏûºöÂÔ server_cf ²¿Êğ½Å±¾£¨±»ÉÏÃæ scripts/ ¹æÔòÎóÉË£¬Ó¦Èë¿âÒÔ¹©Éó¼Æ£©
+!server_cf/scripts/

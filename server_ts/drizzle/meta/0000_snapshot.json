@@ -1,0 +1,2445 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "6",
+  "dialect": "sqlite",
+  "tables": {
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "uuid": {
+          "autoincrement": false,
+          "name": "uuid",
+          "type": "text(36)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "username": {
+          "autoincrement": false,
+          "name": "username",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "autoincrement": false,
+          "name": "password_hash",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nickname": {
+          "autoincrement": false,
+          "name": "nickname",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "autoincrement": false,
+          "name": "role",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grade": {
+          "autoincrement": false,
+          "name": "grade",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "autoincrement": false,
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "learning_level": {
+          "autoincrement": false,
+          "name": "learning_level",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_users_username": {
+          "name": "ix_users_username",
+          "columns": [
+            "username"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "refresh_tokens": {
+      "name": "refresh_tokens",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_hash": {
+          "autoincrement": false,
+          "name": "token_hash",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_info": {
+          "autoincrement": false,
+          "name": "device_info",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "autoincrement": false,
+          "name": "expires_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_refresh_tokens_user_id": {
+          "name": "ix_refresh_tokens_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "essays": {
+      "name": "essays",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "autoincrement": false,
+          "name": "title",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic": {
+          "autoincrement": false,
+          "name": "topic",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "audio_url": {
+          "autoincrement": false,
+          "name": "audio_url",
+          "type": "text(512)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text_original": {
+          "autoincrement": false,
+          "name": "text_original",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text_ai_modified": {
+          "autoincrement": false,
+          "name": "text_ai_modified",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "score": {
+          "autoincrement": false,
+          "name": "score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "feedback": {
+          "autoincrement": false,
+          "name": "feedback",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_essays_user_id": {
+          "name": "ix_essays_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "speech_eval_records": {
+      "name": "speech_eval_records",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "language": {
+          "autoincrement": false,
+          "name": "language",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eval_type": {
+          "autoincrement": false,
+          "name": "eval_type",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ref_text": {
+          "autoincrement": false,
+          "name": "ref_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "engine": {
+          "autoincrement": false,
+          "name": "engine",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_accuracy": {
+          "autoincrement": false,
+          "name": "total_accuracy",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_fluency": {
+          "autoincrement": false,
+          "name": "total_fluency",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_completion": {
+          "autoincrement": false,
+          "name": "total_completion",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "suggested_score": {
+          "autoincrement": false,
+          "name": "suggested_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "details": {
+          "autoincrement": false,
+          "name": "details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "default": "(\"\")",
+          "autoincrement": false,
+          "name": "source",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_speech_eval_records_eval_type": {
+          "name": "ix_speech_eval_records_eval_type",
+          "columns": [
+            "eval_type"
+          ],
+          "isUnique": false
+        },
+        "ix_speech_eval_records_user_id": {
+          "name": "ix_speech_eval_records_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "ix_speech_eval_records_language": {
+          "name": "ix_speech_eval_records_language",
+          "columns": [
+            "language"
+          ],
+          "isUnique": false
+        },
+        "ix_speech_eval_records_created_at": {
+          "name": "ix_speech_eval_records_created_at",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "upload_records": {
+      "name": "upload_records",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "kind": {
+          "autoincrement": false,
+          "name": "kind",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "autoincrement": false,
+          "name": "file_name",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ocr_text": {
+          "autoincrement": false,
+          "name": "ocr_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "autoincrement": false,
+          "name": "note",
+          "type": "text(512)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "default": "'web'",
+          "autoincrement": false,
+          "name": "source",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploader": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "uploader",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "origin": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "origin",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_upload_records_source": {
+          "name": "ix_upload_records_source",
+          "columns": [
+            "source"
+          ],
+          "isUnique": false
+        },
+        "ix_upload_records_created_at": {
+          "name": "ix_upload_records_created_at",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "user_imports": {
+      "name": "user_imports",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "autoincrement": false,
+          "name": "kind",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "autoincrement": false,
+          "name": "text",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pinyin": {
+          "autoincrement": false,
+          "name": "pinyin",
+          "type": "text(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meaning": {
+          "autoincrement": false,
+          "name": "meaning",
+          "type": "text(512)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tags": {
+          "autoincrement": false,
+          "name": "tags",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "autoincrement": false,
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_user_imports_user_id": {
+          "name": "ix_user_imports_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "ix_user_imports_kind": {
+          "name": "ix_user_imports_kind",
+          "columns": [
+            "kind"
+          ],
+          "isUnique": false
+        },
+        "ix_user_imports_created_at": {
+          "name": "ix_user_imports_created_at",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "ix_user_imports_text": {
+          "name": "ix_user_imports_text",
+          "columns": [
+            "text"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "training_plans": {
+      "name": "training_plans",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "autoincrement": false,
+          "name": "title",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "items_json": {
+          "autoincrement": false,
+          "name": "items_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_training_plans_user_id": {
+          "name": "ix_training_plans_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "practice_sessions": {
+      "name": "practice_sessions",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_item_id": {
+          "autoincrement": false,
+          "name": "plan_item_id",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "feature": {
+          "autoincrement": false,
+          "name": "feature",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "autoincrement": false,
+          "name": "date",
+          "type": "text(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "count": {
+          "autoincrement": false,
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "correct": {
+          "autoincrement": false,
+          "name": "correct",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "score": {
+          "autoincrement": false,
+          "name": "score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duration_ms": {
+          "autoincrement": false,
+          "name": "duration_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metrics_json": {
+          "autoincrement": false,
+          "name": "metrics_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_practice_sessions_user_id": {
+          "name": "ix_practice_sessions_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "ix_practice_sessions_feature": {
+          "name": "ix_practice_sessions_feature",
+          "columns": [
+            "feature"
+          ],
+          "isUnique": false
+        },
+        "ix_practice_sessions_date": {
+          "name": "ix_practice_sessions_date",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "ix_practice_sessions_plan_item_id": {
+          "name": "ix_practice_sessions_plan_item_id",
+          "columns": [
+            "plan_item_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ai_practice_sessions": {
+      "name": "ai_practice_sessions",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_type": {
+          "autoincrement": false,
+          "name": "content_type",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "task": {
+          "autoincrement": false,
+          "name": "task",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_json": {
+          "autoincrement": false,
+          "name": "plan_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_ai_practice_sessions_user_id": {
+          "name": "ix_ai_practice_sessions_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "ix_ai_practice_sessions_status": {
+          "name": "ix_ai_practice_sessions_status",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ai_practice_turns": {
+      "name": "ai_practice_turns",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "session_id": {
+          "autoincrement": false,
+          "name": "session_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "autoincrement": false,
+          "name": "role",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "text": {
+          "autoincrement": false,
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "correction": {
+          "autoincrement": false,
+          "name": "correction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "praise": {
+          "autoincrement": false,
+          "name": "praise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "audio_path": {
+          "autoincrement": false,
+          "name": "audio_path",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_ai_practice_turns_session_id": {
+          "name": "ix_ai_practice_turns_session_id",
+          "columns": [
+            "session_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "question_templates": {
+      "name": "question_templates",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "signature": {
+          "autoincrement": false,
+          "name": "signature",
+          "type": "text(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_type": {
+          "autoincrement": false,
+          "name": "question_type",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_hint": {
+          "autoincrement": false,
+          "name": "type_hint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sample_question": {
+          "autoincrement": false,
+          "name": "sample_question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hit_count": {
+          "autoincrement": false,
+          "name": "hit_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "default": "'llm'",
+          "autoincrement": false,
+          "name": "source",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_question_templates_signature": {
+          "name": "ix_question_templates_signature",
+          "columns": [
+            "signature"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "char_click_stats": {
+      "name": "char_click_stats",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "char": {
+          "autoincrement": false,
+          "name": "char",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "click_count": {
+          "autoincrement": false,
+          "name": "click_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_char_click_stats_user_id": {
+          "name": "ix_char_click_stats_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "quest_sessions": {
+      "name": "quest_sessions",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question": {
+          "autoincrement": false,
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plan_json": {
+          "autoincrement": false,
+          "name": "plan_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "history_json": {
+          "autoincrement": false,
+          "name": "history_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "step_index": {
+          "autoincrement": false,
+          "name": "step_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sub_json": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "sub_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sub_level": {
+          "default": 0,
+          "autoincrement": false,
+          "name": "sub_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_quest_sessions_user_id": {
+          "name": "ix_quest_sessions_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_unit_knowledge": {
+      "name": "chinese_unit_knowledge",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "autoincrement": false,
+          "name": "category",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "knowledge_points": {
+          "autoincrement": false,
+          "name": "knowledge_points",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_types": {
+          "autoincrement": false,
+          "name": "question_types",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_path": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_unit_knowledge_category": {
+          "name": "ix_chinese_unit_knowledge_category",
+          "columns": [
+            "category"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_unit_knowledge_lesson": {
+          "name": "ix_chinese_unit_knowledge_lesson",
+          "columns": [
+            "lesson"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_unit_knowledge_unit": {
+          "name": "ix_chinese_unit_knowledge_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_reading_items": {
+      "name": "chinese_reading_items",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "autoincrement": false,
+          "name": "category",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "passage": {
+          "autoincrement": false,
+          "name": "passage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question": {
+          "autoincrement": false,
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_type": {
+          "autoincrement": false,
+          "name": "question_type",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer": {
+          "autoincrement": false,
+          "name": "answer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_reading_items_lesson": {
+          "name": "ix_chinese_reading_items_lesson",
+          "columns": [
+            "lesson"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_reading_items_unit": {
+          "name": "ix_chinese_reading_items_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_reading_items_question_type": {
+          "name": "ix_chinese_reading_items_question_type",
+          "columns": [
+            "question_type"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_question_items": {
+      "name": "chinese_question_items",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "category": {
+          "autoincrement": false,
+          "name": "category",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question": {
+          "autoincrement": false,
+          "name": "question",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer": {
+          "autoincrement": false,
+          "name": "answer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "autoincrement": false,
+          "name": "source",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_question_items_unit": {
+          "name": "ix_chinese_question_items_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_question_items_category": {
+          "name": "ix_chinese_question_items_category",
+          "columns": [
+            "category"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_question_items_lesson": {
+          "name": "ix_chinese_question_items_lesson",
+          "columns": [
+            "lesson"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_question_items_source": {
+          "name": "ix_chinese_question_items_source",
+          "columns": [
+            "source"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_essay_knowledge": {
+      "name": "chinese_essay_knowledge",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "autoincrement": false,
+          "name": "title",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "topic": {
+          "autoincrement": false,
+          "name": "topic",
+          "type": "text(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "requirement": {
+          "autoincrement": false,
+          "name": "requirement",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guide": {
+          "autoincrement": false,
+          "name": "guide",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "goals": {
+          "autoincrement": false,
+          "name": "goals",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model_essay": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "model_essay",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "good_words": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "good_words",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image_path": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_essay_knowledge_title": {
+          "name": "ix_chinese_essay_knowledge_title",
+          "columns": [
+            "title"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_essay_knowledge_unit": {
+          "name": "ix_chinese_essay_knowledge_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_textbook_pages": {
+      "name": "chinese_textbook_pages",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page_type": {
+          "autoincrement": false,
+          "name": "page_type",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "knowledge_points": {
+          "autoincrement": false,
+          "name": "knowledge_points",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_path": {
+          "default": "''",
+          "autoincrement": false,
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_textbook_pages_lesson": {
+          "name": "ix_chinese_textbook_pages_lesson",
+          "columns": [
+            "lesson"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_textbook_pages_page_type": {
+          "name": "ix_chinese_textbook_pages_page_type",
+          "columns": [
+            "page_type"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_textbook_pages_page": {
+          "name": "ix_chinese_textbook_pages_page",
+          "columns": [
+            "page"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_textbook_pages_unit": {
+          "name": "ix_chinese_textbook_pages_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "wiki_pages": {
+      "name": "wiki_pages",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "autoincrement": false,
+          "name": "title",
+          "type": "text(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page_type": {
+          "autoincrement": false,
+          "name": "page_type",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_ref": {
+          "autoincrement": false,
+          "name": "source_ref",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "links": {
+          "autoincrement": false,
+          "name": "links",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "autoincrement": false,
+          "name": "status",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_wiki_pages_page_type": {
+          "name": "ix_wiki_pages_page_type",
+          "columns": [
+            "page_type"
+          ],
+          "isUnique": false
+        },
+        "ix_wiki_pages_unit": {
+          "name": "ix_wiki_pages_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        },
+        "ix_wiki_pages_lesson": {
+          "name": "ix_wiki_pages_lesson",
+          "columns": [
+            "lesson"
+          ],
+          "isUnique": false
+        },
+        "ix_wiki_pages_title": {
+          "name": "ix_wiki_pages_title",
+          "columns": [
+            "title"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "knowledge_relations": {
+      "name": "knowledge_relations",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "from_id": {
+          "autoincrement": false,
+          "name": "from_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "relation": {
+          "autoincrement": false,
+          "name": "relation",
+          "type": "text(24)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to_id": {
+          "autoincrement": false,
+          "name": "to_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_knowledge_relations_to_id": {
+          "name": "ix_knowledge_relations_to_id",
+          "columns": [
+            "to_id"
+          ],
+          "isUnique": false
+        },
+        "ix_knowledge_relations_from_id": {
+          "name": "ix_knowledge_relations_from_id",
+          "columns": [
+            "from_id"
+          ],
+          "isUnique": false
+        },
+        "ix_knowledge_relations_relation": {
+          "name": "ix_knowledge_relations_relation",
+          "columns": [
+            "relation"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts": {
+      "name": "chinese_fts",
+      "columns": {
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "src_type": {
+          "autoincrement": false,
+          "name": "src_type",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "src_id": {
+          "autoincrement": false,
+          "name": "src_id",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chinese_fts": {
+          "autoincrement": false,
+          "name": "chinese_fts",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rank": {
+          "autoincrement": false,
+          "name": "rank",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts_data": {
+      "name": "chinese_fts_data",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": false
+        },
+        "block": {
+          "autoincrement": false,
+          "name": "block",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts_idx": {
+      "name": "chinese_fts_idx",
+      "columns": {
+        "segid": {
+          "autoincrement": false,
+          "name": "segid",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term": {
+          "autoincrement": false,
+          "name": "term",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pgno": {
+          "autoincrement": false,
+          "name": "pgno",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {
+        "chinese_fts_idx_segid_term_pk": {
+          "columns": [
+            "segid",
+            "term"
+          ],
+          "name": "chinese_fts_idx_segid_term_pk"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts_content": {
+      "name": "chinese_fts_content",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": false
+        },
+        "c0": {
+          "autoincrement": false,
+          "name": "c0",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "c1": {
+          "autoincrement": false,
+          "name": "c1",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "c2": {
+          "autoincrement": false,
+          "name": "c2",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts_docsize": {
+      "name": "chinese_fts_docsize",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": false
+        },
+        "sz": {
+          "autoincrement": false,
+          "name": "sz",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_fts_config": {
+      "name": "chinese_fts_config",
+      "columns": {
+        "k": {
+          "autoincrement": false,
+          "name": "k",
+          "type": "numeric",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "v": {
+          "autoincrement": false,
+          "name": "v",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "chinese_recitation_items": {
+      "name": "chinese_recitation_items",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "unit": {
+          "autoincrement": false,
+          "name": "unit",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "autoincrement": false,
+          "name": "title",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author": {
+          "autoincrement": false,
+          "name": "author",
+          "type": "text(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "autoincrement": false,
+          "name": "kind",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "autoincrement": false,
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_ref": {
+          "autoincrement": false,
+          "name": "source_ref",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "page": {
+          "autoincrement": false,
+          "name": "page",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image_path": {
+          "autoincrement": false,
+          "name": "image_path",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_chinese_recitation_items_title": {
+          "name": "ix_chinese_recitation_items_title",
+          "columns": [
+            "title"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_recitation_items_kind": {
+          "name": "ix_chinese_recitation_items_kind",
+          "columns": [
+            "kind"
+          ],
+          "isUnique": false
+        },
+        "ix_chinese_recitation_items_unit": {
+          "name": "ix_chinese_recitation_items_unit",
+          "columns": [
+            "unit"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "char_unknown_marks": {
+      "name": "char_unknown_marks",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "char": {
+          "autoincrement": false,
+          "name": "char",
+          "type": "text(8)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lesson": {
+          "autoincrement": false,
+          "name": "lesson",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_char_unknown_marks_user_id": {
+          "name": "ix_char_unknown_marks_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "student_profiles": {
+      "name": "student_profiles",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "autoincrement": false,
+          "name": "module",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_count": {
+          "autoincrement": false,
+          "name": "session_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_content": {
+          "autoincrement": false,
+          "name": "last_content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mistakes": {
+          "autoincrement": false,
+          "name": "mistakes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mastered": {
+          "autoincrement": false,
+          "name": "mastered",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_student_profiles_user_id": {
+          "name": "ix_student_profiles_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ai_chat_sessions": {
+      "name": "ai_chat_sessions",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "session_id": {
+          "autoincrement": false,
+          "name": "session_id",
+          "type": "text(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "autoincrement": false,
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "autoincrement": false,
+          "name": "module",
+          "type": "text(16)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "messages": {
+          "autoincrement": false,
+          "name": "messages",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "created_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "default": "(CURRENT_TIMESTAMP)",
+          "autoincrement": false,
+          "name": "updated_at",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {
+        "ix_ai_chat_sessions_user_id": {
+          "name": "ix_ai_chat_sessions_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "ix_ai_chat_sessions_session_id": {
+          "name": "ix_ai_chat_sessions_session_id",
+          "columns": [
+            "session_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}

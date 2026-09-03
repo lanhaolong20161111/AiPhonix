@@ -1,0 +1,12 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* 家长要求的高对比色 token（AGENTS.md 字体颜色规范） */
+@theme {
+  --color-ink: #000000;
+  --color-correct: #2e7d32;
+  --color-error: #b71c1c;
+  --color-playing: #90caf9;
+  --color-bg-cream: #fff3d6;
+  --color-bg-mint: #e8f5e9;
+}

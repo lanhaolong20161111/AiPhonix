@@ -1,0 +1,654 @@
+{
+  "generatedAt": "2026-08-25T13:14:11.396Z",
+  "baseUrl": "https://127.0.0.1:5173",
+  "pages": [
+    {
+      "page": "首页",
+      "url": "/web/home",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "首页",
+      "url": "/web/home",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "首页",
+      "url": "/web/home",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "首页",
+      "url": "/web/home",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "首页",
+      "url": "/web/home",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "认字",
+      "url": "/web/module/recognition",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.tone-btn「ˉ」 39×35",
+            "BUTTON.tone-btn「ˊ」 39×35",
+            "BUTTON.tone-btn「ˇ」 39×35",
+            "BUTTON.tone-btn「ˋ」 39×35",
+            "BUTTON.tone-btn「轻声」 64×38",
+            "BUTTON.btn-secondary「🔊 听发音」 101.1×39",
+            "BUTTON.btn-tertiary「🎤 读字」 87.1×39",
+            "BUTTON.btn-primary「提交拼音」 92×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "认字",
+      "url": "/web/module/recognition",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.tone-btn「ˉ」 39×35",
+            "BUTTON.tone-btn「ˊ」 39×35",
+            "BUTTON.tone-btn「ˇ」 39×35",
+            "BUTTON.tone-btn「ˋ」 39×35",
+            "BUTTON.tone-btn「轻声」 64×38",
+            "BUTTON.btn-secondary「🔊 听发音」 101.1×39",
+            "BUTTON.btn-tertiary「🎤 读字」 87.1×39",
+            "BUTTON.btn-primary「提交拼音」 92×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "认字",
+      "url": "/web/module/recognition",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.tone-btn「ˉ」 39×35",
+            "BUTTON.tone-btn「ˊ」 39×35",
+            "BUTTON.tone-btn「ˇ」 39×35",
+            "BUTTON.tone-btn「ˋ」 39×35",
+            "BUTTON.tone-btn「轻声」 64×38",
+            "BUTTON.btn-secondary「🔊 听发音」 101.1×39",
+            "BUTTON.btn-tertiary「🎤 读字」 87.1×39",
+            "BUTTON.btn-primary「提交拼音」 92×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "认字",
+      "url": "/web/module/recognition",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "认字",
+      "url": "/web/module/recognition",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "词语练习",
+      "url": "/web/module/word_practice",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "词语练习",
+      "url": "/web/module/word_practice",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "词语练习",
+      "url": "/web/module/word_practice",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "词语练习",
+      "url": "/web/module/word_practice",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "词语练习",
+      "url": "/web/module/word_practice",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "英语学习",
+      "url": "/web/module/english_learning",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "英语学习",
+      "url": "/web/module/english_learning",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "英语学习",
+      "url": "/web/module/english_learning",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "英语学习",
+      "url": "/web/module/english_learning",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "英语学习",
+      "url": "/web/module/english_learning",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "拼音表",
+      "url": "/web/module/pinyin-index",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R008",
+          "sev": "P2",
+          "msg": "3 个 grid 移动端列宽 <120px 或 >2 列",
+          "n": 3,
+          "samples": [
+            "DIV.phoneme-grid「波b泼p摸m佛f的d特t呢n」 cols=3 w=343",
+            "DIV.phoneme-grid「啊a哦o鹅e一i乌u淤ü哀a」 cols=3 w=343",
+            "DIV.phoneme-grid「知zhi吃chi师shi日r」 cols=3 w=343"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "拼音表",
+      "url": "/web/module/pinyin-index",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R008",
+          "sev": "P2",
+          "msg": "3 个 grid 移动端列宽 <120px 或 >2 列",
+          "n": 3,
+          "samples": [
+            "DIV.phoneme-grid「波b泼p摸m佛f的d特t呢n」 cols=3 w=358",
+            "DIV.phoneme-grid「啊a哦o鹅e一i乌u淤ü哀a」 cols=3 w=358",
+            "DIV.phoneme-grid「知zhi吃chi师shi日r」 cols=3 w=358"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "拼音表",
+      "url": "/web/module/pinyin-index",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R008",
+          "sev": "P2",
+          "msg": "3 个 grid 移动端列宽 <120px 或 >2 列",
+          "n": 3,
+          "samples": [
+            "DIV.phoneme-grid「波b泼p摸m佛f的d特t呢n」 cols=4 w=398",
+            "DIV.phoneme-grid「啊a哦o鹅e一i乌u淤ü哀a」 cols=4 w=398",
+            "DIV.phoneme-grid「知zhi吃chi师shi日r」 cols=4 w=398"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "拼音表",
+      "url": "/web/module/pinyin-index",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "拼音表",
+      "url": "/web/module/pinyin-index",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "看图识字入口",
+      "url": "/web/module/char_image",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "看图识字入口",
+      "url": "/web/module/char_image",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "看图识字入口",
+      "url": "/web/module/char_image",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "看图识字入口",
+      "url": "/web/module/char_image",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "看图识字入口",
+      "url": "/web/module/char_image",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "看图识字·字卡(重)",
+      "url": "/web/module/char_image/practice?type=字",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R004",
+          "sev": "P2",
+          "msg": "存在 其它×1 — 检查是否遮挡正文滚动（fixed 元素）",
+          "n": 1,
+          "samples": [
+            "DIV.charimage-ctx-fixed「二年级下 · 字」 @y=770 h=28"
+          ]
+        },
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.btn-secondary「📊 评测历史」 343×39",
+            "BUTTON.swipe-arrow「‹」 34.7×35",
+            "INPUT.charimage-page-input 56×31",
+            "BUTTON.charimage-page-go「跳转」 50×29",
+            "BUTTON.swipe-arrow「›」 34.7×35",
+            "BUTTON.btn-secondary「🔊 发音」 87.1×39",
+            "BUTTON.btn-primary「🎤 读拼音」 101.1×39",
+            "BUTTON.btn-secondary「📖 读字」 87.1×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "看图识字·字卡(重)",
+      "url": "/web/module/char_image/practice?type=字",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R004",
+          "sev": "P2",
+          "msg": "存在 其它×1 — 检查是否遮挡正文滚动（fixed 元素）",
+          "n": 1,
+          "samples": [
+            "DIV.charimage-ctx-fixed「二年级下 · 字」 @y=802 h=28"
+          ]
+        },
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.btn-secondary「📊 评测历史」 358×39",
+            "BUTTON.swipe-arrow「‹」 34.7×35",
+            "INPUT.charimage-page-input 56×31",
+            "BUTTON.charimage-page-go「跳转」 50×29",
+            "BUTTON.swipe-arrow「›」 34.7×35",
+            "BUTTON.btn-secondary「🔊 发音」 87.1×39",
+            "BUTTON.btn-primary「🎤 读拼音」 101.1×39",
+            "BUTTON.btn-secondary「📖 读字」 87.1×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "看图识字·字卡(重)",
+      "url": "/web/module/char_image/practice?type=字",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R004",
+          "sev": "P2",
+          "msg": "存在 其它×1 — 检查是否遮挡正文滚动（fixed 元素）",
+          "n": 1,
+          "samples": [
+            "DIV.charimage-ctx-fixed「二年级下 · 字」 @y=890 h=28"
+          ]
+        },
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "8 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 8,
+          "samples": [
+            "BUTTON.btn-secondary「📊 评测历史」 398×39",
+            "BUTTON.swipe-arrow「‹」 34.7×35",
+            "INPUT.charimage-page-input 56×31",
+            "BUTTON.charimage-page-go「跳转」 50×29",
+            "BUTTON.swipe-arrow「›」 34.7×35",
+            "BUTTON.btn-secondary「🔊 发音」 87.1×39",
+            "BUTTON.btn-primary「🎤 读拼音」 101.1×39",
+            "BUTTON.btn-secondary「📖 读字」 87.1×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "看图识字·字卡(重)",
+      "url": "/web/module/char_image/practice?type=字",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": [
+        {
+          "rule": "R004",
+          "sev": "P2",
+          "msg": "存在 其它×1 — 检查是否遮挡正文滚动（fixed 元素）",
+          "n": 1,
+          "samples": [
+            "DIV.charimage-ctx-fixed「二年级下 · 字」 @y=1138 h=28"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "看图识字·字卡(重)",
+      "url": "/web/module/char_image/practice?type=字",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": [
+        {
+          "rule": "R004",
+          "sev": "P2",
+          "msg": "存在 其它×1 — 检查是否遮挡正文滚动（fixed 元素）",
+          "n": 1,
+          "samples": [
+            "DIV.charimage-ctx-fixed「二年级下 · 字」 @y=858 h=28"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "字幕采集",
+      "url": "/web/module/subtitle_capture",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "字幕采集",
+      "url": "/web/module/subtitle_capture",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "字幕采集",
+      "url": "/web/module/subtitle_capture",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "字幕采集",
+      "url": "/web/module/subtitle_capture",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "字幕采集",
+      "url": "/web/module/subtitle_capture",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "AI 语文",
+      "url": "/web/module/ai_chinese",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 343×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 语文",
+      "url": "/web/module/ai_chinese",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 358×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 语文",
+      "url": "/web/module/ai_chinese",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 398×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 语文",
+      "url": "/web/module/ai_chinese",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "AI 语文",
+      "url": "/web/module/ai_chinese",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "AI 作业",
+      "url": "/web/module/ai_homework",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 343×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 作业",
+      "url": "/web/module/ai_homework",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 358×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 作业",
+      "url": "/web/module/ai_homework",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": [
+        {
+          "rule": "R005",
+          "sev": "P2",
+          "msg": "3 个按钮/链接/输入框 < 44×44px（推荐最小触控目标）",
+          "n": 3,
+          "samples": [
+            "BUTTON.btn-secondary「🗂 历史会话」 398×39",
+            "BUTTON.btn-secondary「🖼️ 拍照 / 相册」 126.8×39",
+            "BUTTON.btn-primary「提问」 64×39"
+          ]
+        }
+      ]
+    },
+    {
+      "page": "AI 作业",
+      "url": "/web/module/ai_homework",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "AI 作业",
+      "url": "/web/module/ai_homework",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    },
+    {
+      "page": "登录页",
+      "url": "/web/login",
+      "viewport": "m375",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "登录页",
+      "url": "/web/login",
+      "viewport": "m390",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "登录页",
+      "url": "/web/login",
+      "viewport": "m430",
+      "group": "mobile",
+      "violations": []
+    },
+    {
+      "page": "登录页",
+      "url": "/web/login",
+      "viewport": "t820",
+      "group": "tablet",
+      "violations": []
+    },
+    {
+      "page": "登录页",
+      "url": "/web/login",
+      "viewport": "d1440",
+      "group": "desktop",
+      "violations": []
+    }
+  ],
+  "totals": {
+    "P1": 0,
+    "P2": 20,
+    "P3": 0
+  },
+  "score": 88
+}

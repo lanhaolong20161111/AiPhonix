@@ -1,0 +1,4 @@
+[aiphonix-ts] 启动 0.0.0.0:8099 (model: deepseek-v4-flash)
+[aiphonix-ts] listening on http://0.0.0.0:8099
+
+c:\Users\lhl20\Desktop\android_cli_demos\AiPhonix\server_ts>

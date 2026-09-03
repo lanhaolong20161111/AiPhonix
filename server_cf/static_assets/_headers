@@ -1,0 +1,34 @@
+# Workers Assets custom headers（_headers，下划线；wrangler 只认这个文件名）
+# 语法：路径模式（支持 * 通配）→ 缩进的 Header: value
+
+# 根 index.html（SPA fallback：深链接/未命中 text/html 回这个）——每次构建变，不缓存
+/index.html
+  Cache-Control: no-cache
+
+# 每次构建都变：不缓存，保证回源拿最新 asset 引用
+/web/index.html
+  Cache-Control: no-cache
+/web/sw.js
+  Cache-Control: no-cache
+/web/manifest.webmanifest
+  Cache-Control: no-cache
+/web/registerSW.js
+  Cache-Control: no-cache
+/web/workbox-*.js
+  Cache-Control: no-cache
+
+# 带 hash 的构建产物：文件名即内容指纹，永久缓存
+/web/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 无 hash 的 JSON 数据（词库/例句/字例）与图标：随构建或数据更新变化，回源校验（同平台默认 max-age=0, must-revalidate，显式声明更稳）
+/web/*.json
+  Cache-Control: no-cache
+/web/favicon.svg
+  Cache-Control: no-cache
+/web/icons.svg
+  Cache-Control: no-cache
+
+# 字母发音音频：内容几乎不变，1 天缓存减少每次点播的校验往返（重新录制后可等缓存过期或换文件名）
+/web/alphabet_audio/*.mp3
+  Cache-Control: public, max-age=86400

@@ -1,0 +1,61 @@
+# AiPhonix Cloudflare Workers API
+# 密钥（DEEPSEEK_/BAIDU_/TENCENT_/ARK_/PP_/JWT_SECRET）用 `wrangler secret put <NAME>` 设置，
+# 本地开发放 .dev.vars（不入库）。下方 database_id 为占位，首次部署前在 Cloudflare
+# 控制台/D1 创建后回填真实 id。
+name = "aiphonix-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-27"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Web 静态资源走 Workers Assets（不带 hash 的 /web/* 文件由平台直出，不占 Worker CPU）。
+# run_worker_first=false（默认）：已有文件 Assets 先命中；未命中才进 Worker（API/SPA/媒体）。
+# 深链接回退（SPA）在 Worker 的 serveWebIndex 里实现（fetch "/web/" 取 index.html 内容），
+# 不依赖平台 not_found_handling——它对 run_worker_first=false 只作用于 ASSETS.fetch 且回根 index.html。
+# 每次部署前由 scripts/deploy_web.ps1 把 web/dist/* 拷进 static_assets/web/。
+[assets]
+directory = "./static_assets"
+binding = "ASSETS"
+run_worker_first = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aiphonix-db"
+database_id = "27debe4f-2d18-4a61-90c1-8a47e3917c42"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "aiphonix-files"
+
+# ── 生产视觉模型（2026-09-01 切换）──
+# 原 doubao-seed-evolving 实测单图超时(≥240s)已弃用；先上 doubao-seed-2-0-mini-260428（~30s），
+# 现按指令改 doubao-seed-2.1-turbo（速度优先）。⚠️ 端点名必须带日期后缀（doubao-seed-2-1-turbo 裸名 404）。
+# 非密钥配置，放 [vars] 便于 git 审阅与回退。
+# 等价操作：npx wrangler secret put ARK_VISION_MODEL（值同上）。
+[vars]
+ARK_VISION_MODEL = "doubao-seed-2-1-turbo-260628"
+# 识图主引擎（2026-09-02）：平板慢网 PaddleOCR-VL 易超时(75s)，改默认直走豆包。
+# parse-image 默认 PaddleOCR-VL 优先（表格更准），此处设为 "doubao" 跳过 PaddleOCR 直走豆包；
+# 删掉此行或改其他值即恢复 PaddleOCR 优先。等价：npx wrangler secret put OCR_ENGINE
+OCR_ENGINE = "doubao"
+
+# ── staging（🟡9）：改代码先打 staging 验证，不打线上 ──
+# 部署：& .\scripts\deploy.ps1 -Env staging；URL：https://aiphonix-api-staging.<sub>.workers.dev
+# staging 独享 D1/R2（不污染线上数据）；secret 通过 scripts/setup_staging.ps1 预置（值源 shared/config.yaml）。
+[env.staging]
+
+# 视觉模型覆盖（留空 = 用 ark.ts 的 MULTIMODAL_MODEL 默认 = doubao-seed-2.1-turbo）。
+# 2026-09-01 实测：evolving 单图超时(≥180s)已弃用；现按指令改 doubao-seed-2-1-turbo（速度优先）。
+# ⚠️ 端点名必须带日期后缀（doubao-seed-2-1-turbo 裸名 404）。
+# 切模型不用改代码——填模型名即可；生产若要改用 `wrangler secret put ARK_VISION_MODEL`。
+[env.staging.vars]
+ARK_VISION_MODEL = "doubao-seed-2-1-turbo-260628"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "aiphonix-db-staging"
+database_id = "333fb1ce-da88-4363-8127-54077940c71c"
+
+[[env.staging.r2_buckets]]
+binding = "FILES"
+bucket_name = "aiphonix-files-staging"

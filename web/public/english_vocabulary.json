@@ -1,0 +1,2193 @@
+{
+  "version": 1,
+  "total": 105,
+  "words": [
+    {
+      "word": "air",
+      "phonetic": "/eər/",
+      "meanings": [
+        "空气"
+      ],
+      "emoji": "💨",
+      "phonemes": [
+        "eə",
+        "r"
+      ],
+      "ipa_uk": "/eə/",
+      "phonemes_uk": [
+        "eə"
+      ]
+    },
+    {
+      "word": "animal",
+      "phonetic": "/ˈænɪml/",
+      "meanings": [
+        "动物"
+      ],
+      "emoji": "🐾",
+      "phonemes": [
+        "æ",
+        "n",
+        "ɪ",
+        "m",
+        "l"
+      ],
+      "ipa_uk": "/ˈænɪml/",
+      "phonemes_uk": [
+        "æ",
+        "n",
+        "ɪ",
+        "m",
+        "l"
+      ]
+    },
+    {
+      "word": "apple",
+      "phonetic": "/ˈæpl/",
+      "meanings": [
+        "苹果"
+      ],
+      "emoji": "🍎",
+      "phonemes": [
+        "æ",
+        "p",
+        "l"
+      ],
+      "ipa_uk": "/ˈæpəl/",
+      "phonemes_uk": [
+        "æ",
+        "p",
+        "ə",
+        "l"
+      ]
+    },
+    {
+      "word": "arm",
+      "phonetic": "/ɑːrm/",
+      "meanings": [
+        "胳膊"
+      ],
+      "emoji": "💪",
+      "phonemes": [
+        "ɑː",
+        "r",
+        "m"
+      ],
+      "ipa_uk": "/ɑːm/",
+      "phonemes_uk": [
+        "ɑː",
+        "m"
+      ]
+    },
+    {
+      "word": "aunt",
+      "phonetic": "/ænt/",
+      "meanings": [
+        "伯母",
+        "婶母",
+        "舅母",
+        "姑母",
+        "姨母"
+      ],
+      "emoji": "👩",
+      "phonemes": [
+        "æ",
+        "n",
+        "t"
+      ],
+      "ipa_uk": "/ɑːnt/",
+      "phonemes_uk": [
+        "ɑː",
+        "n",
+        "t"
+      ]
+    },
+    {
+      "word": "baby",
+      "phonetic": "/ˈbeɪbi/",
+      "meanings": [
+        "婴儿"
+      ],
+      "emoji": "👶",
+      "phonemes": [
+        "b",
+        "eɪ",
+        "b",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈbeɪbi/",
+      "phonemes_uk": [
+        "b",
+        "eɪ",
+        "b",
+        "ɪ"
+      ]
+    },
+    {
+      "word": "banana",
+      "phonetic": "/bəˈnænə/",
+      "meanings": [
+        "香蕉"
+      ],
+      "emoji": "🍌",
+      "phonemes": [
+        "b",
+        "ə",
+        "n",
+        "æ",
+        "n",
+        "ə"
+      ],
+      "ipa_uk": "/bəˈnɑːnə/",
+      "phonemes_uk": [
+        "b",
+        "ə",
+        "n",
+        "ɑː",
+        "n",
+        "ə"
+      ]
+    },
+    {
+      "word": "bear",
+      "phonetic": "/bɛər/",
+      "meanings": [
+        "熊"
+      ],
+      "emoji": "🐻",
+      "phonemes": [
+        "b",
+        "eə",
+        "r"
+      ],
+      "ipa_uk": "/beə/",
+      "phonemes_uk": [
+        "b",
+        "eə"
+      ]
+    },
+    {
+      "word": "big",
+      "phonetic": "/bɪg/",
+      "meanings": [
+        "大的"
+      ],
+      "emoji": "📏",
+      "phonemes": [
+        "b",
+        "ɪ",
+        "g"
+      ],
+      "ipa_uk": "/bɪg/",
+      "phonemes_uk": [
+        "b",
+        "ɪ",
+        "g"
+      ]
+    },
+    {
+      "word": "bird",
+      "phonetic": "/bɜːd/",
+      "meanings": [
+        "鸟"
+      ],
+      "emoji": "🐦",
+      "phonemes": [
+        "b",
+        "ɜː",
+        "d"
+      ],
+      "ipa_uk": "/bɜːd/",
+      "phonemes_uk": [
+        "b",
+        "ɜː",
+        "d"
+      ]
+    },
+    {
+      "word": "black",
+      "phonetic": "/blæk/",
+      "meanings": [
+        "黑色",
+        "黑色的"
+      ],
+      "emoji": "⚫",
+      "phonemes": [
+        "b",
+        "l",
+        "æ",
+        "k"
+      ],
+      "ipa_uk": "/blæk/",
+      "phonemes_uk": [
+        "b",
+        "l",
+        "æ",
+        "k"
+      ]
+    },
+    {
+      "word": "blue",
+      "phonetic": "/bluː/",
+      "meanings": [
+        "蓝色",
+        "蓝色的"
+      ],
+      "emoji": "🔵",
+      "phonemes": [
+        "b",
+        "l",
+        "uː"
+      ],
+      "ipa_uk": "/bluː/",
+      "phonemes_uk": [
+        "b",
+        "l",
+        "uː"
+      ]
+    },
+    {
+      "word": "brother",
+      "phonetic": "/ˈbrʌðə(r)/",
+      "meanings": [
+        "哥",
+        "弟"
+      ],
+      "emoji": "👦",
+      "phonemes": [
+        "b",
+        "r",
+        "ʌ",
+        "ð",
+        "ə"
+      ],
+      "ipa_uk": "/ˈbrʌðə/",
+      "phonemes_uk": [
+        "b",
+        "r",
+        "ʌ",
+        "ð",
+        "ə"
+      ]
+    },
+    {
+      "word": "brown",
+      "phonetic": "/braʊn/",
+      "meanings": [
+        "棕色",
+        "棕色的"
+      ],
+      "emoji": "🟤",
+      "phonemes": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ],
+      "ipa_uk": "/braʊn/",
+      "phonemes_uk": [
+        "b",
+        "r",
+        "aʊ",
+        "n"
+      ]
+    },
+    {
+      "word": "cake",
+      "phonetic": "/keɪk/",
+      "meanings": [
+        "蛋糕"
+      ],
+      "emoji": "🎂",
+      "phonemes": [
+        "k",
+        "eɪ",
+        "k"
+      ],
+      "ipa_uk": "/keɪk/",
+      "phonemes_uk": [
+        "k",
+        "eɪ",
+        "k"
+      ]
+    },
+    {
+      "word": "can",
+      "phonetic": "/kən,kæn/",
+      "meanings": [
+        "可以"
+      ],
+      "emoji": "🥫",
+      "phonemes": [
+        "k",
+        "æ",
+        "n"
+      ],
+      "ipa_uk": "/kæn/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "n"
+      ]
+    },
+    {
+      "word": "cat",
+      "phonetic": "/kæt/",
+      "meanings": [
+        "猫"
+      ],
+      "emoji": "🐱",
+      "phonemes": [
+        "k",
+        "æ",
+        "t"
+      ],
+      "ipa_uk": "/kæt/",
+      "phonemes_uk": [
+        "k",
+        "æ",
+        "t"
+      ]
+    },
+    {
+      "word": "colour",
+      "phonetic": "/ˈkʌlə(r)/",
+      "meanings": [
+        "颜色"
+      ],
+      "emoji": "🎨",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "l",
+        "ə"
+      ],
+      "ipa_uk": "/ˈkʌlə/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "l",
+        "ə"
+      ]
+    },
+    {
+      "word": "cousin",
+      "phonetic": "/ˈkʌzn/",
+      "meanings": [
+        "堂（表）兄弟",
+        "堂（表）姐妹"
+      ],
+      "emoji": "👧",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "z",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈkʌzən/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "z",
+        "ə",
+        "n"
+      ]
+    },
+    {
+      "word": "cut",
+      "phonetic": "/kʌt/",
+      "meanings": [
+        "切块"
+      ],
+      "emoji": "✂️",
+      "phonemes": [
+        "k",
+        "ʌ",
+        "t"
+      ],
+      "ipa_uk": "/kʌt/",
+      "phonemes_uk": [
+        "k",
+        "ʌ",
+        "t"
+      ]
+    },
+    {
+      "word": "cute",
+      "phonetic": "/kjuːt/",
+      "meanings": [
+        "可爱的"
+      ],
+      "emoji": "😊",
+      "phonemes": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ],
+      "ipa_uk": "/kjuːt/",
+      "phonemes_uk": [
+        "k",
+        "j",
+        "uː",
+        "t"
+      ]
+    },
+    {
+      "word": "dad",
+      "phonetic": "/dæd/",
+      "meanings": [
+        "（口语）爸爸",
+        "爹爹"
+      ],
+      "emoji": "👨",
+      "phonemes": [
+        "d",
+        "æ",
+        "d"
+      ],
+      "ipa_uk": "/dæd/",
+      "phonemes_uk": [
+        "d",
+        "æ",
+        "d"
+      ]
+    },
+    {
+      "word": "dog",
+      "phonetic": "/dɒg/",
+      "meanings": [
+        "狗"
+      ],
+      "emoji": "🐶",
+      "phonemes": [
+        "d",
+        "ɒ",
+        "g"
+      ],
+      "ipa_uk": "/dɒg/",
+      "phonemes_uk": [
+        "d",
+        "ɒ",
+        "g"
+      ]
+    },
+    {
+      "word": "draw",
+      "phonetic": "/drɔː/",
+      "meanings": [
+        "画"
+      ],
+      "emoji": "✏️",
+      "phonemes": [
+        "dr",
+        "ɔː"
+      ],
+      "ipa_uk": "/drɔː/",
+      "phonemes_uk": [
+        "dr",
+        "ɔː"
+      ]
+    },
+    {
+      "word": "duck",
+      "phonetic": "/dʌk/",
+      "meanings": [
+        "鸭"
+      ],
+      "emoji": "🦆",
+      "phonemes": [
+        "d",
+        "ʌ",
+        "k"
+      ],
+      "ipa_uk": "/dʌk/",
+      "phonemes_uk": [
+        "d",
+        "ʌ",
+        "k"
+      ]
+    },
+    {
+      "word": "ear",
+      "phonetic": "/ɪər/",
+      "meanings": [
+        "耳朵"
+      ],
+      "emoji": "👂",
+      "phonemes": [
+        "ɪə",
+        "r"
+      ],
+      "ipa_uk": "/ɪə/",
+      "phonemes_uk": [
+        "ɪə"
+      ]
+    },
+    {
+      "word": "eat",
+      "phonetic": "/iːt/",
+      "meanings": [
+        "吃"
+      ],
+      "emoji": "🍽️",
+      "phonemes": [
+        "iː",
+        "t"
+      ],
+      "ipa_uk": "/iːt/",
+      "phonemes_uk": [
+        "iː",
+        "t"
+      ]
+    },
+    {
+      "word": "eight",
+      "phonetic": "/eɪt/",
+      "meanings": [
+        "八"
+      ],
+      "emoji": "8️⃣",
+      "phonemes": [
+        "eɪ",
+        "t"
+      ],
+      "ipa_uk": "/eɪt/",
+      "phonemes_uk": [
+        "eɪ",
+        "t"
+      ]
+    },
+    {
+      "word": "elephant",
+      "phonetic": "/ˈelɪfənt/",
+      "meanings": [
+        "大象"
+      ],
+      "emoji": "🐘",
+      "phonemes": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
+      ],
+      "ipa_uk": "/ˈelɪfənt/",
+      "phonemes_uk": [
+        "e",
+        "l",
+        "ɪ",
+        "f",
+        "ə",
+        "n",
+        "t"
+      ]
+    },
+    {
+      "word": "eye",
+      "phonetic": "/aɪ/",
+      "meanings": [
+        "眼睛"
+      ],
+      "emoji": "👁️",
+      "phonemes": [
+        "aɪ"
+      ],
+      "ipa_uk": "/aɪ/",
+      "phonemes_uk": [
+        "aɪ"
+      ]
+    },
+    {
+      "word": "family",
+      "phonetic": "/ˈfæməli/",
+      "meanings": [
+        "家",
+        "家庭"
+      ],
+      "emoji": "👪",
+      "phonemes": [
+        "f",
+        "æ",
+        "m",
+        "ə",
+        "l",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈfæməlɪ/",
+      "phonemes_uk": [
+        "f",
+        "æ",
+        "m",
+        "ə",
+        "l",
+        "ɪ"
+      ]
+    },
+    {
+      "word": "farm",
+      "phonetic": "/fɑːrm/",
+      "meanings": [
+        "农场"
+      ],
+      "emoji": "🌾",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "r",
+        "m"
+      ],
+      "ipa_uk": "/fɑːm/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "m"
+      ]
+    },
+    {
+      "word": "fast",
+      "phonetic": "/fæst/",
+      "meanings": [
+        "快的"
+      ],
+      "emoji": "🏃",
+      "phonemes": [
+        "f",
+        "æ",
+        "s",
+        "t"
+      ],
+      "ipa_uk": "/fɑːst/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "s",
+        "t"
+      ]
+    },
+    {
+      "word": "father",
+      "phonetic": "/ˈfɑːðər/",
+      "meanings": [
+        "父亲",
+        "爸爸"
+      ],
+      "emoji": "👨",
+      "phonemes": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "ipa_uk": "/ˈfɑːðə/",
+      "phonemes_uk": [
+        "f",
+        "ɑː",
+        "ð",
+        "ə"
+      ]
+    },
+    {
+      "word": "fish",
+      "phonetic": "/fɪʃ/",
+      "meanings": [
+        "鱼",
+        "鱼肉"
+      ],
+      "emoji": "🐟",
+      "phonemes": [
+        "f",
+        "ɪ",
+        "ʃ"
+      ],
+      "ipa_uk": "/fɪʃ/",
+      "phonemes_uk": [
+        "f",
+        "ɪ",
+        "ʃ"
+      ]
+    },
+    {
+      "word": "five",
+      "phonetic": "/faɪv/",
+      "meanings": [
+        "五"
+      ],
+      "emoji": "5️⃣",
+      "phonemes": [
+        "f",
+        "aɪ",
+        "v"
+      ],
+      "ipa_uk": "/faɪv/",
+      "phonemes_uk": [
+        "f",
+        "aɪ",
+        "v"
+      ]
+    },
+    {
+      "word": "flower",
+      "phonetic": "/ˈflaʊə(r)/",
+      "meanings": [
+        "花",
+        "花朵"
+      ],
+      "emoji": "🌸",
+      "phonemes": [
+        "f",
+        "l",
+        "aʊ",
+        "ə"
+      ],
+      "ipa_uk": "/ˈflaʊə/",
+      "phonemes_uk": [
+        "f",
+        "l",
+        "aʊ",
+        "ə"
+      ]
+    },
+    {
+      "word": "four",
+      "phonetic": "/fɔː(r)/",
+      "meanings": [
+        "四"
+      ],
+      "emoji": "4️⃣",
+      "phonemes": [
+        "f",
+        "ɔː"
+      ],
+      "ipa_uk": "/fɔː/",
+      "phonemes_uk": [
+        "f",
+        "ɔː"
+      ]
+    },
+    {
+      "word": "fox",
+      "phonetic": "/fɒks/",
+      "meanings": [
+        "狐狸"
+      ],
+      "emoji": "🦊",
+      "phonemes": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ],
+      "ipa_uk": "/fɒks/",
+      "phonemes_uk": [
+        "f",
+        "ɒ",
+        "k",
+        "s"
+      ]
+    },
+    {
+      "word": "friend",
+      "phonetic": "/frend/",
+      "meanings": [
+        "朋友"
+      ],
+      "emoji": "🤝",
+      "phonemes": [
+        "f",
+        "r",
+        "e",
+        "n",
+        "d"
+      ],
+      "ipa_uk": "/frend/",
+      "phonemes_uk": [
+        "f",
+        "r",
+        "e",
+        "n",
+        "d"
+      ]
+    },
+    {
+      "word": "garden",
+      "phonetic": "/ˈgɑːrdn/",
+      "meanings": [
+        "花园"
+      ],
+      "emoji": "🌻",
+      "phonemes": [
+        "g",
+        "ɑː",
+        "r",
+        "d",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈgɑːdən/",
+      "phonemes_uk": [
+        "g",
+        "ɑː",
+        "d",
+        "ə",
+        "n"
+      ]
+    },
+    {
+      "word": "giraffe",
+      "phonetic": "/dʒəˈræf/",
+      "meanings": [
+        "长颈鹿"
+      ],
+      "emoji": "🦒",
+      "phonemes": [
+        "dʒ",
+        "ə",
+        "r",
+        "æ",
+        "f"
+      ],
+      "ipa_uk": "/dʒəˈrɑːf/",
+      "phonemes_uk": [
+        "dʒ",
+        "ə",
+        "r",
+        "ɑː",
+        "f"
+      ]
+    },
+    {
+      "word": "give",
+      "phonetic": "/gɪv/",
+      "meanings": [
+        "给"
+      ],
+      "emoji": "🎁",
+      "phonemes": [
+        "g",
+        "ɪ",
+        "v"
+      ],
+      "ipa_uk": "/gɪv/",
+      "phonemes_uk": [
+        "g",
+        "ɪ",
+        "v"
+      ]
+    },
+    {
+      "word": "go",
+      "phonetic": "/gəʊ/",
+      "meanings": [
+        "去",
+        "走"
+      ],
+      "emoji": "🚶",
+      "phonemes": [
+        "g",
+        "əʊ"
+      ],
+      "ipa_uk": "/gəʊ/",
+      "phonemes_uk": [
+        "g",
+        "əʊ"
+      ]
+    },
+    {
+      "word": "good",
+      "phonetic": "/gʊd/",
+      "meanings": [
+        "好的"
+      ],
+      "emoji": "👍",
+      "phonemes": [
+        "g",
+        "ʊ",
+        "d"
+      ],
+      "ipa_uk": "/gʊd/",
+      "phonemes_uk": [
+        "g",
+        "ʊ",
+        "d"
+      ]
+    },
+    {
+      "word": "grandfather",
+      "phonetic": "/ˈgrænfɑːðər/",
+      "meanings": [
+        "（外）祖父",
+        "爷爷",
+        "姥爷",
+        "外公"
+      ],
+      "emoji": "👴",
+      "phonemes": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "f",
+        "ɑː",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "ipa_uk": "/ˈgrænfɑːðə/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "f",
+        "ɑː",
+        "ð",
+        "ə"
+      ]
+    },
+    {
+      "word": "grandma",
+      "phonetic": "/ˈgrænmɑː/",
+      "meanings": [
+        "奶奶",
+        "姥姥"
+      ],
+      "emoji": "👵",
+      "phonemes": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ɑː"
+      ],
+      "ipa_uk": "/ˈɡrænmɑː/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ɑː"
+      ]
+    },
+    {
+      "word": "grandmother",
+      "phonetic": "/ˈgrænmʌðə(r)/",
+      "meanings": [
+        "（外）祖母",
+        "奶奶",
+        "姥姥",
+        "外婆"
+      ],
+      "emoji": "👵",
+      "phonemes": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
+      ],
+      "ipa_uk": "/ˈgrænmʌðə/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
+      ]
+    },
+    {
+      "word": "grandpa",
+      "phonetic": "/ˈgrænpɑː/",
+      "meanings": [
+        "爷爷",
+        "姥爷"
+      ],
+      "emoji": "👴",
+      "phonemes": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "p",
+        "ɑː"
+      ],
+      "ipa_uk": "/ˈgrænpɑː/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "æ",
+        "n",
+        "p",
+        "ɑː"
+      ]
+    },
+    {
+      "word": "grape",
+      "phonetic": "/greɪp/",
+      "meanings": [
+        "葡萄"
+      ],
+      "emoji": "🍇",
+      "phonemes": [
+        "g",
+        "r",
+        "eɪ",
+        "p"
+      ],
+      "ipa_uk": "/greɪp/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "eɪ",
+        "p"
+      ]
+    },
+    {
+      "word": "grass",
+      "phonetic": "/græs/",
+      "meanings": [
+        "草",
+        "草地"
+      ],
+      "emoji": "🌿",
+      "phonemes": [
+        "g",
+        "r",
+        "æ",
+        "s"
+      ],
+      "ipa_uk": "/ɡrɑːs/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "ɑː",
+        "s"
+      ]
+    },
+    {
+      "word": "green",
+      "phonetic": "/griːn/",
+      "meanings": [
+        "绿色",
+        "绿色的"
+      ],
+      "emoji": "🟢",
+      "phonemes": [
+        "g",
+        "r",
+        "iː",
+        "n"
+      ],
+      "ipa_uk": "/griːn/",
+      "phonemes_uk": [
+        "g",
+        "r",
+        "iː",
+        "n"
+      ]
+    },
+    {
+      "word": "hand",
+      "phonetic": "/hænd/",
+      "meanings": [
+        "手"
+      ],
+      "emoji": "🤚",
+      "phonemes": [
+        "h",
+        "æ",
+        "n",
+        "d"
+      ],
+      "ipa_uk": "/hænd/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "n",
+        "d"
+      ]
+    },
+    {
+      "word": "have",
+      "phonetic": "/hæv/",
+      "meanings": [
+        "有"
+      ],
+      "emoji": "📥",
+      "phonemes": [
+        "h",
+        "æ",
+        "v"
+      ],
+      "ipa_uk": "/hæv/",
+      "phonemes_uk": [
+        "h",
+        "æ",
+        "v"
+      ]
+    },
+    {
+      "word": "help",
+      "phonetic": "/help/",
+      "meanings": [
+        "帮助"
+      ],
+      "emoji": "🆘",
+      "phonemes": [
+        "h",
+        "e",
+        "l",
+        "p"
+      ],
+      "ipa_uk": "/help/",
+      "phonemes_uk": [
+        "h",
+        "e",
+        "l",
+        "p"
+      ]
+    },
+    {
+      "word": "like",
+      "phonetic": "/laɪk/",
+      "meanings": [
+        "喜欢"
+      ],
+      "emoji": "❤️",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "k"
+      ],
+      "ipa_uk": "/laɪk/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "k"
+      ]
+    },
+    {
+      "word": "lion",
+      "phonetic": "/ˈlaɪən/",
+      "meanings": [
+        "狮",
+        "狮子"
+      ],
+      "emoji": "🦁",
+      "phonemes": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈlaɪən/",
+      "phonemes_uk": [
+        "l",
+        "aɪ",
+        "ə",
+        "n"
+      ]
+    },
+    {
+      "word": "listen",
+      "phonetic": "/ˈlɪsn/",
+      "meanings": [
+        "听",
+        "倾听"
+      ],
+      "emoji": "🎧",
+      "phonemes": [
+        "l",
+        "ɪ",
+        "s",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈlɪsən/",
+      "phonemes_uk": [
+        "l",
+        "ɪ",
+        "s",
+        "ə",
+        "n"
+      ]
+    },
+    {
+      "word": "make",
+      "phonetic": "/meɪk/",
+      "meanings": [
+        "使出现",
+        "做"
+      ],
+      "emoji": "🔨",
+      "phonemes": [
+        "m",
+        "eɪ",
+        "k"
+      ],
+      "ipa_uk": "/meɪk/",
+      "phonemes_uk": [
+        "m",
+        "eɪ",
+        "k"
+      ]
+    },
+    {
+      "word": "me",
+      "phonetic": "/miː/",
+      "meanings": [
+        "我"
+      ],
+      "emoji": "🙋",
+      "phonemes": [
+        "m",
+        "iː"
+      ],
+      "ipa_uk": "/miː/",
+      "phonemes_uk": [
+        "m",
+        "iː"
+      ]
+    },
+    {
+      "word": "Miss",
+      "phonetic": "/mɪs/",
+      "meanings": [
+        "（学生对女教师的称呼）老师",
+        "女士"
+      ],
+      "emoji": "👩‍🏫",
+      "phonemes": [
+        "m",
+        "ɪ",
+        "s"
+      ],
+      "ipa_uk": "/mɪs/",
+      "phonemes_uk": [
+        "m",
+        "ɪ",
+        "s"
+      ]
+    },
+    {
+      "word": "monkey",
+      "phonetic": "/ˈmʌŋki/",
+      "meanings": [
+        "猴子"
+      ],
+      "emoji": "🐵",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k",
+        "ɪ"
+      ],
+      "ipa_uk": "/ˈmʌŋkɪ/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ŋ",
+        "k",
+        "ɪ"
+      ]
+    },
+    {
+      "word": "mother",
+      "phonetic": "/ˈmʌðər/",
+      "meanings": [
+        "母亲",
+        "妈妈"
+      ],
+      "emoji": "👩",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə",
+        "r"
+      ],
+      "ipa_uk": "/ˈmʌðə/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "ð",
+        "ə"
+      ]
+    },
+    {
+      "word": "mouth",
+      "phonetic": "/maʊθ/",
+      "meanings": [
+        "嘴"
+      ],
+      "emoji": "👄",
+      "phonemes": [
+        "m",
+        "aʊ",
+        "θ"
+      ],
+      "ipa_uk": "/maʊθ/",
+      "phonemes_uk": [
+        "m",
+        "aʊ",
+        "θ"
+      ]
+    },
+    {
+      "word": "mum",
+      "phonetic": "/mʌm/",
+      "meanings": [
+        "（口语）妈妈"
+      ],
+      "emoji": "👩",
+      "phonemes": [
+        "m",
+        "ʌ",
+        "m"
+      ],
+      "ipa_uk": "/mʌm/",
+      "phonemes_uk": [
+        "m",
+        "ʌ",
+        "m"
+      ]
+    },
+    {
+      "word": "name",
+      "phonetic": "/neɪm/",
+      "meanings": [
+        "名字"
+      ],
+      "emoji": "🏷️",
+      "phonemes": [
+        "n",
+        "eɪ",
+        "m"
+      ],
+      "ipa_uk": "/neɪm/",
+      "phonemes_uk": [
+        "n",
+        "eɪ",
+        "m"
+      ]
+    },
+    {
+      "word": "need",
+      "phonetic": "/niːd/",
+      "meanings": [
+        "需要"
+      ],
+      "emoji": "❗",
+      "phonemes": [
+        "n",
+        "iː",
+        "d"
+      ],
+      "ipa_uk": "/niːd/",
+      "phonemes_uk": [
+        "n",
+        "iː",
+        "d"
+      ]
+    },
+    {
+      "word": "new",
+      "phonetic": "/njuː/",
+      "meanings": [
+        "新的"
+      ],
+      "emoji": "🆕",
+      "phonemes": [
+        "n",
+        "j",
+        "uː"
+      ],
+      "ipa_uk": "/njuː/",
+      "phonemes_uk": [
+        "n",
+        "j",
+        "uː"
+      ]
+    },
+    {
+      "word": "nice",
+      "phonetic": "/naɪs/",
+      "meanings": [
+        "令人愉快的",
+        "友好的"
+      ],
+      "emoji": "😃",
+      "phonemes": [
+        "n",
+        "aɪ",
+        "s"
+      ],
+      "ipa_uk": "/naɪs/",
+      "phonemes_uk": [
+        "n",
+        "aɪ",
+        "s"
+      ]
+    },
+    {
+      "word": "nine",
+      "phonetic": "/naɪn/",
+      "meanings": [
+        "九"
+      ],
+      "emoji": "9️⃣",
+      "phonemes": [
+        "n",
+        "aɪ",
+        "n"
+      ],
+      "ipa_uk": "/naɪn/",
+      "phonemes_uk": [
+        "n",
+        "aɪ",
+        "n"
+      ]
+    },
+    {
+      "word": "o'clock",
+      "phonetic": "/əˈklɒk/",
+      "meanings": [
+        "（表示整点）……点钟"
+      ],
+      "emoji": "🕐",
+      "phonemes": [
+        "ə",
+        "k",
+        "l",
+        "ɒ",
+        "k"
+      ],
+      "ipa_uk": "/əˈklɒk/",
+      "phonemes_uk": [
+        "ə",
+        "k",
+        "l",
+        "ɒ",
+        "k"
+      ]
+    },
+    {
+      "word": "old",
+      "phonetic": "/əʊld/",
+      "meanings": [
+        "（多少）岁",
+        "年纪",
+        "旧的"
+      ],
+      "emoji": "👴",
+      "phonemes": [
+        "əʊ",
+        "l",
+        "d"
+      ],
+      "ipa_uk": "/əʊld/",
+      "phonemes_uk": [
+        "əʊ",
+        "l",
+        "d"
+      ]
+    },
+    {
+      "word": "one",
+      "phonetic": "/wʌn/",
+      "meanings": [
+        "一"
+      ],
+      "emoji": "1️⃣",
+      "phonemes": [
+        "w",
+        "ʌ",
+        "n"
+      ],
+      "ipa_uk": "/wʌn/",
+      "phonemes_uk": [
+        "w",
+        "ʌ",
+        "n"
+      ]
+    },
+    {
+      "word": "orange",
+      "phonetic": "/ˈɒrɪndʒ/",
+      "meanings": [
+        "橙子",
+        "柑橘",
+        "橙红色",
+        "橙红色的"
+      ],
+      "emoji": "🍊",
+      "phonemes": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
+      ],
+      "ipa_uk": "/ˈɒrɪndʒ/",
+      "phonemes_uk": [
+        "ɒ",
+        "r",
+        "ɪ",
+        "n",
+        "dʒ"
+      ]
+    },
+    {
+      "word": "panda",
+      "phonetic": "/ˈpændə/",
+      "meanings": [
+        "大熊猫"
+      ],
+      "emoji": "🐼",
+      "phonemes": [
+        "p",
+        "æ",
+        "n",
+        "d",
+        "ə"
+      ],
+      "ipa_uk": "/ˈpændə/",
+      "phonemes_uk": [
+        "p",
+        "æ",
+        "n",
+        "d",
+        "ə"
+      ]
+    },
+    {
+      "word": "pet",
+      "phonetic": "/pet/",
+      "meanings": [
+        "宠物"
+      ],
+      "emoji": "🐕",
+      "phonemes": [
+        "p",
+        "e",
+        "t"
+      ],
+      "ipa_uk": "/pet/",
+      "phonemes_uk": [
+        "p",
+        "e",
+        "t"
+      ]
+    },
+    {
+      "word": "pink",
+      "phonetic": "/pɪŋk/",
+      "meanings": [
+        "粉色",
+        "粉色的"
+      ],
+      "emoji": "🩷",
+      "phonemes": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
+      ],
+      "ipa_uk": "/pɪŋk/",
+      "phonemes_uk": [
+        "p",
+        "ɪ",
+        "ŋ",
+        "k"
+      ]
+    },
+    {
+      "word": "plant",
+      "phonetic": "/plænt/",
+      "meanings": [
+        "种植",
+        "植物"
+      ],
+      "emoji": "🌱",
+      "phonemes": [
+        "p",
+        "l",
+        "æ",
+        "n",
+        "t"
+      ],
+      "ipa_uk": "/plɑːnt/",
+      "phonemes_uk": [
+        "p",
+        "l",
+        "ɑː",
+        "n",
+        "t"
+      ]
+    },
+    {
+      "word": "purple",
+      "phonetic": "/ˈpɜːpl/",
+      "meanings": [
+        "紫色",
+        "紫色的"
+      ],
+      "emoji": "🟣",
+      "phonemes": [
+        "p",
+        "ɜː",
+        "p",
+        "ə",
+        "l"
+      ],
+      "ipa_uk": "/ˈpɜːpəl/",
+      "phonemes_uk": [
+        "p",
+        "ɜː",
+        "p",
+        "ə",
+        "l"
+      ]
+    },
+    {
+      "word": "rabbit",
+      "phonetic": "/ˈræbɪt/",
+      "meanings": [
+        "兔"
+      ],
+      "emoji": "🐰",
+      "phonemes": [
+        "r",
+        "æ",
+        "b",
+        "ɪ",
+        "t"
+      ],
+      "ipa_uk": "/ˈræbɪt/",
+      "phonemes_uk": [
+        "r",
+        "æ",
+        "b",
+        "ɪ",
+        "t"
+      ]
+    },
+    {
+      "word": "red",
+      "phonetic": "/red/",
+      "meanings": [
+        "红色",
+        "红色的"
+      ],
+      "emoji": "🔴",
+      "phonemes": [
+        "r",
+        "e",
+        "d"
+      ],
+      "ipa_uk": "/red/",
+      "phonemes_uk": [
+        "r",
+        "e",
+        "d"
+      ]
+    },
+    {
+      "word": "say",
+      "phonetic": "/seɪ/",
+      "meanings": [
+        "说",
+        "讲"
+      ],
+      "emoji": "💬",
+      "phonemes": [
+        "s",
+        "eɪ"
+      ],
+      "ipa_uk": "/seɪ/",
+      "phonemes_uk": [
+        "s",
+        "eɪ"
+      ]
+    },
+    {
+      "word": "school",
+      "phonetic": "/skuːl/",
+      "meanings": [
+        "学校"
+      ],
+      "emoji": "🏫",
+      "phonemes": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ],
+      "ipa_uk": "/skuːl/",
+      "phonemes_uk": [
+        "s",
+        "k",
+        "uː",
+        "l"
+      ]
+    },
+    {
+      "word": "sea",
+      "phonetic": "/siː/",
+      "meanings": [
+        "海",
+        "海洋"
+      ],
+      "emoji": "🌊",
+      "phonemes": [
+        "s",
+        "iː"
+      ],
+      "ipa_uk": "/siː/",
+      "phonemes_uk": [
+        "s",
+        "iː"
+      ]
+    },
+    {
+      "word": "seven",
+      "phonetic": "/ˈsevn/",
+      "meanings": [
+        "七"
+      ],
+      "emoji": "7️⃣",
+      "phonemes": [
+        "s",
+        "e",
+        "v",
+        "ə",
+        "n"
+      ],
+      "ipa_uk": "/ˈsevən/",
+      "phonemes_uk": [
+        "s",
+        "e",
+        "v",
+        "ə",
+        "n"
+      ]
+    },
+    {
+      "word": "share",
+      "phonetic": "/ʃeə(r)/",
+      "meanings": [
+        "分享"
+      ],
+      "emoji": "🤲",
+      "phonemes": [
+        "ʃ",
+        "eə"
+      ],
+      "ipa_uk": "/ʃeə/",
+      "phonemes_uk": [
+        "ʃ",
+        "eə"
+      ]
+    },
+    {
+      "word": "sister",
+      "phonetic": "/ˈsɪstə(r)/",
+      "meanings": [
+        "姐",
+        "妹"
+      ],
+      "emoji": "👧",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "s",
+        "t",
+        "ə"
+      ],
+      "ipa_uk": "/ˈsɪstə/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "s",
+        "t",
+        "ə"
+      ]
+    },
+    {
+      "word": "six",
+      "phonetic": "/sɪks/",
+      "meanings": [
+        "六"
+      ],
+      "emoji": "6️⃣",
+      "phonemes": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
+      ],
+      "ipa_uk": "/sɪks/",
+      "phonemes_uk": [
+        "s",
+        "ɪ",
+        "k",
+        "s"
+      ]
+    },
+    {
+      "word": "small",
+      "phonetic": "/smɔːl/",
+      "meanings": [
+        "小的"
+      ],
+      "emoji": "🐭",
+      "phonemes": [
+        "s",
+        "m",
+        "ɔː",
+        "l"
+      ],
+      "ipa_uk": "/smɔːl/",
+      "phonemes_uk": [
+        "s",
+        "m",
+        "ɔː",
+        "l"
+      ]
+    },
+    {
+      "word": "smile",
+      "phonetic": "/smaɪl/",
+      "meanings": [
+        "微笑",
+        "笑"
+      ],
+      "emoji": "😄",
+      "phonemes": [
+        "s",
+        "m",
+        "aɪ",
+        "l"
+      ],
+      "ipa_uk": "/smaɪl/",
+      "phonemes_uk": [
+        "s",
+        "m",
+        "aɪ",
+        "l"
+      ]
+    },
+    {
+      "word": "some",
+      "phonetic": "/səm,sʌm/",
+      "meanings": [
+        "一些"
+      ],
+      "emoji": "🤷",
+      "phonemes": [
+        "s",
+        "ʌ",
+        "m"
+      ],
+      "ipa_uk": "/sʌm/",
+      "phonemes_uk": [
+        "s",
+        "ʌ",
+        "m"
+      ]
+    },
+    {
+      "word": "sun",
+      "phonetic": "/sʌn/",
+      "meanings": [
+        "阳光",
+        "太阳"
+      ],
+      "emoji": "☀️",
+      "phonemes": [
+        "s",
+        "ʌ",
+        "n"
+      ],
+      "ipa_uk": "/sʌn/",
+      "phonemes_uk": [
+        "s",
+        "ʌ",
+        "n"
+      ]
+    },
+    {
+      "word": "tall",
+      "phonetic": "/tɔːl/",
+      "meanings": [
+        "高的"
+      ],
+      "emoji": "🧍",
+      "phonemes": [
+        "t",
+        "ɔː",
+        "l"
+      ],
+      "ipa_uk": "/tɔːl/",
+      "phonemes_uk": [
+        "t",
+        "ɔː",
+        "l"
+      ]
+    },
+    {
+      "word": "ten",
+      "phonetic": "/ten/",
+      "meanings": [
+        "十"
+      ],
+      "emoji": "🔟",
+      "phonemes": [
+        "t",
+        "e",
+        "n"
+      ],
+      "ipa_uk": "/ten/",
+      "phonemes_uk": [
+        "t",
+        "e",
+        "n"
+      ]
+    },
+    {
+      "word": "them",
+      "phonetic": "/ðəm,ðem/",
+      "meanings": [
+        "它们",
+        "他们",
+        "她们"
+      ],
+      "emoji": "👥",
+      "phonemes": [
+        "ð",
+        "ə",
+        "m"
+      ],
+      "ipa_uk": "/ðəm/",
+      "phonemes_uk": [
+        "ð",
+        "ə",
+        "m"
+      ]
+    },
+    {
+      "word": "three",
+      "phonetic": "/θriː/",
+      "meanings": [
+        "三"
+      ],
+      "emoji": "3️⃣",
+      "phonemes": [
+        "θ",
+        "r",
+        "iː"
+      ],
+      "ipa_uk": "/θriː/",
+      "phonemes_uk": [
+        "θ",
+        "r",
+        "iː"
+      ]
+    },
+    {
+      "word": "tiger",
+      "phonetic": "/ˈtaɪgə(r)/",
+      "meanings": [
+        "老虎"
+      ],
+      "emoji": "🐯",
+      "phonemes": [
+        "t",
+        "aɪ",
+        "g",
+        "ə"
+      ],
+      "ipa_uk": "/ˈtaɪgə/",
+      "phonemes_uk": [
+        "t",
+        "aɪ",
+        "g",
+        "ə"
+      ]
+    },
+    {
+      "word": "tree",
+      "phonetic": "/triː/",
+      "meanings": [
+        "树"
+      ],
+      "emoji": "🌳",
+      "phonemes": [
+        "tr",
+        "iː"
+      ],
+      "ipa_uk": "/triː/",
+      "phonemes_uk": [
+        "tr",
+        "iː"
+      ]
+    },
+    {
+      "word": "two",
+      "phonetic": "/tuː/",
+      "meanings": [
+        "二"
+      ],
+      "emoji": "2️⃣",
+      "phonemes": [
+        "t",
+        "uː"
+      ],
+      "ipa_uk": "/tuː/",
+      "phonemes_uk": [
+        "t",
+        "uː"
+      ]
+    },
+    {
+      "word": "uncle",
+      "phonetic": "/ˈʌŋkl/",
+      "meanings": [
+        "伯父",
+        "叔父",
+        "舅父",
+        "姑父",
+        "姨父"
+      ],
+      "emoji": "👨",
+      "phonemes": [
+        "ʌ",
+        "ŋ",
+        "k",
+        "ə",
+        "l"
+      ],
+      "ipa_uk": "/ˈʌŋkəl/",
+      "phonemes_uk": [
+        "ʌ",
+        "ŋ",
+        "k",
+        "ə",
+        "l"
+      ]
+    },
+    {
+      "word": "water",
+      "phonetic": "/ˈwɔːtər/",
+      "meanings": [
+        "给……浇水",
+        "水"
+      ],
+      "emoji": "💧",
+      "phonemes": [
+        "w",
+        "ɔː",
+        "t",
+        "ə",
+        "r"
+      ],
+      "ipa_uk": "/ˈwɔːtə/",
+      "phonemes_uk": [
+        "w",
+        "ɔː",
+        "t",
+        "ə"
+      ]
+    },
+    {
+      "word": "white",
+      "phonetic": "/waɪt/",
+      "meanings": [
+        "白色",
+        "白色的"
+      ],
+      "emoji": "⚪",
+      "phonemes": [
+        "w",
+        "aɪ",
+        "t"
+      ],
+      "ipa_uk": "/waɪt/",
+      "phonemes_uk": [
+        "w",
+        "aɪ",
+        "t"
+      ]
+    },
+    {
+      "word": "year",
+      "phonetic": "/jɪə(r)/",
+      "meanings": [
+        "年纪",
+        "年"
+      ],
+      "emoji": "📅",
+      "phonemes": [
+        "j",
+        "ɪə"
+      ],
+      "ipa_uk": "/jɪə/",
+      "phonemes_uk": [
+        "j",
+        "ɪə"
+      ]
+    },
+    {
+      "word": "yellow",
+      "phonetic": "/ˈjeləʊ/",
+      "meanings": [
+        "黄色",
+        "黄色的"
+      ],
+      "emoji": "🟡",
+      "phonemes": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
+      ],
+      "ipa_uk": "/ˈjeləʊ/",
+      "phonemes_uk": [
+        "j",
+        "e",
+        "l",
+        "əʊ"
+      ]
+    },
+    {
+      "word": "zoo",
+      "phonetic": "/zuː/",
+      "meanings": [
+        "动物园"
+      ],
+      "emoji": "🏛️",
+      "phonemes": [
+        "z",
+        "uː"
+      ],
+      "ipa_uk": "/zuː/",
+      "phonemes_uk": [
+        "z",
+        "uː"
+      ]
+    }
+  ]
+}

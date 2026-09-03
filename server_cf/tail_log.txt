@@ -1,0 +1,85 @@
+﻿node.exe : [33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mProxy environment variables detected. We'll use your proxy 
+for fetch requests.[0m
+At C:\Users\lhl20\AppData\Roaming\npm\npx.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/npm/bin/npx-cli.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([33m▲ [43;33m...h requests.[0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+
+
+ ⛅️ wrangler 4.127.0
+────────────────────
+Successfully created tail, expires at 2026-08-28T12:26:50Z
+Connected to aiphonix-api, waiting for logs...
+GET https://aiphonix-api.xinyi7lan.workers.dev/api/v1/training/plan - Ok @ 2026/8/28 14:27:10
+  (log) [req] GET /api/v1/training/plan -> 200 34ms
+GET https://aiphonix-api.xinyi7lan.workers.dev/api/v1/training/progress?start=2026-08-15&end=2026-08-28 - Ok @ 2026/8/28 14:27:10
+  (log) [req] GET /api/v1/training/progress -> 200 36ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:27:25
+  (log) [req] POST /api/v1/soe/evaluate -> 500 1108ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:28:24
+  (log) [req] POST /api/v1/soe/evaluate -> 200 1679ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:30:33
+  (log) [req] POST /api/v1/soe/evaluate -> 500 682ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/ai-chinese/parse-image - Ok @ 2026/8/28 14:36:06
+  (log) [req] POST /api/v1/ai-chinese/parse-image -> 200 625ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/ai-chinese/parse-image?no_cache=true - Ok @ 2026/8/28 14:36:10
+  (error) failed to asynchronously prepare wasm: both async and sync fetching of the wasm failed
+  (error) Aborted(both async and sync fetching of the wasm failed)
+  (warn) A header value for "authorization" contains non-ASCII characters: "Bearer 6acabf09-8736-4f09-a573-f12b64a901e4" # 火山引擎免费 token（2026-08-08 用户提供）" (raw bytes: "\x42\x65\x61\x72\x65\x72\x20\x36\x61\x63\x61\x62\x66\x30\x39\x2d\x38\x37\x33\x36\x2d\x34\x66\x30\x39\x2d\x61\x35\x37\x33\x2d\x66\x31\x32\x62\x36\x34\x61\x39\x30\x31\x65\x34\x22\x20\x23\x20\xe7\x81\xab\xe5\xb1\xb1\xe5\xbc\x95\xe6\x93\x8e\xe5\x85\x8d\xe8\xb4\xb9\x20\x74\x6f\x6b\x65\x6e\xef\xbc\x88\x32\x30\x32\x36\x2d\x30\x38\x2d\x30\x38\x20\xe7\x94\xa8\xe6\x88\xb7\xe6\x8f\x90\xe4\xbe\x9b\xef\xbc\x89"). As a quirk to support Unicode, we are encoding values as UTF-8 in the header, but in a browser this would likely result in a TypeError exception. Consider encoding this string in ASCII for compatibility with browser implementations of the Fetch specification.
+  (warn) [ai-chinese] 豆包识图失败: 401 The API key format is incorrect. Request id: 0217878989715906a861da7d15ce34477456226ae15cbba7b0989
+  (warn) [ocr] 腾讯云 OCR 失败: 腾讯 OCR 错误: 服务未开通，请前往控制台开通相应服务
+  (warn) [ocr] 百度 OCR 失败: 百度 OCR 错误: No permission to access data
+  (log) [req] POST /api/v1/ai-chinese/parse-image -> 422 3019ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/ai-chinese/parse-image?no_cache=true - Ok @ 2026/8/28 14:36:16
+  (warn) A header value for "authorization" contains non-ASCII characters: "Bearer 6acabf09-8736-4f09-a573-f12b64a901e4" # 火山引擎免费 token（2026-08-08 用户提供）" (raw bytes: "\x42\x65\x61\x72\x65\x72\x20\x36\x61\x63\x61\x62\x66\x30\x39\x2d\x38\x37\x33\x36\x2d\x34\x66\x30\x39\x2d\x61\x35\x37\x33\x2d\x66\x31\x32\x62\x36\x34\x61\x39\x30\x31\x65\x34\x22\x20\x23\x20\xe7\x81\xab\xe5\xb1\xb1\xe5\xbc\x95\xe6\x93\x8e\xe5\x85\x8d\xe8\xb4\xb9\x20\x74\x6f\x6b\x65\x6e\xef\xbc\x88\x32\x30\x32\x36\x2d\x30\x38\x2d\x30\x38\x20\xe7\x94\xa8\xe6\x88\xb7\xe6\x8f\x90\xe4\xbe\x9b\xef\xbc\x89"). As a quirk to support Unicode, we are encoding values as UTF-8 in the header, but in a browser this would likely result in a TypeError exception. Consider encoding this string in ASCII for compatibility with browser implementations of the Fetch specification.
+  (warn) [ai-chinese] 豆包识图失败: 401 The API key format is incorrect. Request id: 0217878989777686a861da7d15ce34477456226ae15cbba9d277a
+  (warn) [ocr] 腾讯云 OCR 失败: 腾讯 OCR 错误: 服务未开通，请前往控制台开通相应服务
+  (warn) [ocr] 百度 OCR 失败: 百度 OCR 错误: No permission to access data
+  (log) [req] POST /api/v1/ai-chinese/parse-image -> 422 1893ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/ai-chinese/parse-image - Ok @ 2026/8/28 14:36:32
+  (warn) A header value for "authorization" contains non-ASCII characters: "Bearer 6acabf09-8736-4f09-a573-f12b64a901e4" # 火山引擎免费 token（2026-08-08 用户提供）" (raw bytes: "\x42\x65\x61\x72\x65\x72\x20\x36\x61\x63\x61\x62\x66\x30\x39\x2d\x38\x37\x33\x36\x2d\x34\x66\x30\x39\x2d\x61\x35\x37\x33\x2d\x66\x31\x32\x62\x36\x34\x61\x39\x30\x31\x65\x34\x22\x20\x23\x20\xe7\x81\xab\xe5\xb1\xb1\xe5\xbc\x95\xe6\x93\x8e\xe5\x85\x8d\xe8\xb4\xb9\x20\x74\x6f\x6b\x65\x6e\xef\xbc\x88\x32\x30\x32\x36\x2d\x30\x38\x2d\x30\x38\x20\xe7\x94\xa8\xe6\x88\xb7\xe6\x8f\x90\xe4\xbe\x9b\xef\xbc\x89"). As a quirk to support Unicode, we are encoding values as UTF-8 in the header, but in a browser this would likely result in a TypeError exception. Consider encoding this string in ASCII for compatibility with browser implementations of the Fetch specification.
+  (warn) [ai-chinese] 豆包识图失败: 401 The API key format is incorrect. Request id: 0217878989935496a861da7d15ce34477456226ae15cbbaa3b71b
+  (warn) [ocr] 腾讯云 OCR 失败: 腾讯 OCR 错误: 服务未开通，请前往控制台开通相应服务
+  (warn) [ocr] 百度 OCR 失败: 百度 OCR 错误: No permission to access data
+  (log) [req] POST /api/v1/ai-chinese/parse-image -> 422 2697ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:41:19
+  (log) [req] POST /api/v1/soe/evaluate -> 200 1727ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:43:22
+  (log) [req] POST /api/v1/tts/synthesize -> 200 2015ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:43:54
+  (log) [req] POST /api/v1/tts/synthesize -> 200 109ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:43:55
+  (log) [req] POST /api/v1/tts/synthesize -> 200 1013ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:43:57
+  (log) [req] POST /api/v1/tts/synthesize -> 200 127ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:44:24
+  (log) [req] POST /api/v1/tts/synthesize -> 200 121ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:44:29
+  (log) [req] POST /api/v1/soe/evaluate -> 200 2929ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:44:32
+  (log) [req] POST /api/v1/tts/synthesize -> 200 125ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:44:38
+  (log) [req] POST /api/v1/soe/evaluate -> 200 3249ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:44:41
+  (log) [req] POST /api/v1/tts/synthesize -> 200 1521ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:44:45
+  (log) [req] POST /api/v1/soe/evaluate -> 500 1934ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:44:48
+  (log) [req] POST /api/v1/tts/synthesize -> 200 91ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:44:49
+  (log) [req] POST /api/v1/soe/evaluate -> 200 2952ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:45:38
+  (log) [req] POST /api/v1/tts/synthesize -> 200 126ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:45:39
+  (log) [req] POST /api/v1/soe/evaluate -> 200 995ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:45:41
+  (log) [req] POST /api/v1/tts/synthesize -> 200 1123ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:45:42
+  (log) [req] POST /api/v1/soe/evaluate -> 200 726ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/tts/synthesize - Ok @ 2026/8/28 14:45:43
+  (log) [req] POST /api/v1/tts/synthesize -> 200 767ms
+POST https://aiphonix-api.xinyi7lan.workers.dev/api/v1/soe/evaluate - Ok @ 2026/8/28 14:45:45
+  (log) [req] POST /api/v1/soe/evaluate -> 200 573ms

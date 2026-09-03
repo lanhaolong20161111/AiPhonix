@@ -1,31 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import "./App.css"
-
-interface UploadItem {
-  id: number
-  kind: "photo" | "text"
-  file_name: string
-  url: string
-  content: string
-  ocr_text: string
-  note: string
-  source: string
-  uploader: string
-  origin: string
-  created_at: string | null
-}
-
-const API = "/api/v1"
-
-async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const resp = await fetch(API + path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`)
-  return resp.json()
-}
+import SoeDemo from "./SoeDemo"
+import { listUploads, uploadPhoto, uploadText, type UploadItem } from "./services/uploads"
 
 function formatTime(iso: string | null): string {
   if (!iso) return ""
@@ -61,9 +37,7 @@ function PhotoUploadCard({ onUploaded }: { onUploaded: () => void }) {
       fd.append("file", file)
       fd.append("note", note)
       fd.append("origin", origin)
-      const resp = await fetch(`${API}/uploads/photo`, { method: "POST", body: fd })
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
-      const r = await resp.json()
+      const r = await uploadPhoto(fd)
       setMsg(`✅ 上传成功 id=${r.id}，正在后台识别文字…`)
       setFile(null)
       if (fileRef.current) fileRef.current.value = ""
@@ -118,11 +92,7 @@ function TextUploadCard({ onUploaded }: { onUploaded: () => void }) {
     setBusy(true)
     setMsg("")
     try {
-      const r = await postJson<{ id: number; status: string }>("/uploads/text", {
-        text,
-        note,
-        origin,
-      })
+      const r = await uploadText({ text, note, origin })
       setMsg(`✅ 已保存 id=${r.id}`)
       setText("")
       onUploaded()
@@ -167,9 +137,7 @@ function UploadList() {
 
   const load = useCallback(async () => {
     try {
-      const resp = await fetch(`${API}/uploads?limit=20`)
-      if (!resp.ok) return
-      const data = await resp.json()
+      const data = await listUploads(20)
       setItems(data.items ?? [])
     } catch {
       /* 忽略加载失败 */
@@ -215,6 +183,29 @@ function UploadList() {
 }
 
 export default function App() {
+  const [tab, setTab] = useState<"soe" | "uploads">("soe")
+  return (
+    <div className="root">
+      <nav className="tabbar">
+        <button
+          className={tab === "soe" ? "tab active" : "tab"}
+          onClick={() => setTab("soe")}
+        >
+          🎤 发音评测
+        </button>
+        <button
+          className={tab === "uploads" ? "tab active" : "tab"}
+          onClick={() => setTab("uploads")}
+        >
+          📥 素材采集
+        </button>
+      </nav>
+      {tab === "soe" ? <SoeDemo /> : <UploadsApp />}
+    </div>
+  )
+}
+
+function UploadsApp() {
   const [refreshKey, setRefreshKey] = useState(0)
   return (
     <div className="page">
