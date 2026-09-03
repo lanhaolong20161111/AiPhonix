@@ -1,0 +1,42 @@
+name: backend-ci
+
+# P1-5 双端一致性护栏：类型检查 server_cf / server_ts + 双端路由 parity 检查。
+# server_ts 依赖 better-sqlite3 原生模块（按 Node 24 编译），故必须用 node-24。
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node 24 (better-sqlite3 原生模块需匹配 ABI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: AiPhonix/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: AiPhonix
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck server_cf
+        working-directory: AiPhonix/server_cf
+        run: npx tsc --noEmit
+
+      - name: Typecheck server_ts
+        working-directory: AiPhonix/server_ts
+        run: npx tsc --noEmit
+
+      - name: Dual-backend route parity check
+        working-directory: AiPhonix
+        run: node server_ts/node_modules/tsx/dist/cli.mjs scripts/parity-check.mts

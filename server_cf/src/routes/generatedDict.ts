@@ -9,7 +9,7 @@
  * 与 chinese_practice.ts 一致的缓存模式：ttlCache 单飞 + writeJson 落 R2 + refresh。
  */
 import { Hono } from "hono"
-import { readJson, writeJson, dataPath } from "../lib/jsonfile.js"
+import { readJson, writeJson, updateJson, dataPath } from "../lib/jsonfile.js"
 import { ttlCache } from "../lib/ttlCache.js"
 import { chat } from "../lib/deepseek.js"
 
@@ -41,8 +41,10 @@ const store = ttlCache<void>(
   60_000,
 )
 const ensureLoaded = (): Promise<void> => store.get()
+// P1-6：用 updateJson 合并写回（读当前 R2 值再并入本地 cache），同 key 串行，
+// 避免并发请求在 await 处交错导致更新丢失（跨 isolate 限制见 jsonfile.ts 注释）。
 const save = async () => {
-  await writeJson(GEN_PATH, cache)
+  await updateJson<GenMap>(GEN_PATH, (current) => ({ ...current, ...cache }), {})
   store.refresh()
 }
 

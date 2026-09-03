@@ -5,7 +5,7 @@
  */
 import { Hono } from "hono"
 import { exists, readText } from "../lib/storage.js"
-import { readJson, writeJson, dataPath } from "../lib/jsonfile.js"
+import { readJson, writeJson, updateJson, dataPath } from "../lib/jsonfile.js"
 import { ttlCache } from "../lib/ttlCache.js"
 import { chat } from "../lib/deepseek.js"
 import { parsePinyin } from "../lib/pinyin.js"
@@ -73,8 +73,14 @@ const store = ttlCache<void>(
 
 const ensureLoaded = (): Promise<void> => store.get()
 
+// P1-6：用 updateJson 合并写回（读当前 R2 值再并入本地 sentenceCache 增量），同 key 串行，
+// 避免并发请求在 await 处交错导致更新丢失（跨 isolate 限制见 jsonfile.ts 注释）。
 const saveSentenceCache = async () => {
-  await writeJson(SENTENCE_CACHE_PATH, sentenceCache)
+  await updateJson<Record<string, { sentence: string; source: string }>>(
+    SENTENCE_CACHE_PATH,
+    (current) => ({ ...current, ...sentenceCache }),
+    {},
+  )
   store.refresh() // 本地已写入，重置计时避免刚写完又重读
 }
 

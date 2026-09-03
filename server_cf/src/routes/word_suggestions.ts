@@ -8,7 +8,7 @@
  *   重读时新键并入本地 map（本 isolate 已生成的缓存保留），fallbackWords 整体刷新。
  */
 import { Hono } from "hono"
-import { readJson, writeJson, dataPath } from "../lib/jsonfile.js"
+import { readJson, writeJson, updateJson, dataPath } from "../lib/jsonfile.js"
 import { ttlCache } from "../lib/ttlCache.js"
 import { chat } from "../lib/deepseek.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
@@ -49,12 +49,21 @@ const store = ttlCache<void>(
 
 const ensureLoaded = (): Promise<void> => store.get()
 
+// P1-6：用 updateJson 合并写回（读当前 R2 值再并入本地 cache 的增量），同 key 串行，
+// 避免并发请求在 await 处交错导致更新丢失（跨 isolate 限制见 jsonfile.ts 注释）。
 async function saveCache(): Promise<void> {
-  const data: WordEntry[] = []
-  for (const [char, words] of cache.entries()) {
-    data.push({ char, words })
-  }
-  await writeJson(CACHE_PATH, data)
+  await updateJson<WordEntry[]>(CACHE_PATH, (current) => {
+    const merged = new Map<string, string[]>()
+    if (Array.isArray(current)) {
+      for (const item of current) {
+        if (item && typeof item === "object" && (item as WordEntry).char) {
+          merged.set((item as WordEntry).char, (item as WordEntry).words)
+        }
+      }
+    }
+    for (const [char, words] of cache.entries()) merged.set(char, words)
+    return [...merged.entries()].map(([char, words]) => ({ char, words }))
+  }, [])
   store.refresh() // 本地已写入，重置计时避免刚写完又重读
 }
 

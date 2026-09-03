@@ -1,6 +1,7 @@
 /** 数据库连接 — better-sqlite3 + drizzle（复用现有 app.db，绝对路径铁律） */
 import Database from "better-sqlite3"
 import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3"
+import { readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import * as schema from "./schema.js"
@@ -14,61 +15,11 @@ export const sqlite = new Database(DB_PATH)
 sqlite.pragma("journal_mode = WAL")
 
 // 表结构历史上由 PY(SQLAlchemy create_all)负责；PY 已退役后，TS 侧新增的表
-// 必须自建（幂等），否则首启无表即崩。
-sqlite.exec(`
-CREATE TABLE IF NOT EXISTS char_practice (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  char TEXT NOT NULL,
-  pinyin_correct INTEGER NOT NULL DEFAULT 0,
-  pinyin_wrong INTEGER NOT NULL DEFAULT 0,
-  pronunciation_correct INTEGER NOT NULL DEFAULT 0,
-  pronunciation_wrong INTEGER NOT NULL DEFAULT 0,
-  consecutive_correct INTEGER NOT NULL DEFAULT 0,
-  last_seen REAL,
-  last_correct INTEGER NOT NULL DEFAULT 0,
-  passed INTEGER NOT NULL DEFAULT 0
-);
-CREATE UNIQUE INDEX IF NOT EXISTS ix_char_practice_user_char ON char_practice (user_id, char);
-CREATE INDEX IF NOT EXISTS ix_char_practice_user ON char_practice (user_id);
-CREATE TABLE IF NOT EXISTS llm_budget_day (
-  date TEXT PRIMARY KEY,
-  total_cost REAL NOT NULL DEFAULT 0,
-  calls INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS llm_call_log (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  time TEXT NOT NULL,
-  caller TEXT NOT NULL DEFAULT '',
-  model TEXT NOT NULL DEFAULT '',
-  system_prompt TEXT NOT NULL DEFAULT '',
-  user_prompt TEXT NOT NULL DEFAULT '',
-  prompt_tokens INTEGER NOT NULL DEFAULT 0,
-  comp_tokens INTEGER NOT NULL DEFAULT 0,
-  total_tokens INTEGER NOT NULL DEFAULT 0,
-  cost_yuan REAL NOT NULL DEFAULT 0,
-  duration_ms INTEGER NOT NULL DEFAULT 0,
-  success INTEGER NOT NULL DEFAULT 0,
-  error TEXT NOT NULL DEFAULT ''
-);
-
-CREATE TABLE IF NOT EXISTS visit_counts (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  route TEXT NOT NULL,
-  count INTEGER NOT NULL DEFAULT 0,
-  updated_at NUMERIC NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS ix_visit_counts_user_route ON visit_counts (user_id, route);
-
-CREATE TABLE IF NOT EXISTS user_prefs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
-  prefs TEXT NOT NULL DEFAULT '{}',
-  updated_at NUMERIC NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS ix_user_prefs_user_id ON user_prefs (user_id);
-`)
+// 必须自建（幂等），否则首启无表即崩。现统一由 scripts/gen-init-sql.mts 从
+// drizzle schema 生成 src/db/init.sql（全部 CREATE TABLE IF NOT EXISTS +
+// FTS5 虚拟表 + 关键唯一索引），保证全新 app.db 也能冷启自愈。
+const initSql = readFileSync(new URL("./init.sql", import.meta.url), "utf8")
+sqlite.exec(initSql)
 
 // 老库升级：2026-08 前 char_practice 无 user_id（全账号共享），且存有早期无归属测试数据
 // （passed=0，无账号归属）。改为按账号隔离需重建表：(user_id, char) 唯一。旧数据无归属，
@@ -100,6 +51,17 @@ try {
   }
 } catch (e) {
   console.warn(`[db] char_practice 迁移失败(不阻塞启动): ${(e as Error).message}`)
+}
+
+// char_practice 账号隔离唯一索引：老库经上面迁移已建；全新库由 init.sql 建表（无索引），
+// 此处用 IF NOT EXISTS 补建，保证两种情况下账号级唯一约束都存在（不阻塞启动）。
+try {
+  sqlite.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS ix_char_practice_user_char ON char_practice (user_id, char);
+    CREATE INDEX IF NOT EXISTS ix_char_practice_user ON char_practice (user_id);
+  `)
+} catch (e) {
+  console.warn(`[db] char_practice 索引补建失败(不阻塞启动): ${(e as Error).message}`)
 }
 
 export const db: BetterSQLite3Database<typeof schema> = drizzle(sqlite, { schema })

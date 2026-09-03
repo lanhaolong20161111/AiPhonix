@@ -47,7 +47,8 @@ import biliRoutes from "./routes/bili.js"
 import visitsRoutes from "./routes/visits.js"
 import prefsRoutes from "./routes/prefs.js"
 
-const app = new Hono<{ Bindings: Bindings }>()
+// 导出 app 供双端 parity 检查（scripts/parity-check.mts）使用，无副作用。
+export const app = new Hono<{ Bindings: Bindings }>()
 
 // ── CORS allowlist（与 server_ts 一致）──
 function originAllowed(origin: string | undefined, reqHost: string | undefined): boolean {

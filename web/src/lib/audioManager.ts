@@ -61,6 +61,8 @@ class AudioManager {
   private listeners = new Set<Listener>()
   private _speaking = false
   private finishResolvers: Array<() => void> = []
+  /** 当前播放的 URL（blob: 需要在播放结束后 revoke，避免内存泄漏）——P1-9 */
+  private currentUrl: string | null = null
 
   private readingListeners = new Set<ReadingListener>()
   private readingCleanup: (() => void) | null = null
@@ -132,6 +134,18 @@ class AudioManager {
     for (const r of rs) r()
   }
 
+  /** 播放结束后回收 blob: URL（仅当本次播放用的是对象 URL，否则不碰——P1-9） */
+  private releaseUrl() {
+    if (this.currentUrl && this.currentUrl.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(this.currentUrl)
+      } catch {
+        /* 忽略 */
+      }
+    }
+    this.currentUrl = null
+  }
+
   /** 播放完成 promise（当前音频自然结束 / 出错 / 被 stop 时 resolve） */
   waitFinish(): Promise<void> {
     if (!this._speaking) return Promise.resolve()
@@ -147,11 +161,13 @@ class AudioManager {
   playUrl(url: string, readingText?: string): boolean {
     if (this._speaking) return false
     const audio = new Audio(url)
+    this.currentUrl = url
     const finish = () => {
       if (this.audio === audio) {
         this.audio = null
         this.setSpeaking(false)
         this.clearReading()
+        this.releaseUrl()
         this.resolveFinish()
       }
     }
@@ -175,6 +191,7 @@ class AudioManager {
       a.src = ""
       this.setSpeaking(false)
       this.clearReading()
+      this.releaseUrl()
       this.resolveFinish()
     }
   }

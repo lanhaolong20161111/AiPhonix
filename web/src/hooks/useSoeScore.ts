@@ -1,6 +1,6 @@
 /** 发音评测 hook — 录音 → SOE 评分（复用 pcmRecorder + soeApi） */
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { PcmRecorder } from "../lib/pcmRecorder"
 import { evaluateSoe, type SoeResult } from "../lib/soeApi"
 import { useAuthStore } from "../stores/authStore"
@@ -48,7 +48,30 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
   })
   const recorderRef = useRef<PcmRecorder | null>(null)
 
+  // 卸载时务必释放麦克风：组件被路由切换/页面关闭时若仍在录音，
+  // 不显式 stop 会导致 MediaStream 永久占用（麦克风指示灯常亮）——P1-9。
+  useEffect(() => {
+    return () => {
+      const r = recorderRef.current
+      recorderRef.current = null
+      try {
+        r?.destroy()
+      } catch {
+        /* 忽略卸载时的释放异常 */
+      }
+    }
+  }, [])
+
   const start = useCallback(async () => {
+    // 防御：上次未正常释放的 recorder 先销毁，避免重复 start 泄漏上一个麦克风流（P1-9）
+    if (recorderRef.current) {
+      try {
+        recorderRef.current.destroy()
+      } catch {
+        /* 忽略 */
+      }
+      recorderRef.current = null
+    }
     const recorder = new PcmRecorder({
       onLevel: (l) => setState((s) => ({ ...s, level: l })),
     })
@@ -59,6 +82,7 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
       setState((s) => ({ ...s, recording: true }))
       return true
     } catch (e) {
+      recorderRef.current = null
       setState((s) => ({
         ...s,
         recording: false,
@@ -71,6 +95,7 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
   const stop = useCallback(async (): Promise<number | null> => {
     const recorder = recorderRef.current
     if (!recorder || !recorder.isRecording) return null
+    recorderRef.current = null // 立即解绑，便于 GC；麦克风资源在 recorder.stop() 内已释放（P1-9）
     setState((s) => ({ ...s, recording: false, level: 0 }))
     const pcm = recorder.stop()
     const { refText, engine, evalMode, minBytes, scene, source } = opts()
