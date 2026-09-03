@@ -44,7 +44,7 @@ let localPrefs: UserPrefs = readLocal()
 /** 登录后服务端权威值；null = 尚未 hydrate 或当前未登录 */
 let serverPrefs: UserPrefs | null = null
 /** 已成功 hydrate 的账户 id；切换账号即作废旧服务端值 */
-let hydratedUserId: string | null = null
+let hydratedUserId: number | null = null
 
 const listeners = new Set<() => void>()
 

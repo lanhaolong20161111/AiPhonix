@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "audit": "playwright test",
     "audit:score": "playwright test && node -e \"const r=require('./responsive/reports/latest.json');console.log('score:',r.score,'P1:',r.totals.P1)\""
   },

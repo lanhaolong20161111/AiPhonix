@@ -40,3 +40,15 @@ jobs:
       - name: Dual-backend route parity check
         working-directory: AiPhonix
         run: node server_ts/node_modules/tsx/dist/cli.mjs scripts/parity-check.mts
+
+      - name: Unit tests — server_cf
+        working-directory: AiPhonix/server_cf
+        run: npm test
+
+      - name: Unit tests — server_ts
+        working-directory: AiPhonix/server_ts
+        run: npm test
+
+      - name: Unit tests — web
+        working-directory: AiPhonix/web
+        run: npm test
