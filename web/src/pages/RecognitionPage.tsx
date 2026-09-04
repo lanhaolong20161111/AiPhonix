@@ -635,6 +635,16 @@ export function RecognitionPage() {
   const zeroInit = pinyinZeroInit(effectivePinyin)
   const hasMedial = pinyinHasMedial(effectivePinyin)
 
+  // 四角标注：所有字都展示（结构/笔画/部首/音序），缺字库数据时用「—」占位
+  const charCorners = (
+    <>
+      <span className="recog-corner recog-corner-tl">结构 {charInfo?.structure || "—"}</span>
+      <span className="recog-corner recog-corner-tr">笔画 {charInfo && charInfo.stroke_count > 0 ? charInfo.stroke_count : "—"}</span>
+      <span className="recog-corner recog-corner-bl">部首 {charInfo?.radical || "—"}</span>
+      <span className="recog-corner recog-corner-br">音序 {pinyinInitial(effectivePinyin) || "—"}</span>
+    </>
+  )
+
   return (
     <div className="page recognition-page">
       <header className="module-header">
@@ -649,22 +659,16 @@ export function RecognitionPage() {
 
       <div className="recog-layout">
         <div className="recog-card">
-          {/* 主图（看图识字）：有字卡图时展示图片+四角标注，否则回退大字 */}
+          {/* 主图（看图识字）：有字卡图时展示图片+四角标注，否则回退大字（同样带四角标注） */}
           {charImg ? (
             <div className="recog-image-wrap">
               <img className="recog-main-image" src={charImg} alt={`${current.text} 图`} loading="lazy" />
-              {charInfo && (
-                <>
-                  <span className="recog-corner recog-corner-tl">结构 {charInfo.structure}</span>
-                  <span className="recog-corner recog-corner-tr">笔画 {charInfo.stroke_count > 0 ? charInfo.stroke_count : "—"}</span>
-                  <span className="recog-corner recog-corner-bl">部首 {charInfo.radical}</span>
-                  <span className="recog-corner recog-corner-br">音序 {pinyinInitial(effectivePinyin) || "—"}</span>
-                </>
-              )}
+              {charCorners}
             </div>
           ) : (
             <div className="recog-char-wrap">
               <div className="recog-char">{current.text}</div>
+              {charCorners}
             </div>
           )}
           {practiceCount > 0 && (
