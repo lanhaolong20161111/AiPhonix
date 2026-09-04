@@ -649,35 +649,36 @@ export function RecognitionPage() {
 
       <div className="recog-layout">
         <div className="recog-card">
-          {/* 大字（写字标签字带四角关键信息：结构/笔画/部首/音序） */}
-          <div className="recog-char-wrap">
-            <div className="recog-char">{current.text}</div>
-            {current.tags.includes("写字") && charInfo && (
-              <>
-                <span className="recog-corner recog-corner-tl">结构 {charInfo.structure}</span>
-                <span className="recog-corner recog-corner-tr">笔画 {charInfo.stroke_count > 0 ? charInfo.stroke_count : "—"}</span>
-                <span className="recog-corner recog-corner-bl">部首 {charInfo.radical}</span>
-                <span className="recog-corner recog-corner-br">音序 {pinyinInitial(effectivePinyin) || "—"}</span>
-              </>
-            )}
-          </div>
+          {/* 主图（看图识字）：有字卡图时展示图片+四角标注，否则回退大字 */}
+          {charImg ? (
+            <div className="recog-image-wrap">
+              <img className="recog-main-image" src={charImg} alt={`${current.text} 图`} loading="lazy" />
+              {charInfo && (
+                <>
+                  <span className="recog-corner recog-corner-tl">结构 {charInfo.structure}</span>
+                  <span className="recog-corner recog-corner-tr">笔画 {charInfo.stroke_count > 0 ? charInfo.stroke_count : "—"}</span>
+                  <span className="recog-corner recog-corner-bl">部首 {charInfo.radical}</span>
+                  <span className="recog-corner recog-corner-br">音序 {pinyinInitial(effectivePinyin) || "—"}</span>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="recog-char-wrap">
+              <div className="recog-char">{current.text}</div>
+            </div>
+          )}
           {practiceCount > 0 && (
             <div className="recog-count">已练 {practiceCount} 次</div>
           )}
           {current.tags.filter((t) => t.includes("年级")).slice(0, 1).map((t) => (
             <div key={t} className="recog-grade">{t}</div>
           ))}
+          {polyphoneMap[current.text] && <div className="recog-poly">多音字</div>}
           {effectiveWordContext && <div className="recog-ctx">来自：{effectiveWordContext}</div>}
 
-          {/* 字卡图 + 组词 + 句子（展示辅助） */}
-          {(charImg || exampleWords.length > 0 || exampleSentence) && (
+          {/* 组词 + 句子（展示辅助） */}
+          {(exampleWords.length > 0 || exampleSentence) && (
             <div className="recog-example">
-              {charImg && (
-                <div className="recog-media">
-                  <img className="recog-charimg" src={charImg} alt={`${current.text} 字卡`} loading="lazy" />
-                </div>
-              )}
-
               {exampleWords.length > 0 && (
                 <div className="recog-section">
                   <div className="recog-section-hd">
