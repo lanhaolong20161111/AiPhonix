@@ -159,6 +159,10 @@ shared/static/
 # 构建产物（前端 dist / server_cf 静态资源 / 污染备份目录）
 server_cf/static_assets/web/
 server_cf/static_assets/web_bak*/
+# 预生成 TTS 音频库（7712 个 mp3 / 113MB，由 scripts/upload_tts_cache.mjs 产出，不入库）
+server_cf/static_assets/tts-cache/
+# 清理 dist 污染时临时移出的脏资产目录
+server_cf/web_dirty_*/
 web/dist*/
 .wrangler/
 server_cf/.dev_log.txt
