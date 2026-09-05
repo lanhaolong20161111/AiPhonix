@@ -106,6 +106,14 @@ export function VideoPracticePage() {
   /** 最近一次录音对应的字幕 index */
   const lastRecEntryRef = useRef<number | null>(null)
   const compareAudioRef = useRef<HTMLAudioElement | null>(null)
+  /** 视频加载失败标志（onError 触发，显示重试按钮） */
+  const [videoErr, setVideoErr] = useState(false)
+  /** 视频加载长时间无进展（10s 仍无数据 → 提示大文件缓冲慢） */
+  const [videoSlow, setVideoSlow] = useState(false)
+  /** 视频缓存击穿参数：重试时换 URL 绕过浏览器里可能缓存的坏响应（视频响应 max-age=86400） */
+  const [videoBust, setVideoBust] = useState(0)
+  /** 加载慢检测定时器 */
+  const slowTimerRef = useRef<number | null>(null)
 
   const soe = useSoeScore(
     useCallback(() => ({ refText: practiceText, engine: "16k_en", scene: "sentence" }), [practiceText]),
@@ -134,12 +142,16 @@ export function VideoPracticePage() {
     }
   }, [sentenceScores, subtitles])
 
-  // 卸载时释放最近一次录音的 Blob URL（避免泄漏）
+  // 卸载时释放最近一次录音的 Blob URL + 清加载慢定时器（避免泄漏）
   useEffect(() => {
     return () => {
       if (lastRecUrlRef.current) {
         URL.revokeObjectURL(lastRecUrlRef.current)
         lastRecUrlRef.current = null
+      }
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current)
+        slowTimerRef.current = null
       }
     }
   }, [])
@@ -163,6 +175,8 @@ export function VideoPracticePage() {
     suppressSeekRef.current = false
     pendingCompareRef.current = false
     lastRecEntryRef.current = null
+    setVideoErr(false)
+    setVideoSlow(false)
     soe.reset()
     // 续练：上次练到同一集 → 记住句子序号，渲染时给出「继续上次」入口
     const saved = loadProgress()
@@ -366,17 +380,66 @@ export function VideoPracticePage() {
         <video
           ref={videoRef}
           className="video-player"
-          src={selected.videoUrl}
+          src={`${selected.videoUrl}?v=${videoBust}`}
           controls={!soe.state.recording}
           playsInline
           onTimeUpdate={onTimeUpdate}
           onSeeked={onSeeked}
           onEnded={onEnded}
+          onError={() => {
+            setVideoErr(true)
+            if (slowTimerRef.current) {
+              clearTimeout(slowTimerRef.current)
+              slowTimerRef.current = null
+            }
+          }}
+          // 拿到可播数据（首帧就绪）→ 清掉「加载慢」提示与定时器
+          onCanPlay={() => {
+            setVideoSlow(false)
+            if (slowTimerRef.current) {
+              clearTimeout(slowTimerRef.current)
+              slowTimerRef.current = null
+            }
+          }}
+          // 开始加载新视频：起一个 10s 定时器，超时还没到可播状态就提示大文件缓冲慢
+          onWaiting={() => {
+            const v = videoRef.current
+            if (v && v.readyState < 3) {
+              setVideoSlow(true)
+              if (slowTimerRef.current) clearTimeout(slowTimerRef.current)
+              slowTimerRef.current = window.setTimeout(() => {
+                const el = videoRef.current
+                if (el && el.readyState < 3) setVideoSlow(true)
+              }, 10000)
+            }
+          }}
           // 换集会重置 playbackRate：重新套用用户选择的语速
           onLoadedMetadata={() => {
             if (videoRef.current) videoRef.current.playbackRate = rateRef.current
           }}
         />
+        {/* 视频加载失败：显示重试（换 cache-bust 参数强制重新请求，绕开浏览器坏缓存） */}
+        {videoErr && (
+          <div className="video-suggest" style={{ marginTop: 8 }}>
+            ⚠️ 视频加载失败
+            <button
+              className="btn-primary"
+              style={{ width: "auto", marginLeft: 8, padding: "4px 14px" }}
+              onClick={() => {
+                setVideoErr(false)
+                setVideoBust(Date.now())
+              }}
+            >
+              🔄 重试加载
+            </button>
+          </div>
+        )}
+        {/* 加载慢（非失败）：提示文件较大，请耐心等待 */}
+        {videoSlow && !videoErr && (
+          <div className="video-suggest" style={{ marginTop: 8 }}>
+            ⏳ 视频较大（约 170MB/集），首次加载可能较慢，请耐心等待或检查网络
+          </div>
+        )}
         {/* A/B 对比回放：播放学生自己的录音（src 由 lastRecUrl 驱动） */}
         <audio ref={compareAudioRef} src={lastRecUrl ?? undefined} hidden />
       </div>
