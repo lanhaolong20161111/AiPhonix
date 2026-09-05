@@ -25,7 +25,7 @@ interface VideoItem {
 }
 
 /** SRT 内容版本号：更新 R2 上的 SRT 后 +1，请求带 ?v= 绕开浏览器 24h 缓存 */
-const SRT_CACHE_VER = "3"
+const SRT_CACHE_VER = "4"
 
 // 服务端 videos 目录（Ep01-03 手工校对，Ep04-12 豆包 SeedASR AUC 生成）
 const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => ({

@@ -251,6 +251,21 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s):
             n_pad += 1
         units.extend(split_unit([start, end, text], g, silences, sig))
 
+    # ── 尾部二次扫描：把句尾延伸到「下一单元起点之前的最后一个静音起点」──
+    # 场景：唱歌段 whisper 尾估算可偏早 >1.3s，超出吸附容差，0.6s 保护垫仍切词
+    # （实测 "and some grapes" 拖唱被切）。下一单元起点已吸附到语音开始，
+    # 因此它与本单元句尾之间的静音起点必然属于本单元的拖尾，延伸绝不吃到下一句的词。
+    n_ext = 0
+    for i in range(len(units) - 1):
+        next_start = units[i + 1][0]
+        cands = [int(s * 1000) for s, _e in silences
+                 if units[i][1] < s * 1000 < next_start - 50]
+        if cands:
+            new_end = max(cands)
+            if new_end > units[i][1]:
+                units[i][1] = new_end
+                n_ext += 1
+
     # 写出（带 PAUSE-ALIGNED 头，前端据此跳过 toSentences）
     with open(srt_out, "w", encoding="utf-8") as f:
         f.write("; PAUSE-ALIGNED v1\n\n")
@@ -259,7 +274,8 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s):
 
     durs = [(u[1] - u[0]) / 1000 for u in units]
     words = [word_count(u[2]) for u in units]
-    print(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象（{n_pad} 个音乐段单元使用了尾部保护垫）")
+    print(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象"
+          f"（{n_pad} 个尾垫，{n_ext} 个尾二次延伸）")
     print(f"      时长 中位 {sorted(durs)[len(durs)//2]:.1f}s / 最长 {max(durs):.1f}s；"
           f"词数 中位 {sorted(words)[len(words)//2]} / 最多 {max(words)}")
     print("\n=== 最长 5 个单元（检查是否异常）===")
