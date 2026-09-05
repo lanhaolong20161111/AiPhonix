@@ -26,7 +26,7 @@ interface VideoItem {
 }
 
 /** SRT 内容版本号：更新 R2 上的 SRT 后 +1，请求带 ?v= 绕开浏览器 24h 缓存 */
-const SRT_CACHE_VER = "5"
+const SRT_CACHE_VER = "6"
 
 // 服务端 videos 目录（Ep01-03 手工校对，Ep04-12 豆包 SeedASR AUC 生成）
 const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => ({
@@ -615,29 +615,23 @@ export function VideoPracticePage() {
                 <div
                   key={s.index}
                   className={`video-sentence-row state-${st}${isCurrent ? " current" : ""}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => jumpToSentence(s)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault()
-                      jumpToSentence(s)
-                    }
-                  }}
-                  title={st === "pass" ? "已达标，点击回练" : st === "fail" ? "未达标，点击回练" : "未练习，点击开始"}
                 >
-                  <span className="video-sentence-mark">
-                    {st === "pass" ? "✅" : st === "fail" ? "❌" : "⬜"}
-                  </span>
-                  <span className="video-sentence-text">{i + 1}. {s.text}</span>
-                  {sc != null && <span className="video-sentence-score">{sc}分</span>}
+                  <button
+                    type="button"
+                    className="video-sentence-main"
+                    onClick={() => jumpToSentence(s)}
+                    title={st === "pass" ? "已达标，点击回练" : st === "fail" ? "未达标，点击回练" : "未练习，点击开始"}
+                  >
+                    <span className="video-sentence-mark">
+                      {st === "pass" ? "✅" : st === "fail" ? "❌" : "⬜"}
+                    </span>
+                    <span className="video-sentence-text">{i + 1}. {s.text}</span>
+                    {sc != null && <span className="video-sentence-score">{sc}分</span>}
+                  </button>
                   <button
                     type="button"
                     className={`video-issue-btn${isReported ? " submitted" : ""}`}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      openIssueReport(s)
-                    }}
+                    onClick={() => openIssueReport(s)}
                     aria-expanded={isReporting}
                     title="反馈这句的声音停顿或字幕问题"
                   >
@@ -646,7 +640,6 @@ export function VideoPracticePage() {
                   {isReporting && (
                     <form
                       className="video-issue-form"
-                      onClick={(event) => event.stopPropagation()}
                       onSubmit={(event) => {
                         event.preventDefault()
                         void submitIssueReport(s)

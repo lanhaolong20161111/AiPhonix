@@ -267,25 +267,32 @@ def split_unit(unit, blocks, silences, sig_silences):
     return split_unit(lu, left, silences, sig_silences) + split_unit(ru, right, silences, sig_silences)
 
 
-def resegment(video, srt_in, srt_out, noise_db, pause_s, vad="energy"):
+def resegment(video, srt_in, srt_out, noise_db, pause_s, vad="energy", silences=None, quiet=False):
+    def log(msg):
+        if not quiet:
+            print(msg)
+
     blocks = parse_srt(srt_in)
     if not blocks:
         print("ERROR: no SRT blocks parsed", file=sys.stderr)
         return 1
-    print(f"[1/4] SRT 块数: {len(blocks)}，时长 {(blocks[-1][1]-blocks[0][0])/1000:.0f}s")
+    log(f"[1/4] SRT 块数: {len(blocks)}，时长 {(blocks[-1][1]-blocks[0][0])/1000:.0f}s")
 
-    if vad == "silero":
-        print("[2/4] Silero VAD 推理中…")
-        speech = detect_speech_silero(video)
-        silences = silences_from_speech(speech, (blocks[-1][1]) / 1000)
-        print(f"      语音区间: {len(speech)} 段（总语音 "
-              f"{sum(e - s for s, e in speech):.0f}s）")
-        print(f"      静音区间: {len(silences)} 个")
+    if silences is None:
+        if vad == "silero":
+            log("[2/4] Silero VAD 推理中…")
+            speech = detect_speech_silero(video)
+            silences = silences_from_speech(speech, (blocks[-1][1]) / 1000)
+            log(f"      语音区间: {len(speech)} 段（总语音 "
+                f"{sum(e - s for s, e in speech):.0f}s）")
+            log(f"      静音区间: {len(silences)} 个")
+        else:
+            silences = detect_silences(video, noise_db, RAW_D_DEFAULT)
+            log(f"[2/4] 静音区间(>= {RAW_D_DEFAULT}s): {len(silences)} 个")
     else:
-        silences = detect_silences(video, noise_db, RAW_D_DEFAULT)
-        print(f"[2/4] 静音区间(>= {RAW_D_DEFAULT}s): {len(silences)} 个")
+        log(f"[2/4] 使用预计算的静音区间: {len(silences)} 个")
     sig = [(s, e) for s, e in silences if e - s >= pause_s]
-    print(f"      显著停顿(>= {pause_s}s): {len(sig)} 个")
+    log(f"      显著停顿(>= {pause_s}s): {len(sig)} 个")
 
     # 显著停顿的补集 = "一口气"语音片段；把每个 SRT 块按中点归入片段
     spans = []  # [(span_start, span_end)]
@@ -325,7 +332,7 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s, vad="energy"):
             n_merged += 1
         else:
             groups.append([b])
-    print(f"[3/4] 混合规则分组: {len(groups)} 组（原始 {len(blocks)} 块，合并 {n_merged} 次）")
+    log(f"[3/4] 混合规则分组: {len(groups)} 组（原始 {len(blocks)} 块，合并 {n_merged} 次）")
 
     # 组内边缘吸附（方向敏感）+ 超长切分
     units = []
@@ -363,18 +370,18 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s, vad="energy"):
 
     durs = [(u[1] - u[0]) / 1000 for u in units]
     words = [word_count(u[2]) for u in units]
-    print(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象"
+    log(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象"
           f"（{n_pad} 个尾垫，{n_ext} 个尾二次延伸）")
-    print(f"      时长 中位 {sorted(durs)[len(durs)//2]:.1f}s / 最长 {max(durs):.1f}s；"
+    log(f"      时长 中位 {sorted(durs)[len(durs)//2]:.1f}s / 最长 {max(durs):.1f}s；"
           f"词数 中位 {sorted(words)[len(words)//2]} / 最多 {max(words)}")
-    print("\n=== 最长 5 个单元（检查是否异常）===")
+    log("\n=== 最长 5 个单元（检查是否异常）===")
     for u in sorted(units, key=lambda x: x[1] - x[0], reverse=True)[:5]:
-        print(f"  {(u[1]-u[0])/1000:5.1f}s [{word_count(u[2]):2d}词] {u[2][:60]}")
-    print("\n=== 连句合并样例（前 8 个多块合并）===")
+        log(f"  {(u[1]-u[0])/1000:5.1f}s [{word_count(u[2]):2d}词] {u[2][:60]}")
+    log("\n=== 连句合并样例（前 8 个多块合并）===")
     shown = 0
     for g in groups:
         if len(g) > 1 and shown < 8:
-            print(f"  ({len(g)}块) {' / '.join(b[2][:25] for b in g)}")
+            log(f"  ({len(g)}块) {' / '.join(b[2][:25] for b in g)}")
             shown += 1
     return 0
 
