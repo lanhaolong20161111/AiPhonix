@@ -98,6 +98,50 @@ def snap_edge(t_ms, silences):
     return int(best) if best is not None else t_ms
 
 
+TAIL_PAD = 0.6  # 找不到静音边缘时的尾部保护垫（秒）——音乐段语音拖尾被估早
+LEAD_PAD = 0.3  # 头部保护垫
+
+
+def snap_end(t_ms, silences):
+    """句尾吸附（方向敏感）：只认「语音结束」（静音起点）。
+    - t 落在静音内 → 收缩到该静音起点（剪掉死气口，不可能切词）；
+    - 有更晚的静音起点在容差内 → 延伸到那里（语音还在继续，含进句尾词）；
+    - 找不到任何候选（连续音乐段）→ 加 TAIL_PAD 保护垫。
+    返回 (毫秒, 是否使用了保护垫)。绝不因吸附把句尾提前切词。"""
+    for s, e in silences:
+        if s * 1000 <= t_ms <= e * 1000:
+            return int(s * 1000), False
+    best, best_d = None, SNAP_TOL * 1000
+    for s, _e in silences:
+        d = s * 1000 - t_ms
+        if 0 < d < best_d:
+            best, best_d = int(s * 1000), d
+    if best is not None:
+        return best, False
+    return int(t_ms + TAIL_PAD * 1000), True
+
+
+def snap_start(t_ms, silences):
+    """句首吸附（方向敏感）：只认「语音开始」（静音终点）。
+    - t 落在静音内 → 推迟到该静音终点（剪掉死气口）；
+    - 有更早的静音终点在容差内 → 提前到那里（语音已开始，别切头词）；
+    - 找不到任何候选 → 减 LEAD_PAD 保护垫。
+    返回 (毫秒, 是否使用了保护垫)。"""
+    for s, e in silences:
+        if e != float("inf") and s * 1000 <= t_ms <= e * 1000:
+            return int(e * 1000), False
+    best, best_d = None, SNAP_TOL * 1000
+    for _s, e in silences:
+        if e == float("inf"):
+            continue
+        d = t_ms - e * 1000
+        if 0 < d < best_d:
+            best, best_d = int(e * 1000), d
+    if best is not None:
+        return best, False
+    return int(t_ms - LEAD_PAD * 1000), True
+
+
 def word_count(text):
     return len([w for w in re.split(r"\s+", text) if w])
 
@@ -134,13 +178,11 @@ def split_unit(unit, blocks, silences, sig_silences):
         return [unit]
 
     lu = [start, max(b[1] for b in left), " ".join(b[2] for b in left)]
-    ru = [cut if cut > start else min(b[0] for b in right), end, " ".join(b[2] for b in right)]
-    ru[0] = min(b[0] for b in right)
-    # 右段起点吸附到切点静音的结束边（语音真正开始处）
+    ru = [min(b[0] for b in right), end, " ".join(b[2] for b in right)]
     if inner:
-        ru[0] = snap_edge(ru[0], silences) if ru[0] == cut else ru[0]
-        if abs(ru[0] - cut) < 50:
-            ru[0] = int((s + e) * 500)  # 保持在中点
+        # 切在静音 [s,e] 内：左段止于 s（语音结束），右段起于 e（语音开始）——方向正确，不切词
+        lu[1] = max(lu[1], int(s * 1000))
+        ru[0] = int(e * 1000)
     return split_unit(lu, left, silences, sig_silences) + split_unit(ru, right, silences, sig_silences)
 
 
@@ -196,14 +238,17 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s):
             groups.append([b])
     print(f"[3/4] 混合规则分组: {len(groups)} 组（原始 {len(blocks)} 块，合并 {n_merged} 次）")
 
-    # 组内边缘吸附 + 超长切分
+    # 组内边缘吸附（方向敏感）+ 超长切分
     units = []
+    n_pad = 0
     for g in groups:
         start = min(b[0] for b in g)
         end = max(b[1] for b in g)
         text = " ".join(b[2] for b in g)
-        start = snap_edge(start, silences)
-        end = snap_edge(end, silences)
+        start, _ = snap_start(start, silences)
+        end, padded = snap_end(end, silences)
+        if padded:
+            n_pad += 1
         units.extend(split_unit([start, end, text], g, silences, sig))
 
     # 写出（带 PAUSE-ALIGNED 头，前端据此跳过 toSentences）
@@ -214,7 +259,7 @@ def resegment(video, srt_in, srt_out, noise_db, pause_s):
 
     durs = [(u[1] - u[0]) / 1000 for u in units]
     words = [word_count(u[2]) for u in units]
-    print(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象")
+    print(f"[4/4] 完成: {len(blocks)} 块 → {len(units)} 个测评对象（{n_pad} 个音乐段单元使用了尾部保护垫）")
     print(f"      时长 中位 {sorted(durs)[len(durs)//2]:.1f}s / 最长 {max(durs):.1f}s；"
           f"词数 中位 {sorted(words)[len(words)//2]} / 最多 {max(words)}")
     print("\n=== 最长 5 个单元（检查是否异常）===")
