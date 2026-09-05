@@ -397,22 +397,6 @@ export function VideoPracticePage() {
     jumpToSentence(summary.wrong[0])
   }
 
-  const statusText = () => {
-    if (soe.state.evaluating) return "⏳ 评分中…"
-    if (soe.state.recording) return "🎤 正在录音，请跟读这句话…"
-    if (videoEnded && summary.scored > 0) return "🎉 本集跟读完成！点「重练错句」或继续练其他句"
-    return "▶ 播放视频，当前句会自动显示，可点「跟读这句」录音"
-  }
-
-  // 状态条配色级别（绿=完成，蓝=录音中，黄=评分中，红=错误）
-  const statusLevel = (): "ok" | "rec" | "wait" | "bad" => {
-    if (soe.state.evaluating) return "wait"
-    if (soe.state.recording) return "rec"
-    if (soe.state.error) return "bad"
-    if (videoEnded && summary.scored > 0) return "ok"
-    return "wait"
-  }
-
   if (!selected) {
     return (
       <div className="page video-practice-page">
@@ -511,12 +495,71 @@ export function VideoPracticePage() {
         <audio ref={compareAudioRef} src={lastRecUrl ?? undefined} hidden />
       </div>
 
-      <div className="card" style={{ padding: 12, marginBottom: 12 }}>
-        <div className="video-mode-title">
-          当前模式：<b>手动跟读</b>
-          <span style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>视频不会自动暂停，自行点「跟读这句」录音</span>
-        </div>
-        <div className={`video-status-pill level-${statusLevel()}`}>{statusText()}</div>
+      {/* 当前字幕：方案 B 半自动高亮（active 类：未录音时高亮，引导学生现在跟读） */}
+      <div className={`video-subtitle card${currentSub && !soe.state.recording && !soe.state.evaluating ? " active" : ""}`}>
+        {currentSub ? (
+          <>
+            <div className="video-subtitle-text">{currentSub.text}</div>
+            {/* 方案 B：当前句未录音时显示提示，告知学生「听完一句就点跟读」 */}
+            {!soe.state.recording && !soe.state.evaluating && (
+              <div className="video-suggest">💡 点「跟读这句」会暂停视频开始录音，读完点「停止并评分」</div>
+            )}
+            <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
+              <button
+                className={soe.state.recording ? "btn-danger" : "btn-primary"}
+                style={{ width: "auto", minWidth: 160 }}
+                disabled={soe.state.evaluating || !practiceText}
+                onClick={toggleRecord}
+              >
+                {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎯 跟读这句"}
+              </button>
+            </div>
+            {/* §2.1 重听原音 / §2.5 A/B 对比：先播原音，再播自己的录音 */}
+            <div className="video-sub-actions">
+              <button
+                className="video-mini-btn"
+                onClick={() => replaySentence(currentSub)}
+                disabled={soe.state.recording}
+                title="只播放这一句，听完再模仿"
+              >
+                🔊 听原音
+              </button>
+              {lastRecUrl && lastRecEntryRef.current === currentSub.index && (
+                <button
+                  className="video-mini-btn"
+                  onClick={() =>
+                    replaySentence(
+                      subtitles.find((s) => s.index === lastRecEntryRef.current) ?? currentSub,
+                      true,
+                    )
+                  }
+                  disabled={soe.state.recording}
+                  title="先播原音，再播你刚才的录音，对比找差距"
+                >
+                  🔀 对比听
+                </button>
+              )}
+            </div>
+            {soe.state.recording && (
+              <div className="level-bar" style={{ marginTop: 10 }}>
+                <div className="level-fill" style={{ width: `${Math.max(4, Math.min(100, soe.state.level * 100))}%` }} />
+              </div>
+            )}
+            {soe.state.error && <p className="err">{soe.state.error}</p>}
+            {lastScore !== null && (
+              <div className={`pron-score${lastScore >= 80 ? " good" : lastScore >= 60 ? " ok" : " bad"}`}>
+                {lastScore} 分 {lastScore > PASS_SCORE ? "✅ 达标" : "❌ 未达标"}
+              </div>
+            )}
+            {soe.state.score !== null && soe.state.score === lastScore && soe.state.result && (
+              <SoeDetail result={soe.state.result} />
+            )}
+          </>
+        ) : (
+          <p className="empty">
+            ▶ 播放视频，当前句会自动显示，可点「跟读这句」录音评分
+          </p>
+        )}
       </div>
 
       {/* 语速调节（§2.4） + 逐句列表开关（§2.2） + 续练入口（§2.6） */}
@@ -702,72 +745,6 @@ export function VideoPracticePage() {
         </div>
       )}
 
-      {/* 当前字幕：方案 B 半自动高亮（active 类：未录音时高亮，引导学生现在跟读） */}
-      <div className={`video-subtitle card${currentSub && !soe.state.recording && !soe.state.evaluating ? " active" : ""}`}>
-        {currentSub ? (
-          <>
-            <div className="video-subtitle-text">{currentSub.text}</div>
-            {/* 方案 B：当前句未录音时显示提示，告知学生「听完一句就点跟读」 */}
-            {!soe.state.recording && !soe.state.evaluating && (
-              <div className="video-suggest">💡 点「跟读这句」会暂停视频开始录音，读完点「停止并评分」</div>
-            )}
-            <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
-              <button
-                className={soe.state.recording ? "btn-danger" : "btn-primary"}
-                style={{ width: "auto", minWidth: 160 }}
-                disabled={soe.state.evaluating || !practiceText}
-                onClick={toggleRecord}
-              >
-                {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎯 跟读这句"}
-              </button>
-            </div>
-            {/* §2.1 重听原音 / §2.5 A/B 对比：先播原音，再播自己的录音 */}
-            <div className="video-sub-actions">
-              <button
-                className="video-mini-btn"
-                onClick={() => replaySentence(currentSub)}
-                disabled={soe.state.recording}
-                title="只播放这一句，听完再模仿"
-              >
-                🔊 听原音
-              </button>
-              {lastRecUrl && lastRecEntryRef.current === currentSub.index && (
-                <button
-                  className="video-mini-btn"
-                  onClick={() =>
-                    replaySentence(
-                      subtitles.find((s) => s.index === lastRecEntryRef.current) ?? currentSub,
-                      true,
-                    )
-                  }
-                  disabled={soe.state.recording}
-                  title="先播原音，再播你刚才的录音，对比找差距"
-                >
-                  🔀 对比听
-                </button>
-              )}
-            </div>
-            {soe.state.recording && (
-              <div className="level-bar" style={{ marginTop: 10 }}>
-                <div className="level-fill" style={{ width: `${Math.max(4, Math.min(100, soe.state.level * 100))}%` }} />
-              </div>
-            )}
-            {soe.state.error && <p className="err">{soe.state.error}</p>}
-            {lastScore !== null && (
-              <div className={`pron-score${lastScore >= 80 ? " good" : lastScore >= 60 ? " ok" : " bad"}`}>
-                {lastScore} 分 {lastScore > PASS_SCORE ? "✅ 达标" : "❌ 未达标"}
-              </div>
-            )}
-            {soe.state.score !== null && soe.state.score === lastScore && soe.state.result && (
-              <SoeDetail result={soe.state.result} />
-            )}
-          </>
-        ) : (
-          <p className="empty">
-            ▶ 播放视频，当前句会自动显示，可点「跟读这句」录音评分
-          </p>
-        )}
-      </div>
     </div>
   )
 }
