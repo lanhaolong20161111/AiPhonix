@@ -495,11 +495,15 @@ export function VideoPracticePage() {
         </div>
       )}
 
-      {/* 当前字幕 */}
-      <div className="video-subtitle card">
+      {/* 当前字幕：方案 B 半自动高亮（active 类：未录音时高亮，引导学生现在跟读） */}
+      <div className={`video-subtitle card${currentSub && !soe.state.recording && !soe.state.evaluating ? " active" : ""}`}>
         {currentSub ? (
           <>
             <div className="video-subtitle-text">{currentSub.text}</div>
+            {/* 方案 B：当前句未录音时显示提示，告知学生「听完一句就点跟读」 */}
+            {!soe.state.recording && !soe.state.evaluating && (
+              <div className="video-suggest">💡 听完一句点「跟读这句」录音，录完视频自动暂停</div>
+            )}
             <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
               <button
                 className={soe.state.recording ? "btn-danger" : "btn-primary"}
@@ -507,7 +511,7 @@ export function VideoPracticePage() {
                 disabled={soe.state.evaluating || !practiceText}
                 onClick={toggleRecord}
               >
-                {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎤 跟读这句"}
+                {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎯 跟读这句"}
               </button>
             </div>
             {/* §2.1 重听原音 / §2.5 A/B 对比：先播原音，再播自己的录音 */}

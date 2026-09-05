@@ -3901,12 +3901,32 @@ button.btn-danger:disabled {
   padding: 18px;
 }
 
+/* 半自动高亮（方案 B）：当前句卡片加左侧黄竖条 + 浅黄底，引导学生「现在跟读」 */
+.video-subtitle.active {
+  background: linear-gradient(90deg, #FFF8DC 0%, #FFFEF7 30%, transparent 100%);
+  border-left: 4px solid #F59E0B;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
 .video-subtitle-text {
   font-size: 20px;
   font-weight: 700;
   color: #000;
   line-height: 1.6;
   margin-bottom: 14px;
+}
+
+/* 半自动高亮（方案 B）：字幕下方一行轻提示，告诉学生何时该点跟读 */
+.video-suggest {
+  margin: -6px 12px 12px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #92400E;
+  background: #FEF3C7;
+  border-radius: 6px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 /* ── 视频跟读：模式状态清晰化 ── */
