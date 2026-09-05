@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { parseSrt, toSentences, findCurrentSubtitle, type SubtitleEntry } from "../lib/srtParser"
+import { parseSrt, toSentences, findCurrentSubtitle, isPauseAligned, type SubtitleEntry } from "../lib/srtParser"
 import { useSoeScore } from "../hooks/useSoeScore"
 import { SoeDetail } from "../components/SoeDetail"
 import { pcmToWavBlob } from "../lib/pcmToWav"
@@ -23,6 +23,9 @@ interface VideoItem {
   videoUrl: string
   srtUrl: string
 }
+
+/** SRT 内容版本号：更新 R2 上的 SRT 后 +1，请求带 ?v= 绕开浏览器 24h 缓存 */
+const SRT_CACHE_VER = "2"
 
 // 服务端 videos 目录（Ep01-03 手工校对，Ep04-12 豆包 SeedASR AUC 生成）
 const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => ({
@@ -182,10 +185,13 @@ export function VideoPracticePage() {
     const saved = loadProgress()
     setResumeHint(saved && saved.name === v.name ? saved : null)
     try {
-      const resp = await fetch(v.srtUrl)
+      // SRT 内容更新时靠 bump 此版本号绕开浏览器 24h 缓存（R2 响应 max-age=86400）
+      const resp = await fetch(`${v.srtUrl}?v=${SRT_CACHE_VER}`)
       const srt = await resp.text()
-      // 合并成完整句子粒度，避免在 SRT 半句话处出现字幕闪烁
-      setSubtitles(toSentences(parseSrt(srt)))
+      // PAUSE-ALIGNED SRT（离线按声学停顿重切）已是测评对象粒度，直接信任块边界；
+      // 普通 SRT 仍按标点合并成完整句子粒度，避免在半句话处出现字幕闪烁
+      const parsed = parseSrt(srt)
+      setSubtitles(isPauseAligned(srt) ? parsed : toSentences(parsed))
     } catch {
       setSubtitles([])
     }
