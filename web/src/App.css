@@ -4042,6 +4042,7 @@ button.btn-mode-off {
 
 .video-sentence-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 8px;
   width: 100%;
@@ -4053,6 +4054,7 @@ button.btn-mode-off {
   background: #fff;
   font-size: 13px;
   line-height: 1.5;
+  cursor: pointer;
 }
 
 .video-sentence-row.state-pass {
@@ -4075,6 +4077,30 @@ button.btn-mode-off {
   outline-offset: -1px;
 }
 
+.video-sentence-main {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: flex-start;
+  gap: 8px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #000;
+  text-align: left;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.video-sentence-main:hover,
+.video-sentence-main:focus-visible {
+  background: rgba(144, 202, 249, 0.18);
+}
+
 .video-sentence-mark {
   flex: none;
   font-size: 13px;
@@ -4083,7 +4109,8 @@ button.btn-mode-off {
 
 /* 列表正文：纯黑（AGENTS.md 强约束，禁止低对比灰） */
 .video-sentence-text {
-  flex: 1;
+  flex: 1 1 180px;
+  min-width: 0;
   color: #000;
   word-break: break-word;
 }
@@ -4093,6 +4120,115 @@ button.btn-mode-off {
   font-size: 12px;
   font-weight: 700;
   color: #000;
+}
+
+.video-issue-btn {
+  flex: none;
+  width: auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  background: #e3f2fd;
+  color: #0d47a1;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.video-issue-btn:hover,
+.video-issue-btn:focus-visible {
+  background: #bbdefb;
+}
+
+.video-issue-btn.submitted {
+  border-color: #81c784;
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.video-sentence-main:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 1px;
+}
+
+.video-issue-form {
+  flex: 0 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 10px;
+  border-top: 1px dashed #90caf9;
+  cursor: default;
+}
+
+.video-issue-title {
+  font-weight: 700;
+  color: #000;
+}
+
+.video-issue-sentence {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #f1f8ff;
+  color: #000;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.video-issue-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.video-issue-label select,
+.video-issue-label textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #b0bec5;
+  border-radius: 6px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+}
+
+.video-issue-label textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.video-issue-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-issue-actions .btn-primary {
+  width: auto;
+  min-height: 38px;
+}
+
+.video-issue-message {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.video-issue-message.success {
+  color: #1b5e20;
+}
+
+.video-issue-message.error {
+  color: #b71c1c;
 }
 
 /* ── 本集成绩总结（§2.3） ── */
@@ -4170,21 +4306,61 @@ button.btn-mode-off {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .video-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   width: auto;
-  padding: 6px 14px;
+  padding: 7px 16px 7px 12px;
   font-size: 13px;
-  background: #f1f5f9;
-  color: #000;
-  border: 1px solid #cbd5e1;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4ff 100%);
+  border: 1.5px solid #bfdbfe;
   border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.14), inset 0 1px 0 #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.video-mini-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.video-mini-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, #ffffff 0%, #e0edff 100%);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.22), inset 0 1px 0 #ffffff;
+}
+
+.video-mini-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.18);
 }
 
 .video-mini-btn:disabled {
   opacity: 0.5;
+}
+
+/* 对比听：青色变体，与听原音区分 */
+.video-mini-btn.alt {
+  color: #0f766e;
+  background: linear-gradient(180deg, #ffffff 0%, #ecfdf9 100%);
+  border-color: #99f0e2;
+  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.14), inset 0 1px 0 #ffffff;
+}
+
+.video-mini-btn.alt:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffffff 0%, #d9f8f0 100%);
+  box-shadow: 0 4px 10px rgba(20, 184, 166, 0.22), inset 0 1px 0 #ffffff;
+}
+
+.video-mini-btn.alt:active:not(:disabled) {
+  box-shadow: 0 1px 3px rgba(20, 184, 166, 0.18);
 }
 
 /* AI 图片识别（数学/语文） */
@@ -6442,4 +6618,81 @@ button.btn-mode-off {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   margin-right: 4px;
+}
+
+/* ── AI 语/数/英页顶部按钮组（历史会话 + 课件） ── */
+.ai-header-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ai-header-actions .btn-secondary {
+  flex: 1;
+  width: auto;
+  margin-bottom: 0;
+}
+
+/* ── 课件库：网格 + 条目 + 弹层底部操作 ── */
+.ai-pref-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.courseware-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 4px 0 12px;
+}
+
+.courseware-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+}
+
+.courseware-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.courseware-thumb.picking {
+  opacity: 0.5;
+}
+
+.courseware-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.courseware-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courseware-sheet-foot {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.courseware-sheet-foot .btn-secondary {
+  width: auto;
+  padding: 10px 12px;
 }

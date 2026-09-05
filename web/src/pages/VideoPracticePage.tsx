@@ -522,11 +522,16 @@ export function VideoPracticePage() {
                 disabled={soe.state.recording}
                 title="只播放这一句，听完再模仿"
               >
-                🔊 听原音
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M11 5 6 9H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l5 4V5Z" fill="currentColor" stroke="none" />
+                  <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                  <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+                </svg>
+                听原音
               </button>
               {lastRecUrl && lastRecEntryRef.current === currentSub.index && (
                 <button
-                  className="video-mini-btn"
+                  className="video-mini-btn alt"
                   onClick={() =>
                     replaySentence(
                       subtitles.find((s) => s.index === lastRecEntryRef.current) ?? currentSub,
@@ -536,7 +541,14 @@ export function VideoPracticePage() {
                   disabled={soe.state.recording}
                   title="先播原音，再播你刚才的录音，对比找差距"
                 >
-                  🔀 对比听
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M16 3h5v5" />
+                    <path d="M4 20 21 3" />
+                    <path d="M21 16v5h-5" />
+                    <path d="m15 15 6 6" />
+                    <path d="M4 4l5 5" />
+                  </svg>
+                  对比听
                 </button>
               )}
             </div>
