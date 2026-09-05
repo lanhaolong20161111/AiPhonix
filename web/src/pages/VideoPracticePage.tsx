@@ -1,8 +1,13 @@
-/** 视频跟读页 — Big Muzzy 选集播放 + 字幕自动暂停跟读评测
+/** 视频跟读页 — Big Muzzy 选集播放 + 逐句跟读评测（手动模式）
  *
- * 自动跟读模式（默认）：视频正常播放 → 读完一句话（字幕结束/换句停顿）自动暂停
- * → 自动开始录音评测这句话 → 总分 > 70 自动继续播放，如此循环直到视频结束。
- * 手动模式：保留原来的「跟读这句 / 停止并评分」按钮。
+ * 流程：选集 → 加载字幕 → 用户播放视频 → 当前字幕实时显示
+ *   → 点「🎤 跟读这句」开始录音 → 再点「⏹ 停止并评分」评分
+ *   → 评分存入 sentenceScores + 本地续练进度
+ *   → 视频播完后显示本集总结
+ *   → 重听原音 / A/B 对比 / 跳句 / 续练 / 重练错句全部保留
+ *
+ * 历史备注：旧版有自动跟读（靠 SRT 时间戳自动暂停 + VAD 静音检测），
+ * 因 SRT 时间戳对不齐配音节奏、用户体验差，2026-09 整体移除。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -27,11 +32,8 @@ const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
   srtUrl: `/videos/Big_Muzzy_Ep${String(n).padStart(2, "0")}.en.srt`,
 }))
 
-/** 自动续播的达标总分（需求：超过 70 分自动继续播放） */
-const AUTO_PASS_SCORE = 70
-/** 自动停止录音的时长范围：句子时长 + 1.5s 缓冲，夹在 3s~8s */
-const REC_MIN_MS = 3000
-const REC_MAX_MS = 8000
+/** 通过线：总分超过此值视为达标（用于总结通过率/错句判断；不再触发自动播放） */
+const PASS_SCORE = 70
 
 /** 续练进度 localStorage key：值 = { name: "Ep04", index: 7 }（练到第 7 句） */
 const PROGRESS_KEY = "videoPractice.progress"
@@ -71,33 +73,15 @@ function saveProgress(data: ProgressData | null): void {
   }
 }
 
-/** 语音结束检测（VAD）：绝对静音阈值、相对峰值阈值、持续静音判定时长、最长等待时长（超时回退） */
-const SILENCE_RMS = 0.03 // 绝对地板：RMS 低于此值必为静音
-const SILENCE_PEAK_RATIO = 0.35 // 自适应：低于本句语音峰值 35% 视为静音（背景音乐下也能触发）
-const SILENCE_PEAK_MIN = 0.06 // 峰值低于此值不启用相对判定（避免纯环境噪声误判）
-const SILENCE_HOLD_MS = 180
-const SILENCE_WAIT_MS = 1500
-
-/** 已接入 Web Audio 图的媒体元素（createMediaElementSource 对同一元素只能调用一次） */
-const wiredMedia = new WeakSet<HTMLMediaElement>()
-
-/** 全局共享 Web Audio 图（AudioContext 单例：跨 StrictMode 重挂载/选集复用，避免反复 close 后再建导致接线失效） */
-let sharedCtx: AudioContext | null = null
-let sharedAnalyser: AnalyserNode | null = null
-let sharedData: Uint8Array<ArrayBuffer> | null = null
-
-type AutoStatus = "idle" | "playing" | "waiting" | "recording" | "paused" | "done"
-
 export function VideoPracticePage() {
   const navigate = useNavigate()
   const [selected, setSelected] = useState<VideoItem | null>(null)
   const [subtitles, setSubtitles] = useState<SubtitleEntry[]>([])
   const [currentSub, setCurrentSub] = useState<SubtitleEntry | null>(null)
   const [practiceText, setPracticeText] = useState("")
-  const [autoMode, setAutoMode] = useState(true)
-  const [autoStatus, setAutoStatus] = useState<AutoStatus>("idle")
-  const [needRetry, setNeedRetry] = useState(false)
   const [lastScore, setLastScore] = useState<number | null>(null)
+  /** 视频是否已播完（自然结束或用户拖到末尾） */
+  const [videoEnded, setVideoEnded] = useState(false)
   /** 语速档位（0.75/1/1.25） */
   const [rate, setRate] = useState(1)
   /** 逐句得分：字幕 index -> 总分（用于进度列表 + 成绩总结） */
@@ -133,12 +117,12 @@ export function VideoPracticePage() {
   // ── §2.3 本集成绩总结（数据源同 §2.2 的 sentenceScores） ──
   const summary = useMemo(() => {
     const scored = Object.values(sentenceScores)
-    const passed = scored.filter((s) => s > AUTO_PASS_SCORE).length
+    const passed = scored.filter((s) => s > PASS_SCORE).length
     const avg = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : 0
     // 「未达标」= 已评分但没过线；跳过/未做的不算错句
     const wrong = subtitles.filter((s) => {
       const sc = sentenceScores[s.index]
-      return sc != null && sc <= AUTO_PASS_SCORE
+      return sc != null && sc <= PASS_SCORE
     })
     return {
       scored: scored.length,
@@ -150,135 +134,23 @@ export function VideoPracticePage() {
     }
   }, [sentenceScores, subtitles])
 
-  /** 上一个停留的字幕（用于检测「这句话读完了」的换句/停顿） */
-  const prevEntryRef = useRef<SubtitleEntry | null>(null)
-  /** 已过关/已跳过的字幕（按 SRT 块号去重，防重复触发） */
-  const completedRef = useRef<Set<number>>(new Set())
-  /** 正在录音评测中（防并发触发） */
-  const busyRef = useRef(false)
-  /** 自动停止录音的定时器 */
-  const autoStopTimerRef = useRef<number | null>(null)
-  /** 当前正在评测/待重试的字幕 */
-  const captureRef = useRef<{ entry: SubtitleEntry; isLast: boolean } | null>(null)
-
-  /** 静音检测 rAF 句柄 */
-  const silenceRafRef = useRef<number | null>(null)
-  /** 正在等待「语音结束」（换句已发生、尚未测到静音） */
-  const waitingRef = useRef(false)
-
-  // 卸载时清掉自动停止定时器 + 静音检测循环 + A/B 回放的 Blob URL
-  // 注意：AudioContext 用模块级单例（sharedCtx），此处不 close，避免 StrictMode 双挂载后接线失效
+  // 卸载时释放最近一次录音的 Blob URL（避免泄漏）
   useEffect(() => {
     return () => {
-      if (autoStopTimerRef.current) {
-        clearTimeout(autoStopTimerRef.current)
-        autoStopTimerRef.current = null
-      }
-      cancelSilenceWait()
       if (lastRecUrlRef.current) {
         URL.revokeObjectURL(lastRecUrlRef.current)
         lastRecUrlRef.current = null
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  /** 建立 Web Audio 图：把 <video> 音频接到 AnalyserNode 读实时音量；失败返回 false（回退时间戳逻辑） */
-  const ensureAudioGraph = (): boolean => {
-    const video = videoRef.current
-    if (!video) return false
-    try {
-      if (!sharedCtx) {
-        const Ctx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-        if (!Ctx) return false
-        sharedCtx = new Ctx()
-      }
-      // 每个 <video> 元素只能 createMediaElementSource 一次；切换选集重建元素时也要接线
-      if (!wiredMedia.has(video)) {
-        const ctx = sharedCtx
-        const analyser = ctx.createAnalyser()
-        analyser.fftSize = 2048
-        const src = ctx.createMediaElementSource(video)
-        src.connect(analyser)
-        analyser.connect(ctx.destination) // 必须接回 destination，否则视频无声
-        sharedAnalyser = analyser
-        sharedData = new Uint8Array(analyser.fftSize)
-        wiredMedia.add(video)
-      }
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  /** 读当前视频音量 RMS（0=静音, 1=满幅）；音频图未运行返回 1，避免误判静音 */
-  const currentRms = (): number => {
-    if (!sharedAnalyser || !sharedData || sharedCtx?.state !== "running") return 1
-    sharedAnalyser.getByteTimeDomainData(sharedData)
-    let sum = 0
-    for (let i = 0; i < sharedData.length; i++) {
-      const v = (sharedData[i] - 128) / 128
-      sum += v * v
-    }
-    return Math.sqrt(sum / sharedData.length)
-  }
-
-  /** 取消静音检测循环 */
-  const cancelSilenceWait = () => {
-    if (silenceRafRef.current !== null) {
-      cancelAnimationFrame(silenceRafRef.current)
-      silenceRafRef.current = null
-    }
-    waitingRef.current = false
-  }
-
-  /**
-   * 换句后不立即暂停，而是等「视频声音真正静下来」再暂停录音（VAD 对齐语音结束）。
-   * 兜底：SILENCE_WAIT_MS 内没测到静音 → 直接按时间戳暂停（旧行为）。
-   */
-  const armSilenceWait = (entry: SubtitleEntry, isLast: boolean) => {
-    cancelSilenceWait()
-    waitingRef.current = true
-    const start = performance.now()
-    let silenceSince = 0
-    let peak = 0 // 本句语音峰值（带缓慢衰减，自适应背景音乐音量）
-    const tick = () => {
-      if (!waitingRef.current || busyRef.current) return
-      const rms = currentRms()
-      const now = performance.now()
-      peak = Math.max(rms, peak * 0.995)
-      // 静音判定：绝对地板，或（语音明显回落时）跌到峰值 35% 以下
-      const isSilent = rms < SILENCE_RMS || (peak > SILENCE_PEAK_MIN && rms < peak * SILENCE_PEAK_RATIO)
-      if (isSilent) {
-        if (silenceSince === 0) silenceSince = now
-        if (now - silenceSince >= SILENCE_HOLD_MS) {
-          cancelSilenceWait()
-          void captureSentence(entry, isLast)
-          return
-        }
-      } else {
-        silenceSince = 0
-      }
-      if (now - start >= SILENCE_WAIT_MS) {
-        cancelSilenceWait()
-        void captureSentence(entry, isLast)
-        return
-      }
-      silenceRafRef.current = requestAnimationFrame(tick)
-    }
-    silenceRafRef.current = requestAnimationFrame(tick)
-  }
-
-  // 选集：加载字幕 + 重置自动跟读状态 + 读取该集续练进度
+  // 选集：加载字幕 + 重置跟读状态 + 读取该集续练进度
   const selectVideo = async (v: VideoItem) => {
     setSelected(v)
     setPracticeText("")
     setCurrentSub(null)
-    setAutoStatus("idle")
-    setNeedRetry(false)
     setLastScore(null)
+    setVideoEnded(false)
     setSentenceScores({})
     setShowList(false)
     // 换集：释放上一集的录音 Blob URL，避免累积泄漏
@@ -287,19 +159,10 @@ export function VideoPracticePage() {
       lastRecUrlRef.current = null
     }
     setLastRecUrl(null)
-    prevEntryRef.current = null
-    completedRef.current = new Set()
-    busyRef.current = false
-    captureRef.current = null
     replayUntilRef.current = null
     suppressSeekRef.current = false
     pendingCompareRef.current = false
     lastRecEntryRef.current = null
-    cancelSilenceWait()
-    if (autoStopTimerRef.current) {
-      clearTimeout(autoStopTimerRef.current)
-      autoStopTimerRef.current = null
-    }
     soe.reset()
     // 续练：上次练到同一集 → 记住句子序号，渲染时给出「继续上次」入口
     const saved = loadProgress()
@@ -307,14 +170,14 @@ export function VideoPracticePage() {
     try {
       const resp = await fetch(v.srtUrl)
       const srt = await resp.text()
-      // 合并成完整句子粒度，避免在半句话处误暂停录音
+      // 合并成完整句子粒度，避免在 SRT 半句话处出现字幕闪烁
       setSubtitles(toSentences(parseSrt(srt)))
     } catch {
       setSubtitles([])
     }
   }
 
-  // 视频时间同步字幕 + 自动跟读触发点
+  // 视频时间同步字幕 + 重听原音到点暂停
   const onTimeUpdate = () => {
     const video = videoRef.current
     if (!video) return
@@ -329,55 +192,25 @@ export function VideoPracticePage() {
           compareAudioRef.current?.play().catch(() => {})
         }
       }
-      return // 重听期间不触发任何跟读/换句逻辑
+      return // 重听期间不更新当前字幕
     }
 
     const sub = findCurrentSubtitle(subtitles, video.currentTime * 1000)
-
-    // 正在等「语音结束」：冻结显示在当前评测句，不跟进下一句字幕
-    if (waitingRef.current) return
-
-    if (autoMode && !busyRef.current) {
-      const prev = prevEntryRef.current
-      // 从上一句切走（进入下一句或句间停顿）→ 上一句刚读完，先等语音真正结束再暂停评测
-      if (prev && sub !== prev && !completedRef.current.has(prev.index)) {
-        const isLast = prev.index === subtitles[subtitles.length - 1].index
-        prevEntryRef.current = sub
-        setCurrentSub(prev) // 换句间隙：继续显示刚读完的这句
-        setPracticeText(prev.text)
-        setAutoStatus("waiting")
-        armSilenceWait(prev, isLast)
-        return
-      }
-    }
     // 有新字幕才更新显示；句间间隙（sub=null）保留上一句字幕直到下一句出现，避免字幕闪烁消失
-    if (sub) {
+    if (sub && sub.index !== currentSub?.index) {
       setCurrentSub(sub)
-      if (sub.text !== practiceText) setPracticeText(sub.text)
+      setPracticeText(sub.text)
+      setLastScore(null) // 切到新句子时清掉上一次得分（避免误以为刚评的是这句）
     }
-    prevEntryRef.current = sub
   }
 
+  // 视频自然结束：标记 done，但不自动暂停/不强迫录音
   const onEnded = () => {
-    if (!autoMode) return
-    if (subtitles.length === 0) return
-    // 视频已结束，无需再等静音
-    cancelSilenceWait()
-    // 最后一句话可能已由换句触发进入评测，交给 finishCapture 收尾
-    if (busyRef.current) return
-    const last = subtitles[subtitles.length - 1]
-    if (last && !completedRef.current.has(last.index)) {
-      // 最后一句话随视频结束一起读完 → 也评测一遍
-      void captureSentence(last, true)
-    } else {
-      setAutoStatus("done")
-      setNeedRetry(false)
-      saveProgress(null) // 视频播完 → 清掉续练进度
-    }
+    setVideoEnded(true)
   }
 
-  /** 用户拖动进度条/跳转后重置「上一句」引用，避免把跳过的句子误当作刚读完的句子；
-   *  程序内 seek（重听原音/跳句）会先置 suppressSeekRef，这里跳过重置避免打断重听 */
+  /** 用户拖动进度条/跳转后清除「重听原音」状态；
+   * 程序内 seek（重听原音/跳句）会先置 suppressSeekRef，这里跳过重置避免打断重听 */
   const onSeeked = () => {
     if (suppressSeekRef.current) {
       suppressSeekRef.current = false
@@ -385,149 +218,30 @@ export function VideoPracticePage() {
     }
     replayUntilRef.current = null // 用户拖动中断重听原音
     pendingCompareRef.current = false
-    prevEntryRef.current = null
-    cancelSilenceWait()
   }
 
-  /** 自动跟读一句话：暂停视频 → 开始录音 → 定时自动停止 → 评分 */
-  const captureSentence = async (entry: SubtitleEntry, isLast: boolean) => {
-    if (busyRef.current) return
-    cancelSilenceWait()
-    replayUntilRef.current = null // 重听原音中的话，录音前终止
-    pendingCompareRef.current = false
-    busyRef.current = true
-    if (autoStopTimerRef.current) {
-      clearTimeout(autoStopTimerRef.current)
-      autoStopTimerRef.current = null
-    }
-    const video = videoRef.current
-    if (video && !video.paused) video.pause()
-    setCurrentSub(entry)
-    setPracticeText(entry.text)
-    setAutoStatus("recording")
-    setNeedRetry(false)
-    setLastScore(null)
-    captureRef.current = { entry, isLast }
-
-    const ok = await soeRef.current.start()
-    if (!ok) {
-      busyRef.current = false
-      setAutoStatus("paused")
-      setNeedRetry(true)
-      return
-    }
-    const recMs = Math.min(REC_MAX_MS, Math.max(REC_MIN_MS, entry.endMs - entry.startMs + 1500))
-    autoStopTimerRef.current = window.setTimeout(() => {
-      void soeRef.current.stop().then(finishCapture)
-    }, recMs)
-  }
-
-  /** 评分完成：>70 自动续播，否则停在当前句等重读/跳过 */
-  const finishCapture = (score: number | null) => {
-    busyRef.current = false
-    autoStopTimerRef.current = null
-    const cap = captureRef.current
-    const video = videoRef.current
-
+  /** 手动评分完成回调：写入 sentenceScores + 续练进度 + 取最近一次录音 PCM 做 A/B 回放 */
+  const handleManualScore = (score: number | null) => {
+    if (score === null || !currentSub) return
+    setLastScore(score)
+    setSentenceScores((prev) => ({ ...prev, [currentSub.index]: score }))
+    if (selected) saveProgress({ name: selected.name, index: currentSub.index })
     // §2.5 A/B 回放：取本次录音原始 PCM → 拼 WAV 头 → Blob URL（先 revoke 上一个，防 Blob 泄漏）
     const pcm = soeRef.current.lastPcmRef.current
-    if (pcm && cap) {
+    if (pcm) {
       if (lastRecUrlRef.current) URL.revokeObjectURL(lastRecUrlRef.current)
       const url = URL.createObjectURL(pcmToWavBlob(pcm))
       lastRecUrlRef.current = url
-      lastRecEntryRef.current = cap.entry.index
+      lastRecEntryRef.current = currentSub.index
       setLastRecUrl(url)
     }
-
-    if (score === null) {
-      setAutoStatus("paused")
-      setNeedRetry(true)
-      return
-    }
-    setLastScore(score)
-    if (cap) {
-      // §2.2 记录逐句得分（进度列表 + 成绩总结共用）
-      setSentenceScores((prev) => ({ ...prev, [cap.entry.index]: score }))
-      // §2.6 记住本集练到这一句（每句评分后写一次，不做逐帧写）
-      if (selected) saveProgress({ name: selected.name, index: cap.entry.index })
-    }
-    if (score > AUTO_PASS_SCORE) {
-      if (cap) completedRef.current.add(cap.entry.index)
-      if ((cap?.isLast && video?.ended) || video?.ended) {
-        setAutoStatus("done")
-        setNeedRetry(false)
-        saveProgress(null) // 整集练完 → 清掉续练进度
-      } else {
-        setAutoStatus("playing")
-        setNeedRetry(false)
-        video?.play().catch(() => {
-          // 自动播放被浏览器拦截（缺少手势链）→ 提示用户点播放
-          setAutoStatus("paused")
-        })
-      }
-    } else {
-      setAutoStatus("paused")
-      setNeedRetry(true)
-    }
-  }
-
-  /** 重读当前句（未过关） */
-  const retryCurrent = () => {
-    const cap = captureRef.current
-    if (cap && !busyRef.current) {
-      void captureSentence(cap.entry, cap.isLast)
-    }
-  }
-
-  /** 跳过当前句继续播放 */
-  const skipCurrent = () => {
-    const cap = captureRef.current
-    if (cap) completedRef.current.add(cap.entry.index)
-    setNeedRetry(false)
-    const video = videoRef.current
-    if (video?.ended) {
-      // 最后一句话已随视频结束：跳过即视为完成，不重启整个视频
-      setAutoStatus("done")
-      saveProgress(null)
-    } else {
-      setAutoStatus("playing")
-      video?.play().catch(() => setAutoStatus("paused"))
-    }
-  }
-
-  /** 播放视频；若已播完则视为重新开始，清空已完成集合让自动跟读重新循环 */
-  const playVideo = () => {
-    const video = videoRef.current
-    if (!video) return
-    if (video.ended || video.currentTime >= video.duration) {
-      completedRef.current = new Set()
-      prevEntryRef.current = null
-      setLastScore(null)
-    }
-    video.play().catch(() => setAutoStatus("paused"))
-  }
-
-  /** 开始自动跟读（用户手势内申请一次麦克风权限 + 建立音频图，避免后续自动触发被浏览器拒绝） */
-  const startAuto = async () => {
-    // 先同步建图/恢复 AudioContext（须在 await 前的用户手势内，否则 VAD 读不到音量退化为延时回退）
-    ensureAudioGraph()
-    if (sharedCtx?.state === "suspended") {
-      sharedCtx.resume().catch(() => {})
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      stream.getTracks().forEach((t) => t.stop())
-    } catch {
-      // 权限被拒：后续 captureSentence 的 start 也会失败并提示，这里不打断播放
-    }
-    setAutoStatus("playing")
-    setNeedRetry(false)
-    playVideo()
   }
 
   const toggleRecord = async () => {
     if (soe.state.recording) {
-      await soe.stop()
+      // stop() 直接返回最新 score（不是 soe.state.score：setState 异步，立即读会拿到旧值）
+      const score = await soe.stop()
+      handleManualScore(score)
     } else {
       await soe.start()
     }
@@ -549,13 +263,12 @@ export function VideoPracticePage() {
   const replaySentence = (entry: SubtitleEntry, thenCompare = false) => {
     const video = videoRef.current
     if (!video) return
-    // 关键：先取消 VAD 等待，否则重听期间的静音会被误判成「读完了」而触发录音
-    cancelSilenceWait()
     suppressSeekRef.current = true // onSeeked 里跳过重置，避免把这次程序内 seek 当成用户拖动
     replayUntilRef.current = entry.endMs
     pendingCompareRef.current = thenCompare
     setCurrentSub(entry)
     setPracticeText(entry.text)
+    setLastScore(null)
     setResumeHint(null)
     video.playbackRate = rateRef.current
     video.currentTime = entry.startMs / 1000
@@ -569,31 +282,21 @@ export function VideoPracticePage() {
   const jumpToSentence = (entry: SubtitleEntry) => {
     const video = videoRef.current
     if (!video) return
-    cancelSilenceWait()
     // 录音中先终止，避免把这段录音算到别的句子上
     if (soeRef.current.state.recording) void soeRef.current.stop()
-    busyRef.current = false
-    if (autoStopTimerRef.current) {
-      clearTimeout(autoStopTimerRef.current)
-      autoStopTimerRef.current = null
-    }
     suppressSeekRef.current = true
     replayUntilRef.current = null
     pendingCompareRef.current = false
-    prevEntryRef.current = null // 不清空会把跳过的句子误当作「刚读完」
-    captureRef.current = {
-      entry,
-      isLast: entry.index === subtitles[subtitles.length - 1]?.index,
-    }
     setCurrentSub(entry)
     setPracticeText(entry.text)
     setLastScore(null)
-    setNeedRetry(false)
     setResumeHint(null)
+    setVideoEnded(false)
     video.playbackRate = rateRef.current
     video.currentTime = entry.startMs / 1000
-    setAutoStatus("playing")
-    video.play().catch(() => setAutoStatus("paused"))
+    video.play().catch(() => {
+      /* 自动播放被浏览器拦截：用户可手动点播放 */
+    })
     if (selected) saveProgress({ name: selected.name, index: entry.index })
   }
 
@@ -601,48 +304,28 @@ export function VideoPracticePage() {
   /** 把未达标的句子状态清回「未做」，并跳到第一句错句重新进入循环 */
   const retryWrong = () => {
     if (summary.wrong.length === 0) return
-    for (const s of summary.wrong) completedRef.current.delete(s.index)
     setSentenceScores((prev) => {
       const next = { ...prev }
       for (const s of summary.wrong) delete next[s.index]
       return next
     })
-    setAutoStatus("playing")
+    setVideoEnded(false)
     jumpToSentence(summary.wrong[0])
   }
 
   const statusText = () => {
     if (soe.state.evaluating) return "⏳ 评分中…"
     if (soe.state.recording) return "🎤 正在录音，请跟读这句话…"
-    if (autoMode) {
-      if (autoStatus === "playing") return "▶ 播放中… 读完一句会自动暂停评测"
-      if (autoStatus === "waiting") return "👂 已读完这句，正在等语音真正结束…"
-      if (autoStatus === "idle") return "▶ 点击「开始跟读」，视频读完一句会自动暂停录音评测"
-      if (autoStatus === "done") return "🎉 本集跟读完成！"
-      if (autoStatus === "paused") {
-        return needRetry
-          ? lastScore !== null
-            ? `❌ ${lastScore} 分未达标（需 > ${AUTO_PASS_SCORE} 分），重读或跳过`
-            : "⚠️ 录音无效，请重读或跳过"
-          : "⏸ 已暂停（自动播放被拦截，请点视频播放）"
-      }
-    }
-    // 手动模式：视频不自动暂停，状态相对简单
-    if (!soe.state.recording && !soe.state.evaluating) {
-      return "✋ 手动模式：视频不会自动暂停，自行点「跟读这句」录音"
-    }
-    return "✋ 手动模式"
+    if (videoEnded && summary.scored > 0) return "🎉 本集跟读完成！点「重练错句」或继续练其他句"
+    return "▶ 播放视频，当前句会自动显示，可点「跟读这句」录音"
   }
 
-  // 状态条配色级别（绿=播放/完成，蓝=录音中，黄=评分/待操作，红=未达标/无效）
+  // 状态条配色级别（绿=完成，蓝=录音中，黄=评分中，红=错误）
   const statusLevel = (): "ok" | "rec" | "wait" | "bad" => {
     if (soe.state.evaluating) return "wait"
     if (soe.state.recording) return "rec"
-    if (autoMode) {
-      if (autoStatus === "playing" || autoStatus === "done") return "ok"
-      if (autoStatus === "idle" || autoStatus === "waiting") return "wait"
-      if (autoStatus === "paused") return needRetry ? "bad" : "wait"
-    }
+    if (soe.state.error) return "bad"
+    if (videoEnded && summary.scored > 0) return "ok"
     return "wait"
   }
 
@@ -653,13 +336,13 @@ export function VideoPracticePage() {
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
           <h1>视频跟读</h1>
         </header>
-        <p className="module-hint">选择一集，看视频跟读练发音 · 读完一句自动暂停评测，超过 70 分自动继续</p>
+        <p className="module-hint">选择一集，看视频跟读练发音 · 播放视频，点「跟读这句」录音评分，超过 70 分视为达标</p>
         <div className="import-list">
           {VIDEOS.map((v) => (
             <button key={v.name} className="article-row" onClick={() => selectVideo(v)}>
               <div className="import-body">
                 <div className="import-text">{v.title}</div>
-                <div className="import-meaning">Big Muzzy 英语启蒙 · 自动跟读评测</div>
+                <div className="import-meaning">Big Muzzy 英语启蒙 · 逐句跟读评测</div>
               </div>
               <span className="essay-arrow">›</span>
             </button>
@@ -695,32 +378,10 @@ export function VideoPracticePage() {
         <audio ref={compareAudioRef} src={lastRecUrl ?? undefined} hidden />
       </div>
 
-      {/* 模式切换 + 自动跟读控制 */}
       <div className="card" style={{ padding: 12, marginBottom: 12 }}>
         <div className="video-mode-title">
-          当前模式：<b>{autoMode ? "自动跟读" : "手动跟读"}</b>
-        </div>
-        <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
-          <button
-            className={autoMode ? "btn-primary" : "btn-mode-off"}
-            style={{ width: "auto", flex: 1 }}
-            aria-pressed={autoMode}
-            onClick={() => setAutoMode(true)}
-          >
-            自动跟读
-          </button>
-          <button
-            className={!autoMode ? "btn-primary" : "btn-mode-off"}
-            style={{ width: "auto", flex: 1 }}
-            aria-pressed={!autoMode}
-            onClick={() => {
-              setAutoMode(false)
-              setNeedRetry(false)
-              setLastScore(null)
-            }}
-          >
-            手动跟读
-          </button>
+          当前模式：<b>手动跟读</b>
+          <span style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>视频不会自动暂停，自行点「跟读这句」录音</span>
         </div>
         <div className={`video-status-pill level-${statusLevel()}`}>{statusText()}</div>
       </div>
@@ -760,8 +421,8 @@ export function VideoPracticePage() {
         )}
       </div>
 
-      {/* 本集成绩总结（§2.3）：done 状态展示 */}
-      {autoStatus === "done" && (
+      {/* 本集成绩总结（§2.3）：视频播完且至少评过一次展示 */}
+      {videoEnded && summary.scored > 0 && (
         <div className="card video-summary">
           <div className="video-summary-title">🎉 本集跟读完成</div>
           <div className="video-summary-grid">
@@ -786,10 +447,7 @@ export function VideoPracticePage() {
                   <button
                     key={s.index}
                     className="video-summary-wrong-item"
-                    onClick={() => {
-                      setAutoStatus("playing")
-                      jumpToSentence(s)
-                    }}
+                    onClick={() => jumpToSentence(s)}
                   >
                     <b>{sentenceScores[s.index]}分</b> {s.text}
                   </button>
@@ -816,14 +474,14 @@ export function VideoPracticePage() {
           ) : (
             subtitles.map((s, i) => {
               const sc = sentenceScores[s.index]
-              const st = sc == null ? "todo" : sc > AUTO_PASS_SCORE ? "pass" : "fail"
+              const st = sc == null ? "todo" : sc > PASS_SCORE ? "pass" : "fail"
               const isCurrent = currentSub?.index === s.index
               return (
                 <button
                   key={s.index}
                   className={`video-sentence-row state-${st}${isCurrent ? " current" : ""}`}
                   onClick={() => jumpToSentence(s)}
-                  title={st === "pass" ? "已过关，点击回练" : st === "fail" ? "未达标，点击回练" : "未练习，点击开始"}
+                  title={st === "pass" ? "已达标，点击回练" : st === "fail" ? "未达标，点击回练" : "未练习，点击开始"}
                 >
                   <span className="video-sentence-mark">
                     {st === "pass" ? "✅" : st === "fail" ? "❌" : "⬜"}
@@ -843,54 +501,14 @@ export function VideoPracticePage() {
           <>
             <div className="video-subtitle-text">{currentSub.text}</div>
             <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
-              {autoMode ? (
-                autoStatus === "idle" ? (
-                  <button className="btn-primary" style={{ width: "auto", minWidth: 160 }} onClick={startAuto}>
-                    ▶ 开始跟读
-                  </button>
-                ) : autoStatus === "waiting" ? (
-                  <div className="video-status-pill level-wait" style={{ marginTop: 0 }}>
-                    👂 等待语音结束，即将自动暂停录音…
-                  </div>
-                ) : needRetry ? (
-                  <>
-                    <button
-                      className="btn-primary"
-                      style={{ width: "auto", flex: 1 }}
-                      disabled={busyRef.current || soe.state.evaluating}
-                      onClick={retryCurrent}
-                    >
-                      🔄 重读这句
-                    </button>
-                    <button
-                      className=""
-                      style={{ width: "auto", flex: 1 }}
-                      disabled={busyRef.current || soe.state.evaluating}
-                      onClick={skipCurrent}
-                    >
-                      ⏭ 跳过继续
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className={soe.state.recording ? "btn-danger" : ""}
-                    style={{ width: "auto", minWidth: 160 }}
-                    disabled={soe.state.evaluating || soe.state.recording}
-                    onClick={playVideo}
-                  >
-                    {soe.state.recording ? "🔴 录音中…" : soe.state.evaluating ? "评分中…" : "⏯ 继续播放"}
-                  </button>
-                )
-              ) : (
-                <button
-                  className={soe.state.recording ? "btn-danger" : "btn-primary"}
-                  style={{ width: "auto", minWidth: 160 }}
-                  disabled={soe.state.evaluating || !practiceText}
-                  onClick={toggleRecord}
-                >
-                  {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎤 跟读这句"}
-                </button>
-              )}
+              <button
+                className={soe.state.recording ? "btn-danger" : "btn-primary"}
+                style={{ width: "auto", minWidth: 160 }}
+                disabled={soe.state.evaluating || !practiceText}
+                onClick={toggleRecord}
+              >
+                {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎤 跟读这句"}
+              </button>
             </div>
             {/* §2.1 重听原音 / §2.5 A/B 对比：先播原音，再播自己的录音 */}
             <div className="video-sub-actions">
@@ -926,7 +544,7 @@ export function VideoPracticePage() {
             {soe.state.error && <p className="err">{soe.state.error}</p>}
             {lastScore !== null && (
               <div className={`pron-score${lastScore >= 80 ? " good" : lastScore >= 60 ? " ok" : " bad"}`}>
-                {lastScore} 分 {lastScore > AUTO_PASS_SCORE ? "✅ 继续播放" : "❌ 未达标"}
+                {lastScore} 分 {lastScore > PASS_SCORE ? "✅ 达标" : "❌ 未达标"}
               </div>
             )}
             {soe.state.score !== null && soe.state.score === lastScore && soe.state.result && (
@@ -935,7 +553,7 @@ export function VideoPracticePage() {
           </>
         ) : (
           <p className="empty">
-            {autoMode ? "▶ 点「开始跟读」，读完一句自动暂停评测，超过 70 分自动继续" : "▶ 播放视频，当前句会自动显示，可跟读评分"}
+            ▶ 播放视频，当前句会自动显示，可点「跟读这句」录音评分
           </p>
         )}
       </div>
