@@ -176,3 +176,4 @@ server_ts/subcap_out.txt
 
 # 取消忽略 server_cf 部署脚本（被上面 scripts/ 规则误伤，应入库以供审计）
 !server_cf/scripts/
+models/

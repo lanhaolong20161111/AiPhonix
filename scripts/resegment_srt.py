@@ -10,10 +10,14 @@
 输出 SRT 首行带 "; PAUSE-ALIGNED v1" 标记，前端 srtParser 据此跳过标点合并(toSentences)。
 
 用法:
-  python resegment_srt.py <video.mp4> <in.srt> <out.srt> [--noise-db -35] [--pause 0.35]
+  python resegment_srt.py <video.mp4> <in.srt> <out.srt> [--vad silero|energy] [--noise-db -35] [--pause 0.35]
+  --vad energy  : ffmpeg silencedetect（纯能量，快，但唱歌段人声/音乐不分）
+  --vad silero  : Silero VAD ONNX（神经网络，能区分人声/音乐，唱歌段边界更准；
+                  模型 models/silero_vad.onnx，需 venv 内 onnxruntime+numpy）
 """
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -24,6 +28,13 @@ PAUSE_DEFAULT = 0.35    # 显著停顿阈值：>=0.35s 静音 = 测评对象边�
 MAX_LEN_S = 15.0        # 单个测评对象最长时长
 MAX_WORDS = 25          # 单个测评对象最多单词数
 SNAP_TOL = 0.8          # 边缘吸附容差（秒）
+
+# Silero VAD 参数
+MODEL_PATH_DEFAULT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models", "silero_vad.onnx")
+VAD_ON = 0.5            # 语音开始概率阈值
+VAD_OFF = 0.35          # 语音结束概率阈值（滞后，防抖）
+VAD_MIN_SPEECH = 0.10   # 短于此的语音段视为噪声丢弃（秒）。0.20 会滤掉唱歌段的单词音节峰
+                        # （实测 Ep01 "grapes" 尾音节峰 0.192s 被滤，句尾切词），0.10 保留
 
 TIMESTAMP_RE = re.compile(
     r"(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*"
@@ -82,6 +93,76 @@ def detect_silences(video, noise_db, raw_d):
             cur_start = None
     if cur_start is not None:  # 片尾静音未闭合
         silences.append((cur_start, float("inf")))
+    return silences
+
+
+def detect_speech_silero(video, model_path=MODEL_PATH_DEFAULT):
+    """Silero VAD（神经网络）→ 语音区间 [(start_s, end_s)]。
+    能区分人声与音乐/噪声：唱歌段也能定位人声起止（能量法在这里失效）。
+    返回按时间升序的语音区间列表。"""
+    try:
+        import numpy as np
+        import onnxruntime as ort
+    except ImportError as e:
+        raise SystemExit(
+            f"ERROR: 需要 onnxruntime + numpy（受管 venv）：{e}\n"
+            f"  pip install onnxruntime numpy"
+        ) from e
+
+    # 1) ffmpeg 解码为 16kHz 单声道 s16le 原始 PCM（管道读入，无需临时文件）
+    cmd = ["ffmpeg", "-hide_banner", "-nostats", "-i", video,
+           "-f", "s16le", "-ac", "1", "-ar", "16000", "-"]
+    proc = subprocess.run(cmd, capture_output=True)
+    if proc.returncode != 0:
+        raise SystemExit("ERROR: ffmpeg 解码音频失败：\n" + (proc.stderr or b"").decode(errors="replace")[-500:])
+    pcm = np.frombuffer(proc.stdout, dtype=np.int16).astype(np.float32) / 32768.0
+    dur = len(pcm) / 16000
+    print(f"      音频 {dur:.1f}s, {len(pcm)} 样本")
+
+    # 2) ONNX 逐 512 样本块推理（v5.1 签名：input[N,s] / state[2,N,128] / sr，输出 stateN）
+    # 注意：ONNX 图不管理上下文，官方包装在模型外拼接 64 样本历史，须复刻
+    sess = ort.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+    state = np.zeros((2, 1, 128), dtype=np.float32)
+    context = np.zeros((1, 64), dtype=np.float32)
+    sr = np.array(16000, dtype=np.int64)
+
+    CHUNK = 512
+    CTX = 64
+    probs = []
+    for i in range(0, len(pcm), CHUNK):
+        chunk = pcm[i:i + CHUNK]
+        if len(chunk) < CHUNK:
+            chunk = np.pad(chunk, (0, CHUNK - len(chunk)))
+        x = np.concatenate([context, chunk.reshape(1, -1)], axis=1)
+        out, state = sess.run(None, {"input": x, "state": state, "sr": sr})
+        context = x[:, -CTX:]
+        probs.append(float(out[0, 0]))
+
+    # 3) 滞后阈值 → 语音区间（enter 0.5 / exit 0.35）
+    segments, cur_start = [], None
+    step = CHUNK / 16000  # 每块时长（秒）
+    for i, p in enumerate(probs):
+        t_end = (i + 1) * step
+        if cur_start is None:
+            if p >= VAD_ON:
+                cur_start = i * step
+        elif p < VAD_OFF:
+            if t_end - cur_start >= VAD_MIN_SPEECH:
+                segments.append((cur_start, t_end))
+            cur_start = None
+    if cur_start is not None:  # 片尾语音未闭合
+        segments.append((cur_start, dur))
+    return segments
+
+
+def silences_from_speech(segments, total_dur):
+    """语音区间 → 静音区间（补集），与 detect_silences 同构（含片尾 inf）。"""
+    silences, prev = [], 0.0
+    for s, e in segments:
+        if s > prev:
+            silences.append((prev, s))
+        prev = max(prev, e)
+    silences.append((prev, float("inf")))
     return silences
 
 
@@ -186,15 +267,23 @@ def split_unit(unit, blocks, silences, sig_silences):
     return split_unit(lu, left, silences, sig_silences) + split_unit(ru, right, silences, sig_silences)
 
 
-def resegment(video, srt_in, srt_out, noise_db, pause_s):
+def resegment(video, srt_in, srt_out, noise_db, pause_s, vad="energy"):
     blocks = parse_srt(srt_in)
     if not blocks:
         print("ERROR: no SRT blocks parsed", file=sys.stderr)
         return 1
     print(f"[1/4] SRT 块数: {len(blocks)}，时长 {(blocks[-1][1]-blocks[0][0])/1000:.0f}s")
 
-    silences = detect_silences(video, noise_db, RAW_D_DEFAULT)
-    print(f"[2/4] 静音区间(>= {RAW_D_DEFAULT}s): {len(silences)} 个")
+    if vad == "silero":
+        print("[2/4] Silero VAD 推理中…")
+        speech = detect_speech_silero(video)
+        silences = silences_from_speech(speech, (blocks[-1][1]) / 1000)
+        print(f"      语音区间: {len(speech)} 段（总语音 "
+              f"{sum(e - s for s, e in speech):.0f}s）")
+        print(f"      静音区间: {len(silences)} 个")
+    else:
+        silences = detect_silences(video, noise_db, RAW_D_DEFAULT)
+        print(f"[2/4] 静音区间(>= {RAW_D_DEFAULT}s): {len(silences)} 个")
     sig = [(s, e) for s, e in silences if e - s >= pause_s]
     print(f"      显著停顿(>= {pause_s}s): {len(sig)} 个")
 
@@ -295,10 +384,12 @@ def main():
     ap.add_argument("video")
     ap.add_argument("srt_in")
     ap.add_argument("srt_out")
+    ap.add_argument("--vad", choices=["energy", "silero"], default="energy",
+                    help="静音/语音区间来源：energy=ffmpeg silencedetect（默认），silero=神经网络 VAD")
     ap.add_argument("--noise-db", type=int, default=NOISE_DB_DEFAULT)
     ap.add_argument("--pause", type=float, default=PAUSE_DEFAULT)
     args = ap.parse_args()
-    sys.exit(resegment(args.video, args.srt_in, args.srt_out, args.noise_db, args.pause))
+    sys.exit(resegment(args.video, args.srt_in, args.srt_out, args.noise_db, args.pause, args.vad))
 
 
 if __name__ == "__main__":

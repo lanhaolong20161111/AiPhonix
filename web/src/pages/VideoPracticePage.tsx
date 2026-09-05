@@ -16,6 +16,7 @@ import { parseSrt, toSentences, findCurrentSubtitle, isPauseAligned, type Subtit
 import { useSoeScore } from "../hooks/useSoeScore"
 import { SoeDetail } from "../components/SoeDetail"
 import { pcmToWavBlob } from "../lib/pcmToWav"
+import { api } from "../services/api"
 
 interface VideoItem {
   name: string
@@ -25,7 +26,7 @@ interface VideoItem {
 }
 
 /** SRT 内容版本号：更新 R2 上的 SRT 后 +1，请求带 ?v= 绕开浏览器 24h 缓存 */
-const SRT_CACHE_VER = "4"
+const SRT_CACHE_VER = "5"
 
 // 服务端 videos 目录（Ep01-03 手工校对，Ep04-12 豆包 SeedASR AUC 生成）
 const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => ({
@@ -37,6 +38,15 @@ const VIDEOS: VideoItem[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
 
 /** 通过线：总分超过此值视为达标（用于总结通过率/错句判断；不再触发自动播放） */
 const PASS_SCORE = 70
+
+type VideoIssueType = "audio_pause" | "subtitle_timing" | "subtitle_text" | "other"
+
+const VIDEO_ISSUE_TYPES: Array<{ value: VideoIssueType; label: string }> = [
+  { value: "audio_pause", label: "声音停顿不准" },
+  { value: "subtitle_timing", label: "字幕时间不准" },
+  { value: "subtitle_text", label: "字幕内容不准" },
+  { value: "other", label: "其他问题" },
+]
 
 /** 续练进度 localStorage key：值 = { name: "Ep04", index: 7 }（练到第 7 句） */
 const PROGRESS_KEY = "videoPractice.progress"
@@ -91,6 +101,13 @@ export function VideoPracticePage() {
   const [sentenceScores, setSentenceScores] = useState<Record<number, number>>({})
   /** 逐句列表展开开关 */
   const [showList, setShowList] = useState(false)
+  /** 当前展开的问题反馈句子；反馈表单在句子列表内展开 */
+  const [reportingIndex, setReportingIndex] = useState<number | null>(null)
+  const [reportIssueType, setReportIssueType] = useState<VideoIssueType>("audio_pause")
+  const [reportDescription, setReportDescription] = useState("")
+  const [reportStatus, setReportStatus] = useState<"idle" | "submitting" | "success" | "error">("idle")
+  const [reportMessage, setReportMessage] = useState("")
+  const [reportedIndices, setReportedIndices] = useState<Set<number>>(() => new Set())
   /** 最近一次录音的 WAV 播放地址（A/B 对比回放）；null=本集还没成功录音 */
   const [lastRecUrl, setLastRecUrl] = useState<string | null>(null)
   /** 续练提示：{name, index} = 上次练到的集与句子；null=无 */
@@ -168,6 +185,11 @@ export function VideoPracticePage() {
     setVideoEnded(false)
     setSentenceScores({})
     setShowList(false)
+    setReportingIndex(null)
+    setReportDescription("")
+    setReportStatus("idle")
+    setReportMessage("")
+    setReportedIndices(new Set())
     // 换集：释放上一集的录音 Blob URL，避免累积泄漏
     if (lastRecUrlRef.current) {
       URL.revokeObjectURL(lastRecUrlRef.current)
@@ -321,6 +343,45 @@ export function VideoPracticePage() {
       /* 自动播放被浏览器拦截：用户可手动点播放 */
     })
     if (selected) saveProgress({ name: selected.name, index: entry.index })
+  }
+
+  // ── 问题反馈 ──
+  const openIssueReport = (entry: SubtitleEntry) => {
+    setReportingIndex((current) => (current === entry.index ? null : entry.index))
+    setReportIssueType("audio_pause")
+    setReportDescription("")
+    setReportStatus("idle")
+    setReportMessage("")
+  }
+
+  const submitIssueReport = async (entry: SubtitleEntry) => {
+    const description = reportDescription.trim()
+    if (!selected || !description || reportStatus === "submitting") return
+    setReportStatus("submitting")
+    setReportMessage("")
+    try {
+      const result = await api<{ status: string; message?: string }>("/video-issues", {
+        method: "POST",
+        body: {
+          videoName: selected.name,
+          subtitleIndex: entry.index,
+          sentenceText: entry.text,
+          issueType: reportIssueType,
+          description,
+        },
+        timeoutMs: 10000,
+      })
+      setReportedIndices((previous) => {
+        const next = new Set(previous)
+        next.add(entry.index)
+        return next
+      })
+      setReportStatus("success")
+      setReportMessage(result.message ?? "问题已提交，感谢反馈")
+    } catch (error) {
+      setReportStatus("error")
+      setReportMessage(error instanceof Error ? error.message : "提交失败，请稍后重试")
+    }
   }
 
   // ── §2.3 重练错句 ──
@@ -548,11 +609,21 @@ export function VideoPracticePage() {
               const sc = sentenceScores[s.index]
               const st = sc == null ? "todo" : sc > PASS_SCORE ? "pass" : "fail"
               const isCurrent = currentSub?.index === s.index
+              const isReporting = reportingIndex === s.index
+              const isReported = reportedIndices.has(s.index)
               return (
-                <button
+                <div
                   key={s.index}
                   className={`video-sentence-row state-${st}${isCurrent ? " current" : ""}`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => jumpToSentence(s)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      jumpToSentence(s)
+                    }
+                  }}
                   title={st === "pass" ? "已达标，点击回练" : st === "fail" ? "未达标，点击回练" : "未练习，点击开始"}
                 >
                   <span className="video-sentence-mark">
@@ -560,7 +631,78 @@ export function VideoPracticePage() {
                   </span>
                   <span className="video-sentence-text">{i + 1}. {s.text}</span>
                   {sc != null && <span className="video-sentence-score">{sc}分</span>}
-                </button>
+                  <button
+                    type="button"
+                    className={`video-issue-btn${isReported ? " submitted" : ""}`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      openIssueReport(s)
+                    }}
+                    aria-expanded={isReporting}
+                    title="反馈这句的声音停顿或字幕问题"
+                  >
+                    {isReported ? "已反馈" : "问题反馈"}
+                  </button>
+                  {isReporting && (
+                    <form
+                      className="video-issue-form"
+                      onClick={(event) => event.stopPropagation()}
+                      onSubmit={(event) => {
+                        event.preventDefault()
+                        void submitIssueReport(s)
+                      }}
+                    >
+                      <div className="video-issue-title">反馈第 {i + 1} 句的问题</div>
+                      <div className="video-issue-sentence">“{s.text}”</div>
+                      <label className="video-issue-label">
+                        问题类型
+                        <select
+                          value={reportIssueType}
+                          onChange={(event) => setReportIssueType(event.target.value as VideoIssueType)}
+                          disabled={reportStatus === "submitting"}
+                        >
+                          {VIDEO_ISSUE_TYPES.map((item) => (
+                            <option key={item.value} value={item.value}>{item.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="video-issue-label">
+                        问题描述
+                        <textarea
+                          value={reportDescription}
+                          onChange={(event) => setReportDescription(event.target.value)}
+                          placeholder="请写明具体哪里不准，例如：第 3 秒应停顿，但现在连读了。"
+                          maxLength={2000}
+                          rows={3}
+                          disabled={reportStatus === "submitting"}
+                          required
+                        />
+                      </label>
+                      <div className="video-issue-actions">
+                        <button
+                          type="submit"
+                          className="btn-primary"
+                          disabled={reportStatus === "submitting" || !reportDescription.trim()}
+                        >
+                          {reportStatus === "submitting" ? "提交中…" : "提交问题"}
+                        </button>
+                        <button
+                          type="button"
+                          className="video-mini-btn"
+                          onClick={() => setReportingIndex(null)}
+                          disabled={reportStatus === "submitting"}
+                        >
+                          取消
+                        </button>
+                      </div>
+                      {reportMessage && (
+                        <div className={`video-issue-message ${reportStatus === "error" ? "error" : "success"}`}>
+                          {reportMessage}
+                        </div>
+                      )}
+                    </form>
+                  )}
+                </div>
               )
             })
           )}
