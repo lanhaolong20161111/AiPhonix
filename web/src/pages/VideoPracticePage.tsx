@@ -243,6 +243,9 @@ export function VideoPracticePage() {
       const score = await soe.stop()
       handleManualScore(score)
     } else {
+      // 录音前先暂停视频：① 防止视频声音混进麦克风污染评测；② 视频暂停后
+      // onTimeUpdate 停止触发 → 字幕/practiceText 不会在录音中切句，保证参考文本正确
+      videoRef.current?.pause()
       await soe.start()
     }
   }
@@ -502,7 +505,7 @@ export function VideoPracticePage() {
             <div className="video-subtitle-text">{currentSub.text}</div>
             {/* 方案 B：当前句未录音时显示提示，告知学生「听完一句就点跟读」 */}
             {!soe.state.recording && !soe.state.evaluating && (
-              <div className="video-suggest">💡 听完一句点「跟读这句」录音，录完视频自动暂停</div>
+              <div className="video-suggest">💡 点「跟读这句」会暂停视频开始录音，读完点「停止并评分」</div>
             )}
             <div className="essay-actions" style={{ justifyContent: "center", gap: 8 }}>
               <button
