@@ -1829,9 +1829,16 @@ button.btn-danger:disabled {
   font-size: 26px;
   font-weight: 800;
   color: #000;
-  width: 44px;
+  min-width: 44px;
+  max-width: 110px;
   text-align: center;
   flex-shrink: 0;
+  line-height: 1.3;
+}
+
+/* 核对页逐字点读：字与字留小间隙，避免误触相邻字 */
+.review-char .tap-char-item {
+  margin: 0 1px;
 }
 
 .review-word {
@@ -4363,6 +4370,33 @@ button.btn-mode-off {
   box-shadow: 0 1px 3px rgba(20, 184, 166, 0.18);
 }
 
+/* ── 记忆快乐本：文段逐字点读 ── */
+/* 当日字词命中字：琥珀高亮（原 <mark> 样式改为可点读 span 的 class） */
+.joy-essay .tap-char-item.hit {
+  background: #fde68a;
+  color: #92400e;
+}
+/* 正在发音的字：盖过 hit 背景，蓝色播报态 */
+.joy-essay .tap-char-item.playing {
+  background: #90caf9;
+  color: #0c447c;
+}
+
+/* 当日字词词条：可点击发音 */
+.joy-char-chip {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 1px;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.joy-char-chip:active {
+  background: #bfdbfe;
+  color: #1d4ed8;
+}
+
 /* AI 图片识别（数学/语文） */
 .ai-upload-row {
   display: flex;
@@ -4607,6 +4641,69 @@ button.btn-mode-off {
   background: #fde68a;
   border-radius: 3px;
   padding: 0 2px;
+}
+/* 词性着色：名词蓝 / 动词红 / 形容词绿（颜色+字重双通道，色弱可见）
+   中文包在 .pos-* 外层 span 内逐字仍可点读；英文 .pos-* 加在 .tap-char-word 上 */
+.pos-n { color: #1565c0; font-weight: 600; }
+.pos-v { color: #c62828; font-weight: 600; }
+.pos-adj { color: #2e7d32; font-weight: 600; }
+/* 中文词段外层容器：仅包色，不改交互（内部 block-char 才是可点读单元） */
+.block-text .pos-n, .block-text .pos-v, .block-text .pos-adj { border-radius: 4px; }
+.block-text .pos-n { background: #e3f2fd; }
+.block-text .pos-v { background: #ffebee; }
+.block-text .pos-adj { background: #e8f5e9; }
+/* 英文整词着色（含浅底） */
+.tap-char .pos-n { color: #1565c0; }
+.tap-char .pos-v { color: #c62828; }
+.tap-char .pos-adj { color: #2e7d32; }
+.tap-char-word.pos-n { background: #e3f2fd; border-radius: 3px; }
+.tap-char-word.pos-v { background: #ffebee; border-radius: 3px; }
+.tap-char-word.pos-adj { background: #e8f5e9; border-radius: 3px; }
+/* 英文短语容器：跨词整段着色（含词间空格不断色），词内字母仍可点读 */
+.tap-char-phrase { border-radius: 4px; }
+.tap-char-phrase.pos-n { color: #1565c0; background: #e3f2fd; }
+.tap-char-phrase.pos-v { color: #c62828; background: #ffebee; }
+.tap-char-phrase.pos-adj { color: #2e7d32; background: #e8f5e9; }
+.tap-char-phrase.story-person,
+.tap-char-phrase.story-time,
+.tap-char-phrase.story-place,
+.tap-char-phrase.story-cause,
+.tap-char-phrase.story-process,
+.tap-char-phrase.story-result { font-weight: 600; }
+.tap-char-phrase .tap-char-word { border-radius: 0; background: transparent; }
+/* 词性开关激活态 */
+.pos-toggle.pos-on { background: #1d9bf0; border-color: #1d9bf0; color: #fff; }
+/* 文章要素开关激活态 */
+.story-toggle.story-on { background: #7b1fa2; border-color: #7b1fa2; color: #fff; }
+/* 记叙六要素着色：彩色文字 + 波浪下划线（与词性的浅底通道错开，可叠加不混淆） */
+.story-person { color: #6a1b9a; font-weight: 600; text-decoration: underline wavy #ce93d8; text-underline-offset: 3px; }
+.story-time { color: #e65100; font-weight: 600; text-decoration: underline wavy #ffb74d; text-underline-offset: 3px; }
+.story-place { color: #00695c; font-weight: 600; text-decoration: underline wavy #4db6ac; text-underline-offset: 3px; }
+.story-cause { color: #5d4037; font-weight: 600; text-decoration: underline wavy #a1887f; text-underline-offset: 3px; }
+.story-process { color: #ad1457; font-weight: 600; text-decoration: underline wavy #f48fb1; text-underline-offset: 3px; }
+.story-result { color: #1565c0; font-weight: 600; text-decoration: underline wavy #90caf9; text-underline-offset: 3px; }
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .story-person { color: #ce93d8; }
+  .story-time { color: #ffb74d; }
+  .story-place { color: #4db6ac; }
+  .story-cause { color: #a1887f; }
+  .story-process { color: #f48fb1; }
+  .story-result { color: #90caf9; }
+  .story-toggle.story-on { background: #7b1fa2; }
+}
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .pos-n { color: #90caf9; }
+  .pos-v { color: #ef9a9a; }
+  .pos-adj { color: #a5d6a7; }
+  .block-text .pos-n, .tap-char-word.pos-n { background: #0d2b45; }
+  .block-text .pos-v, .tap-char-word.pos-v { background: #4a1a1a; }
+  .block-text .pos-adj, .tap-char-word.pos-adj { background: #1b3a24; }
+  .tap-char-phrase.pos-n { background: #0d2b45; }
+  .tap-char-phrase.pos-v { background: #4a1a1a; }
+  .tap-char-phrase.pos-adj { background: #1b3a24; }
+  .pos-toggle.pos-on { background: #1d9bf0; }
 }
 .block-hl-tip {
   margin-top: 10px;
