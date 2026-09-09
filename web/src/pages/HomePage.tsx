@@ -11,6 +11,7 @@ import { Link } from "react-router-dom"
 import { fetchPlan, featureById, type PlanItem } from "../services/training"
 import { SettingsSheet } from "../components/SettingsSheet"
 import { useVisitCounts, recordVisit, sortByVisits } from "../lib/visitCounts"
+import { APP_VERSION } from "../lib/appVersion"
 
 /** 已实现模块的实际路由（未实现走占位页） */
 const FEATURE_ROUTES: Record<string, string> = {
@@ -74,7 +75,8 @@ const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
       { to: "/module/wordbook", emoji: "📓", title: "生词本", subtitle: "点读收生字 · 每日间隔复习" },
       { to: "/module/memory_joy", emoji: "🌟", title: "记忆快乐本", subtitle: "今日字词自动编成小故事" },
       { to: "/module/sentence_practice", emoji: "✏️", title: "造句练习", subtitle: "用一个词写句话，AI 老师批改" },
-      { to: "/module/speech_compose", emoji: "🗣️", title: "造句小助手", subtitle: "开口说开头，AI 帮你补完整句" },
+      { to: "/module/oral_writing", emoji: "🎙️", title: "口述作文", subtitle: "看图/听题口述表达，AI 评分润色" },
+      { to: "/module/speech_compose", emoji: "🤖", title: "AI 对话学语文", subtitle: "和 AI 一问一答，对话中学语文" },
       { to: "/module/ai_english_talk", emoji: "💬", title: "AI 英语对话", subtitle: "和 AI 用英语聊天，卡住有提示" },
       { to: "/module/char_map", emoji: "🗺️", title: "汉字地图", subtitle: "点亮学过的每一个字" },
       { to: "/module/diary", emoji: "📖", title: "成长日记", subtitle: "每天一句话，AI 帮你记下来" },
@@ -165,6 +167,8 @@ export function HomePage() {
       )}
 
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {/* 版号角标：部署核对用（与部署汇报的版号对照） */}
+      <span className="app-version" title="当前版本（部署后请对照核对）">v{APP_VERSION}</span>
     </div>
   )
 }
