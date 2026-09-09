@@ -1,4 +1,9 @@
-/** 首页 — 分组模块入口（组卡片点击展开子条目）+ 独立入口 */
+/** 首页 — 宫格磁贴布局：小节标签 + 紧凑方块（图标+标题），一屏尽收、无需反复滚动
+ *
+ * 分组（拼音/课本字词/视频）不再折叠展开，直接拍平为小节磁贴；
+ * 副标题收入 title 悬停提示；训练任务完成态以 ✓ 角标展示；
+ * 访问频次只影响节内排序（常用靠前），不再显示 🔥 徽标。
+ */
 
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
@@ -23,33 +28,30 @@ const FEATURE_ROUTES: Record<string, string> = {
   pinyin: "/pinyin",
 }
 
-interface ChildEntry {
+interface TileEntry {
   to: string
   emoji: string
   title: string
+  /** 副标题：悬停提示用，不占版面 */
   subtitle: string
   /** 对应训练任务 feature（用于显示完成 ✓） */
   feature?: string
 }
 
-/** 入口分组：点击组卡片展开/收起子条目 */
-const GROUPS: Array<{ key: string; emoji: string; title: string; subtitle: string; children: ChildEntry[] }> = [
+/** 首页小节：扁平磁贴，不再折叠 */
+const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
   {
     key: "pinyin",
-    emoji: "🔤",
-    title: "拼音",
-    subtitle: "拼音练习 · 拼音表",
-    children: [
+    label: "拼音",
+    entries: [
       { to: "/pinyin", emoji: "🔤", title: "拼音练习", subtitle: "看拼音读，SOE 评测 · 总分≥70 进下一关", feature: "pinyin" },
       { to: "/module/pinyin-index", emoji: "📖", title: "拼音表", subtitle: "声母 · 韵母 · 整体认读音节 · 点读发声" },
     ],
   },
   {
     key: "textbook",
-    emoji: "📘",
-    title: "课本字词",
-    subtitle: "认字 · 默写 · 词语",
-    children: [
+    label: "课本字词",
+    entries: [
       { to: "/module/recognition", emoji: "🔤", title: "认字", subtitle: "看图认汉字，跟读发音", feature: "recognition" },
       { to: "/module/dictation", emoji: "✏️", title: "默写", subtitle: "听音写字，检验掌握", feature: "dictation" },
       { to: "/module/word_practice", emoji: "📚", title: "词语", subtitle: "词语跟读与辨析", feature: "word_practice" },
@@ -57,106 +59,60 @@ const GROUPS: Array<{ key: string; emoji: string; title: string; subtitle: strin
   },
   {
     key: "video",
-    emoji: "📺",
-    title: "视频学习",
-    subtitle: "视频跟读 · 字幕采集",
-    children: [
+    label: "视频",
+    entries: [
       { to: "/module/video_practice", emoji: "🎬", title: "视频跟读", subtitle: "跟读视频练发音", feature: "video_practice" },
-      { to: "/module/subtitle_capture", emoji: "🎞️", title: "字幕截图采集", subtitle: "框选影片字幕 · 截屏存盘带时间戳" },
+      { to: "/module/subtitle_capture", emoji: "🎞️", title: "字幕采集", subtitle: "框选影片字幕 · 截屏存盘带时间戳" },
+    ],
+  },
+  {
+    key: "tools",
+    label: "学习工具",
+    entries: [
+      { to: "/module/murmur", emoji: "💬", title: "碎碎念", subtitle: "自由表达 → AI 纠错 → 朗读 + 测评" },
+      { to: "/module/char_image", emoji: "🖼️", title: "看图识字", subtitle: "识字 · 识词 · 识句 · 左右滑动" },
+      { to: "/module/wordbook", emoji: "📓", title: "生词本", subtitle: "点读收生字 · 每日间隔复习" },
+      { to: "/module/memory_joy", emoji: "🌟", title: "记忆快乐本", subtitle: "今日字词自动编成小故事" },
+      { to: "/module/sentence_practice", emoji: "✏️", title: "造句练习", subtitle: "用一个词写句话，AI 老师批改" },
+      { to: "/module/speech_compose", emoji: "🗣️", title: "造句小助手", subtitle: "开口说开头，AI 帮你补完整句" },
+      { to: "/module/ai_english_talk", emoji: "💬", title: "AI 英语对话", subtitle: "和 AI 用英语聊天，卡住有提示" },
+      { to: "/module/char_map", emoji: "🗺️", title: "汉字地图", subtitle: "点亮学过的每一个字" },
+      { to: "/module/diary", emoji: "📖", title: "成长日记", subtitle: "每天一句话，AI 帮你记下来" },
+      { to: "/module/radical_game", emoji: "🔮", title: "偏旁魔法屋", subtitle: "声旁猜读音，形旁猜意思" },
+      { to: "/module/courseware_manager", emoji: "📚", title: "课件库", subtitle: "上传/管理语数英课件图片" },
     ],
   },
 ]
 
-/** 不入组的独立固定入口 */
-const STANDALONE: ChildEntry[] = [
-  { to: "/module/murmur", emoji: "💬", title: "碎碎念", subtitle: "自由表达 → AI 纠错 → 朗读 + 测评" },
-  { to: "/module/char_image", emoji: "🖼️", title: "看图识字词句", subtitle: "识字 · 识词 · 识句 · 左右滑动" },
-  { to: "/module/wordbook", emoji: "📓", title: "生词本", subtitle: "长按收生字 · 每日间隔复习" },
-  { to: "/module/sentence_practice", emoji: "✏️", title: "造句练习", subtitle: "用一个词写句话，AI 老师批改" },
-  { to: "/module/char_map", emoji: "🗺️", title: "汉字地图", subtitle: "点亮学过的每一个字" },
-  { to: "/module/diary", emoji: "📖", title: "成长日记", subtitle: "每天一句话，AI 帮你记下来" },
-  { to: "/module/radical_game", emoji: "🔮", title: "偏旁魔法屋", subtitle: "声旁猜读音，形旁猜意思" },
-]
-
-function EntryCard({
-  to, emoji, title, subtitle, done, hot,
-}: {
-  to: string
-  emoji: string
-  title: string
-  subtitle: string
-  done?: boolean
-  hot?: boolean
-}) {
+function Tile({ to, emoji, title, subtitle, done }: TileEntry & { done?: boolean }) {
   return (
-    <Link to={to} className="home-entry" onClick={() => recordVisit(to)}>
-      <span className="home-entry-icon">{emoji}</span>
-      <span className="home-entry-body">
-        <span className="home-entry-title">
-          {title}
-          {hot && <span className="home-entry-hot" title="常用入口">🔥</span>}
-        </span>
-        <span className="home-entry-subtitle">{subtitle}</span>
-      </span>
-      {done === true ? (
-        <span className="home-entry-state ok">✓</span>
-      ) : (
-        <span className="home-entry-state">→</span>
-      )}
+    <Link to={to} className="home-tile" title={subtitle} onClick={() => recordVisit(to)}>
+      {done === true && <span className="home-tile-done" title="今日已完成">✓</span>}
+      <span className="home-tile-icon">{emoji}</span>
+      <span className="home-tile-title">{title}</span>
     </Link>
   )
 }
 
-function GroupCard({
-  group, open, onToggle, doneByRoute, counts,
-}: {
-  group: (typeof GROUPS)[number]
-  open: boolean
-  onToggle: () => void
+function Section({ label, entries, doneByRoute }: {
+  label: string
+  entries: TileEntry[]
   doneByRoute: Map<string, boolean>
-  counts: Record<string, number>
 }) {
+  if (entries.length === 0) return null
   return (
-    <div className="home-group">
-      <button type="button" className="home-entry home-group-head" onClick={onToggle} aria-expanded={open}>
-        <span className="home-entry-icon">{group.emoji}</span>
-        <span className="home-entry-body">
-          <span className="home-entry-title">{group.title}</span>
-          <span className="home-entry-subtitle">{group.subtitle}</span>
-        </span>
-        <span className={`home-entry-chevron${open ? " open" : ""}`}>▸</span>
-      </button>
-      {open && (
-        <div className="home-group-children">
-          {group.children.map((c) => {
-            const done = c.feature ? doneByRoute.get(c.to) : undefined
-            const hot = (counts[c.to] ?? 0) > 0
-            return (
-              <Link key={c.to} to={c.to} className="home-child" onClick={() => recordVisit(c.to)}>
-                <span className="home-child-icon">{c.emoji}</span>
-                <span className="home-entry-body">
-                  <span className="home-child-title">
-                    {c.title}
-                    {hot && <span className="home-entry-hot" title="常用入口">🔥</span>}
-                  </span>
-                  <span className="home-child-subtitle">{c.subtitle}</span>
-                </span>
-                {done === true ? (
-                  <span className="home-entry-state ok">✓</span>
-                ) : (
-                  <span className="home-entry-state">→</span>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </div>
+    <section className="home-section">
+      <p className="home-section-label">{label}</p>
+      <div className="home-grid">
+        {entries.map((e) => (
+          <Tile key={e.to} {...e} done={e.feature ? doneByRoute.get(e.to) : undefined} />
+        ))}
+      </div>
+    </section>
   )
 }
 
 export function HomePage() {
-  const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const planQ = useQuery({
@@ -165,7 +121,7 @@ export function HomePage() {
     staleTime: 30_000,
   })
 
-  // 训练任务完成状态，按路由索引（组内子条目与独立条目共用）
+  // 训练任务完成状态，按路由索引
   const items: PlanItem[] = planQ.data?.items ?? []
   const doneByRoute = new Map<string, boolean>()
   for (const item of items) {
@@ -173,31 +129,19 @@ export function HomePage() {
     doneByRoute.set(FEATURE_ROUTES[item.feature] ?? `/module/${item.feature}`, item.done)
   }
 
-  // 分组已覆盖的子条目不再重复出现在独立列表
-  const groupedRoutes = new Set(GROUPS.flatMap((g) => g.children.map((c) => c.to)))
-  const standaloneRoutes = new Set([...STANDALONE.map((s) => s.to), ...groupedRoutes])
-  const planEntries = items
+  // 小节已覆盖的条目不再重复出现在「今日任务」
+  const sectionRoutes = new Set(SECTIONS.flatMap((s) => s.entries.map((e) => e.to)))
+  const planEntries: TileEntry[] = items
     .filter((i) => featureById(i.feature)?.training)
     .map((item) => {
       const feature = featureById(item.feature)!
       const to = FEATURE_ROUTES[item.feature] ?? `/module/${item.feature}`
-      return { to, emoji: feature.emoji, title: feature.title, subtitle: feature.subtitle, done: item.done }
+      return { to, emoji: feature.emoji, title: feature.title, subtitle: feature.subtitle }
     })
-    .filter((e) => !standaloneRoutes.has(e.to))
+    .filter((e) => !sectionRoutes.has(e.to))
 
-  // 访问频次：点击越多的入口排得越靠前（登录态走服务端，跟随账户）
+  // 访问频次：点击越多的入口在节内排得越靠前（登录态走服务端，跟随账户）
   const { counts } = useVisitCounts()
-  const sortedGroups = GROUPS.map((g) => ({ ...g, children: sortByVisits(g.children, counts) }))
-  const sortedStandalone = sortByVisits(STANDALONE, counts)
-  const sortedPlan = sortByVisits(planEntries, counts)
-
-  const toggle = (key: string) =>
-    setOpenKeys((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
 
   return (
     <div className="page home-page">
@@ -212,24 +156,13 @@ export function HomePage() {
           ⚙️
         </button>
       </header>
-      <div className="home-entries">
-        {sortedGroups.map((g) => (
-          <GroupCard
-            key={g.key}
-            group={g}
-            open={openKeys.has(g.key)}
-            onToggle={() => toggle(g.key)}
-            doneByRoute={doneByRoute}
-            counts={counts}
-          />
-        ))}
-        {sortedStandalone.map((s) => (
-          <EntryCard key={s.to} {...s} done={doneByRoute.get(s.to)} hot={(counts[s.to] ?? 0) > 0} />
-        ))}
-        {sortedPlan.map((e) => (
-          <EntryCard key={e.to} {...e} hot={(counts[e.to] ?? 0) > 0} />
-        ))}
-      </div>
+
+      {SECTIONS.map((s) => (
+        <Section key={s.key} label={s.label} entries={sortByVisits(s.entries, counts)} doneByRoute={doneByRoute} />
+      ))}
+      {planEntries.length > 0 && (
+        <Section label="今日任务" entries={sortByVisits(planEntries, counts)} doneByRoute={doneByRoute} />
+      )}
 
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
