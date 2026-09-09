@@ -1,11 +1,15 @@
-/** 造句练习页 — 给一个词，孩子输入造句，AI 判对错并给更正（复用 ai-chat 纠错标签） */
+/** 造句练习页 — 给一个词，孩子输入造句，AI 判对错并给更正（复用 ai-chat 纠错标签）
+ *
+ * 今日句型数据与「每日一练·语文」设置同源（daily-zh 配置，跨设备同步）；
+ * 句型的增改统一在「每日一练·语文」⚙️ 设置页（支持拍照 OCR 填入），本页只负责选句 + 练习。
+ */
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTts } from "../hooks/useTts"
 import { askWithProfile } from "../services/aiAsk"
 import { reviewQueue, type WordbookItem } from "../services/wordbook"
-import { loadDailyZhSynced } from "../services/dailyZh"
+import { loadDailyZhSynced, readLocalMirror, type DailyZhConfig } from "../services/dailyZh"
 
 /** 常用词池（词库不可用时的兜底） */
 const FALLBACK_WORDS = ["春天", "朋友", "认真", "一起", "漂亮", "帮助", "发现", "快乐"]
@@ -17,20 +21,25 @@ export function SentencePracticePage() {
   const [sentence, setSentence] = useState("")
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<{ reply: string; corrected: string | null; wrongs: string[] } | null>(null)
-  // 今日练句列表（家长设置，点选可直接练对应句型，不按固定顺序）
-  const [todaySentences, setTodaySentences] = useState<string[]>([])
+  // 今日练句配置（家长在「每日一练·语文」设置，只读展示）；与服务端 /daily-zh 同源、跨设备同步
+  const [cfg, setCfg] = useState<DailyZhConfig>(() => readLocalMirror())
+  // 由配置 sentences 派生出的句型列表（按行/句号切分）
+  const todaySentences = useMemo(
+    () =>
+      cfg.sentences
+        .split(/\n+|(?<=[。；;])\s*/) // 按行/句号切分
+        .map((x) => x.trim())
+        .filter(Boolean),
+    [cfg.sentences],
+  )
   // 今日句选句页：有今日配置时先展示句型列表，点选才进入造句练习
   const [pickOpen, setPickOpen] = useState(true)
 
   // 进入页面加载今日练句配置（服务端优先，跨设备同步）
   useEffect(() => {
     void (async () => {
-      const cfg = await loadDailyZhSynced()
-      const list = cfg.sentences
-        .split(/\n+|(?<=[。；;])\s*/)// 按行/句号切分
-        .map((x) => x.trim())
-        .filter(Boolean)
-      setTodaySentences(list)
+      const next = await loadDailyZhSynced()
+      setCfg(next)
     })()
   }, [])
 
@@ -98,9 +107,14 @@ export function SentencePracticePage() {
         <h1>✏️ 造句练习</h1>
         <button className="btn-secondary btn-sm" onClick={() => void next()} title="换一个词">🔀 换词</button>
       </header>
+
       {pickOpen && todaySentences.length > 0 ? (
         <div>
           <p className="module-hint">点选要练的句型/句子👇</p>
+          <p className="module-hint" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: -4 }}>
+            家长增改句型请到「每日一练 · 语文」⚙️ 设置（支持拍照识别）
+            <button className="btn-secondary btn-sm" onClick={() => navigate("/module/daily_chinese")}>去设置</button>
+          </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, padding: "8px 6px" }}>
             {todaySentences.map((t, i) => (
               <button key={`${t}-${i}`} onClick={() => { setResult(null); setSentence(""); setWord(t); setPickOpen(false) }}
