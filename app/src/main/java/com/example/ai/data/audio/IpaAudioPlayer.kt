@@ -21,6 +21,7 @@ class IpaAudioPlayer(
 ) {
 
     private var currentPlayer: MediaPlayer? = null
+    private var enhancer: android.media.audiofx.LoudnessEnhancer? = null
 
     /** 播放完成回调（用于 UI 复位播放状态图标） */
     var onCompletion: (() -> Unit)? = null
@@ -54,33 +55,33 @@ class IpaAudioPlayer(
 
         for (assetPath in candidates) {
             try {
-                val afd = context.assets.openFd(assetPath)
-                currentPlayer = MediaPlayer().apply {
-                    setDataSource(afd)
-                    setOnCompletionListener {
-                        release()
-                        currentPlayer = null
-                        onCompletion?.invoke()
+                // use{} 保证 afd 在成功与异常两条路径下都被关闭
+                context.assets.openFd(assetPath).use { afd ->
+                    currentPlayer = MediaPlayer().apply {
+                        setDataSource(afd)
+                        setOnCompletionListener {
+                            releaseCurrent()
+                            onCompletion?.invoke()
+                        }
+                        setOnErrorListener { _, what, extra ->
+                            Log.e(TAG, "播放错误: what=$what extra=$extra")
+                            releaseCurrent()
+                            onCompletion?.invoke()
+                            true
+                        }
+                        prepare()
+                        // 可选增益增强（如字母页 +20dB）；持有为成员，随播放器一起释放，避免 LoudnessEnhancer 泄漏
+                        if (boostDb > 0) {
+                            try {
+                                enhancer = android.media.audiofx.LoudnessEnhancer(audioSessionId).apply {
+                                    setTargetGain(boostDb)
+                                    enabled = true
+                                }
+                            } catch (_: Exception) {}
+                        }
+                        start()
                     }
-                    setOnErrorListener { mp, what, extra ->
-                        Log.e(TAG, "播放错误: what=$what extra=$extra")
-                        mp.release()
-                        currentPlayer = null
-                        onCompletion?.invoke()
-                        true
-                    }
-                    prepare()
-                    // 可选增益增强（如字母页 +20dB）
-                    if (boostDb > 0) {
-                        try {
-                            val enhancer = android.media.audiofx.LoudnessEnhancer(audioSessionId)
-                            enhancer.setTargetGain(boostDb)
-                            enhancer.enabled = true
-                        } catch (_: Exception) {}
-                    }
-                    start()
                 }
-                afd.close()
                 Log.d(TAG, "播放($style): $assetPath")
                 return
             } catch (e: Exception) {
@@ -91,16 +92,25 @@ class IpaAudioPlayer(
         Log.w(TAG, "无法播放 $clean（候选: $candidates）")
     }
 
+    /** 释放当前播放器与增益器（幂等，completion/error/stop 共用） */
+    private fun releaseCurrent() {
+        try {
+            currentPlayer?.let {
+                if (it.isPlaying) it.stop()
+                it.release()
+            }
+        } catch (_: Exception) {}
+        currentPlayer = null
+        try {
+            enhancer?.release()
+        } catch (_: Exception) {}
+        enhancer = null
+    }
+
     /**
      * 停止当前播放并释放资源
      */
     fun stop() {
-        try {
-            currentPlayer?.apply {
-                if (isPlaying) stop()
-                release()
-            }
-        } catch (_: Exception) {}
-        currentPlayer = null
+        releaseCurrent()
     }
 }

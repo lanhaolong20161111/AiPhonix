@@ -8,8 +8,6 @@ import java.io.File
 /**
  * 文章跟读会话本地存储（files/article_reading/）：
  * - {articleKey}.json  — 会话（段落口述、问题、回答）
- * - audio/{articleKey}_p{index}.wav — 段落口述录音
- * - audio/{articleKey}_q{index}.wav — 问题口述回答录音
  *
  * 刻意不用 Room（项目 APK 大小敏感，同 [[UserImportStore]] 的 files JSON 先例）。
  */
@@ -21,7 +19,6 @@ class ArticleReadingStore(private val context: Context) {
     }
 
     private val dir: File get() = File(context.filesDir, "article_reading")
-    private fun audioDir(): File = File(dir, "audio")
 
     fun load(articleKey: String): ArticleSession? {
         return try {
@@ -45,19 +42,6 @@ class ArticleReadingStore(private val context: Context) {
     }
 
     /** 生成段落口述录音路径（相对 filesDir 存储，AudioPath 存相对路径） */
-    fun paragraphAudioPath(articleKey: String, index: Int): String {
-        audioDir().mkdirs()
-        return "article_reading/audio/${sanitize(articleKey)}_p${index}.wav"
-    }
-
-    fun questionAudioPath(articleKey: String, index: Int): String {
-        audioDir().mkdirs()
-        return "article_reading/audio/${sanitize(articleKey)}_q${index}.wav"
-    }
-
-    /** 相对路径 → 绝对 File（写入用） */
-    fun resolveAudio(relativePath: String): File = File(context.filesDir, relativePath)
-
     private fun sessionFile(articleKey: String): File =
         File(dir, "${sanitize(articleKey)}.json")
 

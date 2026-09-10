@@ -139,6 +139,9 @@ dependencies {
   // OkHttp
   implementation(libs.okhttp)
 
+  // ExifInterface — 读取照片方向（EXIF），原图显示时自动纠正横拍
+  implementation("androidx.exifinterface:exifinterface:1.3.7")
+
   // Coil — 图片加载
   implementation("io.coil-kt:coil-compose:2.7.0")
 

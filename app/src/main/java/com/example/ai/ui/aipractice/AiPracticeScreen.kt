@@ -1,5 +1,6 @@
 package com.example.ai.ui.aipractice
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,19 +27,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-/** 内容类型选项：字 / 词 / 句 / 文章 */
-private val CONTENT_TYPES = listOf(
-    "char" to "字",
-    "word" to "词",
-    "sentence" to "句",
-    "article" to "文章",
-)
-
-private fun contentTypeName(t: String) = CONTENT_TYPES.firstOrNull { it.first == t }?.second ?: t
 
 /**
  * ai陪我练 主页：导入主题（粘贴/输入）→ 选内容粒度 → 开始多轮练习；下方历史记录。
@@ -48,6 +40,8 @@ fun AiPracticeScreen(
     viewModel: AiPracticeViewModel,
     onBack: () -> Unit,
     onOpenChat: (sessionId: Int, content: String) -> Unit,
+    onOpenHomework: () -> Unit,
+    onOpenChinese: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -71,65 +65,62 @@ fun AiPracticeScreen(
             )
             Spacer(Modifier.height(12.dp))
 
-            // 内容粒度
-            Text("内容类型", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CONTENT_TYPES.forEach { (id, label) ->
-                    FilterChip(
-                        selected = state.contentType == id,
-                        onClick = { viewModel.updateContentType(id) },
-                        label = { Text(label) },
-                    )
+            // 数学应用题入口（AI 作业）
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenHomework),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3D6)),
+            ) {
+                Row(
+                    Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("🧮", fontSize = 26.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text("数学", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF000000))
+                        Text(
+                            "拍照或输入题目，AI 拆关键条件；说出你的思路，AI 帮你批改",
+                            fontSize = 12.sp,
+                            color = Color(0xFF000000),
+                        )
+                    }
                 }
             }
+            Spacer(Modifier.height(10.dp))
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // 学习内容
-            Text("学习内容（可粘贴 / 输入 / 拍照识字后粘贴）", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-            OutlinedTextField(
-                value = state.content,
-                onValueChange = viewModel::updateContent,
-                modifier = Modifier.fillMaxWidth().height(120.dp),
-                placeholder = { Text("例如：The cat is on the mat.") },
-                textStyle = MaterialTheme.typography.bodyLarge,
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // 任务类型（可选）
-            OutlinedTextField(
-                value = state.task,
-                onValueChange = viewModel::updateTask,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("任务类型（可选：认读 / 造句 / 问答 / 翻译 / 考题）") },
-                singleLine = true,
-            )
-
-            Spacer(Modifier.height(16.dp))
+            // 语文入口（与数学同构，后续独立调整功能）
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenChinese),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+            ) {
+                Row(
+                    Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("📖", fontSize = 26.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text("语文", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF000000))
+                        Text(
+                            "拍照识别 → 解析 → 闯关引导（同数学模块）",
+                            fontSize = 12.sp,
+                            color = Color(0xFF000000),
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(14.dp))
 
             if (state.error.isNotBlank()) {
                 Text(state.error, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                 Spacer(Modifier.height(8.dp))
             }
-
-            Button(
-                onClick = { viewModel.createSession { id -> onOpenChat(id, state.content.trim()) } },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled = !state.creating,
-            ) {
-                if (state.creating) {
-                    CircularProgressIndicator(Modifier.width(22.dp).height(22.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp))
-                    Text("AI 正在制定学习计划…")
-                } else {
-                    Text("🚀 开始练习", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
 
             // 历史记录
             Row(
@@ -171,7 +162,7 @@ fun AiPracticeScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "【${contentTypeName(s.contentType)}】${s.task.ifBlank { "综合练习" }} · ${s.turnCount} 条对话 · " +
+                            "${s.task.ifBlank { "综合练习" }} · ${s.turnCount} 条对话 · " +
                                 if (s.status == "done") "✅ 已完成" else "⏳ 进行中" +
                                 " · ${s.createdAt.take(16).replace("T", " ")}",
                             fontSize = 12.sp,

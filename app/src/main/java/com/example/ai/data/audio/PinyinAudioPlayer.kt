@@ -20,6 +20,9 @@ import java.net.URLEncoder
 class PinyinAudioPlayer(private val serverBase: String) {
 
     private var currentPlayer: MediaPlayer? = null
+    /** 停止标志：stop() 置位后，多段连播的递归链不再创建新播放器 */
+    @Volatile
+    private var isStopped = false
 
     companion object {
         private const val TAG = "PinyinAudioPlayer"
@@ -75,13 +78,15 @@ class PinyinAudioPlayer(private val serverBase: String) {
 
     /** 播放一段或多段（逗号分隔连续播放） */
     fun play(paths: String) {
+        isStopped = false
         val list = paths.split(",").filter { it.isNotBlank() }
         if (list.isEmpty()) return
         playSequence(list, 0)
     }
 
     private fun playSequence(paths: List<String>, index: Int) {
-        if (index >= paths.size) return
+        // stop() 后递归链不再续播，避免“停止”按钮失效（多段连续播放场景）
+        if (isStopped || index >= paths.size) return
         stop()
         val url = serverBase.trimEnd('/') + "/api/v1/pinyin-audio?file=" + URLEncoder.encode(paths[index], "UTF-8")
         try {
@@ -113,6 +118,7 @@ class PinyinAudioPlayer(private val serverBase: String) {
 
     /** 停止当前播放并释放资源 */
     fun stop() {
+        isStopped = true
         try {
             currentPlayer?.apply {
                 if (isPlaying) stop()

@@ -71,3 +71,20 @@ import kotlinx.serialization.Serializable
     val sessionId: Int,
     val content: String = "",
 ) : NavKey                                                             // 会话页（active 续聊 / done 只读）
+
+// AI 作业（数学应用题：识题 → 关键信息提示 → ASR 思路评判）
+@Serializable data object AiHomework : NavKey                          // AI 作业主页（拍照/相册/输入题目）
+@Serializable data object AiChinese : NavKey                           // 语文（与数学同构的科目模块）
+@Serializable data class AiHomeworkPractice(
+    val question: String,
+    val payload: String = "",
+) : NavKey                                                             // 题目练习页（分句朗读/提示/讲思路）
+@Serializable data object AiHomeworkCharStats : NavKey                 // 认读画像（字被点击发音次数）
+
+// 拼音练习（SOE 拼音评测：看拼音读，≥70 过关）
+@Serializable data object PinyinExercise : NavKey                       // 拼音练习主页
+
+// 碎碎念（自由表达 → AI 语法纠错 → 正确句子朗读+测评）
+@Serializable data object Murmur : NavKey                                // 碎碎念主页
+
+// 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

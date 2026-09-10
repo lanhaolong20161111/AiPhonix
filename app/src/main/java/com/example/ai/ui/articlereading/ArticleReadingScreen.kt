@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,10 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,11 +55,6 @@ fun ArticleReadingScreen(
     onFinish: (articleKey: String, title: String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        viewModel.initAsrEngine(context.assets)
-    }
 
     LaunchedEffect(articleKey, articleTitle) {
         viewModel.initArticle(articleKey, articleTitle)
@@ -123,12 +121,9 @@ fun ArticleReadingScreen(
                         index = index,
                         text = paragraph,
                         summary = state.summaries.firstOrNull { it.index == index },
-                        isRecording = state.recordingIndex == index,
                         speaking = state.ttsSpeaking,
-                        partialText = if (state.recordingIndex == index) state.partialText else "",
                         onPlay = { viewModel.playParagraph(index) },
-                        onRecord = { viewModel.toggleRecord(index) },
-                        onPlaySummary = { viewModel.playSummaryAudio(index) },
+                        onSummaryChange = { text -> viewModel.setSummaryText(index, text) },
                     )
                 }
                 item { Spacer(Modifier.height(8.dp)) }
@@ -153,13 +148,11 @@ private fun ParagraphCard(
     index: Int,
     text: String,
     summary: ParagraphSummary?,
-    isRecording: Boolean,
     speaking: Boolean,
-    partialText: String,
     onPlay: () -> Unit,
-    onRecord: () -> Unit,
-    onPlaySummary: () -> Unit,
+    onSummaryChange: (String) -> Unit,
 ) {
+    var draft by remember(index) { mutableStateOf(summary?.text ?: "") }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -175,70 +168,30 @@ private fun ParagraphCard(
                     Text("${index + 1}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(8.dp))
-                Text("第 ${index + 1} 段", fontSize = 13.sp, color = Color.Gray)
+                Text("第 ${index + 1} 段", fontSize = 13.sp, color = Color(0xFF000000))
             }
             Spacer(Modifier.height(8.dp))
-            Text(text, fontSize = 16.sp, lineHeight = 26.sp)
+            Text(text, fontSize = 16.sp, lineHeight = 26.sp, color = Color(0xFF000000))
             Spacer(Modifier.height(8.dp))
 
-            // 段落操作：喇叭（朗读）+ 麦克风（口述概括）
+            // 段落操作：喇叭（朗读）
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onPlay, enabled = !speaking) {
                     Text("🔊", fontSize = 20.sp, modifier = Modifier.alpha(if (speaking) 0.38f else 1f))
                 }
-                IconButton(onClick = onRecord) {
-                    Text(if (isRecording) "⏹" else "🎤", fontSize = 20.sp)
-                }
-                if (isRecording) {
-                    Box(
-                        Modifier
-                            .size(10.dp)
-                            .background(Color.Red, RoundedCornerShape(5.dp)),
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text("正在听你说这一段…", fontSize = 13.sp, color = Color.Red)
-                } else if (summary != null) {
-                    Text("已记录口述", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
-                    if (summary.audioPath.isNotBlank()) {
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "▶ 回听",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .clickable { onPlaySummary() }
-                                .padding(4.dp),
-                        )
-                    }
-                }
+                Text("读完后在下面写下这段讲了什么", fontSize = 13.sp, color = Color(0xFF000000))
             }
 
-            // 口述总结文字
-            when {
-                isRecording && partialText.isNotBlank() -> {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        partialText,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                summary != null && summary.text.isNotBlank() -> {
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "我的概括：${summary.text}",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                RoundedCornerShape(6.dp),
-                            )
-                            .padding(10.dp),
-                    )
-                }
-            }
+            Spacer(Modifier.height(8.dp))
+            // 概括文字输入（可点输入框用输入法语音）
+            OutlinedTextField(
+                value = draft,
+                onValueChange = { draft = it; onSummaryChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 5,
+                placeholder = { Text("写下这段的主要内容（可点输入框用语音输入）…") },
+            )
         }
     }
 }

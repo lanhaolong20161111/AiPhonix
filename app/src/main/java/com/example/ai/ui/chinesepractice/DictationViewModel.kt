@@ -175,18 +175,8 @@ class DictationViewModel(
                                 .map { arr.optString(it, "") }
                                 .filter { it.contains(ch) && it.length >= 2 }
                             if (words.isNotEmpty()) {
+                                // 组词仅本地缓存（服务端无消费端，不再上报 add-word——原上报契约不匹配从未生效）
                                 llmWordCache[ch] = words
-                                try {
-                                    val saveBody = JSONObject().apply {
-                                        put("char", ch)
-                                        put("words", JSONArray(words))
-                                    }
-                                    val saveReq = Request.Builder()
-                                        .url("${getServerBase()}/api/v1/wordbank/add-word")
-                                        .post(saveBody.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
-                                        .build()
-                                    client.newCall(saveReq).execute()
-                                } catch (_: Exception) {}
                             }
                         }
                     }

@@ -112,8 +112,7 @@ class WordPracticeViewModel(
             val sentence = try {
                 val result = wordInfoRepo.generateSentence(word, hideWord = false)
                 if (result != null) {
-                    val raw = result.optString("raw", "")
-                    JSONObject(raw).optString("sentence", "")
+                    result.optString("sentence", "")
                 } else ""
             } catch (_: Exception) { "" }
 

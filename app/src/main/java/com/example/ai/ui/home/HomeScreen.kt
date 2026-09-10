@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import com.example.ai.Recognition
 import com.example.ai.Dictation
 import com.example.ai.WordPractice
 import com.example.ai.VideoPractice
+import com.example.ai.Murmur
 
 /**
  * 首页 — 任务驱动：学生只能看到家长配置的"今日任务"项。
@@ -47,6 +49,8 @@ fun HomeScreen(
     onStartItem: (item: PlanItem, navKey: NavKey) -> Unit,
     onOpenAccount: () -> Unit,
     onOpenParent: () -> Unit,
+    onOpenPinyin: () -> Unit = {},
+    onOpenMurmur: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -107,6 +111,58 @@ fun HomeScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text("🔒", fontSize = 22.sp)
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+
+        // ── 固定模块入口：拼音练习 ──
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenPinyin() },
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("🔤", fontSize = 28.sp)
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("拼音练习", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "看拼音读，SOE 评测 · 总分≥70 进下一关",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text("进入 →", fontSize = 14.sp, color = Color(0xFF1565C0), fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+
+        // ── 固定模块入口：碎碎念 ──
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenMurmur() },
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCE4EC)),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("💬", fontSize = 28.sp)
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("碎碎念", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "自由表达 → AI 纠错 → 朗读+测评",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text("进入 →", fontSize = 14.sp, color = Color(0xFFC2185B), fontWeight = FontWeight.Bold)
             }
         }
         Spacer(Modifier.height(20.dp))

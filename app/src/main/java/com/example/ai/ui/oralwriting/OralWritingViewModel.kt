@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.k2fsa.sherpa.onnx.OralAsrEngine
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -57,9 +56,6 @@ data class OralWritingUiState(
     val isScoring: Boolean = false,
     // 通用
     val error: String? = null,
-    // 语音输入
-    val isRecording: Boolean = false,
-    val asrTranscription: String = "",
     // 过渡状态
     val isTransitioning: Boolean = false,
 ) {
@@ -86,50 +82,6 @@ class OralWritingViewModel(
     private val client = NetworkModule.httpClient
     private val gson = Gson()
     private val JSON = "application/json; charset=utf-8".toMediaType()
-
-    // ASR 引擎
-    private var asrEngine: OralAsrEngine? = null
-
-    /** 初始化 ASR 引擎（从 Screen 调用，传入 AssetManager） */
-    fun initAsrEngine(assetManager: android.content.res.AssetManager) {
-        if (asrEngine == null) {
-            asrEngine = OralAsrEngine(assetManager)
-            viewModelScope.launch(Dispatchers.IO) {
-                val ok = asrEngine?.init() ?: false
-                if (!ok) {
-                    _uiState.value = _uiState.value.copy(error = "语音模型加载失败")
-                }
-            }
-        }
-    }
-
-    /** 开始语音输入 */
-    fun startVoiceInput() {
-        val engine = asrEngine ?: return
-        if (engine.isRecording) return
-        _uiState.value = _uiState.value.copy(isRecording = true, asrTranscription = "")
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = engine.startRecording(onPartial = { partial ->
-                _uiState.value = _uiState.value.copy(asrTranscription = partial)
-            })
-            val finalText = result.getOrNull() ?: ""
-            _uiState.value = _uiState.value.copy(isRecording = false, asrTranscription = "")
-            if (finalText.isNotBlank()) {
-                updateCurrentInput(finalText)
-            } else {
-                result.onFailure { e ->
-                    Log.e(TAG, "语音识别失败", e)
-                    _uiState.value = _uiState.value.copy(error = "语音识别失败: ${e.message}")
-                }
-            }
-        }
-    }
-
-    /** 停止语音输入 */
-    fun stopVoiceInput() {
-        asrEngine?.stopRecording()
-        _uiState.value = _uiState.value.copy(isRecording = false)
-    }
 
     init {
         loadTopics()
@@ -243,13 +195,9 @@ class OralWritingViewModel(
         val state = _uiState.value
         val nextIdx = state.currentSectionIndex + 1
         if (nextIdx >= state.sections.size) return
-        // 立即停止录音，防止识别结果写入错误段落
-        asrEngine?.stopRecording()
-        // 进入过渡：禁用按钮 + 清空识别缓存
+        // 进入过渡：禁用按钮 + 清空提示
         _uiState.value = state.copy(
             isTransitioning = true,
-            isRecording = false,
-            asrTranscription = "",
             currentHint = "",
         )
         viewModelScope.launch {
@@ -262,18 +210,14 @@ class OralWritingViewModel(
         }
     }
 
-    /** 后退到上一段（带 500ms 过渡，清空识别缓存） */
+    /** 后退到上一段（带 500ms 过渡） */
     fun previousSection() {
         val state = _uiState.value
         val prevIdx = state.currentSectionIndex - 1
         if (prevIdx < 0) return
-        // 立即停止录音，防止识别结果写入错误段落
-        asrEngine?.stopRecording()
-        // 进入过渡：禁用按钮 + 清空识别缓存
+        // 进入过渡：禁用按钮 + 清空提示
         _uiState.value = state.copy(
             isTransitioning = true,
-            isRecording = false,
-            asrTranscription = "",
             currentHint = "",
         )
         viewModelScope.launch {
@@ -430,7 +374,5 @@ class OralWritingViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        asrEngine?.release()
-        asrEngine = null
     }
 }

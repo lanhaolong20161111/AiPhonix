@@ -7,6 +7,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -36,19 +37,20 @@ object NetworkModule {
             .build()
     }
 
-    /** 单例 OkHttpClient，所有 Repository / ViewModel 共用 */
+    /** 单例 OkHttpClient，所有 Repository / ViewModel 共用（双检锁，避免并发首访创建多个 client） */
     val httpClient: OkHttpClient
         get() {
-            if (_httpClient == null) {
-                _httpClient = createHttpClient()
+            _httpClient?.let { return it }
+            synchronized(this) {
+                _httpClient?.let { return it }
+                return createHttpClient().also { _httpClient = it }
             }
-            return _httpClient!!
         }
 
     /** 如需独立超时的场景，可由此创建单独的 client */
     fun createHttpClient(
         connectTimeout: Long = 5,
-        readTimeout: Long = 120,
+        readTimeout: Long = 180, // 识图链路最长约 134s（Ark 90s 超时 + OCR 44s），120s 会误报超时
         writeTimeout: Long = 15,
     ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(connectTimeout, TimeUnit.SECONDS)
@@ -59,7 +61,7 @@ object NetworkModule {
 
     /** 重置单例（仅测试用） */
     fun resetForTest() {
-        _httpClient = null
+        synchronized(this) { _httpClient = null }
     }
 
     // ── 认证拦截器：附加 JWT + 401 自动刷新重放 ──
@@ -69,7 +71,10 @@ object NetworkModule {
             val request = chain.request()
             val token = TokenManager.accessToken
             val authedRequest = if (token.isNotBlank()) {
-                request.newBuilder().addHeader("Authorization", "Bearer $token").build()
+                // 必须用 header() 替换而非 addHeader() 追加：
+                // Repository 层可能已加过 Authorization，追加会产生两个同名头，
+                // 服务端只取第一个 → 刷新重放时旧 token 排前面导致重放仍 401
+                request.newBuilder().header("Authorization", "Bearer $token").build()
             } else {
                 request
             }
@@ -79,13 +84,24 @@ object NetworkModule {
             }
             // 401：尝试用 refresh token 换新 access token 并重放一次（失败则透传 401）
             response.close()
-            val newToken = refreshAccessToken(token) ?: return response
-            val retry = request.newBuilder().addHeader("Authorization", "Bearer $newToken").build()
+            val newToken = refreshAccessToken(token) ?: return buildUnauthorizedResponse(response)
+            val retry = request.newBuilder().header("Authorization", "Bearer $newToken").build()
             return chain.proceed(retry)
         }
 
         /** 登录/注册/刷新端点自身的 401 不触发刷新，避免死循环 */
         private fun isAuthPath(path: String): Boolean = path.startsWith("/api/v1/auth/")
+
+        /**
+         * 刷新失败时构造新的 401 响应返回。
+         * 原 response 已 close()，直接返回会导致调用方读 body 抛 IllegalStateException("closed")。
+         */
+        private fun buildUnauthorizedResponse(original: Response): Response =
+            original.newBuilder()
+                .code(401)
+                .message("Unauthorized")
+                .body("""{"error":"refresh_failed"}""".toResponseBody("application/json".toMediaType()))
+                .build()
     }
 
     /**

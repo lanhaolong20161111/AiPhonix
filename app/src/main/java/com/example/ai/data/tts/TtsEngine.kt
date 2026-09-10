@@ -40,7 +40,7 @@ class TtsEngine(
     private val cache = BaiduTtsCache(appContext)
 
     private var tts: TextToSpeech? = null
-    private var ttsReady = false
+    @Volatile private var ttsReady = false
 
     /** 是否正在朗读（全局唯一，朗读期间所有朗读按钮应禁用，防止重复播放） */
     private val _isSpeaking = MutableStateFlow(false)
@@ -78,7 +78,8 @@ class TtsEngine(
         Log.i(TAG, "系统 TTS 语言: " + (if (us) "US" else "UK"))
     }
 
-    val isAvailable: Boolean get() = ttsReady || true // 即使系统 TTS 不可用，服务端仍可用
+    /** 是否可用：系统 TTS 不可用时服务端百度 TTS 仍可用，故恒为 true */
+    val isAvailable: Boolean get() = true
 
     /**
      * 朗读文本。

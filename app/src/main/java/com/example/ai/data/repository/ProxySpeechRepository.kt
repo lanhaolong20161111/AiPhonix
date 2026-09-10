@@ -37,6 +37,7 @@ class ProxySpeechRepository(
     private val scoreClient = ScoreClient(client)
 
     /** 最近一次流式评测的原始 PCM，供"我的发音"回放保存（取走即清空） */
+    @Volatile
     private var lastRecordingPcm: ByteArray? = null
 
     // ========== SpeechRepository ==========
@@ -54,12 +55,12 @@ class ProxySpeechRepository(
         Log.d(TAG, "开始录音评测: ${word.text}")
         audioRecorder.reset() // 清除上次的 stop 状态
         val audioBytes = audioRecorder.record()
-        // 保留本次录音，供"我的发音"回放（跟读即录音，多次跟读覆盖最近一次）
-        lastRecordingPcm = audioBytes
 
         if (audioBytes.size < MIN_AUDIO_BYTES) {
             throw RuntimeException("录音太短，请至少读一秒")
         }
+        // 通过长度校验后才保留，供"我的发音"回放（跟读即录音，多次跟读覆盖最近一次）
+        lastRecordingPcm = audioBytes
 
         Log.d(TAG, "录音完成，发送评测: ${audioBytes.size} bytes")
         return withContext(Dispatchers.IO) {

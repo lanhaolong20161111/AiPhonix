@@ -34,7 +34,6 @@ fun OralWritingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    LaunchedEffect(Unit) { viewModel.initAsrEngine(context.assets) }
 
     Scaffold(
         topBar = {
@@ -209,45 +208,25 @@ private fun WritingScreen(state: OralWritingUiState, viewModel: OralWritingViewM
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // — 当前段落：显示文本输入 + 独立麦克风 —
+                    // — 当前段落：文本输入（可点输入框用输入法语音） —
                     if (isCurrent) {
                         OutlinedTextField(
-                            value = if (state.isRecording) state.asrTranscription else sectionText,
+                            value = sectionText,
                             onValueChange = { viewModel.updateCurrentInput(it) },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 80.dp),
-                            label = { Text("把你想说的写下来...") },
-                            placeholder = {
-                                if (state.isRecording) Text("🎤 正在录音，请说话...")
-                                else Text("点击🎤开始语音输入")
-                            },
+                            label = { Text("把你想说的写下来（可点输入框用语音输入）") },
+                            placeholder = { Text("在这里写下你的内容…") },
                             maxLines = 5,
-                            readOnly = state.isRecording,
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // 当前段操作行：独立麦克风 + 保存 + 提示
+                        // 当前段操作行：保存 + 提示
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // 独立麦克风按钮
-                            FilledIconButton(
-                                onClick = {
-                                    if (state.isRecording) viewModel.stopVoiceInput()
-                                    else viewModel.startVoiceInput()
-                                },
-                                modifier = Modifier.size(44.dp),
-                                enabled = !state.isTransitioning,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = if (state.isRecording) Color(0xFFE53935) else Color(0xFF1976D2),
-                                    disabledContainerColor = Color(0xFFBDBDBD),
-                                ),
-                            ) {
-                                Text(if (state.isRecording) "⬤" else "🎤", fontSize = 18.sp)
-                            }
-
                             // 提交按钮
                             Button(
                                 onClick = { viewModel.submitCurrentSection() },

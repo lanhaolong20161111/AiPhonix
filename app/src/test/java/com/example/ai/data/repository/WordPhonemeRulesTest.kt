@@ -136,6 +136,7 @@ class WordPhonemeRulesTest {
             .replace("ɡ", "g")         // 词典标注 U+0261 → 项目规范 ASCII g
             .replace("oʊ", "əʊ")      // goat, nose, yellow
             .replace("ɝ", "ɜː")        // American r-colored vowel
+            .replace("ɛ", "e")         // 美式 ɛ → 英式 e（bear, bed）
             .replace("r", "")          // 容忍 (r) 差异
             .replace("i", "ɪ")         // 词尾 i (U+0069) → ɪ
     }

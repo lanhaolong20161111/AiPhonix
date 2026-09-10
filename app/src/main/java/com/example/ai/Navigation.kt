@@ -76,10 +76,24 @@ import com.example.ai.ui.videopractice.VideoPracticeScreen
 import com.example.ai.di.ServiceModule
 import com.example.ai.data.auth.TokenManager
 import com.example.ai.data.aipractice.AiPracticeRepository
+import com.example.ai.data.aihomework.AiHomeworkRepository
+import com.example.ai.ui.aihomework.AiHomeworkPracticeScreen
+import com.example.ai.ui.aihomework.AiHomeworkPracticeViewModel
+import com.example.ai.ui.aihomework.AiHomeworkCharStatsScreen
+import com.example.ai.ui.aihomework.AiHomeworkCharStatsViewModel
+import com.example.ai.data.aichinese.AiChineseRepository
+import com.example.ai.ui.aichinese.AiChineseScreen
+import com.example.ai.ui.aichinese.AiChineseViewModel
+import com.example.ai.ui.pinyin.PinyinScreen
+import com.example.ai.ui.pinyin.PinyinViewModel
+import com.example.ai.ui.aihomework.AiHomeworkScreen
+import com.example.ai.ui.aihomework.AiHomeworkViewModel
 import com.example.ai.ui.aipractice.AiPracticeChatScreen
 import com.example.ai.ui.aipractice.AiPracticeChatViewModel
 import com.example.ai.ui.aipractice.AiPracticeScreen
 import com.example.ai.ui.aipractice.AiPracticeViewModel
+import com.example.ai.ui.murmur.MurmurScreen
+import com.example.ai.ui.murmur.MurmurViewModel
 import android.widget.Toast
 
 @Composable
@@ -138,6 +152,8 @@ fun MainNavigation(container: AppContainer) {
             },
             onOpenAccount = { backStack.add(Account) },
             onOpenParent = { backStack.add(ParentSettings) },
+            onOpenPinyin = { backStack.add(PinyinExercise) },
+            onOpenMurmur = { backStack.add(Murmur) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -217,6 +233,57 @@ fun MainNavigation(container: AppContainer) {
             viewModel = viewModel { AiPracticeViewModel(repository = AiPracticeRepository()) },
             onBack = { backStack.removeLastOrNull() },
             onOpenChat = { sessionId, content -> backStack.add(AiPracticeChat(sessionId, content)) },
+            onOpenHomework = { backStack.add(AiHomework) },
+            onOpenChinese = { backStack.add(AiChinese) },
+          )
+        }
+        entry<AiChinese> {
+          AiChineseScreen(
+            viewModel = viewModel { AiChineseViewModel(repository = AiChineseRepository()) },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<PinyinExercise> {
+          PinyinScreen(
+            viewModel = viewModel { PinyinViewModel(repository = AiChineseRepository()) },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<AiHomework> {
+          AiHomeworkScreen(
+            viewModel = viewModel { AiHomeworkViewModel(repository = AiHomeworkRepository()) },
+            onBack = { backStack.removeLastOrNull() },
+            onOpenCharStats = { backStack.add(AiHomeworkCharStats) },
+          )
+        }
+        entry<AiHomeworkCharStats> {
+          AiHomeworkCharStatsScreen(
+            viewModel = viewModel { AiHomeworkCharStatsViewModel(repository = AiHomeworkRepository()) },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<AiHomeworkPractice> { route ->
+          AiHomeworkPracticeScreen(
+            viewModel = viewModel {
+              AiHomeworkPracticeViewModel(
+                question = route.question,
+                payloadJson = route.payload,
+                repository = AiHomeworkRepository(),
+              )
+            },
+            onBack = { backStack.removeLastOrNull() },
+          )
+        }
+        entry<Murmur> {
+          val scope = rememberCoroutineScope()
+          MurmurScreen(
+            viewModel = viewModel {
+              MurmurViewModel(
+                ttsEngine = container.ttsEngine,
+                speechRepository = container.speechRepository,
+              )
+            },
+            onBack = { backStack.removeLastOrNull() },
           )
         }
         entry<AiPracticeChat> { route ->
@@ -225,7 +292,6 @@ fun MainNavigation(container: AppContainer) {
               AiPracticeChatViewModel(
                 repository = AiPracticeRepository(),
                 ttsEngine = container.ttsEngine,
-                appContext = container.appContext,
               ).also { it.initSession(route.sessionId, route.content) }
             },
             ttsEngine = container.ttsEngine,

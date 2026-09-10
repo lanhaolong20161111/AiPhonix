@@ -1,6 +1,5 @@
 package com.example.ai.ui.articlereading
 
-import android.content.res.AssetManager
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,12 +13,9 @@ import com.example.ai.data.articlereading.ArticleSession
 import com.example.ai.data.articlereading.ImportedQuizParser
 import com.example.ai.data.repository.LLMRepository
 import com.example.ai.data.userimport.UserImportStore
-import com.k2fsa.sherpa.onnx.OralAsrEngine
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -36,8 +32,6 @@ data class ArticleQuizUiState(
     val loading: Boolean = true,       // 正在生成/匹配问题
     val matchedCount: Int = 0,         // 本地题库匹配到的数量
     val error: String = "",
-    val recordingIndex: Int = -1,
-    val partialText: String = "",
     val expandedAnswer: Int = -1,      // 展开参考答案的题号
 )
 
@@ -55,8 +49,6 @@ class ArticleQuizViewModel(
 
     private val _uiState = MutableStateFlow(ArticleQuizUiState())
     val uiState: StateFlow<ArticleQuizUiState> = _uiState
-
-    private var asrEngine: OralAsrEngine? = null
 
     fun initQuiz(articleKey: String, title: String) {
         if (_uiState.value.articleKey == articleKey && !_uiState.value.loading) return
@@ -166,58 +158,15 @@ class ArticleQuizViewModel(
         }
     }
 
-    fun initAsrEngine(assetManager: AssetManager) {
-        if (asrEngine == null) {
-            asrEngine = OralAsrEngine(assetManager)
-            viewModelScope.launch(Dispatchers.IO) {
-                val ok = asrEngine?.init() ?: false
-                if (!ok) _uiState.value = _uiState.value.copy(error = "语音模型加载失败")
-            }
-        }
-    }
-
-    /** 开始/停止某题的口述回答（ASR + 存 wav） */
-    fun toggleRecord(index: Int) {
-        val s = _uiState.value
-        if (s.recordingIndex >= 0) {
-            asrEngine?.stopRecording()
-            return
-        }
-        val engine = asrEngine ?: return
-        val relPath = readingStore.questionAudioPath(s.articleKey, index)
-        // 引擎写文件用绝对路径（OralAsrEngine 内部 File(wavPath) 不解析相对路径），存储用相对路径
-        val wavPath = readingStore.resolveAudio(relPath).absolutePath
-        _uiState.value = s.copy(recordingIndex = index, partialText = "")
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                engine.startRecording(
-                    onPartial = { partial ->
-                        _uiState.value = _uiState.value.copy(partialText = partial)
-                    },
-                    wavPath = wavPath,
-                )
-            }
-            val finalText = result.getOrNull() ?: ""
-            _uiState.value = _uiState.value.copy(recordingIndex = -1, partialText = "")
-            if (finalText.isNotBlank()) {
-                updateAnswer(index, finalText, relPath)
-            } else {
-                result.onFailure { e ->
-                    Log.w(TAG, "未识别到语音", e)
-                    _uiState.value = _uiState.value.copy(error = "没有识别到语音，请靠近麦克风再试")
-                }
-            }
-        }
-    }
-
-    private fun updateAnswer(index: Int, text: String, wavPath: String) {
+    /** 保存某题的口述回答（文本框输入/输入法语音输入） */
+    fun setAnswerText(index: Int, text: String) {
         val s = _uiState.value
         val answers = s.answers.toMutableList()
         val existing = answers.indexOfFirst { it.questionIndex == index }
         val newAnswer = ArticleAnswer(
             questionIndex = index,
             spokenText = text,
-            audioPath = wavPath,
+            audioPath = "",
             updatedAt = System.currentTimeMillis(),
         )
         if (existing >= 0) answers[existing] = newAnswer else answers.add(newAnswer)
@@ -250,11 +199,5 @@ class ArticleQuizViewModel(
                 finishedAt = existing?.finishedAt ?: System.currentTimeMillis(),
             )
         )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        asrEngine?.release()
-        asrEngine = null
     }
 }

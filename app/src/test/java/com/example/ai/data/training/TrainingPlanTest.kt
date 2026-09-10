@@ -23,9 +23,9 @@ class FeatureCatalogTest {
 
     @Test
     fun `功能目录覆盖全部可训练页面`() {
-        // 9 个可训练功能 + 2 个家长管理功能（导入/我的导入）
-        assertEquals(11, FeatureId.entries.size)
-        assertEquals(9, FeatureId.trainableEntries.size)
+        // 10 个可训练功能 + 2 个家长管理功能（导入/我的导入）
+        assertEquals(12, FeatureId.entries.size)
+        assertEquals(10, FeatureId.trainableEntries.size)
         assertTrue(FeatureId.trainableEntries.all { it.isTraining })
         assertTrue(FeatureId.entries.all { it.emoji.isNotBlank() && it.title.isNotBlank() })
     }

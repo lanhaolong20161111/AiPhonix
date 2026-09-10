@@ -5,6 +5,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -50,18 +51,33 @@ class AudioRecorder {
         try {
             record.startRecording()
             val buf = ByteArray(minBufSize)
+            var consecutiveErrors = 0
             while (isActive && !stopped.get() &&
                 (System.currentTimeMillis() - startTime) < MAX_RECORD_SECONDS * 1000
             ) {
                 val read = record.read(buf, 0, buf.size)
-                if (read > 0) buffer.write(buf, 0, read)
+                if (read > 0) {
+                    buffer.write(buf, 0, read)
+                    consecutiveErrors = 0
+                } else if (read < 0) {
+                    // AudioRecord 返回负值 = 错误（ERROR_BAD_VALUE/ERROR_INVALID_OPERATION）
+                    consecutiveErrors++
+                    if (consecutiveErrors >= 20) {
+                        Log.e(TAG, "录音循环连续错误 ${consecutiveErrors} 次，放弃本次录音")
+                        break
+                    }
+                    delay(50)
+                } else {
+                    // read == 0：短暂无数据，让出 CPU 避免忙等
+                    delay(50)
+                }
             }
         } finally {
             try { record.stop() } catch (_: Exception) {}
             record.release()
         }
 
-        Log.d(TAG, "录音结束: ${buffer.size()} bytes @ ${sampleRate}Hz (${buffer.size() / (sampleRate / 500)}秒)")
+        Log.d(TAG, "录音结束: ${buffer.size()} bytes @ ${sampleRate}Hz (${buffer.size() / (sampleRate * 2)}秒)")
         buffer.toByteArray()
     }
 

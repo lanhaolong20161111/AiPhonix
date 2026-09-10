@@ -20,6 +20,8 @@ class UserImportStore(private val context: Context) {
     @Volatile
     private var cache: List<UserImportItem>? = null
 
+    /** 读缓存/文件（全部写操作与 upsert 共用同一把锁，避免并发 load→save 丢失更新） */
+    @Synchronized
     fun load(): List<UserImportItem> {
         cache?.let { return it }
         val items = if (file.exists()) {
@@ -37,6 +39,7 @@ class UserImportStore(private val context: Context) {
     }
 
     /** 批量 upsert（同 kind + text 视为同一条，更新之；否则新增）。返回保存后的完整列表 */
+    @Synchronized
     fun upsertAll(newItems: List<UserImportItem>): List<UserImportItem> {
         val current = load().toMutableList()
         for (item in newItems) {
@@ -58,6 +61,7 @@ class UserImportStore(private val context: Context) {
     }
 
     /** 同步成功后回填服务端 id（key = "kind\u0000text"）。无本地 id 匹配的忽略 */
+    @Synchronized
     fun attachServerIds(idsByKey: Map<String, String>) {
         if (idsByKey.isEmpty()) return
         val current = load().toMutableList()
@@ -73,12 +77,14 @@ class UserImportStore(private val context: Context) {
         if (changed) save(current)
     }
 
+    @Synchronized
     fun remove(id: String): List<UserImportItem> {
         val current = load().filterNot { it.id == id }
         save(current)
         return current
     }
 
+    @Synchronized
     fun clear() {
         cache = emptyList()
         if (file.exists()) file.delete()

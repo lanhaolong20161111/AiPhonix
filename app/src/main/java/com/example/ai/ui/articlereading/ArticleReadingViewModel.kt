@@ -1,7 +1,5 @@
 package com.example.ai.ui.articlereading
 
-import android.content.res.AssetManager
-import android.media.MediaPlayer
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +9,6 @@ import com.example.ai.data.articlereading.ArticleSession
 import com.example.ai.data.articlereading.ParagraphSummary
 import com.example.ai.data.tts.TtsEngine
 import com.example.ai.data.userimport.UserImportStore
-import com.k2fsa.sherpa.onnx.OralAsrEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,10 +21,7 @@ data class ArticleReadingUiState(
     val title: String = "",
     val paragraphs: List<String> = emptyList(),
     val summaries: List<ParagraphSummary> = emptyList(),
-    val recordingIndex: Int = -1,        // -1=未录音；否则为正在录音的段落下标
-    val partialText: String = "",
     val ttsSpeaking: Boolean = false,
-    val playingAudio: Boolean = false,
     val error: String = "",
     val finishedAt: Long = 0L,
 )
@@ -45,9 +39,6 @@ class ArticleReadingViewModel(
     private val _uiState = MutableStateFlow(ArticleReadingUiState())
     val uiState: StateFlow<ArticleReadingUiState> = _uiState
 
-    private var asrEngine: OralAsrEngine? = null
-    private var mediaPlayer: MediaPlayer? = null
-
     fun initArticle(articleKey: String, title: String) {
         if (_uiState.value.articleKey == articleKey && _uiState.value.paragraphs.isNotEmpty()) return
         val item = store.load().firstOrNull { it.id == articleKey && it.kind == "article" }
@@ -61,16 +52,6 @@ class ArticleReadingViewModel(
             summaries = session?.summaries ?: emptyList(),
             error = "",
         )
-    }
-
-    fun initAsrEngine(assetManager: AssetManager) {
-        if (asrEngine == null) {
-            asrEngine = OralAsrEngine(assetManager)
-            viewModelScope.launch(Dispatchers.IO) {
-                val ok = asrEngine?.init() ?: false
-                if (!ok) _uiState.value = _uiState.value.copy(error = "语音模型加载失败")
-            }
-        }
     }
 
     /** 播放整篇文章（TTS） */
@@ -103,77 +84,15 @@ class ArticleReadingViewModel(
         }
     }
 
-    /** 播放某段口述总结的录音（wav） */
-    fun playSummaryAudio(index: Int) {
-        val summary = _uiState.value.summaries.getOrNull(index) ?: return
-        if (summary.audioPath.isBlank()) return
-        val file = readingStore.resolveAudio(summary.audioPath)
-        if (!file.exists()) return
-        try {
-            stopAudio()
-            val mp = MediaPlayer()
-            mp.setDataSource(file.absolutePath)
-            mp.setOnCompletionListener { stopAudio() }
-            mp.prepare()
-            mp.start()
-            mediaPlayer = mp
-            _uiState.value = _uiState.value.copy(playingAudio = true)
-        } catch (e: Exception) {
-            Log.e(TAG, "播放失败", e)
-            _uiState.value = _uiState.value.copy(error = "录音播放失败")
-        }
-    }
-
-    fun stopAudio() {
-        try {
-            mediaPlayer?.release()
-        } catch (_: Exception) {}
-        mediaPlayer = null
-        _uiState.value = _uiState.value.copy(playingAudio = false)
-    }
-
-    /** 开始/停止某段的口述概括录音（ASR + 存 wav） */
-    fun toggleRecord(index: Int) {
-        val s = _uiState.value
-        if (s.recordingIndex >= 0) {
-            asrEngine?.stopRecording() // 让 startRecording 循环退出
-            return
-        }
-        val engine = asrEngine ?: run { _uiState.value = _uiState.value.copy(error = "语音引擎未就绪"); return }
-        val relPath = readingStore.paragraphAudioPath(s.articleKey, index)
-        // 引擎写文件用绝对路径（OralAsrEngine 内部 File(wavPath) 不解析相对路径），存储用相对路径
-        val wavPath = readingStore.resolveAudio(relPath).absolutePath
-        _uiState.value = _uiState.value.copy(recordingIndex = index, partialText = "")
-        viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                engine.startRecording(
-                    onPartial = { partial ->
-                        _uiState.value = _uiState.value.copy(partialText = partial)
-                    },
-                    wavPath = wavPath,
-                )
-            }
-            val finalText = result.getOrNull() ?: ""
-            _uiState.value = _uiState.value.copy(recordingIndex = -1, partialText = "")
-            if (finalText.isNotBlank()) {
-                updateSummary(index, finalText, relPath)
-            } else {
-                result.onFailure { e ->
-                    Log.w(TAG, "未识别到内容", e)
-                    _uiState.value = _uiState.value.copy(error = "没有识别到语音，请靠近麦克风再试")
-                }
-            }
-        }
-    }
-
-    private fun updateSummary(index: Int, text: String, wavPath: String) {
+    /** 保存某段的口述概括（文本框输入/输入法语音输入） */
+    fun setSummaryText(index: Int, text: String) {
         val s = _uiState.value
         val summaries = s.summaries.toMutableList()
         val existing = summaries.indexOfFirst { it.index == index }
         val newSummary = ParagraphSummary(
             index = index,
             text = text,
-            audioPath = wavPath,
+            audioPath = "",
             updatedAt = System.currentTimeMillis(),
         )
         if (existing >= 0) summaries[existing] = newSummary else summaries.add(newSummary)
@@ -200,12 +119,5 @@ class ArticleReadingViewModel(
                 finishedAt = s.finishedAt,
             )
         )
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        stopAudio()
-        asrEngine?.release()
-        asrEngine = null
     }
 }

@@ -1,8 +1,8 @@
 package com.example.ai.data.speech
 
 import android.util.Log
-import com.example.ai.BuildConfig
 import com.example.ai.data.model.*
+import com.example.ai.di.ServiceModule
 import kotlinx.serialization.json.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -29,12 +29,14 @@ class ScoreClient(
      * @param refText 参考文本
      * @param audioBase64 PCM 16bit 16kHz mono 的 base64 编码
      * @param engine 评测引擎（留空使用默认）
+     * @param evalMode 评测模式（"8"=拼音评测；空=段落）
      */
-    fun evaluate(refText: String, audioBase64: String, engine: String = ""): PronunciationResult {
+    fun evaluate(refText: String, audioBase64: String, engine: String = "", evalMode: String = ""): PronunciationResult {
         val jsonBody = JSONObject().apply {
             put("ref_text", refText)
             put("audio_base64", audioBase64)
             if (engine.isNotEmpty()) put("engine", engine)
+            if (evalMode.isNotEmpty()) put("eval_mode", evalMode)
         }
 
         val request = Request.Builder()
@@ -107,10 +109,8 @@ class ScoreClient(
             "ZH" to "ʒ",
         )
 
-        fun serverBase(): String {
-            val host = BuildConfig.TTS_SERVER_HOST
-            return if (host.isNotBlank()) host else "http://192.168.1.3:8080"
-        }
+        /** 服务端基础地址：与全局 ServiceModule 一致（支持 BuildConfig 覆盖，避免硬编码旧 IP） */
+        fun serverBase(): String = ServiceModule.serverBase
 
         /** 腾讯 ARPAbet → 国际音标（IPA）。已含斜杠则跳过，未知符号保留原文。 */
         fun arpabetToIpa(phone: String): String {

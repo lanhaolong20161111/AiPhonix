@@ -15,7 +15,7 @@ object ServiceModule {
     /** 服务端基础地址 */
     val serverBase: String by lazy {
         val host = BuildConfigHelper.serverHost
-        if (host.isNotBlank()) host else "http://192.168.1.3:8080"
+        if (host.isNotBlank()) host else "http://192.168.1.10:8080"
     }
 
     /** LLM 代理仓库 */

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -29,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,7 +49,7 @@ private fun splitParagraphs(text: String): List<String> =
  * ai陪我练 会话页：
  * - 多轮对话气泡；AI 回答按段落/句子分段，段落 🔊 与句子 🎵 不同图标可反复点播
  * - 学生回答下方展示 纠正（橙）/ 表扬（绿）对比行
- * - 语音回答：识别中暂停后继续 → 文字追加不清空；录音自动保存 wav
+ * - 文本回答：点输入框可用输入法语音输入
  */
 @Composable
 fun AiPracticeChatScreen(
@@ -141,31 +139,11 @@ fun AiPracticeChatScreen(
                 value = state.answerDraft,
                 onValueChange = viewModel::updateDraft,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("打字或按住🎤说话") },
+                placeholder = { Text("输入你的回答（可点输入框用语音输入）") },
                 maxLines = 3,
                 enabled = !state.done,
             )
-            if (state.partialText.isNotBlank()) {
-                Text(
-                    state.partialText,
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 14.dp).widthIn(max = 100.dp),
-                )
-            }
             Spacer(Modifier.width(6.dp))
-            IconButton(
-                onClick = {
-                    if (state.recording) viewModel.stopVoice() else viewModel.startVoice()
-                },
-                enabled = !state.done,
-            ) {
-                Text(
-                    if (state.recording) "⏹️" else "🎤",
-                    fontSize = 24.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
             IconButton(
                 onClick = viewModel::sendCurrent,
                 enabled = state.answerDraft.isNotBlank() && !state.sending && !state.done,
