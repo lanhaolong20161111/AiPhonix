@@ -13,7 +13,7 @@ import { TapCharText } from "../components/TapCharText"
 import { EchoLadder } from "../components/EchoLadder"
 import { useTts } from "../hooks/useTts"
 import { zhTeachSetup, zhTeachJudge, type TeachScript, type TeachItem } from "../services/zhTeach"
-import { zhPoemSetup, type PoemScript, type PoemLine } from "../services/zhPoem"
+import { zhPoemSetup, zhPoemSummary, type PoemScript, type PoemLine } from "../services/zhPoem"
 
 type Stage = "setup" | "question" | "judging" | "finished"
 const SIX_SECONDS = 6000
@@ -160,8 +160,17 @@ export function SpeechComposePage() {
     setPoemIntroDone(false) // 先听"整篇古诗 + 全诗概括"，听完才进入逐句测评
     setStage("question") // 离开 setup 界面（否则第 320 行 stage==="setup" 恒真，古诗界面永远不渲染）
 
-    // 后台生成讲解（概括/白话/逐字义）；整篇朗读期间大概率已就绪，成功后原地合并
-    const setupPromise = (async () => {
+    // 快速概括（只生成题目+概括，1~3s）：整篇朗读期间就绪，开场不用等完整讲解
+    const summaryPromise = zhPoemSummary(raw)
+      .then((s) => {
+        if (s?.summary) setPoem((prev) => (prev ? { ...prev, title: s.title || prev.title, summary: prev.summary || s.summary } : prev))
+        return s
+      })
+      .catch(() => null)
+
+    // 后台生成完整讲解（概括/白话/逐字义）；成功后原地合并，失败保持原文练习可用
+    // 后台生成完整讲解（逐句白话/逐字释义），就绪后原地合并；失败保持原文练习可用
+    void (async () => {
       try {
         const p = await zhPoemSetup(raw)
         setPoem((prev) => {
@@ -177,20 +186,20 @@ export function SpeechComposePage() {
             fallback: false,
           }
         })
-        return p
       } catch {
-        return null // 讲解生成失败：保持原文练习可用，不报错打断
+        /* 讲解生成失败：保持原文练习可用，不报错打断 */
       }
     })()
 
-    // 开场：先朗读整篇古诗，再读全诗概括（讲解未就绪最多等 20s，失败则跳过），然后才逐句
+    // 开场：先朗读整篇古诗，再读全诗概括（快速端点，通常朗读期间已就绪；最多再等 8s，失败则跳过），然后才逐句
     setEvalBusy(true)
     poemBusyRef.current = true
     setTtsBusy(true)
     try {
       await withTimeout(speak(raw, { speaker: POEM_VOICE }), 40_000).catch(() => { /* 朗读失败不阻塞流程 */ })
-      const p = await Promise.race([setupPromise, new Promise<null>((r) => setTimeout(() => r(null), 20_000))])
-      if (p?.summary) await withTimeout(speak(p.summary, { speaker: POEM_VOICE }), 20_000).catch(() => { /* 同上 */ })
+      // 优先用快速概括；万一它也慢，最多再等 8s（正常已在整篇朗读期间就绪）
+      const s = await Promise.race([summaryPromise, new Promise<null>((r) => setTimeout(() => r(null), 8_000))])
+      if (s?.summary) await withTimeout(speak(s.summary, { speaker: POEM_VOICE }), 20_000).catch(() => { /* 同上 */ })
     } finally {
       poemBusyRef.current = false
       setTtsBusy(false)
