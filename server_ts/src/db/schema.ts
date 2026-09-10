@@ -85,6 +85,19 @@ export const uploadRecords = sqliteTable("upload_records", {
 	index("ix_upload_records_created_at").on(table.createdAt),
 ]);
 
+export const courseware = sqliteTable("courseware", {
+	id: integer().primaryKey().notNull(),
+	module: text({ length: 16 }).notNull(),
+	fileName: text("file_name", { length: 256 }).notNull(),
+	title: text({ length: 256 }).notNull().default(""),
+	createdAt: numeric("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	createdBy: integer("created_by"),
+},
+(table) => [
+	index("ix_courseware_module").on(table.module),
+	index("ix_courseware_created_at").on(table.createdAt),
+]);
+
 export const userImports = sqliteTable("user_imports", {
 	id: integer().primaryKey().notNull(),
 	userId: integer("user_id").notNull(),

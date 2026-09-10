@@ -14,9 +14,12 @@
 import { Hono } from "hono"
 import { getConfig } from "../env.js"
 import { BaiduTTSService } from "../lib/baiduTts.js"
+import { DoubaoTTSService } from "../lib/doubaoAudio.js"
 import { dataPath } from "../lib/jsonfile.js"
 import { exists, readBlob, writeBlob } from "../lib/storage.js"
 import { requireAuth } from "../middleware/auth.js"
+import { lookupPreGenerated, lookupPoemTts } from "../lib/preGeneratedTts.js"
+import { synthesizeStream } from "../lib/baiduTtsStream.js"
 
 const router = new Hono()
 
@@ -34,6 +37,19 @@ function getTts(): BaiduTTSService | null {
     svcKey = key
   }
   return svc
+}
+
+let dsvc: DoubaoTTSService | null = null
+let dsvcKey = ""
+function getDoubao(): DoubaoTTSService | null {
+  const cfg = getConfig()
+  if (!cfg.volc_tts.api_key) return null
+  const key = `${cfg.volc_tts.api_key}|${cfg.volc_tts.engine}`
+  if (!dsvc || dsvcKey !== key) {
+    dsvc = new DoubaoTTSService(cfg.volc_tts.api_key, cfg.volc_tts.engine, cfg.volc_tts.cache_dir)
+    dsvcKey = key
+  }
+  return dsvc
 }
 
 // ── 单字音频库 ──
@@ -99,9 +115,59 @@ const BAD_CHAR_RES = () =>
 router.post("/tts/synthesize", requireAuth(), async (c) => {
   const body = await c.req.json().catch(() => null)
   const text = String(body?.text ?? "")
-  const speaker = String(body?.speaker ?? "0")
+  const speaker = String(body?.speaker ?? "6221")
   const speed = Number(body?.speed ?? 5)
+  /** 引擎：baidu（默认，预生成库→百度实时）| doubao（豆包 TTS，失败回退百度） */
+  const engine = body?.engine === "doubao" ? "doubao" : "baidu"
+  /** 指定音色场景（如古诗朗读）跳过预生成库，直接用所请求音色合成 */
+  const avoidPregen = body?.avoidPregen === true || body?.avoidPregen === "true"
   if (!text) return c.json({ detail: "文本不能为空" }, 422)
+
+  // 豆包引擎：跳过预生成库（库内为 Tim 童声，音色不一致）；缓存/合成在 DoubaoTTSService 内部，
+  // Cloudflare 子请求墙 ~30s，外呼 25s 超时即弃并回退百度，保证响应及时、页面不哑火。
+  if (engine === "doubao") {
+    const doubao = getDoubao()
+    if (doubao) {
+      try {
+        const audio = await doubao.synthesize(text, 25_000)
+        return new Response(audio, {
+          headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=3600", "X-Tts-Source": "doubao" },
+        })
+      } catch (e) {
+        console.warn(`[tts] 豆包引擎失败，回退百度: ${(e as Error).message}`)
+      }
+    } else {
+      console.warn("[tts] 未配置豆包 TTS（VOLC_TTS_API_KEY），回退百度")
+    }
+  } else if (speaker === "3") {
+    // 古诗音色（度逍遥）：先查古诗预生成库（原文句子，0 延迟命中）；未命中直接合成该音色
+    // （不查通用预生成库——那是童声，音色不一致）
+    const poem = await lookupPoemTts(text)
+    if (poem) {
+      return new Response(poem.data, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Cache-Control": "public, max-age=31536000, immutable",
+          "X-Tts-Source": poem.source,
+        },
+      })
+    }
+  } else if (!avoidPregen) {
+    // 百度引擎：优先播放预生成缓存（当前仅单汉字 data/tts_char；英文库已于 2026-09-10 删除），
+    // 命中后不再调用百度实时合成；未命中才继续走原有百度 TTS，保持旧功能不变。
+    // （avoidPregen=true 时跳过预生成库，保证按请求音色朗读，如古诗用度逍遥）
+    const preGenerated = await lookupPreGenerated(text)
+    if (preGenerated) {
+      return new Response(preGenerated.data, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Cache-Control": "public, max-age=31536000, immutable",
+          "X-Tts-Source": preGenerated.source,
+        },
+      })
+    }
+  }
+
   const tts = getTts()
   if (!tts) return c.json({ detail: "服务端未配置百度 TTS" }, 500)
   try {
@@ -120,6 +186,13 @@ router.get("/tts/char/:char", requireAuth(), async (c) => {
   if (!parsed.ok) return BAD_CHAR_RES()
   const { char, syllable } = parsed
 
+  // 对单字端点也优先查火山预生成库。带 pinyin 的请求暂不命中，
+  // 因为预生成文件名按原字保存，需保留原有百度注音语法以锁定指定读音。
+  if (!syllable) {
+    const preGenerated = await lookupPreGenerated(char)
+    if (preGenerated) return mp3Resp(preGenerated.data, preGenerated.source)
+  }
+
   const hit = await lookupChar(char, syllable)
   if (hit) return mp3Resp(hit.data, hit.source)
 
@@ -132,7 +205,7 @@ router.get("/tts/char/:char", requireAuth(), async (c) => {
   try {
     // 锁定读音时用百度注音语法 字(hao3)；否则直接送单字
     const tex = syllable ? `${char}(${syllable})` : char
-    const buf = await tts.synthesize(tex, "0", 5)
+    const buf = await tts.synthesize(tex, "6221", 5)
     const bytes = new Uint8Array(buf)
     // 沉淀失败不能影响本次播放（R2 偶发写失败就下次再沉淀）
     try {
@@ -153,6 +226,37 @@ router.get("/tts/char/:char/exists", async (c) => {
   const { char, syllable } = parsed
   const hit = await lookupChar(char, syllable)
   return c.json({ exists: hit !== null, source: hit?.source ?? null })
+})
+
+// POST /api/v1/tts/stream — 百度流式文本在线合成（边合成边下发 mp3 分片，降低首音延迟）
+// body 同 /tts/synthesize；doubao 引擎不支持流式 → 返回 409 由前端回退普通合成。
+router.post("/tts/stream", requireAuth(), async (c) => {
+  const body = await c.req.json().catch(() => null)
+  const text = String(body?.text ?? "")
+  const speaker = String(body?.speaker ?? "6221")
+  const speed = Number(body?.speed ?? 5)
+  const avoidPregen = body?.avoidPregen === true || body?.avoidPregen === "true"
+  if (!text) return c.json({ detail: "文本不能为空" }, 422)
+  if (body?.engine === "doubao") return c.json({ detail: "doubao 引擎不支持流式合成", fallback: true }, 409)
+
+  // 预生成库命中 → 直接返回整段（无需流式）
+  if (speaker === "3") {
+    const poem = await lookupPoemTts(text)
+    if (poem) return new Response(poem.data, { headers: { "Content-Type": "audio/mpeg", "X-Tts-Source": poem.source } })
+  } else if (!avoidPregen) {
+    const preGenerated = await lookupPreGenerated(text)
+    if (preGenerated) return new Response(preGenerated.data, { headers: { "Content-Type": "audio/mpeg", "X-Tts-Source": preGenerated.source } })
+  }
+
+  try {
+    const stream = await synthesizeStream(text, speaker, speed)
+    return new Response(stream, {
+      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store", "X-Tts-Stream": "1" },
+    })
+  } catch (e) {
+    // 流式不可用 → 交回前端走普通合成
+    return c.json({ detail: `流式合成失败: ${(e as Error).message}`, fallback: true }, 502)
+  }
 })
 
 export default router

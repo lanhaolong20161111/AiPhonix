@@ -383,7 +383,10 @@ export async function chat(
         cfg.deepseek.model,
         messages,
         attempt === 0 ? maxTokens : maxTokens * 2 + 512,
-        0.7
+        0.7,
+        undefined,
+        // 关闭思考（deepseek-v4 系列是思考模型，默认带思维链慢且吞 token）
+        disableThinking ? { thinking: { type: "disabled" } } : undefined
       )
       content = r.content
       promptTokens = r.prompt_tokens

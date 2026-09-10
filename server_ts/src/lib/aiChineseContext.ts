@@ -18,7 +18,7 @@ export const MAX_QUESTION_LEN = 18000
 export const MULTIMODAL_MODEL = "doubao-seed-2-1-turbo-260628"
 
 /** 当前生效的多模态识图模型：优先环境变量 ARK_VISION_MODEL / cfg.ark_chat.vision_model，未设则用默认。
- * 对齐 server_cf：原 doubao-seed-evolving 实测单图超时(≥240s)已弃用。 */
+ * 对齐 server_cf：统一 doubao-seed-2-1-turbo-260628（旧视觉模型已弃用）。 */
 export function multimodalModel(): string {
   try {
     const m = getConfig().ark_chat.vision_model

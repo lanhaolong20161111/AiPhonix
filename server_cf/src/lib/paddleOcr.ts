@@ -17,6 +17,7 @@
 import { readBlob, exists } from "./storage.js"
 import { getEnv } from "../env.js"
 import { cleanOcrText } from "./aiTextUtils.js"
+import { markdownToBlocks, stripEmbeddedHtml } from "./paddleMarkdown.js"
 
 const JOB_URL = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
 const MODEL = "PaddleOCR-VL-1.6"
@@ -204,59 +205,6 @@ async function paddleOcrExtractOnce(
   return { ok: true, text: cleaned, blocks, markdown: md, ms: Date.now() - t0 }
 }
 
-/** 剥离 PaddleOCR markdown 里嵌入的子图标签（<img ...> / <div>...</div> / <figure>），
- * 避免行内裸 HTML 进入前端文本。 */
-function stripEmbeddedHtml(md: string): string {
-  return md
-    .replace(/<img\b[^>]*>/gi, "")
-    .replace(/<\/?div\b[^>]*>/gi, "")
-    .replace(/<\/?figure\b[^>]*>/gi, "")
-}
-
-/** PaddleOCR 的 markdown → 我们的 blocks[] 结构（title/heading/body/table）。
- * 最佳努力转换：标题转 heading、表格转 HTML table 块、其余逐行转 body。
- * polyphones 留空（本引擎不标拼音）。 */
-function markdownToBlocks(md: string): any[] {
-  const lines = md.split("\n")
-  const blocks: any[] = []
-  let i = 0
-  while (i < lines.length) {
-    const trimmed = lines[i].trim()
-    if (!trimmed) {
-      i++
-      continue
-    }
-    if (trimmed.startsWith("|") && isTableStart(lines, i)) {
-      const tbl = collectTable(lines, i)
-      i = tbl.next
-      blocks.push({ type: "table", text: tbl.html, align: "left", lines: [], polyphones: {} })
-      continue
-    }
-    const h = trimmed.match(/^(#{1,3})\s+(.*)$/)
-    if (h) {
-      const level = h[1].length
-      const txt = h[2].trim()
-      blocks.push({
-        type: level === 1 ? "title" : "heading",
-        text: txt,
-        align: "left",
-        lines: [{ text: txt, indent: 0 }],
-        polyphones: {},
-      })
-      i++
-      continue
-    }
-    blocks.push({
-      type: "body",
-      text: trimmed,
-      align: "left",
-      lines: [{ text: trimmed, indent: 0 }],
-      polyphones: {},
-    })
-    i++
-  }
-  return blocks
-}
 
 // ── PP-OCRv6 文本行检测（切块识图绿框用） ──────────────────────────────
 const V6_JOB_URL = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
@@ -442,28 +390,4 @@ async function paddleV6DetectBlocksOnce(
 
 function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v))
-}
-
-function isTableStart(lines: string[], i: number): boolean {
-  // 当前行以 | 开头，且下一行是分隔行（含 --- 与 |）
-  const next = lines[i + 1]?.trim() ?? ""
-  return next.startsWith("|") && /\|[\s:|-]+\|/.test(next) && next.includes("---")
-}
-
-function collectTable(lines: string[], i: number): { html: string; next: number } {
-  const rows: string[] = []
-  let j = i
-  while (j < lines.length && lines[j].trim().startsWith("|")) {
-    rows.push(lines[j].trim())
-    j++
-  }
-  if (rows.length < 2) return { html: rows.join("\n"), next: j }
-  const splitRow = (r: string) => r.replace(/^\||\|$/g, "").split("|").map((c) => c.trim())
-  const header = splitRow(rows[0])
-  const bodyRows = rows.slice(2).map(splitRow)
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-  const thead = "<tr>" + header.map((c) => `<th>${esc(c)}</th>`).join("") + "</tr>"
-  const tbody = bodyRows.map((r) => "<tr>" + r.map((c) => `<td>${esc(c)}</td>`).join("") + "</tr>").join("")
-  const html = `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table>`
-  return { html, next: j }
 }

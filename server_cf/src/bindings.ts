@@ -16,6 +16,13 @@ export interface Bindings {
   BAIDU_TTS_APP_ID?: string
   BAIDU_TTS_API_KEY?: string
   BAIDU_TTS_SECRET_KEY?: string
+  /** 豆包 TTS（火山语音 openspeech.bytedance.com）：seed-audio-1.0 / seed-tts-2.0 共用同 key */
+  VOLC_TTS_API_KEY?: string
+  /** 豆包引擎：seed-audio-1.0（默认，免费额度）| seed-tts-2.0（流式 Tina老师2.0） */
+  VOLC_TTS_ENGINE?: string
+  /** 百度实时语音识别（WebSocket 鉴权用 AppID + API Key，见 asr.ts） */
+  BAIDU_ASR_APP_ID?: string
+  BAIDU_ASR_API_KEY?: string
   TENCENT_APP_ID?: string
   TENCENT_SECRET_ID?: string
   TENCENT_SECRET_KEY?: string

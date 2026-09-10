@@ -107,16 +107,24 @@ router.get("/", async (c) => {
   const semester = c.req.query("semester") ?? ""
   const type = c.req.query("type") ?? ""
   const q = c.req.query("q") ?? ""
+  /** exact=1：q 按「字完全相等」匹配（大小写不敏感），不做 %LIKE% 模糊。
+   *  认字页按当前字取字卡图时必须用它——模糊匹配会命中 image 文件名和含该字的词
+   *  （如查「日」命中「节日」/「值日」），拿别的字的图当这个字的字卡会教错。 */
+  const exact = c.req.query("exact") === "1"
   const limit = Number(c.req.query("limit") ?? 500)
-  const conds = []
+  const conds: ReturnType<typeof eq>[] = []
   if (grade) conds.push(eq(charImageIndex.grade, grade))
   if (semester) conds.push(eq(charImageIndex.semester, semester))
   if (type) conds.push(eq(charImageIndex.type, type))
   if (q) {
-    const ql = q.toLowerCase()
-    conds.push(
-      sql`(lower(${charImageIndex.char}) LIKE ${`%${ql}%`} OR lower(${charImageIndex.image}) LIKE ${`%${ql}%`})`
-    )
+    if (exact) {
+      conds.push(sql`lower(${charImageIndex.char}) = ${q.toLowerCase()}`)
+    } else {
+      const ql = q.toLowerCase()
+      conds.push(
+        sql`(lower(${charImageIndex.char}) LIKE ${`%${ql}%`} OR lower(${charImageIndex.image}) LIKE ${`%${ql}%`})`
+      )
+    }
   }
   const db = getDb()
   // ORDER BY id = 原数组序（保 认/写 重字变体两条都在，且 slice(0, limit) 与旧行为一致）

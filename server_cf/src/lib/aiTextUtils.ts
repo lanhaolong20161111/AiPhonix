@@ -1,5 +1,7 @@
 /** 文本处理工具 — 从 Python utils/ai_text_utils.py 移植（JSON/blocks/OCR清洗/题目拆分） */
 
+import { markdownToBlocks } from "./paddleMarkdown.js"
+
 export interface BlockLine {
   text: string
   indent: number
@@ -153,6 +155,91 @@ export function extractPageBounds(reply: string): { left: number; top: number; r
 }
 
 // ── blocks 排版修正 ──
+
+/** 把「表格每行各自成块」的 body 块序列合并回一个 HTML table 块。
+ *
+ * 豆包路径偶尔不按提示词输出 HTML <table>，而是把 markdown 表格逐行当正文（每行一个 body 块），
+ * 前端就会显示成 `|要查|音序查字法|…` 一串竖线噪声。这里把相邻的「以 | 开头的 body 块」拼回
+ * markdown 再用 markdownToBlocks 解析——其表格检测要求「下一行是 --- 分隔行」，误判风险极低；
+ * 只有确实解析出 table 块时才替换，否则原样保留。被替换块的多音字注音会合并到 table 块上。 */
+export function mergeMarkdownTableBlocks(blocks: Block[]): Block[] {
+  const isTableRow = (x: Block | undefined) =>
+    !!x && x.type === "body" && String(x.text ?? "").trimStart().startsWith("|")
+  const out: Block[] = []
+  let i = 0
+  while (i < blocks.length) {
+    if (!isTableRow(blocks[i])) {
+      out.push(blocks[i])
+      i++
+      continue
+    }
+    let j = i
+    while (j < blocks.length && isTableRow(blocks[j])) j++
+    const chunk = blocks.slice(i, j)
+    const md = chunk.map((x) => (x.lines?.length ? x.lines.map((l) => l.text).join("\n") : x.text)).join("\n")
+    const rebuilt = markdownToBlocks(md)
+    if (rebuilt.length === 1 && rebuilt[0].type === "table") {
+      const poly = Object.assign({}, ...chunk.map((c) => c.polyphones || {})) as Record<string, string>
+      out.push({ ...(rebuilt[0] as Block), polyphones: poly })
+    } else {
+      out.push(...chunk)
+    }
+    i = j
+  }
+  return hoistHtmlTableBlocks(out)
+}
+
+/** 把正文块里内嵌的 HTML `<table>…</table>` 提升为独立 table 块。
+ *
+ * 模型（豆包/豆包表格模式）与 PaddleOCR 都可能把整张 HTML 表格塞进 body 块，而不是按提示词
+ * 用 type=table。若原样交给前端，标签会被当普通文字逐字渲染成 `<table><tr><td>` 一串尖括号，
+ * 单元格也不能点读。这里把表格切出来单独成块，前端即可用可点读表格组件渲染。
+ * 一张表可跨多行/多块，前后仍可有正文；正文按行还原为段落（首行 indent=1）。 */
+export function hoistHtmlTableBlocks(blocks: Block[]): Block[] {
+  const out: Block[] = []
+  for (const b of blocks) {
+    if (b.type === "table") {
+      out.push(b)
+      continue
+    }
+    const rows = b.lines?.length ? b.lines.map((l) => l.text) : [b.text]
+    const joined = rows.join("\n")
+    if (!/<table[\s>]/i.test(joined)) {
+      out.push(b)
+      continue
+    }
+    const parts: { type: "table" | "body"; text: string }[] = []
+    const re = /<table[\s\S]*?<\/table>/gi
+    let last = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(joined)) !== null) {
+      const pre = joined.slice(last, m.index)
+      if (pre.trim()) parts.push({ type: "body", text: pre })
+      parts.push({ type: "table", text: m[0] })
+      last = m.index + m[0].length
+    }
+    if (!parts.length) {
+      out.push(b)
+      continue
+    }
+    const tail = joined.slice(last)
+    if (tail.trim()) parts.push({ type: "body", text: tail })
+    for (const p of parts) {
+      if (p.type === "table") {
+        out.push({ type: "table", text: p.text, align: "left", lines: [], polyphones: b.polyphones || {} })
+        continue
+      }
+      const lines = p.text
+        .split("\n")
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((t, idx) => ({ text: t, indent: idx === 0 ? 1 : 0 }))
+      if (!lines.length) continue
+      out.push({ type: "body", text: lines.map((l) => l.text).join("\n"), align: b.align ?? "left", lines, polyphones: b.polyphones || {} })
+    }
+  }
+  return out
+}
 
 export function reorderTitleFirst(blocks: Block[]): void {
   if (blocks.length < 2) return
@@ -484,11 +571,20 @@ export function stripQuestionNoise(raw: string): string {
 const PINYIN_TONE_RE = /[A-Za-z]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü][A-Za-z]*/g
 const ASCII_LETTER_RUN_RE = /[A-Za-z]+/g
 
+/** 检测字符串里是否含 HTML 标签（表格/行内标签）。
+ * ⚠️ HTML 标签名与属性名（table/tr/td/colspan…）都是拉丁字母，去拼音会连它们一起删掉：
+ * `<table><tr><td>要查</td></tr></table>` 会变成 `<><><>要查</></></>` —— 学生看到一串
+ * `<></>` 尖括号，前端的可点读表格也因拿不到 <table> 而退化成不可点读的纯文本。
+ * 故含 HTML 的串必须原样保留。 */
+const HTML_TAG_RE = /<\/?[a-zA-Z][^>]*>/
+
 /** 去掉印刷在书里的拼音（拉丁字母段，含声调符号），保留中文/标点/数字/空白。
  * 与客户端 stripPinyinKeepDelimiters 同逻辑。系统后续用 polyphones 自己注音，
- * 故识别结果里不应残留印刷拼音。仅对中文模式调用（英语正文本身是拉丁字母，不能去）。 */
+ * 故识别结果里不应残留印刷拼音。仅对中文模式调用（英语正文本身是拉丁字母，不能去）。
+ * 含 HTML 标签的文本原样返回（表格靠标签结构渲染，见 HTML_TAG_RE）。 */
 export function stripPrintedPinyin(s: string): string {
   if (!s) return ""
+  if (HTML_TAG_RE.test(s)) return s
   let t = s.replace(PINYIN_TONE_RE, "")
   t = t.replace(ASCII_LETTER_RUN_RE, "")
   return t
@@ -508,11 +604,17 @@ export function isPageNumberText(s: string): boolean {
   return false
 }
 
-/** 清洗 blocks：去印刷拼音 + 丢页码块。返回新数组（不修改入参）。 */
+/** 清洗 blocks：去印刷拼音 + 丢页码块。返回新数组（不修改入参）。
+ * ⚠️ table 块的 text 是 HTML：去拼音会连标签名/属性名（拉丁字母）一起删掉，
+ * 把 `<table><tr><td>` 变成 `<><>`——表格直接烂掉。故表格块原样透传。 */
 export function cleanBookScanBlocks(blocks: Block[], opts: { stripPinyin?: boolean } = {}): Block[] {
   const sp = !!opts.stripPinyin
   const out: Block[] = []
   for (const b of blocks) {
+    if (b.type === "table") {
+      out.push(b)
+      continue
+    }
     const lines = (b.lines ?? []).map((l) => ({
       text: sp ? stripPrintedPinyin(l.text) : l.text,
       indent: l.indent,
@@ -523,7 +625,8 @@ export function cleanBookScanBlocks(blocks: Block[], opts: { stripPinyin?: boole
     if (!blockText.trim()) continue // 清洗后变空（纯拼音块）→ 丢弃
     out.push({ ...b, text: blockText, lines })
   }
-  return out
+  // 正文块里若内嵌 HTML 表格 → 提升为 table 块，前端才会用可点读表格渲染
+  return hoistHtmlTableBlocks(out)
 }
 
 /** 清洗纯文本：逐行去印刷拼音 + 丢页码行。保留原空白行（段落分隔）。

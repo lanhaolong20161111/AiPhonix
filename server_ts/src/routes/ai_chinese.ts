@@ -38,7 +38,7 @@ import { DATA_DIR } from "../env.js"
 
 import { stripFence, parseJsonObj, readCache, writeCache, renderAnalyze, makeSentenceAudioPath } from "../lib/aiShared.js"
 
-import { DOUBAO_OCR_PROMPT, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, CHINESE_READING_PROMPT, CHINESE_QUESTIONS_EXTRACT_PROMPT, CHINESE_QUESTIONS_GENERATE_PROMPT, CHINESE_ESSAY_ENRICH_PROMPT, CHINESE_ESSAY_PROMPT, CHINESE_TEXTBOOK_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
+import { DOUBAO_OCR_PROMPT, DOUBAO_OCR_BLOCKS_PROMPT, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, CHINESE_READING_PROMPT, CHINESE_QUESTIONS_EXTRACT_PROMPT, CHINESE_QUESTIONS_GENERATE_PROMPT, CHINESE_ESSAY_ENRICH_PROMPT, CHINESE_ESSAY_PROMPT, CHINESE_TEXTBOOK_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
 // 按域拆分的子路由（挂载于根 = 透明合并）
 import kbRoutes from "./ai_chinese_kb.js"
 import questRoutes from "./ai_chinese_quest.js"
@@ -100,12 +100,50 @@ async function arkExtractBlocks(imagePath: string, isTable: boolean): Promise<{ 
   if (!ark.enabled) throw new Error("免费 AI 服务未配置（缺少 ARK_API_KEY）")
   // 逐行保真需要看清小字/拼音/下划线 —— 用更高的识别分辨率（区域切割专用 1400px，而非普通识图 800px）
   const compressed = await compressImageToFile(imagePath, join(IMAGE_DIR, `${basename(imagePath).replace(/\.[^.]+$/, "")}.region.jpg`), 1400, 90)
+
+  // ── 非表格：合并识图+排版为单次 LLM 调用（省一次串行往返 ~3-8s）──
+  if (!isTable) {
+    try {
+      const mergedReply = await ark.chat({
+        prompt: DOUBAO_OCR_BLOCKS_PROMPT,
+        image_paths: [compressed],
+        max_tokens: 4096,
+        model_override: multimodalModel(),
+        disable_thinking: true,
+      })
+      const dsBlocks = extractBlocks(mergedReply || "")
+      if (dsBlocks.length) {
+        const cleaned = dsBlocks
+          .filter((b) => { const bt = cleanOcrText(b.text).trim(); return !!bt })
+          .map((b) => {
+            const bt = cleanOcrText(b.text).trim()
+            const lines = (b.lines || [])
+              .map((ln) => { const lt = cleanOcrText(ln.text).trim(); return lt ? { text: lt, indent: ln.indent } : null })
+              .filter(Boolean) as { text: string; indent: number }[]
+            if (!lines.length) lines.push({ text: bt, indent: 0 })
+            if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
+            return { type: b.type, text: bt, align: b.align, lines, polyphones: b.polyphones || {} }
+          })
+        if (cleaned.length) {
+          markPoetry(cleaned)
+          markOrderedIndent(cleaned)
+          const text = dedupeLines(cleaned.map(b => b.lines.map((l: { text: string }) => l.text).join("\n")).join("\n")).trim()
+          return { text, blocks: cleaned, pageBounds: null }
+        }
+      }
+      console.warn("[ai-chinese] 合并识图 JSON 解析失败，回退两步流程")
+    } catch (e) {
+      console.warn(`[ai-chinese] 合并识图调用失败，回退两步流程: ${(e as Error).message}`)
+    }
+  }
+
+  // ── 旧两步流程（表格 always / 非表格 fallback）──
   const prompt = isTable ? DOUBAO_TABLE_OCR_PROMPT : DOUBAO_OCR_PROMPT
   const reply = await ark.chat({
     prompt,
     image_paths: [compressed],
     max_tokens: 4096,
-    model_override: MULTIMODAL_MODEL,
+    model_override: multimodalModel(),
     disable_thinking: true,
   })
   let rawText = cleanOcrText(reply || "").trim()
@@ -121,7 +159,7 @@ async function arkExtractBlocks(imagePath: string, isTable: boolean): Promise<{ 
   }
   const text = rawText
 
-  // 免费 Ark 排版（doubao-seed-evolving）优先；失败再兜底付费 deepseek（有预算守卫）
+  // 免费 Ark 排版（doubao-seed-2-1-turbo-260628）优先；失败再兜底付费 deepseek（有预算守卫）
   try {
     if (ark.enabled) {
       const relayoutPrompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
@@ -325,6 +363,141 @@ router.post("/ai-chinese/highlight-mark", async (c) => {
     /* 解析失败返回空 */
   }
   return c.json({ text, highlights, tip })
+})
+
+// ── pos-tags：中/英课文词性标注（名词/动词/形容词，供前端词性着色）──
+
+router.post("/ai-chinese/pos-tags", async (c) => {
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const body = await c.req.json().catch(() => null)
+  const text = String(body?.text ?? "").trim()
+  const lang = String(body?.lang ?? "zh").trim() === "en" ? "en" : "zh"
+  if (!text) return c.json({ detail: "文本不能为空" }, 422)
+  if (text.length > 4000) return c.json({ detail: "文本过长" }, 422)
+
+  // 缓存：同语言同文本不重复调 LLM
+  const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
+  const cacheKey = `${CACHE_DIR}/postags_${hash}.json`
+  let cached: any = null
+  try { cached = readCache(cacheKey) } catch { /* 缓存读取失败忽略 */ }
+  if (cached && Array.isArray(cached.tags)) {
+    return c.json({ lang, tags: cached.tags })
+  }
+
+  const subject = lang === "en" ? "英语" : "语文"
+  const prompt = POS_TAGS_PROMPT.replace("{subject}", subject).replace("{text}", text)
+  let reply = ""
+  try {
+    reply = await getArk().chat({
+      prompt,
+      system_prompt: `你是一个只输出 JSON 的小学${subject}老师。`,
+      max_tokens: 2048,
+      model_override: multimodalModel(),
+      disable_thinking: true,
+    })
+  } catch {
+    try {
+      reply = await deepseekChat(`你是一个只输出 JSON 的小学${subject}老师。`, prompt, 2048, "pos_tags")
+    } catch {
+      reply = ""
+    }
+  }
+
+  const tags: { word: string; pos: string }[] = []
+  const seen = new Set<string>()
+  try {
+    const data = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))
+    const arr = data && Array.isArray(data.tags) ? data.tags : []
+    for (const t of arr.slice(0, 200)) {
+      if (!t || typeof t !== "object") continue
+      const word = String(t.word ?? "").trim()
+      const pos = String(t.pos ?? "").trim().toLowerCase()
+      if (!["n", "v", "adj"].includes(pos)) continue
+      if (!word) continue
+      if (lang === "en" ? text.toLowerCase().includes(word.toLowerCase()) : text.includes(word)) {
+        const key = word.toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        tags.push({ word, pos })
+      }
+    }
+  } catch {
+    /* 解析失败返回空 */
+  }
+
+  if (tags.length) {
+    try { writeCache(cacheKey, { lang, tags }) } catch { /* 缓存写入失败忽略 */ }
+  }
+  return c.json({ lang, tags })
+})
+
+// ── story-elements：中/英课文记叙要素标注（人物/时间/地点/起因/经过/结果，供前端要素着色）──
+
+const STORY_KINDS = new Set(["person", "time", "place", "cause", "process", "result", "event"])
+
+router.post("/ai-chinese/story-elements", async (c) => {
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const body = await c.req.json().catch(() => null)
+  const text = String(body?.text ?? "").trim()
+  const lang = String(body?.lang ?? "zh").trim() === "en" ? "en" : "zh"
+  if (!text) return c.json({ detail: "文本不能为空" }, 422)
+  if (text.length > 4000) return c.json({ detail: "文本过长" }, 422)
+
+  // 缓存：同语言同文本不重复调 LLM
+  const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
+  const cacheKey = `${CACHE_DIR}/storyelems_${hash}.json`
+  let cached: any = null
+  try { cached = readCache(cacheKey) } catch { /* 缓存读取失败忽略 */ }
+  if (cached && Array.isArray(cached.elements)) {
+    return c.json({ lang, elements: cached.elements })
+  }
+
+  const subject = lang === "en" ? "英语" : "语文"
+  const prompt = STORY_ELEMENTS_PROMPT.replace("{subject}", subject).replace("{text}", text)
+  let reply = ""
+  try {
+    reply = await getArk().chat({
+      prompt,
+      system_prompt: `你是一个只输出 JSON 的小学${subject}老师。`,
+      max_tokens: 2048,
+      model_override: multimodalModel(),
+      disable_thinking: true,
+    })
+  } catch {
+    try {
+      reply = await deepseekChat(`你是一个只输出 JSON 的小学${subject}老师。`, prompt, 2048, "story_elements")
+    } catch {
+      reply = ""
+    }
+  }
+
+  const elements: { word: string; kind: string }[] = []
+  const seen = new Set<string>()
+  try {
+    const data = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))
+    const arr = data && Array.isArray(data.elements) ? data.elements : []
+    for (const t of arr.slice(0, 200)) {
+      if (!t || typeof t !== "object") continue
+      const word = String(t.word ?? "").trim()
+      const kind = String(t.kind ?? "").trim().toLowerCase()
+      if (!STORY_KINDS.has(kind)) continue
+      if (!word) continue
+      // 只采纳原文连续子串；同一词只留一条（大小写不敏感去重）
+      if (lang === "en" ? text.toLowerCase().includes(word.toLowerCase()) : text.includes(word)) {
+        const key = word.toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        elements.push({ word, kind })
+      }
+    }
+  } catch {
+    /* 解析失败返回空 */
+  }
+
+  if (elements.length) {
+    try { writeCache(cacheKey, { lang, elements }) } catch { /* 缓存写入失败忽略 */ }
+  }
+  return c.json({ lang, elements })
 })
 
 // ── text-ask ──

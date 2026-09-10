@@ -85,6 +85,19 @@ export const uploadRecords = sqliteTable("upload_records", {
 	index("ix_upload_records_created_at").on(table.createdAt),
 ]);
 
+export const courseware = sqliteTable("courseware", {
+	id: integer().primaryKey().notNull(),
+	module: text({ length: 16 }).notNull(),
+	fileName: text("file_name", { length: 256 }).notNull(),
+	title: text({ length: 256 }).notNull().default(""),
+	createdAt: numeric("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+	createdBy: integer("created_by"),
+},
+(table) => [
+	index("ix_courseware_module").on(table.module),
+	index("ix_courseware_created_at").on(table.createdAt),
+]);
+
 export const userImports = sqliteTable("user_imports", {
 	id: integer().primaryKey().notNull(),
 	userId: integer("user_id").notNull(),
@@ -659,4 +672,22 @@ export const englishImageIndex = sqliteTable("english_image_index", {
 },
 (table) => [
 	uniqueIndex("ix_english_image_index_kind_text").on(table.kind, table.text),
+]);
+
+// ── 2026-09-03：记忆快乐本（认字/练词的今日字词 → LLM 生成趣味文段，按账号+日期持久化）──
+
+export const memoryJoyEntry = sqliteTable("memory_joy_entry", {
+	id: integer().primaryKey({ autoIncrement: true }),
+	userId: integer("user_id").notNull(),
+	date: text().notNull(), // YYYY-MM-DD（Asia/Shanghai）
+	scope: text().notNull().default("all"), // 'all'=旧混合 | 'char'=认字页（只今日字）| 'word'=练词页（只今日词）
+	chars: text().notNull().default(""), // 今日汉字，顿号/逗号分隔（原文，前端用于高亮匹配）
+	words: text().notNull().default(""), // 今日词语，顿号/逗号分隔
+	title: text().notNull().default(""), // LLM 生成的文段标题
+	text: text().notNull().default(""), // LLM 生成的文段正文
+	createdAt: numeric("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+},
+(table) => [
+	uniqueIndex("ix_memory_joy_user_date_scope").on(table.userId, table.date, table.scope),
+	index("ix_memory_joy_user").on(table.userId),
 ]);

@@ -9,12 +9,11 @@ import { join } from "node:path"
 import { db } from "../db/index.js"
 import { studentProfiles, aiChatSessions } from "../db/schema.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
-import { getArk } from "../lib/ark.js"
+import { getArk, MULTIMODAL_MODEL } from "../lib/ark.js"
 import { chat as deepseekChat } from "../lib/deepseek.js"
 import { DATA_DIR, getConfig } from "../env.js"
 
 const router = new Hono()
-const MODEL_MULTIMODAL = "doubao-seed-evolving"
 const MAX_MISTAKES = 15
 const MAX_MASTERED = 10
 
@@ -249,7 +248,7 @@ router.post("/ai-chat/ask", async (c) => {
     // 多模态 90s 超时 → 504（对齐 PY asyncio.wait_for timeout=90）
     try {
       raw = await withTimeout(
-        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [imagePath], max_tokens: 1024, model_override: MODEL_MULTIMODAL }),
+        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [imagePath], max_tokens: 1024, model_override: MULTIMODAL_MODEL }),
         90000
       )
     } catch (e) {

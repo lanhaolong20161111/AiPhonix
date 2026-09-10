@@ -6,7 +6,7 @@
  * Cloudflare 版：fs → R2（readBlob/writeBlob/writeText/exists/removeBlob），语义对齐 server_ts。
  */
 import { Hono } from "hono"
-import { getArk } from "../lib/ark.js"
+import { getArk, multimodalModel } from "../lib/ark.js"
 import { chat as deepseekChat } from "../lib/deepseek.js"
 import { exists, readBlob, readText, writeBlob, writeText, removeBlob } from "../lib/storage.js"
 import { requireAuth } from "../middleware/auth.js"
@@ -176,7 +176,7 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
       prompt: OCR_PROMPT,
       image_paths: [imagePath],
       max_tokens: 1024,
-      model_override: "doubao-seed-evolving",
+      model_override: multimodalModel(),
       disable_thinking: true,
     })
     console.error("[subcap-eval] 识图返回长度:", (reply || "").length)
@@ -204,7 +204,7 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
       prompt: userPrompt,
       system_prompt: sys,
       max_tokens: 1024,
-      model_override: "doubao-seed-evolving",
+      model_override: multimodalModel(),
       disable_thinking: true,
     })
     parsed = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))

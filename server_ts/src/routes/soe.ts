@@ -120,6 +120,7 @@ router.post("/soe/records", async (c) => {
 // DELETE /api/v1/soe/records/{id}
 router.delete("/soe/records/:id", async (c) => {
   const user = await resolveCurrentUser(c.req.header("Authorization"))
+  if (!user) return c.json({ detail: "未登录" }, 401)
   const id = Number(c.req.param("id"))
   if (Number.isNaN(id)) return c.json({ detail: "记录不存在" }, 404)
   const rec = db.select({ userId: speechEvalRecords.userId }).from(speechEvalRecords).where(eq(speechEvalRecords.id, id)).get()
@@ -133,6 +134,7 @@ router.delete("/soe/records/:id", async (c) => {
 // POST /api/v1/soe/records/batch-delete
 router.post("/soe/records/batch-delete", async (c) => {
   const user = await resolveCurrentUser(c.req.header("Authorization"))
+  if (!user) return c.json({ detail: "未登录" }, 401)
   const body = await c.req.json().catch(() => null)
   const ids = (body?.ids ?? []).map(Number).filter((n: number) => !Number.isNaN(n))
   if (!ids.length) return c.json({ ok: true, deleted: 0 })

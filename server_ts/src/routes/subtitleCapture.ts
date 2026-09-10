@@ -10,7 +10,7 @@ import { writeFile, mkdir, readFile, rm } from "node:fs/promises"
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { DATA_DIR } from "../env.js"
-import { getArk } from "../lib/ark.js"
+import { getArk, MULTIMODAL_MODEL } from "../lib/ark.js"
 import { chat as deepseekChat } from "../lib/deepseek.js"
 import { requireAuth } from "../middleware/auth.js"
 
@@ -180,7 +180,7 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
       prompt: OCR_PROMPT,
       image_paths: [imagePath],
       max_tokens: 1024,
-      model_override: "doubao-seed-evolving",
+      model_override: MULTIMODAL_MODEL,
       disable_thinking: true,
     })
     console.error("[subcap-eval] 识图返回长度:", (reply || "").length)
@@ -208,7 +208,7 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
       prompt: userPrompt,
       system_prompt: sys,
       max_tokens: 1024,
-      model_override: "doubao-seed-evolving",
+      model_override: MULTIMODAL_MODEL,
       disable_thinking: true,
     })
     parsed = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))

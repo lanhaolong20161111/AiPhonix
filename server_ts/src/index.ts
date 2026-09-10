@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.js"
 import usersRoutes from "./routes/users.js"
 import userImportsRoutes from "./routes/user_imports.js"
 import uploadsRoutes from "./routes/uploads.js"
+import coursewareRoutes from "./routes/courseware.js"
 import essaysRoutes from "./routes/essays.js"
 import englishRoutes from "./routes/english.js"
 import wordbankRoutes from "./routes/wordbank.js"
@@ -34,10 +35,12 @@ import aiHomeworkRoutes from "./routes/ai_homework.js"
 import aiChatRoutes from "./routes/ai_chat.js"
 import ttsRoutes from "./routes/tts.js"
 import soeRoutes from "./routes/soe.js"
+import asrShortRoutes from "./routes/asrShort.js"
 import subtitleCaptureRoutes from "./routes/subtitleCapture.js"
 import biliRoutes from "./routes/bili.js"
 import visitsRoutes from "./routes/visits.js"
 import prefsRoutes from "./routes/prefs.js"
+import videoIssuesRoutes from "./routes/video_issues.js"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -297,6 +300,7 @@ api.route("/auth", authRoutes)
 api.route("/users", usersRoutes)
 api.route("/user-imports", userImportsRoutes)
 api.route("/uploads", uploadsRoutes)
+api.route("/courseware", coursewareRoutes)
 api.route("/essays", essaysRoutes)
 api.route("/english", englishRoutes)
 api.route("/wordbank", wordbankRoutes)
@@ -321,11 +325,13 @@ app.route("/api/v1", aiChatRoutes)
 app.route("/api/v1", arkImageRoutes)
 app.route("/api/v1", freeLlmRoutes)
 app.route("/api/v1", ttsRoutes)
+app.route("/api/v1", asrShortRoutes)
 app.route("/api/v1", soeRoutes)
 app.route("/api/v1", subtitleCaptureRoutes)
 app.route("/api/v1", biliRoutes)
 app.route("/api/v1", visitsRoutes)
 app.route("/api/v1", prefsRoutes)
+app.route("/api/v1", videoIssuesRoutes)
 
 // 404 for unknown API
 app.notFound((c) => c.json({ detail: "Not Found" }, 404))

@@ -26,6 +26,37 @@ export const DEEPSEEK_RELAYOUT_PROMPT = `你是小学语文排版整理器。下
 只输出 JSON，不要解释。
 文本：{text}`
 
+/** 合并识图+排版为单次调用（省一次串行 LLM 往返 ~3-8s）：
+ *  豆包看图直接输出 JSON blocks，而非先出纯文本再 relayout。
+ *  融合 DOUBAO_OCR_PROMPT（逐行保真）+ DEEPSEEK_RELAYOUT_PROMPT（结构化分块）。 */
+export const DOUBAO_OCR_BLOCKS_PROMPT = `任务：看图直接输出结构化 JSON 课文内容（识图+排版一步到位）。
+【第一步·先看整体】先判断图片方向：横放/倒置/倾斜先在脑中纠正到正向，再按正向读。
+【核心硬性规则——逐行保真】
+1. 图片上有几行文字，lines 里就输出几条；每一行单独一条，禁止合并行、拆分行。
+2. 每行的字符数必须与图片上那一行严格一致：全部汉字、拼音字母、声调、标点、括号、数字、下划线、√、①等，一个不漏，也不得多字。
+3. 空白的填空横线按原样输出下划线。
+【拼音与汉字】
+4. 汉字上方的注音拼音必须逐行转写，拼音行和汉字行各自独立成行（各自一条 line）。
+【结构化分块】
+5. 修复乱码、删除明显重复行（但真实重复的行保留）。
+6. 分块必须按语义粒度严格拆分，禁止把多个语义合并进一个大块：
+   大标题→type=title；小标题/单元名/页眉/页码→heading；题目题干→question；
+   题干里的每个选项（A./B./C. 或 ①/②/③）→type=option 单独成块，紧跟其 question 块之后；
+   正文段落→body；对话中的每一句（—… 或 "…"）→body 单独成块，一句一块；
+   旁批/注脚/提示→note。
+   【拆块示例】图片内容为：
+   一、读句子，选择正确答案。
+   (1) Hello!
+   A. Nice to meet you.  B. I'm Sarah.
+   则应输出：
+   {"blocks":[{"type":"question","text":"一、读句子，选择正确答案。","align":"left","lines":[{"text":"一、读句子，选择正确答案。","indent":0}],"polyphones":{}},{"type":"body","text":"(1) Hello!","align":"left","lines":[{"text":"(1) Hello!","indent":0}],"polyphones":{}},{"type":"option","text":"A. Nice to meet you.  B. I'm Sarah.","align":"left","lines":[{"text":"A. Nice to meet you.  B. I'm Sarah.","indent":0}],"polyphones":{}}]}
+7. align：大标题 center，页码 right，其余 left。
+8. 正文 body 块首行 indent=1，续行 indent=0；其余 indent=0。
+9. 多音字注音（polyphones）：读错明显的多音字给出正确带声调拼音（如 还:hái）；只标确定的。
+【输出格式】
+只输出 JSON（不要 markdown 包裹，不要解释）：
+{"blocks":[{"type":"title|heading|body|question|option|note","text":"该块完整文本","align":"left|center|right","lines":[{"text":"行","indent":0}],"polyphones":{"字":"带声调拼音"}}]}`
+
 export const DOUBAO_TABLE_OCR_PROMPT = `任务：识别图片内容，文字与表格混排时分别还原。文字照常按阅读顺序输出；**表格部分单独用 HTML <table> 输出**，且要还原跨行/跨列合并。
 0、先判断图片方向：横放/倒置请先在脑中纠正到正向再读。
 输出规则：
@@ -47,6 +78,30 @@ export const HIGHLIGHT_MARK_PROMPT = `任务：对下面小学语文段落做高
 5.每处高亮给一句非常简短、口语化的理由。
 输出 JSON（不要 markdown 包裹）：{"text":"原文完整文本","highlights":[{"type":"core|beautiful|word","phrase":"必须是原文中的连续子串","reason":"口语化简短理由"}],"tip":"整段学习提示，口语化、简短"}
 段落：
+{text}`
+
+export const POS_TAGS_PROMPT = `你是小学{subject}老师。请给下面的短文标注词性，用于界面把「名词/动词/形容词」三类词染上不同颜色帮助小学生理解句子结构。
+硬性规则：
+1. 只标注三类词性，用以下代号：n=名词、v=动词、adj=形容词。其余词性一律不标。
+2. word 必须是原文中的连续片段，一字不差照抄原文（中文保持原字；英文保持原大小写，如句首 The 不要改成 the）。
+3. 中文按「词」标注，不要拆成单个汉字（如"小鸟"是一个名词，不要标"小"和"鸟"）；不要标单字虚词。
+4. 宁可少标、绝不标错；标点、数字、空格不要标。
+5. 重复出现的同一个词只保留一条即可。
+6. 只输出 JSON（不要 markdown 包裹、不要解释）：
+{"tags":[{"word":"原文中的词","pos":"n|v|adj"}]}
+段落：
+{text}`
+
+export const STORY_ELEMENTS_PROMPT = `你是小学{subject}老师。请找出下面短文中的记叙要素，用于界面给「人物/时间/地点/起因/经过/结果」染上不同颜色，帮孩子理清故事脉络。
+硬性规则：
+1. 要素种类（kind 取值，只有这些）：person=人物、time=时间、place=地点、cause=起因、process=经过(做了什么)、result=结果、event=事件(整体做了什么，若不好拆经过/结果可用 event)。
+2. 每条标注的 word 必须是原文中的连续片段，一字不差照抄原文（中文保持原字；英文保持原大小写）。
+3. 中文可按「词或短语」标（如"星期天早上"、"在公园里"）；英文可按「单词或短语」。标短语要谨慎，宁可标核心词。
+4. 宁缺毋滥：每类要素在文中出现就标，没出现就不标；不要编造、不要标原文没有的内容。
+5. 标点、数字、空格不要标进 word；同一词/短语只保留一条。
+6. 只输出 JSON（不要 markdown 包裹、不要解释）：
+{"elements":[{"word":"原文中的片段","kind":"person|time|place|cause|process|result|event"}]}
+短文：
 {text}`
 
 export const TEXT_ASK_PROMPT = `你是小学语文老师。请基于下面的【课文/资料原文】回答学生的问题。

@@ -41,6 +41,21 @@ export const UploadPhotoResponseSchema = z.object({
   id: z.number(),
 })
 
+// ── 课件库（语/数/英课件图片） ──
+export const CoursewareModuleSchema = z.enum(["chinese", "math", "english"])
+export const CoursewareItemSchema = z.object({
+  id: z.number(),
+  module: CoursewareModuleSchema,
+  file_name: z.string(),
+  url: z.string(),
+  title: z.string(),
+  created_at: z.string().nullable(),
+})
+export const CoursewareListResponseSchema = z.object({
+  total: z.number(),
+  items: z.array(CoursewareItemSchema),
+})
+
 // ── LLM 运维 ──
 export const LlmBudgetResponseSchema = z.object({
   date: z.string(),
@@ -68,6 +83,9 @@ export type PracticeRecordsResponse = z.infer<typeof PracticeRecordsResponseSche
 export type PracticeWeightsResponse = z.infer<typeof PracticeWeightsResponseSchema>
 export type UploadRecord = z.infer<typeof UploadRecordSchema>
 export type UploadPhotoResponse = z.infer<typeof UploadPhotoResponseSchema>
+export type CoursewareModule = z.infer<typeof CoursewareModuleSchema>
+export type CoursewareItem = z.infer<typeof CoursewareItemSchema>
+export type CoursewareListResponse = z.infer<typeof CoursewareListResponseSchema>
 export type LlmBudgetResponse = z.infer<typeof LlmBudgetResponseSchema>
 export type CurrentUser = z.infer<typeof CurrentUserSchema>
 

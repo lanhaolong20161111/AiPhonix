@@ -4,7 +4,7 @@
  *  - flash 正式版 : deepseek-v4-flash-ga-260731   （纯文本，文本分析默认）
  *  - pro 版       : deepseek-v4-pro-ga-260813     （纯文本，能力更强）
  *  - GLM 5.2      : glm-5-2-260617                （纯文本，工具调用 agent）
- *  - 识图多模态   : doubao-seed-evolving           （唯一支持图片输入）
+ *  - 识图多模态   : doubao-seed-2-1-turbo-260628   （唯一支持图片输入）
  *
  * 运行示例：
  *  npx tsx test_ark_sdk.ts deepseek-v4-flash-ga-260731

@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.js"
 import usersRoutes from "./routes/users.js"
 import userImportsRoutes from "./routes/user_imports.js"
 import uploadsRoutes from "./routes/uploads.js"
+import coursewareRoutes from "./routes/courseware.js"
 import essaysRoutes from "./routes/essays.js"
 import englishRoutes from "./routes/english.js"
 import wordbankRoutes from "./routes/wordbank.js"
@@ -46,6 +47,9 @@ import subtitleCaptureRoutes from "./routes/subtitleCapture.js"
 import biliRoutes from "./routes/bili.js"
 import visitsRoutes from "./routes/visits.js"
 import prefsRoutes from "./routes/prefs.js"
+import joyRoutes from "./routes/joy.js"
+import asrRoutes from "./routes/asr.js"
+import videoIssuesRoutes from "./routes/video_issues.js"
 
 // 导出 app 供双端 parity 检查（scripts/parity-check.mts）使用，无副作用。
 export const app = new Hono<{ Bindings: Bindings }>()
@@ -261,6 +265,7 @@ api.route("/auth", authRoutes)
 api.route("/users", usersRoutes)
 api.route("/user-imports", userImportsRoutes)
 api.route("/uploads", uploadsRoutes)
+api.route("/courseware", coursewareRoutes)
 api.route("/essays", essaysRoutes)
 api.route("/english", englishRoutes)
 api.route("/wordbank", wordbankRoutes)
@@ -269,6 +274,7 @@ api.route("/practice", practiceTrackerRoutes)
 api.route("/training", trainingRoutes)
 api.route("/daily-zh", dailyZhRoutes)
 api.route("/daily-en", dailyEnRoutes)
+api.route("/joy", joyRoutes)
 api.route("/generated-dict", generatedDictRoutes)
 api.route("/import-templates", importTemplatesRoutes)
 api.route("/char-images", charImagesRoutes)
@@ -286,6 +292,7 @@ app.route("/api/v1", aiChineseRoutes)
 app.route("/api/v1", aiHomeworkRoutes)
 app.route("/api/v1", aiPracticeRoutes)
 app.route("/api/v1", aiChatRoutes)
+app.route("/api/v1", asrRoutes)
 app.route("/api/v1/wordbook", wordbookRoutes)
 app.route("/api/v1/radical", radicalRoutes)
 app.route("/api/v1", arkImageRoutes)
@@ -296,6 +303,7 @@ app.route("/api/v1", subtitleCaptureRoutes)
 app.route("/api/v1", biliRoutes)
 app.route("/api/v1", visitsRoutes)
 app.route("/api/v1", prefsRoutes)
+app.route("/api/v1", videoIssuesRoutes)
 
 // 404 for unknown API
 app.notFound((c) => c.json({ detail: "Not Found" }, 404))

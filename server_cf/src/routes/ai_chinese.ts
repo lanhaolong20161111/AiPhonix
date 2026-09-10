@@ -27,6 +27,7 @@ import {
   mergeTableBlocks,
   markPoetry,
   markOrderedIndent,
+  mergeMarkdownTableBlocks,
   groupParagraphsByLayout,
   stripQuestionNoise,
   stripPrintedPinyin,
@@ -93,7 +94,7 @@ async function deepseekRelayout(text: string): Promise<any[]> {
     })
   markPoetry(cleaned)
   markOrderedIndent(cleaned)
-  return cleaned
+  return mergeMarkdownTableBlocks(cleaned)
 }
 
 /** Ark 识图 + 结构化排版（对齐 PY _ark_extract_blocks）：
@@ -233,7 +234,8 @@ function finalizeBlocks(raw: any[]): any[] {
     .filter(Boolean) as any[]
   markPoetry(cleaned)
   markOrderedIndent(cleaned)
-  return cleaned
+  // 豆包偶尔把 markdown 表格逐行当正文输出 → 合并回 HTML table 块，避免前端显示一串竖线
+  return mergeMarkdownTableBlocks(cleaned)
 }
 
 /** 区域裁剪 — 原基于 Python OpenCV 像素行分割 + 逐行多模态读文本。
@@ -392,7 +394,9 @@ router.post("/ai-chinese/parse-image", async (c) => {
   )
 
   const imgHash = createHash("sha256").update(data).digest("hex")
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}.json`
+  // _r3 = 表格版本号：2026-09-10 起「去印刷拼音」不再误删 HTML 标签名、正文里的 HTML 表格
+  // 提升为 table 块（此前 <table> 被删成 <>，学生看到 <></> 尖括号且单元格不能点读）。
+  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r3.json`
   if (!noCache && (await exists(cacheKey))) {
     try {
       const cached = await readCache(cacheKey)
@@ -599,7 +603,10 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
   const polyAsync = mode !== "english" && c.req.query("poly_async") !== "0"
   const reqT0 = Date.now()
   const imgHash = createHash("sha256").update(data).digest("hex")
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}.json`
+  // _r3 = 排版/表格版本号（r2 = 段落聚合；r3 = 2026-09-10 表格块修复：HTML 标签不再被去拼音
+  // 删成 <>、正文内嵌 HTML 表格提升为可点读 table 块）。旧缓存命中会绕过新逻辑，故加版本后缀
+  // 让旧结果自然失效一次；识别结果本身不变，之后同图仍照常命中缓存。
+  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r3.json`
   console.log(`[parse-image-stream] 收到图片 ${data.length} 字节, no_cache=${noCache}, mode=${mode}`)
 
   // 缓存命中：无流可放（或需要增量吐？）——直接一次性把完整结果发出来，前端秒显示
@@ -813,7 +820,21 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
       }
     }
     if (!blocks.length) {
-      blocks = [{ type: "body", text, align: "left", lines: text.split("\n").map((t) => ({ text: t, indent: 0 })), polyphones: {} }]
+      // 兜底：纯文本按空行切段（段内首条物理行 indent=1），保证前端仍能把物理行并回段落、
+      // 段落首行空两格，而不是每行都从行首另起。
+      const paras = text
+        .split(/\n{2,}/)
+        .map((p) => p.split("\n").map((s) => s.trim()).filter(Boolean))
+        .filter((rows) => rows.length)
+      blocks = paras.length
+        ? paras.map((rows) => ({
+            type: "body",
+            text: rows.join("\n"),
+            align: "left",
+            lines: rows.map((t, idx) => ({ text: t, indent: idx === 0 ? 1 : 0 })),
+            polyphones: {},
+          }))
+        : [{ type: "body", text, align: "left", lines: text.split("\n").map((t) => ({ text: t, indent: 0 })), polyphones: {} }]
     }
     const questions = splitQuestions(text)
     const polyToken = polyAsync && blocks.length ? imgHash : null

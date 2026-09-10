@@ -148,6 +148,15 @@ CREATE TABLE IF NOT EXISTS chinese_unit_knowledge (
   image_path TEXT
 );
 
+CREATE TABLE IF NOT EXISTS courseware (
+  id INTEGER PRIMARY KEY,
+  module TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  title TEXT NOT NULL,
+  created_at NUMERIC NOT NULL,
+  created_by INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS essays (
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL,

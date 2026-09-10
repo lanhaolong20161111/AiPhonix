@@ -5,20 +5,20 @@ import { preprocessForVision } from "./image.js"
 import { cleanSecret, getConfig, getEnv } from "../env.js"
 
 const BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
-// 文本分析默认模型（快且稳定；识图需用多模态模型覆盖）
-export const DEFAULT_MODEL = "deepseek-v4-flash-ga-260731"
+// 文本分析默认模型（豆包免费量大；识图/排版等需多模态的用 MULTIMODAL_MODEL 覆盖）。
+// ⚠️ 火山方舟模型端点 ID 必须带日期版本号：doubao-seed-2-1-turbo-260628（裸名 doubao-seed-2-1-turbo 会 404 "does not exist"）。
+export const DEFAULT_MODEL = "doubao-seed-2-1-turbo-260628"
 // ARK 单次请求默认超时：排版输出长 JSON 易超 30s，提到 60s 减少无谓超时回退。
 // 调用方可在 ArkChatOptions.timeout_ms 按场景覆盖。
 const ARK_TIMEOUT_MS = 60_000
 // 多模态识图模型（纯文本模型不支持 image 输入，识图时用此覆盖）
-// 2026-09-01：原 doubao-seed-evolving 实测单图超时(≥240s)，已弃用；默认改 doubao-seed-2.1-turbo。
+// 2026-09-01：旧视觉模型实测慢或超时，已弃用；统一 doubao-seed-2.1-turbo。
 // ⚠️ 火山方舟视觉模型端点 ID 必须带日期版本号：doubao-seed-2-1-turbo-260628（裸名 doubao-seed-2-1-turbo 会 404 "does not exist"）。
 export const MULTIMODAL_MODEL = "doubao-seed-2-1-turbo-260628"
 
 /** 当前生效的多模态识图模型：优先取环境变量 ARK_VISION_MODEL，未设则用默认。
  * 目的：换视觉模型不必改代码，改一个变量即可；可在 staging 先对比速度与质量再决定是否上生产。
- * 候选（均非 deprecated）：doubao-seed-2-1-turbo-260628（速度优先）、doubao-seed-2-0-mini-260428（轻量/低成本）。
- * 已弃用：doubao-seed-evolving（超时）、doubao-1-5-vision-pro / seed-1-6-flash（官方标记即将下线）。
+ * 全项目统一使用 doubao-seed-2-1-turbo-260628（旧视觉模型均已弃用）。
  * ⚠️ 端点名必须带日期后缀，否则火山方舟返回 404。 */
 export function multimodalModel(): string {
   try {

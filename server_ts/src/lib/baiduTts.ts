@@ -7,6 +7,17 @@ const TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 const TTS_URL = "https://tsn.baidu.com/text2audio"
 const MIN_VALID_AUDIO_BYTES = 1000
 
+/** 英文句间停顿增强：. ! ? 结尾的句子之间插入空行，给 TTS 清晰的停顿 cue。
+ * 避免缩写误伤：句号后须跟空格+大写字母/数字 或 句尾才切分（Mr. Smith 不切）。 */
+function enhanceEnglishPauses(text: string): string {
+  if (/\n\s*\n/.test(text)) return text
+  const out = text.replace(
+    /([.!?])(?=\s+[A-Z0-9])|([.!?])\s*$/g,
+    (m, g1: string, g2: string) => (g1 ? `${g1}\n` : m),
+  )
+  return out.replace(/\n/g, "\n\n")
+}
+
 export class BaiduTTSService {
   private token = ""
   private tokenExp = 0
@@ -36,10 +47,15 @@ export class BaiduTTSService {
     return createHash("md5").update(`${text}|${speaker}|${speed}`).digest("hex")
   }
 
-  async synthesize(text: string, speaker = "0", speed = 5): Promise<Buffer> {
+  async synthesize(text: string, speaker = "6221", speed = 5): Promise<Buffer> {
+    // 英文文本（无汉字且含拉丁字母）→ 大模型音色 4193（度泽言·自然英文）+ 句间停顿增强
+    const isEnglish = !/[\u4e00-\u9fff]/.test(text) && /[a-zA-Z]/.test(text)
+    const effectiveSpeaker = isEnglish ? "4193" : speaker
+    const tex = isEnglish ? enhanceEnglishPauses(text) : text
+
     // 1. 查缓存
     if (this.cacheDir) {
-      const key = this.cacheKey(text, speaker, speed)
+      const key = this.cacheKey(tex, effectiveSpeaker, speed)
       const cacheFile = join(this.cacheDir, `${key}.mp3`)
       if (existsSync(cacheFile)) return readFileSync(cacheFile)
     }
@@ -47,12 +63,12 @@ export class BaiduTTSService {
     // 2. 调百度 API
     const token = await this.getAccessToken()
     const form: Record<string, string> = {
-      tex: text,
+      tex,
       tok: token,
       cuid: "aiphonix-server",
       ctp: "1",
-      lan: "zh",
-      per: speaker || "0",
+      lan: isEnglish ? "en" : "zh",
+      per: effectiveSpeaker || "0",
       spd: String(Math.max(speed, 1) || 5),
       pit: "5",
       vol: "9",
@@ -82,7 +98,7 @@ export class BaiduTTSService {
         throw new Error("百度 TTS 合成结果无效（音频过短）")
       }
       if (this.cacheDir && audio.length > 100) {
-        const key = this.cacheKey(text, speaker, speed)
+        const key = this.cacheKey(tex, effectiveSpeaker, speed)
         writeFileSync(join(this.cacheDir, `${key}.mp3`), audio)
       }
       return audio

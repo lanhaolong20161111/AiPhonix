@@ -6,6 +6,21 @@ const TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 const TTS_URL = "https://tsn.baidu.com/text2audio"
 const MIN_VALID_AUDIO_BYTES = 1000
 
+/** 英文句间停顿增强：把 . ! ? 结尾的句子之间插入空行，给 TTS 清晰的停顿 cue。
+ * 避免缩写误伤：句号后须跟空格+大写字母/数字 或 句尾才切分（Mr. Smith 不切）。
+ * 仅在英文生效；中文保持原样（百度中文自身断句足够）。 */
+function enhanceEnglishPauses(text: string): string {
+  // 已有空行分隔则视为调用方已控制停顿，不再重复处理
+  if (/\n\s*\n/.test(text)) return text
+  // 在句子边界后插入换行：. ! ? 后跟 空格+大写 或 行尾
+  const out = text.replace(
+    /([.!?])(?=\s+[A-Z0-9])|([.!?])\s*$/g,
+    (m, g1, g2) => (g1 ? `${g1}\n` : m),
+  )
+  // 用空行强化停顿
+  return out.replace(/\n/g, "\n\n")
+}
+
 export class BaiduTTSService {
   private token = ""
   private tokenExp = 0
@@ -34,26 +49,29 @@ export class BaiduTTSService {
     return createHash("md5").update(`${text}|${speaker}|${speed}`).digest("hex")
   }
 
-  async synthesize(text: string, speaker = "0", speed = 5): Promise<Buffer> {
+  async synthesize(text: string, speaker = "6221", speed = 5): Promise<Buffer> {
+    // 英文文本（无汉字且含拉丁字母）→ 大模型音色 4193（度泽言·自然英文）+ 句间停顿增强；
+    // 其余保持中文音色（默认 6221 度云萱）
+    const isEnglish = !/[一-鿿]/.test(text) && /[a-zA-Z]/.test(text)
+    const effectiveSpeaker = isEnglish ? "4193" : speaker
+    const tex = isEnglish ? enhanceEnglishPauses(text) : text
+
     // 1. 查 R2 缓存
     if (this.cacheDir) {
-      const key = this.cacheKey(text, speaker, speed)
+      const key = this.cacheKey(tex, effectiveSpeaker, speed)
       const cached = await readBlob(`${this.cacheDir}/${key}.mp3`)
       if (cached) return Buffer.from(cached)
     }
 
     // 2. 调百度 API
     const token = await this.getAccessToken()
-    // 英文文本（无汉字且含拉丁字母）→ 切到英文语音（lan=en，per=0 为英文标准音）；
-    // 其余（含汉字/中文标点）保持中文。向后兼容：中文调用完全不受影响。
-    const isEnglish = !/[一-鿿]/.test(text) && /[a-zA-Z]/.test(text)
     const form: Record<string, string> = {
-      tex: text,
+      tex,
       tok: token,
       cuid: "aiphonix-server",
       ctp: "1",
       lan: isEnglish ? "en" : "zh",
-      per: speaker || "0",
+      per: effectiveSpeaker || "0",
       spd: String(Math.max(speed, 1) || 5),
       pit: "5",
       vol: "9",
@@ -85,7 +103,7 @@ export class BaiduTTSService {
         throw new Error(`百度 TTS 合成结果无效（音频过短: ${audio.length}B, ct=${contentType}, head=${head}）`)
       }
       if (this.cacheDir && audio.length > 100) {
-        const key = this.cacheKey(text, speaker, speed)
+        const key = this.cacheKey(tex, effectiveSpeaker, speed)
         await writeBlob(`${this.cacheDir}/${key}.mp3`, audio, "audio/mpeg")
       }
       return audio

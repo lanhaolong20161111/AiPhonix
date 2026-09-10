@@ -382,5 +382,5 @@ run_worker_first = false        # 默认：已有文件平台直出（0 Worker C
 ## 2026-08-30 LLM 供应商与计费更正
 
 - **GLM-5.3-Flash 也是计费的**（非免费）：tryGlmFallback 已接入 recordCost 计入当日预算账本（费率 GLM_COST_PER_M_* 默认 0.2/0.2 元每百万 tokens，可按智谱账单调整）。含义：DeepSeek 欠费期间 GLM 兜底的花费会消耗当日预算（默认 5 元/天），超预算后 GLM 兜底仍可用（可用性优先）但 DeepSeek 预算守卫的当日额度会被 GLM 占用。
-- **文本链现状**：DeepSeek-v4-flash（主，预算守卫）→ GLM-5.3-Flash（兜底，计费）。Ark 仅剩两个用途：多模态识图（doubao-seed-evolving）+ 儿歌/字谜生成（arkOnly 免费专用链，带 30s 超时 + 失败冷却缓存）。
+- **文本链现状**：DeepSeek-v4-flash（主，预算守卫）→ GLM-5.3-Flash（兜底，计费）。Ark 仅剩两个用途：多模态识图（doubao-seed-2-1-turbo-260628）+ 儿歌/字谜生成（arkOnly 免费专用链，带 30s 超时 + 失败冷却缓存）。
 - **DeepSeek 空内容坑**：v4-flash 间歇返回空 content → 现在空内容也走 GLM 兜底（原代码 return "" 绕过兜底）。

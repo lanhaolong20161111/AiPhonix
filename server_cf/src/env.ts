@@ -40,6 +40,18 @@ const baiduTtsSchema = z.object({
   cache_dir: z.string().default("cache/tts"),
 })
 
+const volcTtsSchema = z.object({
+  api_key: z.string().default(""),
+  /** seed-audio-1.0（默认，免费额度）| seed-tts-2.0（流式 Tina老师2.0，音色更自然） */
+  engine: z.string().default("seed-audio-1.0"),
+  cache_dir: z.string().default("cache/tts/volc"),
+})
+
+const baiduAsrSchema = z.object({
+  app_id: z.string().default(""),
+  api_key: z.string().default(""),
+})
+
 const tencentSchema = z.object({
   app_id: z.string().default(""),
   secret_id: z.string().default(""),
@@ -63,9 +75,10 @@ const arkImageSchema = z.object({
 
 const arkChatSchema = z.object({
   api_key: z.string().default(""),
-  model: z.string().default("deepseek-v4-flash-ga-260731"),
+  /** 文本任务统一豆包（免费量大）；识图也用它。⚠️ 须带日期版本号 -260628 */
+  model: z.string().default("doubao-seed-2-1-turbo-260628"),
   /** 多模态识图模型；留空则用 ark.ts 的 MULTIMODAL_MODEL 默认。
-   * 候选：doubao-seed-2-0-mini-260428（官方定位"速度与成本优先"）。 */
+   * 当前统一 doubao-seed-2-1-turbo-260628。 */
   vision_model: z.string().default(""),
 })
 
@@ -78,6 +91,8 @@ const bigmodelSchema = z.object({
 const configSchema = z.object({
   deepseek: deepseekSchema.default({}),
   baidu_tts: baiduTtsSchema.default({}),
+  volc_tts: volcTtsSchema.default({}),
+  baidu_asr: baiduAsrSchema.default({}),
   tencent: tencentSchema.default({}),
   llm_prompts: llmPromptsSchema.default({}),
   ark_image: arkImageSchema.default({}),
@@ -122,6 +137,10 @@ export function loadConfig(env: Bindings): AppConfig {
   if (env.BAIDU_TTS_APP_ID) cfg.baidu_tts.app_id = cleanSecret(env.BAIDU_TTS_APP_ID)
   if (env.BAIDU_TTS_API_KEY) cfg.baidu_tts.api_key = cleanSecret(env.BAIDU_TTS_API_KEY)
   if (env.BAIDU_TTS_SECRET_KEY) cfg.baidu_tts.secret_key = cleanSecret(env.BAIDU_TTS_SECRET_KEY)
+  if (env.VOLC_TTS_API_KEY) cfg.volc_tts.api_key = cleanSecret(env.VOLC_TTS_API_KEY)
+  if (env.VOLC_TTS_ENGINE) cfg.volc_tts.engine = env.VOLC_TTS_ENGINE.trim()
+  if (env.BAIDU_ASR_APP_ID) cfg.baidu_asr.app_id = cleanSecret(env.BAIDU_ASR_APP_ID)
+  if (env.BAIDU_ASR_API_KEY) cfg.baidu_asr.api_key = cleanSecret(env.BAIDU_ASR_API_KEY)
   if (env.TENCENT_APP_ID) cfg.tencent.app_id = cleanSecret(env.TENCENT_APP_ID)
   if (env.TENCENT_SECRET_ID) cfg.tencent.secret_id = cleanSecret(env.TENCENT_SECRET_ID)
   if (env.TENCENT_SECRET_KEY) cfg.tencent.secret_key = cleanSecret(env.TENCENT_SECRET_KEY)

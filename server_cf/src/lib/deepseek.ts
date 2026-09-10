@@ -248,8 +248,8 @@ export interface ChatOptions {
   arkOnly?: boolean
 }
 
-/** 通用聊天调用：DeepSeek 付费（预算守卫 + 计费）失败/欠费 → GLM-5.3-Flash 兜底。
- * arkOnly=true 时仅走免费 Ark 一条链（儿歌/字谜等生成型内容的成本闸门），失败快速返回。 */
+/** 通用聊天调用：免费 Ark 豆包优先（跳过预算守卫，费用 0），失败回退付费 DeepSeek（预算守卫+计费）→ GLM 兜底。
+ * arkOnly=true 时仅走免费 Ark 一条链（儿歌/字谜等生成型内容的成本闸门），失败快速返回空。 */
 export async function chat(
   systemPrompt: string,
   userPrompt: string,
@@ -276,8 +276,8 @@ export async function chat(
     error: "",
   }
 
-  // ── Ark 免费链路：仅 arkOnly 模式（儿歌/字谜等生成型内容）走此分支，普通对话不再使用 ──
-  if (options.arkOnly && cfg.ark_chat.api_key) {
+  // ── 免费优先：火山 Ark（豆包，全文本统一）可用则每次先走免费链路，跳过预算守卫 ──
+  if (cfg.ark_chat.api_key) {
     const log: LLMCallLog = { ...baseLog, model: cfg.ark_chat.model }
     try {
       const content = await getArk().chat({
@@ -305,10 +305,7 @@ export async function chat(
       }
       console.warn(`[llm] Ark 免费调用失败(${caller}): ${log.error}，回退 DeepSeek`)
     }
-  }
-
-  // ── arkOnly 且未配置 Ark key → 直接返回（无免费链路可走） ──
-  if (options.arkOnly) {
+  } else if (options.arkOnly) {
     const log: LLMCallLog = { ...baseLog, error: "未配置 ARK_API_KEY（arkOnly 模式）" }
     await finishLog(log, start)
     return ""
@@ -348,7 +345,10 @@ export async function chat(
         cfg.deepseek.model,
         messages,
         attempt === 0 ? maxTokens : maxTokens * 2 + 512,
-        0.7
+        0.7,
+        undefined,
+        // 关闭思考（deepseek-v4 系列是思考模型，默认带思维链慢且吞 token）
+        disableThinking ? { thinking: { type: "disabled" } } : undefined
       )
       content = r.content
       promptTokens = r.prompt_tokens
