@@ -1,0 +1,11 @@
+{
+  "name": "aiphonix",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm --filter server_ts dev",
+    "build": "pnpm --filter server_ts build",
+    "start": "pnpm --filter server_ts start",
+    "db:generate": "pnpm --filter server_ts db:generate"
+  }
+}
