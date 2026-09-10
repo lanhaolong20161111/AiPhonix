@@ -1,6 +1,9 @@
-/** AI 提问统一入口 — 纯文本直接问答；图片（可带问题）识别后问答 */
+/** AI 提问统一入口 — 纯文本直接问答；图片（可带问题）识别后问答；流式（SSE）优先 */
 
 import { api } from "./api"
+import { API_BASE } from "./config"
+import { tryRefreshFromStore } from "./auth"
+import { useAuthStore } from "../stores/authStore"
 import { compressImageFile } from "../lib/imageCompress"
 
 export interface LlmChatReply {
@@ -86,4 +89,104 @@ export async function uploadPhoto(file: File | Blob): Promise<string> {
     timeoutMs: 60000,
   })
   return res.url ?? ""
+}
+
+// ── 流式问答（2026-09-10 P0）：SSE 逐字回传，首字 1~2s 出现 ──
+
+/**
+ * 流式版 askWithProfile：POST /ai-chat/ask-stream（SSE）。
+ * - onDelta 逐块回传增量文本（对话气泡实时追加）
+ * - 结束返回与 askWithProfile 同构的结果（done 事件带标签解析后的干净回复）
+ * - 返回 null = 流式不可用（服务端未升级/404、连接失败、出字前报错）→ 调用方回退 askWithProfile
+ */
+export async function askWithProfileStream(
+  module: string,
+  message: string,
+  sessionId = "",
+  imageUrl = "",
+  role = "",
+  onDelta?: (text: string) => void,
+): Promise<AskProfileResult | null> {
+  const doFetch = (token: string) =>
+    fetch(`${API_BASE}/ai-chat/ask-stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        module,
+        message,
+        ...(sessionId ? { session_id: sessionId } : {}),
+        ...(imageUrl ? { image_url: imageUrl } : {}),
+        ...(role ? { role } : {}),
+      }),
+    })
+
+  let res: Response
+  try {
+    let token = useAuthStore.getState().session?.access_token ?? ""
+    res = await doFetch(token)
+    // 401 自动刷新重试一次（对齐 api.ts 行为）
+    if (res.status === 401) {
+      const fresh = await tryRefreshFromStore().catch(() => null)
+      if (!fresh) return null
+      res = await doFetch(fresh)
+    }
+  } catch {
+    return null
+  }
+  if (!res.ok || !res.body) return null
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ""
+  let raw = ""
+  let result: AskProfileResult | null = null
+  const finish = (): AskProfileResult =>
+    result ?? { reply: raw, session_id: sessionId || undefined }
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buf += decoder.decode(value, { stream: true })
+      let idx: number
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const frame = buf.slice(0, idx)
+        buf = buf.slice(idx + 2)
+        const line = frame.split("\n").find((l) => l.startsWith("data:"))
+        if (!line) continue
+        let evt: Record<string, unknown>
+        try {
+          evt = JSON.parse(line.slice(5).trim()) as Record<string, unknown>
+        } catch {
+          continue
+        }
+        if (evt.type === "delta") {
+          const t = String(evt.text ?? "")
+          if (t) {
+            raw += t
+            onDelta?.(t)
+          }
+        } else if (evt.type === "done") {
+          result = {
+            reply: String(evt.reply ?? raw),
+            session_id: String(evt.session_id ?? "") || undefined,
+            tts_url: String(evt.tts_url ?? ""),
+            word_info: String(evt.word_info ?? ""),
+            ...(evt.correction ? { correction: evt.correction as AskProfileResult["correction"] } : {}),
+            ...(evt.judge != null ? { judge: Number(evt.judge) } : {}),
+          }
+        } else if (evt.type === "error") {
+          // 出过字：尽量保住已输出的部分；一个字没出：返回 null 让调用方回退非流式
+          return raw ? finish() : null
+        }
+      }
+    }
+  } catch {
+    // 连接中断：有部分输出就交出去（前端会标注），否则回退
+    return raw ? finish() : null
+  }
+  return result ?? (raw ? finish() : null)
 }

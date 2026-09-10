@@ -7,7 +7,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { askWithProfile, fetchChatSession, uploadPhoto } from "../services/aiAsk"
+import {
+  askWithProfile,
+  askWithProfileStream,
+  fetchChatSession,
+  uploadPhoto,
+  type AskProfileResult,
+} from "../services/aiAsk"
 import { getAiRole } from "../lib/aiPrefs"
 import { addTeacherScore } from "../lib/teacherScore"
 import {
@@ -100,52 +106,110 @@ export function useAiChat(mode: "chinese" | "english" | "math" | "") {
     [module, sessionId],
   )
 
+  /** 结果落盘（流式 done / 非流式返回共用）：纠错挂 user 气泡、assistant 附带工具结果、判分、persist */
+  const applyResult = useCallback(
+    (res: AskProfileResult) => {
+      if (res.session_id) {
+        setSessionId(res.session_id)
+        try {
+          localStorage.setItem(sessionKey(module), res.session_id)
+        } catch {
+          /* 忽略 */
+        }
+      }
+      const reply = res.reply ?? ""
+      const speakText = (res.tts_url ?? "").trim()
+      const wordInfo = (res.word_info ?? "").trim()
+      setTurns((prev) => {
+        let base = prev
+        // 提问纠错：挂到本轮的 user 消息上（气泡内高亮错误片段 + 下方显示更正句）
+        if (res.correction) {
+          base = [...prev]
+          for (let i = base.length - 1; i >= 0; i--) {
+            if (base[i].role === "user") {
+              base[i] = { ...base[i], correction: res.correction }
+              break
+            }
+          }
+        }
+        const next = [
+          ...base,
+        ]
+        const finalTurn = {
+          role: "assistant" as const,
+          content: reply,
+          ...(speakText ? { speak: speakText } : {}),
+          ...(wordInfo ? { word: wordInfo } : {}),
+          ...(res.judge != null ? { judge: res.judge } : {}),
+        }
+        // 流式场景最后一个已是逐字累积的 assistant 气泡 → 原地替换为干净回复；否则追加
+        const lastTurn = next[next.length - 1]
+        if (lastTurn && lastTurn.role === "assistant") next[next.length - 1] = finalTurn
+        else next.push(finalTurn)
+        if (res.judge != null && res.judge > 0) addTeacherScore(module, 1)
+        persist(next)
+        return next
+      })
+    },
+    [module, persist],
+  )
+
   const doAsk = useCallback(
     async (q: string, imageUrl: string) => {
       setAsking(true)
       setError("")
       const userContent = imageUrl ? `🖼️ [图片] ${q}` : q
       setTurns((prev) => [...prev, { role: "user", content: userContent }])
+
+      // ── 流式优先（2026-09-10 P0）：assistant 占位气泡实时追加，首字 1~2s 出现 ──
+      let streamed = false
+      try {
+        const res = await askWithProfileStream(
+          mode || "chinese",
+          q,
+          sessionId,
+          imageUrl,
+          getAiRole(module),
+          (delta) => {
+            streamed = true
+            setTurns((prev) => {
+              const next = [...prev]
+              const last = next[next.length - 1]
+              if (last && last.role === "assistant") {
+                next[next.length - 1] = { ...last, content: last.content + delta }
+              } else {
+                next.push({ role: "assistant", content: delta })
+              }
+              return next
+            })
+          },
+        )
+        if (res) {
+          // done 事件：用标签解析后的干净回复替换逐字累积的原始文本
+          applyResult(res)
+          setAsking(false)
+          return
+        }
+        // null 且已出过部分字：连接中断，保留已有内容并提示，不回退（回退会重复提问）
+        if (streamed) {
+          setError("回答中断，请重试")
+          setAsking(false)
+          return
+        }
+        // null 且未出字（服务端未升级/失败）：静默回退非流式
+      } catch {
+        if (streamed) {
+          setError("回答中断，请重试")
+          setAsking(false)
+          return
+        }
+        /* 落入非流式兜底 */
+      }
+
+      // ── 兜底：非流式（旧行为，完整等回答） ──
       try {
         const res = await askWithProfile(mode || "chinese", q, sessionId, imageUrl, getAiRole(module))
-        // 记录/持久化后端会话 id（断点续聊）
-        if (res.session_id) {
-          setSessionId(res.session_id)
-          try {
-            localStorage.setItem(sessionKey(module), res.session_id)
-          } catch {
-            /* 忽略 */
-          }
-        }
-        const reply = res.reply ?? ""
-        const speakText = (res.tts_url ?? "").trim()
-        const wordInfo = (res.word_info ?? "").trim()
-        setTurns((prev) => {
-          let base = prev
-          // 提问纠错：挂到本轮的 user 消息上（气泡内高亮错误片段 + 下方显示更正句）
-          if (res.correction) {
-            base = [...prev]
-            for (let i = base.length - 1; i >= 0; i--) {
-              if (base[i].role === "user") {
-                base[i] = { ...base[i], correction: res.correction }
-                break
-              }
-            }
-          }
-          const next = [
-            ...base,
-            {
-              role: "assistant" as const,
-              content: reply,
-              ...(speakText ? { speak: speakText } : {}),
-              ...(wordInfo ? { word: wordInfo } : {}),
-              ...(res.judge != null ? { judge: res.judge } : {}),
-            },
-          ]
-          if (res.judge != null && res.judge > 0) addTeacherScore(module, 1)
-          persist(next)
-          return next
-        })
+        applyResult(res)
       } catch (e) {
         setError(e instanceof Error ? e.message : "提问失败")
         setTurns((prev) => prev.filter((t) => !(t.role === "user" && t.content === userContent)))
@@ -153,7 +217,7 @@ export function useAiChat(mode: "chinese" | "english" | "math" | "") {
         setAsking(false)
       }
     },
-    [mode, module, sessionId, persist],
+    [mode, module, sessionId, applyResult],
   )
 
   const ask = useCallback(

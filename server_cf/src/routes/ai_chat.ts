@@ -3,18 +3,18 @@
  * Cloudflare 版：db → await getDb()（D1）；web/public/chinese_wordbank.json 与 uploads/ → R2。
  */
 import { Hono } from "hono"
+import { streamSSE } from "hono/streaming"
 import { and, eq } from "drizzle-orm"
 import { getDb } from "../db/index.js"
 import { studentProfiles, aiChatSessions } from "../db/schema.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
-import { getArk } from "../lib/ark.js"
+import { getArk, multimodalModel } from "../lib/ark.js"
 import { chat as deepseekChat } from "../lib/deepseek.js"
 import { getConfig, getEnv } from "../env.js"
 import { exists } from "../lib/storage.js"
 import type { Bindings } from "../bindings.js"
 
 const router = new Hono()
-const MODEL_MULTIMODAL = "doubao-seed-evolving"
 const MAX_MISTAKES = 15
 const MAX_MASTERED = 10
 const WORDBANK_KEY = "data/chinese_wordbank.json" // web/public/chinese_wordbank.json 上传到 R2 的位置
@@ -240,21 +240,37 @@ router.get("/ai-chat/session", async (c) => {
   return c.json({ session_id: sessionId, module: sess.module ?? "", messages: sess.messages })
 })
 
-// POST /api/v1/ai-chat/ask
-router.post("/ai-chat/ask", async (c) => {
-  const user = await resolveCurrentUser(c.req.header("Authorization"))
-  if (!user) return c.json({ detail: "未登录" }, 401)
-  const body = await c.req.json().catch(() => null)
+// ── ask 上下文准备（/ai-chat/ask 与 /ai-chat/ask-stream 共用）──
+// 2026-09-10 P1 顺手项：会话与画像两次 D1 读改并行（原串行两个往返）。
+interface AskContext {
+  module: string
+  roleKey: string
+  message: string
+  imageUrl: string
+  sessionId: string
+  historyMessages: ChatMsg[]
+  profile: Profile
+  system: string
+  userPrompt: string
+  imagePath: string
+}
+
+type AuthUser = NonNullable<Awaited<ReturnType<typeof resolveCurrentUser>>>
+
+async function prepareAsk(user: AuthUser, body: Record<string, unknown> | null): Promise<AskContext> {
   // 角色扮演：body.role 指定则替换默认老师人设（会话/画像仍归所属模块）
   const roleKey = String(body?.role ?? "").trim()
   const message = String(body?.message ?? "").trim()
   const imageUrl = String(body?.image_url ?? "").trim()
   let module = String(body?.module ?? "chinese")
   if (!MODULE_LABEL[module]) module = "chinese"
-  const sessionId = String(body?.session_id ?? "").trim() || `ai_${user!.id}_${module}_${crypto.randomUUID().slice(0, 10)}`
+  const sessionId = String(body?.session_id ?? "").trim() || `ai_${user.id}_${module}_${crypto.randomUUID().slice(0, 10)}`
 
-  // 0) 会话：读历史消息（断点续聊），恢复 module；无会话则用请求携带的 history 兜底
-  const sess = await loadChatMessages(sessionId, user!.id)
+  // 0) 会话 + 画像并行读（断点续聊）；无会话历史则用请求携带的 history 兜底
+  const [sess, profile] = await Promise.all([
+    loadChatMessages(sessionId, user.id),
+    loadProfile(user.id, module),
+  ])
   if (sess.module) module = sess.module
   const historyMessages: ChatMsg[] = sess.messages.length
     ? sess.messages
@@ -271,8 +287,6 @@ router.post("/ai-chat/ask", async (c) => {
   const context = historyLines.join("\n")
   const userPrompt = context ? `${context}\n学生：${message}` : `学生：${message}`
 
-  // 画像
-  const profile = await loadProfile(user!.id, module)
   const profileText = profilePrompt(profile)
 
   let system = SYSTEM_BY_MODULE[module] || SYSTEM_BY_MODULE.chinese
@@ -281,13 +295,23 @@ router.post("/ai-chat/ask", async (c) => {
   if (imageUrl) system += "\n\n【本轮附带一张图片】请先看图，再结合学生的问题/对话给出讲解。"
   system += `\n\n【输出约定】在回答末尾若能识别学生的薄弱点或掌握点，另起一行按格式输出（没有可不输出）：\n【画像】易错：知识点1；掌握：知识点2\n若回答涉及需要发音/朗读的内容，请在回答中单独输出一行：【朗读】要朗读的文本（10 字以内最佳）。\n若学生问到某个词语的意思/拼音/用法，可在回答末尾输出一行：【查词】词语。\n若学生的提问存在语法、用词或语义错误，必须在回答的第一行单独输出一行：【改错】修改后的完整句子｜原句错误片段1、错误片段2（竖线左边是保持学生原意、只修正错误的完整句子；右边是原句中的错误片段，多个用、分隔）。示例：学生说"我去学校的时候看见一个很好看的画画"，你回答的第一行必须是【改错】我去学校的时候看见一朵很好看的花｜一个很好看的画画。没有错误则不要输出该行。`
 
-  let raw = ""
   const imagePath = imageUrl ? await resolveUploadKey(imageUrl) : ""
-  if (imagePath) {
+  return { module, roleKey, message, imageUrl, sessionId, historyMessages, profile, system, userPrompt, imagePath }
+}
+
+// POST /api/v1/ai-chat/ask
+router.post("/ai-chat/ask", async (c) => {
+  const user = await resolveCurrentUser(c.req.header("Authorization"))
+  if (!user) return c.json({ detail: "未登录" }, 401)
+  const body = await c.req.json().catch(() => null)
+  const ctx = await prepareAsk(user, body)
+  const { module, message, sessionId, historyMessages, profile, system, userPrompt } = ctx
+  let raw = ""
+  if (ctx.imagePath) {
     // 多模态 90s 超时 → 504（对齐 PY asyncio.wait_for timeout=90）
     try {
       raw = await withTimeout(
-        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [imagePath], max_tokens: 1024, model_override: MODEL_MULTIMODAL }),
+        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [ctx.imagePath], max_tokens: 1024, model_override: multimodalModel() }),
         90000
       )
     } catch (e) {
@@ -298,7 +322,8 @@ router.post("/ai-chat/ask", async (c) => {
     }
   } else {
     try {
-      raw = await deepseekChat(system, userPrompt, 1024, `ai_chat_${module}`)
+      // 2026-09-10 P0：补 disableThinking=true — 豆包默认带思维链，对话白耗 5~15s（补多音字任务已验证此坑）
+      raw = await deepseekChat(system, userPrompt, 1024, `ai_chat_${module}`, true)
     } catch (e) {
       const anyE = e as { budget?: boolean }
       if (anyE.budget) throw e
@@ -322,7 +347,7 @@ router.post("/ai-chat/ask", async (c) => {
   // 小豆判卷兜底：弱模型常跳过【判对】步骤。若上一条 AI 消息是出题（小豆模式每条都是题），
   // 用一次独立的 1/0 判卷调用（简单二分任务，弱模型也能稳定完成）。
   let finalJudge = judge
-  if (finalJudge == null && roleKey === "student") {
+  if (finalJudge == null && ctx.roleKey === "student") {
     const lastAssistant = [...historyMessages].reverse().find((m) => m.role === "assistant")
     const prevQ = lastAssistant?.content.trim()
     if (prevQ && message) {
@@ -351,6 +376,98 @@ router.post("/ai-chat/ask", async (c) => {
     word_info: wordInfo,
     ...(correction ? { correction } : {}),
     ...(finalJudge != null ? { judge: finalJudge } : {}),
+  })
+})
+
+// POST /api/v1/ai-chat/ask-stream — SSE 流式问答（2026-09-10 P0）
+// 事件格式（data: JSON）：meta{session_id} → delta{text}… → done{reply,tts_url,word_info,correction,judge,session_id} / error{detail}
+// 仅走免费 Ark（豆包 turbo + 关思维链）流式；Ark 失败发 error，前端回退 /ai-chat/ask（完整兜底链）。
+router.post("/ai-chat/ask-stream", async (c) => {
+  const user = await resolveCurrentUser(c.req.header("Authorization"))
+  if (!user) return c.json({ detail: "未登录" }, 401)
+  const body = await c.req.json().catch(() => null)
+  const ctx = await prepareAsk(user, body)
+  return streamSSE(c, async (stream) => {
+    const send = (payload: Record<string, unknown>) =>
+      stream.writeSSE({ data: JSON.stringify(payload) })
+    let full = ""
+    try {
+      await send({ type: "meta", session_id: ctx.sessionId })
+      const iter = getArk().chatStream({
+        prompt: ctx.userPrompt,
+        system_prompt: ctx.system,
+        ...(ctx.imagePath ? { image_paths: [ctx.imagePath] } : {}),
+        max_tokens: 1024,
+        disable_thinking: true,
+        timeout_ms: 90_000,
+      })
+      for await (const delta of iter) {
+        if (!delta) continue
+        full += delta
+        await send({ type: "delta", text: delta })
+      }
+    } catch (e) {
+      console.warn(`[ai-chat] ask-stream 流式失败(module=${ctx.module}, 已出${full.length}字): ${(e as Error).message}`)
+      if (!full) {
+        // 一个字都没出：让前端回退非流式完整链路
+        await send({ type: "error", detail: `流式调用失败：${(e as Error).message}` })
+        return
+      }
+      // 已有部分输出：按已有内容正常收尾，不让前端白等
+    }
+
+    // 结束：与非流式一致的标签解析/判卷/回写
+    const [cleanReply, newMistakes, newMastered] = parseProfileTags(full)
+    const [replyText, speakTextRaw, wordQ, correction, judge] = parseToolTags(cleanReply)
+    const reply = replyText.trim() || full.trim() || "（AI 暂时没有回应，请再试一次）"
+    const wordInfo = wordQ ? await lookupWord(wordQ) : ""
+    const speakText = speakTextRaw.trim() || autoSpeakText(reply, wordQ)
+
+    let finalJudge = judge
+    if (finalJudge == null && ctx.roleKey === "student") {
+      const lastAssistant = [...ctx.historyMessages].reverse().find((m) => m.role === "assistant")
+      const prevQ = lastAssistant?.content.trim()
+      if (prevQ && ctx.message) {
+        try {
+          const jr = await deepseekChat(
+            "你是判卷器。对比学生的原句和老师的纠正：如果纠正指出了原句中的用词/语法错误并给出了正确的替换说法，输出 1；否则输出 0。只输出一个数字。",
+            `学生小豆的原句：${prevQ}\n老师的纠正：${ctx.message}\n纠正是否正确？`,
+            200,
+            "ai_chat_judge",
+            true
+          )
+          const digit = jr.match(/[10]/)?.[0]
+          finalJudge = digit === "1" ? 1 : 0
+        } catch (e) {
+          console.warn(`[ai-chat] ask-stream 判卷失败: ${(e as Error).message}`)
+          finalJudge = null
+        }
+      }
+    }
+
+    await send({
+      type: "done",
+      reply,
+      session_id: ctx.sessionId,
+      tts_url: speakText,
+      word_info: wordInfo,
+      ...(correction ? { correction } : {}),
+      ...(finalJudge != null ? { judge: finalJudge } : {}),
+    })
+
+    // 回写画像 + 会话：挪到响应后（waitUntil），不阻塞 done 事件下发
+    try {
+      const updated = mergeProfile(ctx.profile, ctx.message || "（看图）", newMistakes, newMastered)
+      const newMessages = [...ctx.historyMessages, { role: "user", content: ctx.message || "（图片）" }, { role: "assistant", content: reply }]
+      c.executionCtx.waitUntil(
+        Promise.all([
+          saveProfile(user.id, ctx.module, updated),
+          touchChatSession(ctx.sessionId, user.id, ctx.module, newMessages),
+        ]).catch((e) => console.warn(`[ai-chat] ask-stream 回写失败: ${(e as Error).message}`))
+      )
+    } catch (e) {
+      console.warn(`[ai-chat] ask-stream waitUntil 挂载失败: ${(e as Error).message}`)
+    }
   })
 })
 
