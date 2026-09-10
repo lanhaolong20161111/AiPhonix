@@ -575,12 +575,16 @@ router.post("/ai-chinese/parse-image", async (c) => {
 
 // POST /api/v1/ai-chinese/parse-image-stream — SSE 流式识图（2026-09-10）
 // 目标：让学生以最快速度开始阅读识别出的文字。
-// 策略：先用**纯文本 OCR 提示词**流式调用豆包（无 JSON 包裹 → 首行 1~3s 就能吐），
-//       delta 事件按行增量推送 text；流结束后再补发结构化 blocks（后台用原 JSON 调用，
-//       拿到逐行/类型/对齐/注音，用于结果页的精细排版与点读）。
+// 策略（2026-09-10 改 Paddle 打头阵）：
+//   ① **Paddle 专用 OCR 优先**：PP-StructureV3 是专用 OCR 模型（非 LLM），实测 ~1.6~3.2s
+//      即出全部文字 + 版面块，比豆包 LLM（5~8s）快约 2 倍、成本更低、识别质量高（清晰文档
+//      置信度≈1.0）。拿到后按行推送 line 事件，学生 ~3s 就能读全文。
+//   ② **豆包兜底**：Paddle 失败/超时（12s）→ 回退豆包**纯文本流式**（首行 1~3s，逐行推）。
+//   ③ 收尾：Paddle 路径自带 blocks；豆包路径再跑一次结构化 JSON 调用补 blocks（版面/对齐/注音）。
+// 引擎选择受 OCR_ENGINE 控制（与非流式 parse-image 一致）：engine=paddle/doubao 显式覆盖；
+//   否则 OCR_ENGINE=doubao 跳过 Paddle，缺省则 Paddle 优先。以便随时一键回退豆包。
 // 事件格式（data: JSON）：
 //   meta{img_hash} → line{text,index}* → done{text,questions,blocks,poly_pending,poly_token} / error{detail}
-// 说明：本端点只走豆包（OCR_ENGINE=doubao 为生产默认）；Paddle 用户仍走非流式 parse-image。
 router.post("/ai-chinese/parse-image-stream", async (c) => {
   const user = await resolveCurrentUser(c.req.header("Authorization"))
   if (!user) return c.json({ detail: "未登录" }, 401)
@@ -646,58 +650,147 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
   return streamSSE(c, async (stream) => {
     const send = (p: Record<string, unknown>) => stream.writeSSE({ data: JSON.stringify(p) })
     const ark = getArk()
-    if (!ark.enabled) {
-      await send({ type: "error", detail: "免费 AI 服务未配置（缺少 ARK_API_KEY）" })
-      return
-    }
-    const extractor = new IncrementalLineExtractor()
+
+    // 引擎选择（与非流式 parse-image 一致，便于一键回退）：
+    //   engine=paddle/doubao 显式覆盖；否则 OCR_ENGINE=doubao 跳过 Paddle；缺省 Paddle 优先。
+    const reqEngine = (c.req.query("engine") || "").trim().toLowerCase()
+    const envEngine = (getEnv().OCR_ENGINE || "").trim().toLowerCase()
+    const tryPaddleFirst = reqEngine === "paddle" || (reqEngine !== "doubao" && envEngine !== "doubao")
+
+    // 谁先出文字谁赢（paddle=专用 OCR 快 / doubao=流式兜底）。两路**并发**启动：
+    // Paddle 先出文字 → 立即收尾（抢断豆包，不让它把 done 拖到 7s）；否则豆包流式照常兜底。
+    // 用 string 而非字面量联合：winner 在并发闭包内赋值，字面量联合会被 TS 误收窄为 ""。
+    let winner = ""
+    let text = ""
+    let blocks: any[] = []
+    let closed = false // 已决定收尾：放弃的后台任务不得再写入已关闭的 SSE 流
+
+    await send({ type: "meta", img_hash: imgHash })
+
+    // ── 第一路：Paddle 专用 OCR（PP-StructureV3，实测 ~1~3.6s 出全部文字 + 版面块）──
+    let paddleText = ""
+    let paddleBlocks: any[] = []
+    const paddleP: Promise<boolean> = tryPaddleFirst
+      ? (async () => {
+          try {
+            const poT0 = Date.now()
+            const poOpts: PaddleOcrOpts = { timeoutMs: 12_000 }
+            if (mode === "english") {
+              // 英语页开版面/图表/表格（与非流式一致）；公式识别按需未启用
+              poOpts.ocr = { layoutParsing: true, useChartRecognition: true, useTableRecognition: true }
+            }
+            const po = await paddleOcrExtract(oriented, poOpts)
+            if (po.ok && po.blocks.length && po.text.trim() && !winner) {
+              winner = "paddle"
+              paddleText = po.text
+              paddleBlocks = po.blocks
+              for (const ln of paddleText.split("\n")) {
+                const t = ln.trim()
+                if (t && !closed) { try { await send({ type: "line", text: t }) } catch { closed = true } }
+              }
+              console.log(`[parse-image-stream] Paddle 胜出 耗时=${Date.now() - poT0}ms t=${Date.now() - reqT0}ms blocks=${paddleBlocks.length} 文本=${paddleText.length}字`)
+              return true
+            }
+            if (po.ok) console.warn(`[parse-image-stream] Paddle 空产出(${po.ms ?? 0}ms) text.len=${po.text?.length} blocks=${po.blocks?.length}，交由豆包兜底`)
+            else console.warn(`[parse-image-stream] Paddle 未产出(${po.ms ?? 0}ms): ${po.error}，交由豆包兜底`)
+          } catch (e) {
+            console.warn(`[parse-image-stream] Paddle 异常，交由豆包兜底: ${(e as Error).message}`)
+          }
+          return false
+        })()
+      : Promise.resolve(false)
+
+    // ── 第二路：豆包流式纯文本 OCR（并发启动；Paddle 胜出则被抢断）──
     let streamed = ""
-    let firstLineMs = 0
-    try {
-      await send({ type: "meta", img_hash: imgHash })
-      // 纯文本 OCR 提示词：模型直接按行输出正文，无需 JSON 包裹，首行最快
-      const iter = ark.chatStream({
-        prompt: mode === "english" ? DOUBAO_OCR_PROMPT : DOUBAO_OCR_PROMPT,
-        system_prompt: "你是一个小学课本 OCR 逐行转录器，只输出识别到的文字行。",
-        image_paths: [oriented],
-        max_tokens: 8192,
-        model_override: multimodalModel(),
-        disable_thinking: true,
-        timeout_ms: 90_000,
-      })
-      for await (const delta of iter) {
-        if (!delta) continue
-        // 纯文本路径：delta 本身就带换行，按行切分增量推送
-        // （若模型误输出 JSON 包裹，IncrementalLineExtractor 也能兜住 —— 双保险）
-        const looksJson = delta.includes('"text"') || delta.trimStart().startsWith("{")
-        if (looksJson) {
-          for (const ln of extractor.push(delta)) {
-            if (!firstLineMs) firstLineMs = Date.now() - reqT0
-            streamed += (streamed ? "\n" : "") + ln
-            await send({ type: "line", text: ln })
+    let signalDecision: (v: string) => void = () => {}
+    const decisionP = new Promise<string>((r) => { signalDecision = r })
+    let doubaoDone: Promise<void> = Promise.resolve()
+    if (ark.enabled) {
+      doubaoDone = (async () => {
+        const extractor = new IncrementalLineExtractor()
+        let firstLineMs = 0
+        try {
+          // 纯文本 OCR 提示词：模型直接按行输出正文，无需 JSON 包裹，首行最快
+          const iter = ark.chatStream({
+            prompt: DOUBAO_OCR_PROMPT,
+            system_prompt: "你是一个小学课本 OCR 逐行转录器，只输出识别到的文字行。",
+            image_paths: [oriented],
+            max_tokens: 8192,
+            model_override: multimodalModel(),
+            disable_thinking: true,
+            timeout_ms: 90_000,
+          })
+          for await (const delta of iter) {
+            if (winner === "paddle") break // Paddle 已胜出，放弃豆包
+            if (!delta) continue
+            const emit = async (t: string) => {
+              if (winner === "paddle") return
+              if (!winner) {
+                winner = "doubao"
+                signalDecision("doubao")
+              }
+              streamed += (streamed ? "\n" : "") + t
+              if (!closed) { try { await send({ type: "line", text: t }) } catch { closed = true } }
+            }
+            // 纯文本路径：delta 本身就带换行，按行切分增量推送
+            // （若模型误输出 JSON 包裹，IncrementalLineExtractor 也能兜住 —— 双保险）
+            const looksJson = delta.includes('"text"') || delta.trimStart().startsWith("{")
+            if (looksJson) {
+              for (const ln of extractor.push(delta)) {
+                if (!firstLineMs) firstLineMs = Date.now() - reqT0
+                await emit(ln)
+              }
+            } else {
+              for (const ln of delta.split("\n")) {
+                const t = ln.trim()
+                if (!t) continue
+                if (!firstLineMs) firstLineMs = Date.now() - reqT0
+                await emit(t)
+              }
+            }
           }
-        } else {
-          for (const ln of delta.split("\n")) {
-            const t = ln.trim()
-            if (!t) continue
-            if (!firstLineMs) firstLineMs = Date.now() - reqT0
-            streamed += (streamed ? "\n" : "") + t
-            await send({ type: "line", text: t })
-          }
+          console.log(`[parse-image-stream] 豆包流式结束 首行=${firstLineMs}ms 总耗时=${Date.now() - reqT0}ms 文本=${streamed.length}字`)
+        } catch (e) {
+          console.warn(`[parse-image-stream] 豆包流式失败(已出${streamed.length}字): ${(e as Error).message}`)
         }
-      }
-      console.log(`[parse-image-stream] 流式文本完成 首行=${firstLineMs}ms 总耗时=${Date.now() - reqT0}ms 文本=${streamed.length}字`)
-    } catch (e) {
-      console.warn(`[parse-image-stream] 流式失败(已出${streamed.length}字): ${(e as Error).message}`)
-      if (!streamed) {
-        await send({ type: "error", detail: `识图失败：${(e as Error).message}` })
-        return
-      }
-      // 已出部分文本：继续走下面的收尾（结构化能拿到多少算多少）
+        signalDecision("done") // 豆包结束（若已判定则被忽略）
+      })()
+    } else {
+      signalDecision("done")
     }
 
-    // 流结束后：文本清洗
-    let text = cleanOcrText(streamed).trim()
+    // ── 竞速：Paddle 成功 或 豆包首行，谁先谁赢 ──
+    const decision = ark.enabled
+      ? await Promise.race([paddleP.then((ok) => (ok ? "paddle" : "paddle-fail")), decisionP])
+      : ((await paddleP) ? "paddle" : "paddle-fail")
+    console.log(`[parse-image-stream] 竞速判定=${decision} t=${Date.now() - reqT0}ms`)
+
+    if (decision === "paddle") {
+      text = paddleText
+      blocks = paddleBlocks
+      closed = true // 抢断豆包：立即收尾，不等它跑完
+    } else if (decision === "doubao") {
+      await doubaoDone
+      text = streamed
+    } else {
+      // 豆包未出字（失败/空）或 Paddle 失败：两条路都收尾后再定夺
+      await doubaoDone
+      if (winner === "paddle") {
+        text = paddleText
+        blocks = paddleBlocks
+      } else if (winner === "doubao") {
+        text = streamed
+      } else if (await paddleP) {
+        text = paddleText
+        blocks = paddleBlocks
+      } else {
+        await send({ type: "error", detail: ark.enabled ? "图片识别失败（未识别到文字）" : "免费 AI 服务未配置（缺少 ARK_API_KEY）" })
+        return
+      }
+    }
+
+    // ── 统一收尾：文本清洗 ──
+    text = cleanOcrText(text).trim()
     text = recoverTextFromJson(text).trim()
     text = cleanBookScanText(text, { stripPinyin: mode !== "english" })
     if (!text) {
@@ -705,17 +798,19 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
       return
     }
 
-    // 结构化 blocks：后台跑一次原 JSON 调用（版面/对齐/逐字注音），失败则退化为单块纯文本
-    let blocks: any[] = []
-    let structured = false
-    try {
-      const result = await arkExtractBlocks(oriented, false, !polyAsync)
-      if (result.blocks.length) {
-        blocks = cleanBookScanBlocks(result.blocks, { stripPinyin: mode !== "english" })
-        structured = result.structured
+    // 结构化 blocks：Paddle 路径自带；豆包路径再跑一次原 JSON 调用（版面/对齐/逐字注音）
+    if (winner === "paddle") {
+      blocks = cleanBookScanBlocks(blocks, { stripPinyin: mode !== "english" })
+    } else {
+      try {
+        const result = await arkExtractBlocks(oriented, false, !polyAsync)
+        if (result.blocks.length) {
+          blocks = cleanBookScanBlocks(result.blocks, { stripPinyin: mode !== "english" })
+        }
+        console.log(`[parse-image-stream] 豆包结构化 blocks=${blocks.length} structured=${result.structured}`)
+      } catch (e) {
+        console.warn(`[parse-image-stream] 结构化补 blocks 失败(退化为纯文本块): ${(e as Error).message}`)
       }
-    } catch (e) {
-      console.warn(`[parse-image-stream] 结构化补 blocks 失败(退化为纯文本块): ${(e as Error).message}`)
     }
     if (!blocks.length) {
       blocks = [{ type: "body", text, align: "left", lines: text.split("\n").map((t) => ({ text: t, indent: 0 })), polyphones: {} }]
@@ -731,7 +826,7 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
         /* 后台补注音失败：前端拿不到注音，不影响正文阅读 */
       }
     }
-    console.log(`[parse-image-stream] 完成 总耗时=${Date.now() - reqT0}ms 文本=${text.length}字 blocks=${blocks.length} structured=${structured}`)
+    console.log(`[parse-image-stream] 完成 总耗时=${Date.now() - reqT0}ms 文本=${text.length}字 blocks=${blocks.length} engine=${winner}`)
     await send({
       type: "done",
       text,

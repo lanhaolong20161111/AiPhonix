@@ -27,17 +27,17 @@ database_id = "27debe4f-2d18-4a61-90c1-8a47e3917c42"
 binding = "FILES"
 bucket_name = "aiphonix-files"
 
-# ── 生产视觉模型（2026-09-01 切换）──
-# 原 doubao-seed-evolving 实测单图超时(≥240s)已弃用；先上 doubao-seed-2-0-mini-260428（~30s），
-# 现按指令改 doubao-seed-2.1-turbo（速度优先）。⚠️ 端点名必须带日期后缀（doubao-seed-2-1-turbo 裸名 404）。
+# ── 生产视觉模型（统一 doubao-seed-2.1-turbo）──
+# 旧视觉模型实测慢或超时，均已弃用。
+# ⚠️ 端点名必须带日期后缀（doubao-seed-2-1-turbo 裸名 404）。
 # 非密钥配置，放 [vars] 便于 git 审阅与回退。
 # 等价操作：npx wrangler secret put ARK_VISION_MODEL（值同上）。
 [vars]
 ARK_VISION_MODEL = "doubao-seed-2-1-turbo-260628"
-# 识图主引擎（2026-09-02）：平板慢网 PaddleOCR-VL 易超时(75s)，改默认直走豆包。
-# parse-image 默认 PaddleOCR-VL 优先（表格更准），此处设为 "doubao" 跳过 PaddleOCR 直走豆包；
-# 删掉此行或改其他值即恢复 PaddleOCR 优先。等价：npx wrangler secret put OCR_ENGINE
-OCR_ENGINE = "doubao"
+# 识图主引擎（2026-09-10 改为 Paddle 打头阵）：Paddle 专用 OCR（PP-StructureV3/PP-OCRv6）实测
+# 1.6~3.2s 出全部文字+版面块，比豆包 LLM（5~8s）快约 2 倍；流式端点已用「并发竞速 + 12s 超时
+# 自动回退豆包」保证最坏情况不慢于豆包。改回 "doubao" 即一键跳过 Paddle（等价 npx wrangler secret put OCR_ENGINE）。
+OCR_ENGINE = "paddle"
 
 # ── staging（🟡9）：改代码先打 staging 验证，不打线上 ──
 # 部署：& .\scripts\deploy.ps1 -Env staging；URL：https://aiphonix-api-staging.<sub>.workers.dev

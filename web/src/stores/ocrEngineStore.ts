@@ -7,9 +7,9 @@
  * 选择器都沿用同一选择（parseImage 内部读本 store，无需逐层透传 props）。
  *
  * 取值：
- * - auto   ：跟随服务端默认（OCR_ENGINE；当前生产为 doubao）
- * - doubao ：强制豆包多模态（快、慢网友好）
- * - paddle ：强制 PaddleOCR-VL（版面/表格更准，慢网可能超时）
+ * - auto   ：跟随服务端默认（OCR_ENGINE；当前生产为 paddle 打头阵，失败/超时自动回退豆包）
+ * - doubao ：强制豆包多模态（慢网友好）
+ * - paddle ：强制 PaddleOCR（专用 OCR，通常 ~1~3s 出全文，版面/表格更准）
  */
 import { create } from "zustand"
 

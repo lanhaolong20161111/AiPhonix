@@ -197,7 +197,7 @@ export interface ParseImageStreamHandlers {
  * - 返回与 parseImage 同构的最终结果（含结构化 blocks / 注音 token）
  * - 返回 null = 流式不可用（服务端未升级/404/未出字前失败）→ 调用方回退 parseImage
  *
- * 仅 chinese / english 模块支持（数学走 /ai-homework，暂未流式）；engine=paddle 时返回 null 走非流式。
+ * 仅 chinese / english 模块支持（数学走 /ai-homework，暂未流式）。
  */
 export async function parseImageStream(
   file: File | Blob,
@@ -206,9 +206,9 @@ export async function parseImageStream(
   handlers: ParseImageStreamHandlers = {},
 ): Promise<ParseImageResult | null> {
   const { onStage, onLine, signal } = handlers
-  // 用户显式选 Paddle 时走非流式（Paddle 结果一次成型，无增量）
+  // 用户显式选引擎时透传给服务端；缺省由服务端 OCR_ENGINE 决定。
+  // 注：服务端流式端点现已支持 Paddle 打头阵（并发竞速 + 豆包兜底），不再对 paddle 短路走非流式。
   const engine = getOcrEngine()
-  if (engine === "paddle") return null
 
   onStage?.("preparing")
   const prepared = await prepareImageFile(file, 1600, 0.85)
@@ -229,6 +229,8 @@ export async function parseImageStream(
   if (module === "english") params.set("mode", "english")
   if (noCache) params.set("no_cache", "true")
   if (module === "chinese") params.set("poly_async", "1")
+  // 透传用户显式选择的引擎（paddle / doubao）；"auto"/未选则不带，由服务端默认
+  if (engine && engine !== "auto") params.set("engine", engine)
 
   onStage?.("uploading")
   const stageTimer =
