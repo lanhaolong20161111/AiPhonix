@@ -94,6 +94,14 @@ def _decode_access_token(token: str) -> Optional[dict]:
         return None
 
 
+def _user_id_from_payload(payload: dict) -> Optional[int]:
+    """从 JWT payload 安全解析 user_id（sub 缺失/非数字 → None，避免 500）"""
+    try:
+        return int(payload.get("sub", ""))
+    except (TypeError, ValueError):
+        return None
+
+
 # ── 依赖：获取当前用户 ──
 
 async def get_current_user(
@@ -109,7 +117,9 @@ async def get_current_user(
     payload = _decode_access_token(parts[1])
     if not payload:
         raise HTTPException(status_code=401, detail="Token 无效或已过期")
-    user_id = int(payload["sub"])
+    user_id = _user_id_from_payload(payload)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Token 无效或已过期")
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -130,7 +140,10 @@ async def optional_user(
     payload = _decode_access_token(parts[1])
     if not payload:
         return None
-    result = await session.execute(select(User).where(User.id == int(payload["sub"])))
+    uid = _user_id_from_payload(payload)
+    if uid is None:
+        return None
+    result = await session.execute(select(User).where(User.id == uid))
     return result.scalar_one_or_none()
 
 
@@ -214,9 +227,9 @@ async def refresh(req: RefreshRequest, session: AsyncSession = Depends(get_sessi
     # 删除旧 refresh token
     await session.delete(rt)
 
-    # 查询用户
-    result = await session.execute(select(User).where(User.id == rt.user_id))
-    user = result.scalar_one_or_none()
+    # 查询用户（用独立变量名，避免复用 result 导致 mypy 类型污染为 RefreshToken）
+    user_result = await session.execute(select(User).where(User.id == rt.user_id))
+    user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=401, detail="用户不存在")
 

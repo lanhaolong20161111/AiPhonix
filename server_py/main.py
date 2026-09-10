@@ -47,7 +47,7 @@ app.add_middleware(
 
 async def _init_routes():
     """初始化所有路由（延迟导入，解决循环依赖）"""
-    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users, uploads, import_templates, user_imports, free_llm, training, pinyin_audio, ipa_audio, ai_practice
+    from routes import llm, quiz, tts, soe, wordbank, chinese_practice, practice, practice_tracker, word_suggestions, english, char_images, ark_image, essays, auth, users, uploads, import_templates, user_imports, free_llm, training, pinyin_audio, ipa_audio, ai_practice, ai_homework, ai_chinese, ai_chat
 
     # 加载配置
     cfg_path = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -70,12 +70,18 @@ async def _init_routes():
     ipa_audio.init()
     import_templates.init("data")
     await ai_practice.init(cfg)
+    ai_homework.init(cfg)
+    ai_chinese.init(cfg)
+    ai_chat.init(cfg)
 
     from services import ark_image as ark_svc
     ark_svc.init(cfg.ark_image)
 
     from services import free_llm as free_llm_svc
     free_llm_svc.init(cfg.ark_chat)
+
+    from services import pp_structure as pp_svc
+    pp_svc.init(cfg.pp_structure)
 
     # 注册路由
     app.include_router(llm.router, prefix="/api/v1")
@@ -101,6 +107,9 @@ async def _init_routes():
     app.include_router(free_llm.router, prefix="/api/v1")
     app.include_router(training.router, prefix="/api/v1")
     app.include_router(ai_practice.router, prefix="/api/v1")
+    app.include_router(ai_homework.router, prefix="/api/v1")
+    app.include_router(ai_chinese.router, prefix="/api/v1")
+    app.include_router(ai_chat.router, prefix="/api/v1")
 
     # 移动端网页（上传工具），构建产物在 static/web/
     from fastapi.staticfiles import StaticFiles
@@ -108,6 +117,18 @@ async def _init_routes():
     if os.path.isdir(web_dir):
         app.mount("/web", StaticFiles(directory=web_dir, html=True), name="web")
         logger.info("移动端网页已挂载: %s", web_dir)
+
+    # 字母发音视频（Web 端字母详情页播放）
+    letter_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "letter_clips")
+    if os.path.isdir(letter_dir):
+        app.mount("/letter-clips", StaticFiles(directory=letter_dir), name="letter_clips")
+        logger.info("字母视频已挂载: %s", letter_dir)
+
+    # 跟读视频（Big Muzzy 等，Web 端视频跟读播放）+ 字幕
+    videos_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "videos")
+    if os.path.isdir(videos_dir):
+        app.mount("/videos", StaticFiles(directory=videos_dir), name="videos")
+        logger.info("跟读视频已挂载: %s", videos_dir)
 
     logger.info("所有路由已注册")
     return cfg

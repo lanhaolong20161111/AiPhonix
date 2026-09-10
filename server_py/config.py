@@ -1,20 +1,21 @@
-"""配置加载 — 从 config.yaml 和环境变量读取"""
+"""配置加载 — 从 config.yaml 和环境变量读取
+
+类型由 pydantic 校验：yaml 缺字段用默认值、类型不符启动即报错，
+不再有"手工搬运漏字段 → 静默用默认值"的路径。
+"""
 
 import os
-from dataclasses import dataclass, field
-from typing import Optional
 
 import yaml
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class ServerConfig:
+class ServerConfig(BaseModel):
     host: str = "0.0.0.0"
-    port: str = "8080"
+    port: int = 8080  # uvicorn 需要 int；yaml 中写 int 8080
 
 
-@dataclass
-class DeepSeekConfig:
+class DeepSeekConfig(BaseModel):
     api_key: str = ""
     base_url: str = "https://api.deepseek.com"
     model: str = "deepseek-v4-flash"
@@ -24,23 +25,20 @@ class DeepSeekConfig:
     max_input_chars: int = 20000        # 输入提示词字符数硬上限
 
 
-@dataclass
-class BaiduTTSConfig:
+class BaiduTTSConfig(BaseModel):
     app_id: str = ""
     api_key: str = ""
     secret_key: str = ""
     cache_dir: str = "cache/tts"
 
 
-@dataclass
-class TencentConfig:
+class TencentConfig(BaseModel):
     app_id: str = ""
     secret_id: str = ""
     secret_key: str = ""
 
 
-@dataclass
-class LLMPromptsConfig:
+class LLMPromptsConfig(BaseModel):
     english_teaching: str = ""
     chinese_teaching: str = ""
     quiz_generate: str = ""
@@ -49,84 +47,52 @@ class LLMPromptsConfig:
     default: str = ""
 
 
-@dataclass
-class ArkImageConfig:
+class ArkImageConfig(BaseModel):
     api_key: str = ""
     model: str = "doubao-image-pro-32k"
     endpoint: str = "https://open.volcengineapi.com"
 
 
-@dataclass
-class ArkChatConfig:
+class ArkChatConfig(BaseModel):
     """火山引擎送 token 的免费 LLM（多模态：文本 + 图片）"""
     api_key: str = ""
-    model: str = "doubao-seed-2-0-mini-260428"
+    model: str = "deepseek-v4-flash-ga-260731"  # 文本分析默认（快稳定）；识图用 MULTIMODAL_MODEL 覆盖
 
 
-@dataclass
-class Config:
-    server: ServerConfig = field(default_factory=ServerConfig)
-    deepseek: DeepSeekConfig = field(default_factory=DeepSeekConfig)
-    baidu_tts: BaiduTTSConfig = field(default_factory=BaiduTTSConfig)
-    tencent: TencentConfig = field(default_factory=TencentConfig)
-    llm_prompts: LLMPromptsConfig = field(default_factory=LLMPromptsConfig)
-    ark_image: ArkImageConfig = field(default_factory=ArkImageConfig)
-    ark_chat: ArkChatConfig = field(default_factory=ArkChatConfig)
+class PPStructureConfig(BaseModel):
+    """PaddleOCR AI Studio PP-StructureV3 外部 API（官方 jobs 接口）"""
+    token: str = ""
+    job_url: str = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
+    model: str = "PP-StructureV3"
+    poll_interval: float = 5.0  # 轮询间隔（秒）
+    max_wait: float = 180.0     # 最长等待结果（秒）
+    timeout: float = 30.0       # 单次 HTTP 超时（秒）
+
+
+class Config(BaseModel):
+    server: ServerConfig = Field(default_factory=ServerConfig)
+    deepseek: DeepSeekConfig = Field(default_factory=DeepSeekConfig)
+    baidu_tts: BaiduTTSConfig = Field(default_factory=BaiduTTSConfig)
+    tencent: TencentConfig = Field(default_factory=TencentConfig)
+    llm_prompts: LLMPromptsConfig = Field(default_factory=LLMPromptsConfig)
+    ark_image: ArkImageConfig = Field(default_factory=ArkImageConfig)
+    ark_chat: ArkChatConfig = Field(default_factory=ArkChatConfig)
+    pp_structure: PPStructureConfig = Field(default_factory=PPStructureConfig)
 
 
 def load_config(path: str = "config.yaml") -> Config:
     """加载配置，环境变量优先"""
-    cfg = Config()
-
+    raw: dict = {}
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}
 
-        if "server" in raw:
-            cfg.server.host = raw["server"].get("host", cfg.server.host)
-            cfg.server.port = raw["server"].get("port", cfg.server.port)
+    # 兼容旧结构：deepseek.budget 子段提升为平铺字段
+    if isinstance(raw.get("deepseek"), dict):
+        raw["deepseek"] = {**raw["deepseek"], **raw["deepseek"].get("budget", {})}
 
-        if "deepseek" in raw:
-            cfg.deepseek.api_key = raw["deepseek"].get("api_key", "")
-            cfg.deepseek.base_url = raw["deepseek"].get("base_url", cfg.deepseek.base_url)
-            cfg.deepseek.model = raw["deepseek"].get("model", cfg.deepseek.model)
-            if "budget" in raw["deepseek"]:
-                b = raw["deepseek"]["budget"]
-                cfg.deepseek.max_cost_per_call = float(b.get("max_cost_per_call", cfg.deepseek.max_cost_per_call))
-                cfg.deepseek.max_cost_per_day = float(b.get("max_cost_per_day", cfg.deepseek.max_cost_per_day))
-                cfg.deepseek.max_input_chars = int(b.get("max_input_chars", cfg.deepseek.max_input_chars))
-
-        if "baidu_tts" in raw:
-            b = raw["baidu_tts"]
-            cfg.baidu_tts.app_id = b.get("app_id", "")
-            cfg.baidu_tts.api_key = b.get("api_key", "")
-            cfg.baidu_tts.secret_key = b.get("secret_key", "")
-            cfg.baidu_tts.cache_dir = b.get("cache_dir", cfg.baidu_tts.cache_dir)
-
-        if "tencent" in raw:
-            t = raw["tencent"]
-            cfg.tencent.app_id = t.get("app_id", "")
-            cfg.tencent.secret_id = t.get("secret_id", "")
-            cfg.tencent.secret_key = t.get("secret_key", "")
-
-        if "llm_prompts" in raw:
-            p = raw["llm_prompts"]
-            cfg.llm_prompts.english_teaching = p.get("english_teaching", "")
-            cfg.llm_prompts.chinese_teaching = p.get("chinese_teaching", "")
-            cfg.llm_prompts.quiz_generate = p.get("quiz_generate", "")
-            cfg.llm_prompts.word_suggestions = p.get("word_suggestions", "")
-            cfg.llm_prompts.sentence_making = p.get("sentence_making", "")
-            cfg.llm_prompts.default = p.get("default", "")
-
-        if "ark_image" in raw:
-            a = raw["ark_image"]
-            cfg.ark_image.api_key = a.get("api_key", "")
-            cfg.ark_image.model = a.get("model", cfg.ark_image.model)
-
-        if "ark_chat" in raw:
-            a = raw["ark_chat"]
-            cfg.ark_chat.api_key = a.get("api_key", "")
-            cfg.ark_chat.model = a.get("model", cfg.ark_chat.model)
+    # 一次性校验（缺字段用默认值，未知字段忽略，类型不符抛 ValidationError）
+    cfg = Config.model_validate(raw)
 
     # 环境变量覆盖（所有密钥支持从环境变量读取，容器化部署用）
     if v := os.environ.get("DEEPSEEK_API_KEY"):
@@ -157,6 +123,9 @@ def load_config(path: str = "config.yaml") -> Config:
         cfg.ark_image.model = v
     if v := os.environ.get("ARK_CHAT_MODEL"):
         cfg.ark_chat.model = v
+
+    if v := os.environ.get("PP_TOKEN"):
+        cfg.pp_structure.token = v
 
     # 默认提示词
     if not cfg.llm_prompts.english_teaching:

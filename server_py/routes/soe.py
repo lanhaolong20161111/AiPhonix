@@ -33,12 +33,15 @@ class SOERequest(BaseModel):
     audio_base64: str
     engine: str = ""
     user_id: int = 0  # 0 = 未登录评测
+    eval_mode: str = ""  # 兼容旧参数（"0"/"1"/"2"/"8"）
+    scene: str = ""  # 被测对象类型：word / sentence / paragraph / pinyin（推荐，决定 eval_mode）
+    source: str = ""  # 来源字卡/词（评测上下文 char/词），用于历史跳转定位
 
 
 @router.post("/soe/evaluate")
 async def soe_evaluate(req: SOERequest, session: AsyncSession = Depends(get_session)):
     try:
-        result = svc.evaluate(req.ref_text, req.audio_base64, req.engine)
+        result = svc.evaluate(req.ref_text, req.audio_base64, req.engine, req.eval_mode, req.scene)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"SOE 评测失败: {e}")
 
@@ -48,12 +51,19 @@ async def soe_evaluate(req: SOERequest, session: AsyncSession = Depends(get_sess
         language = "zh" if "zh" in engine else (
             "zh" if any("\u4e00" <= c <= "\u9fff" for c in req.ref_text) else "en"
         )
-        eval_type = "sentence" if " " in req.ref_text else "word"
+        # eval_type 用 scene（被测对象类型）标记，区分 字/词/句/段/拼音；
+        # 旧调用只传 eval_mode 数字时按 0/1/2/8 映射回场景名，都不传则按文本启发式
+        eval_type = req.scene or ""
+        if not eval_type and req.eval_mode:
+            eval_type = {"0": "word", "1": "sentence", "2": "paragraph", "8": "pinyin"}.get(req.eval_mode, "")
+        if not eval_type:
+            eval_type = "sentence" if " " in req.ref_text else "word"
         record = SpeechEvalRecord(
             user_id=req.user_id,
             language=language,
             eval_type=eval_type,
             ref_text=req.ref_text[:500],
+            source=req.source[:255],
             engine=engine,
             total_accuracy=result.get("pron_accuracy", 0.0),
             total_fluency=result.get("pron_fluency", 0.0),
@@ -104,6 +114,7 @@ async def get_soe_records(req: RecordsQuery, session: AsyncSession = Depends(get
             "language": r.language,
             "eval_type": r.eval_type,
             "ref_text": r.ref_text,
+            "source": r.source or "",
             "engine": r.engine,
             "total_accuracy": r.total_accuracy,
             "total_fluency": r.total_fluency,
@@ -113,3 +124,31 @@ async def get_soe_records(req: RecordsQuery, session: AsyncSession = Depends(get
             "created_at": r.created_at.isoformat() if r.created_at else None,
         })
     return {"total": len(records), "records": records}
+
+
+@router.delete("/soe/records/{record_id}")
+async def delete_soe_record(record_id: int, session: AsyncSession = Depends(get_session)):
+    """删除单条语音评测记录"""
+    from sqlalchemy import delete as sql_delete
+    stmt = sql_delete(SpeechEvalRecord).where(SpeechEvalRecord.id == record_id)
+    result = await session.execute(stmt)
+    await session.commit()
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    return {"ok": True, "deleted": record_id}
+
+
+class BatchDeleteRequest(BaseModel):
+    ids: list[int]
+
+
+@router.post("/soe/records/batch-delete")
+async def batch_delete_soe_records(body: BatchDeleteRequest, session: AsyncSession = Depends(get_session)):
+    """批量删除语音评测记录"""
+    from sqlalchemy import delete as sql_delete
+    if not body.ids:
+        return {"ok": True, "deleted": 0}
+    stmt = sql_delete(SpeechEvalRecord).where(SpeechEvalRecord.id.in_(body.ids))
+    result = await session.execute(stmt)
+    await session.commit()
+    return {"ok": True, "deleted": result.rowcount}

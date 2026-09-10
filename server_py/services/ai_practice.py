@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import re
-from typing import TypedDict
+from typing import TypedDict, cast
 
 import aiosqlite
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -232,7 +232,7 @@ async def _grader(state: AiPracticeState, config: RunnableConfig, store: BaseSto
     s = dict(state)
     s["history"] = history
     raw = await asyncio.to_thread(
-        svc.chat, _GRADER_SYSTEM, _grader_prompt(s),
+        svc.chat, _GRADER_SYSTEM, _grader_prompt(cast(AiPracticeState, s)),
         max_tokens=1024, caller="ai_practice_grade",
     )
     data = _extract_json(raw) or {}
@@ -337,7 +337,7 @@ def _question_from(result: dict) -> str:
 async def start_session(session_id: int, user_id: int, content_type: str, content: str, task: str) -> str:
     """创建会话并返回第一个问题"""
     assert _graph is not None, "ai_practice graph 未初始化"
-    result = await _graph.ainvoke(
+    result = await _graph.ainvoke(  # type: ignore[call-overload]  # state 字面量类型与 Pregel 重载签名不匹配（langgraph 类型定义限制）
         {
             "content_type": content_type,
             "content": content,
@@ -359,7 +359,7 @@ async def start_session(session_id: int, user_id: int, content_type: str, conten
 async def send_answer(session_id: int, user_id: int, answer: str) -> dict:
     """发送学生回答，返回 {correction, praise, question, done}"""
     assert _graph is not None, "ai_practice graph 未初始化"
-    result = await _graph.ainvoke(
+    result = await _graph.ainvoke(  # type: ignore[call-overload]  # Command(resume=...) 与 Pregel 重载签名不匹配（langgraph 类型定义限制）
         Command(resume=answer),
         config=_thread_id(session_id, user_id),
     )

@@ -5556,7 +5556,7 @@
     "type": "写",
     "learning_status": "correct",
     "needs_regen": false,
-    "timestamp": "2026-08-04T13:37:32.236921"
+    "timestamp": "2026-08-17T12:49:54.687237"
   },
   {
     "user_id": 6,
@@ -5567,5 +5567,905 @@
     "learning_status": "correct",
     "needs_regen": false,
     "timestamp": "2026-08-04T17:08:51.809081"
+  },
+  {
+    "user_id": 6,
+    "char": "Hello! I'm Mike Black.",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英句",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-16T10:13:59.652612"
+  },
+  {
+    "user_id": 6,
+    "char": "village",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-16T10:19:22.059315"
+  },
+  {
+    "user_id": 6,
+    "char": "丝",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:45:35.456110"
+  },
+  {
+    "user_id": 6,
+    "char": "丧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:46:41.592738"
+  },
+  {
+    "user_id": 6,
+    "char": "享",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:47:11.028095"
+  },
+  {
+    "user_id": 6,
+    "char": "亭",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:47:35.249219"
+  },
+  {
+    "user_id": 6,
+    "char": "仍",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:49:27.447194"
+  },
+  {
+    "user_id": 6,
+    "char": "凑",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:50:36.385167"
+  },
+  {
+    "user_id": 6,
+    "char": "剧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:51:02.289703"
+  },
+  {
+    "user_id": 6,
+    "char": "剪",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:51:17.300536"
+  },
+  {
+    "user_id": 6,
+    "char": "勃",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:51:48.456003"
+  },
+  {
+    "user_id": 6,
+    "char": "厕",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:52:05.268970"
+  },
+  {
+    "user_id": 6,
+    "char": "咏",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:52:47.540804"
+  },
+  {
+    "user_id": 6,
+    "char": "啊",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:53:05.685139"
+  },
+  {
+    "user_id": 6,
+    "char": "嘛",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:53:20.034032"
+  },
+  {
+    "user_id": 6,
+    "char": "坊",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:53:48.658406"
+  },
+  {
+    "user_id": 6,
+    "char": "坛",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:54:14.646548"
+  },
+  {
+    "user_id": 6,
+    "char": "堂",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:54:45.603376"
+  },
+  {
+    "user_id": 6,
+    "char": "堤",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:55:14.522051"
+  },
+  {
+    "user_id": 6,
+    "char": "塔",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:55:40.856296"
+  },
+  {
+    "user_id": 6,
+    "char": "妆",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:56:22.360760"
+  },
+  {
+    "user_id": 6,
+    "char": "寄",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:56:34.700345"
+  },
+  {
+    "user_id": 6,
+    "char": "尝",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:56:55.734081"
+  },
+  {
+    "user_id": 6,
+    "char": "巧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:57:07.168742"
+  },
+  {
+    "user_id": 6,
+    "char": "巷",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:57:59.516058"
+  },
+  {
+    "user_id": 6,
+    "char": "弦",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:58:37.885166"
+  },
+  {
+    "user_id": 6,
+    "char": "懊",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T12:59:09.349397"
+  },
+  {
+    "user_id": 6,
+    "char": "拂",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:03:47.446826"
+  },
+  {
+    "user_id": 6,
+    "char": "挖",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:04:17.801562"
+  },
+  {
+    "user_id": 6,
+    "char": "挥",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:05:12.435109"
+  },
+  {
+    "user_id": 6,
+    "char": "播",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:05:55.482086"
+  },
+  {
+    "user_id": 6,
+    "char": "料",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:07:13.617376"
+  },
+  {
+    "user_id": 6,
+    "char": "曾",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:08:36.599337"
+  },
+  {
+    "user_id": 6,
+    "char": "杜",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:09:19.382955"
+  },
+  {
+    "user_id": 6,
+    "char": "格",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:09:43.512404"
+  },
+  {
+    "user_id": 6,
+    "char": "梯",
+    "grade": "二年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:09:58.593826"
+  },
+  {
+    "user_id": 6,
+    "char": "棘",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:10:32.261488"
+  },
+  {
+    "user_id": 6,
+    "char": "汗",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:11:32.872915"
+  },
+  {
+    "user_id": 6,
+    "char": "汤",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:12:20.112527"
+  },
+  {
+    "user_id": 6,
+    "char": "泞",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:13:18.536838"
+  },
+  {
+    "user_id": 6,
+    "char": "漏",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:14:22.463747"
+  },
+  {
+    "user_id": 6,
+    "char": "烦",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:14:36.187927"
+  },
+  {
+    "user_id": 6,
+    "char": "狐",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:15:06.007356"
+  },
+  {
+    "user_id": 6,
+    "char": "狸",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:15:35.138530"
+  },
+  {
+    "user_id": 6,
+    "char": "献",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:15:56.456957"
+  },
+  {
+    "user_id": 6,
+    "char": "瓣",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:16:25.432660"
+  },
+  {
+    "user_id": 6,
+    "char": "瞧",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:16:40.188073"
+  },
+  {
+    "user_id": 6,
+    "char": "破",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:17:23.844845"
+  },
+  {
+    "user_id": 6,
+    "char": "磨",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:17:48.502762"
+  },
+  {
+    "user_id": 6,
+    "char": "礼",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:18:33.287174"
+  },
+  {
+    "user_id": 6,
+    "char": "移",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:19:01.923828"
+  },
+  {
+    "user_id": 6,
+    "char": "窝",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:19:51.641128"
+  },
+  {
+    "user_id": 6,
+    "char": "符",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:20:24.947987"
+  },
+  {
+    "user_id": 6,
+    "char": "籽",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:20:46.796151"
+  },
+  {
+    "user_id": 6,
+    "char": "粉",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-17T14:21:31.758037"
+  },
+  {
+    "user_id": 6,
+    "char": "糕",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-18T15:00:29.107456"
+  },
+  {
+    "user_id": 6,
+    "char": "糖",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-18T15:00:38.573331"
+  },
+  {
+    "user_id": 6,
+    "char": "绚",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-18T15:01:02.762291"
+  },
+  {
+    "user_id": 6,
+    "char": "肯",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-18T15:04:46.450769"
+  },
+  {
+    "user_id": 6,
+    "char": "致",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:31:22.522079"
+  },
+  {
+    "user_id": 6,
+    "char": "芽",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:31:58.841996"
+  },
+  {
+    "user_id": 6,
+    "char": "茁",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:33:03.458549"
+  },
+  {
+    "user_id": 6,
+    "char": "荆",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:33:43.043089"
+  },
+  {
+    "user_id": 6,
+    "char": "莹",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:34:37.889303"
+  },
+  {
+    "user_id": 6,
+    "char": "莺",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:35:07.840214"
+  },
+  {
+    "user_id": 6,
+    "char": "蒙",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:36:26.628118"
+  },
+  {
+    "user_id": 6,
+    "char": "蔗",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:37:27.702323"
+  },
+  {
+    "user_id": 6,
+    "char": "袄",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:37:45.046129"
+  },
+  {
+    "user_id": 6,
+    "char": "裁",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:38:37.442380"
+  },
+  {
+    "user_id": 6,
+    "char": "裹",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:39:19.476210"
+  },
+  {
+    "user_id": 6,
+    "char": "觅",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:39:47.437179"
+  },
+  {
+    "user_id": 6,
+    "char": "解",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:42:28.240154"
+  },
+  {
+    "user_id": 6,
+    "char": "触",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:43:17.038812"
+  },
+  {
+    "user_id": 6,
+    "char": "询",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:44:00.626520"
+  },
+  {
+    "user_id": 6,
+    "char": "贺",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:46:12.039670"
+  },
+  {
+    "user_id": 6,
+    "char": "趁",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:47:43.273812"
+  },
+  {
+    "user_id": 6,
+    "char": "迹",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:48:52.430359"
+  },
+  {
+    "user_id": 6,
+    "char": "邓",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:51:47.436230"
+  },
+  {
+    "user_id": 6,
+    "char": "醉",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:52:22.905658"
+  },
+  {
+    "user_id": 6,
+    "char": "需",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:54:16.074956"
+  },
+  {
+    "user_id": 6,
+    "char": "顺",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:55:39.282636"
+  },
+  {
+    "user_id": 6,
+    "char": "颈",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:56:31.038722"
+  },
+  {
+    "user_id": 6,
+    "char": "餐",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:56:44.049268"
+  },
+  {
+    "user_id": 6,
+    "char": "饼",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:56:54.908176"
+  },
+  {
+    "user_id": 6,
+    "char": "鹃",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:57:41.278414"
+  },
+  {
+    "user_id": 6,
+    "char": "龄",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "认",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T16:58:18.241579"
+  },
+  {
+    "user_id": 6,
+    "char": "遮",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "wrong",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T17:00:38.442412"
+  },
+  {
+    "user_id": 6,
+    "char": "掩",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T17:00:57.021734"
+  },
+  {
+    "user_id": 6,
+    "char": "探",
+    "grade": "二年级",
+    "semester": "下",
+    "type": "写",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-19T17:01:59.990151"
+  },
+  {
+    "user_id": 6,
+    "char": "faraway",
+    "grade": "三年级",
+    "semester": "上",
+    "type": "英词",
+    "learning_status": "correct",
+    "needs_regen": false,
+    "timestamp": "2026-08-21T16:23:42.681779"
   }
 ]

@@ -2142,5 +2142,785 @@
   "航空": {
     "sentence": "飞机在航空中飞行。",
     "source": "llm"
+  },
+  "昆仑": {
+    "sentence": "昆仑是一座雄伟的山",
+    "source": "llm"
+  },
+  "品德": {
+    "sentence": "我们要养成好品德。",
+    "source": "llm"
+  },
+  "气候": {
+    "sentence": "今天的气候很温暖。",
+    "source": "llm"
+  },
+  "人群": {
+    "sentence": "广场上的人群真热闹。",
+    "source": "llm"
+  },
+  "顺利": {
+    "sentence": "我们顺利到达了学校。",
+    "source": "llm"
+  },
+  "时代": {
+    "sentence": "我们生活在新时代。",
+    "source": "llm"
+  },
+  "小鹿": {
+    "sentence": "小鹿在森林里跳来跳去。",
+    "source": "llm"
+  },
+  "之后": {
+    "sentence": "放学之后去打球。",
+    "source": "llm"
+  },
+  "捉虫": {
+    "sentence": "小鸟在树上捉虫。",
+    "source": "llm"
+  },
+  "小猫": {
+    "sentence": "小猫在草地上玩耍。",
+    "source": "llm"
+  },
+  "办法": {
+    "sentence": "我有办法解决这道题。",
+    "source": "llm"
+  },
+  "虎鲨": {
+    "sentence": "虎鲨是海里的大鱼。",
+    "source": "llm"
+  },
+  "材料": {
+    "sentence": "我用彩纸做手工材料。",
+    "source": "llm"
+  },
+  "石块": {
+    "sentence": "河边的石块很光滑。",
+    "source": "llm"
+  },
+  "软件": {
+    "sentence": "这个软件真好用。",
+    "source": "llm"
+  },
+  "次数": {
+    "sentence": "他数了数次数，正好十次。",
+    "source": "llm"
+  },
+  "饿汉": {
+    "sentence": "饿汉看到面包，眼睛发光。",
+    "source": "llm"
+  },
+  "总是": {
+    "sentence": "他上学总是迟到。",
+    "source": "llm"
+  },
+  "旅游": {
+    "sentence": "我们一起去旅游。",
+    "source": "llm"
+  },
+  "牛仔": {
+    "sentence": "牛仔在草原上骑马。",
+    "source": "llm"
+  },
+  "图书馆": {
+    "sentence": "我在图书馆看书。",
+    "source": "llm"
+  },
+  "挡风": {
+    "sentence": "爸爸为我挡风。",
+    "source": "llm"
+  },
+  "不肯": {
+    "sentence": "他不肯吃青菜。",
+    "source": "llm"
+  },
+  "奇怪": {
+    "sentence": "他提出了一个奇怪的问题。",
+    "source": "llm"
+  },
+  "跌宕": {
+    "sentence": "故事跌宕起伏，真有趣。",
+    "source": "llm"
+  },
+  "旁观": {
+    "sentence": "我在旁观他们下棋。",
+    "source": "llm"
+  },
+  "芬兰": {
+    "sentence": "芬兰是一个美丽的北欧国家。",
+    "source": "llm"
+  },
+  "辣味": {
+    "sentence": "辣椒有辣味，我不喜欢。",
+    "source": "llm"
+  },
+  "河川": {
+    "sentence": "河川里流水清澈见底。",
+    "source": "llm"
+  },
+  "迎接": {
+    "sentence": "我迎接新朋友。",
+    "source": "llm"
+  },
+  "梦想": {
+    "sentence": "我的梦想是当一名老师。",
+    "source": "llm"
+  },
+  "爬行": {
+    "sentence": "毛毛虫在树叶上慢慢爬行。",
+    "source": "llm"
+  },
+  "平静": {
+    "sentence": "湖面很平静。",
+    "source": "llm"
+  },
+  "航行": {
+    "sentence": "船在海上航行。",
+    "source": "llm"
+  },
+  "胆量": {
+    "sentence": "他有很大的胆量。",
+    "source": "llm"
+  },
+  "乡村": {
+    "sentence": "乡村的夜晚很安静。",
+    "source": "llm"
+  },
+  "芳香": {
+    "sentence": "花园里飘来阵阵芳香。",
+    "source": "llm"
+  },
+  "班级": {
+    "sentence": "我们班级很温暖。",
+    "source": "llm"
+  },
+  "暴雨": {
+    "sentence": "暴雨哗哗地下着。",
+    "source": "llm"
+  },
+  "跌价是好事": {
+    "sentence": "跌价了，我能买更多零食。",
+    "source": "llm"
+  },
+  "鸟鸣": {
+    "sentence": "清晨，我听到了鸟鸣。",
+    "source": "llm"
+  },
+  "形状": {
+    "sentence": "这块石头的形状像心。",
+    "source": "llm"
+  },
+  "油菜": {
+    "sentence": "田里的油菜开花了。",
+    "source": "llm"
+  },
+  "湖水": {
+    "sentence": "湖水很清，能看见小鱼。",
+    "source": "llm"
+  },
+  "照亮": {
+    "sentence": "灯光照亮了房间。",
+    "source": "llm"
+  },
+  "付出": {
+    "sentence": "付出努力才有收获。",
+    "source": "llm"
+  },
+  "司令": {
+    "sentence": "司令指挥士兵打仗。",
+    "source": "llm"
+  },
+  "珍珠": {
+    "sentence": "珍珠是美丽的宝贝。",
+    "source": "llm"
+  },
+  "穿行": {
+    "sentence": "小鸟在树林间穿行。",
+    "source": "llm"
+  },
+  "夺取": {
+    "sentence": "我们要努力夺取胜利。",
+    "source": "llm"
+  },
+  "呀呀": {
+    "sentence": "小宝宝呀呀学说话。",
+    "source": "llm"
+  },
+  "丛林": {
+    "sentence": "丛林里有许多小动物。",
+    "source": "llm"
+  },
+  "姨妈": {
+    "sentence": "我的姨妈对我很温柔。",
+    "source": "llm"
+  },
+  "亦可": {
+    "sentence": "读书亦可增长见识。",
+    "source": "llm"
+  },
+  "棕树": {
+    "sentence": "校园里有一棵高大的棕树。",
+    "source": "llm"
+  },
+  "汇总": {
+    "sentence": "把大家的作业汇总在一起。",
+    "source": "llm"
+  },
+  "咱家": {
+    "sentence": "咱家的小狗真可爱。",
+    "source": "llm"
+  },
+  "奥妙": {
+    "sentence": "这个魔术真奥妙。",
+    "source": "llm"
+  },
+  "石油": {
+    "sentence": "工人从地下开采石油。",
+    "source": "llm"
+  },
+  "清楚": {
+    "sentence": "我把题目看得很清楚。",
+    "source": "llm"
+  },
+  "荡漾": {
+    "sentence": "湖面上荡漾着微波。",
+    "source": "llm"
+  },
+  "仔细": {
+    "sentence": "我仔细地检查作业。",
+    "source": "llm"
+  },
+  "丑小鸭": {
+    "sentence": "丑小鸭最后变成了美丽的天鹅。",
+    "source": "llm"
+  },
+  "送花": {
+    "sentence": "我给妈妈送花。",
+    "source": "llm"
+  },
+  "汇合": {
+    "sentence": "小溪汇合成大河。",
+    "source": "llm"
+  },
+  "麦田": {
+    "sentence": "麦田里金黄的麦子成熟了。",
+    "source": "llm"
+  },
+  "整齐": {
+    "sentence": "同学们排着整齐的队伍。",
+    "source": "llm"
+  },
+  "钢琴": {
+    "sentence": "钢琴的声音真好听。",
+    "source": "llm"
+  },
+  "怒气": {
+    "sentence": "他满脸怒气地走进教室。",
+    "source": "llm"
+  },
+  "湖泊": {
+    "sentence": "湖泊里的水很清。",
+    "source": "llm"
+  },
+  "拥挤": {
+    "sentence": "公交车上很拥挤。",
+    "source": "llm"
+  },
+  "怎么": {
+    "sentence": "你怎么还不回家？",
+    "source": "llm"
+  },
+  "砍价": {
+    "sentence": "妈妈在菜市场砍价。",
+    "source": "llm"
+  },
+  "深山": {
+    "sentence": "我们走进深山探险。",
+    "source": "llm"
+  },
+  "取得": {
+    "sentence": "我们取得了好成绩。",
+    "source": "llm"
+  },
+  "胃口": {
+    "sentence": "我胃口很好，吃了两碗饭。",
+    "source": "llm"
+  },
+  "纺车": {
+    "sentence": "奶奶用纺车纺线。",
+    "source": "llm"
+  },
+  "浅水": {
+    "sentence": "浅水里有小鱼。",
+    "source": "llm"
+  },
+  "惊涛骇浪": {
+    "sentence": "小船在惊涛骇浪中前进。",
+    "source": "llm"
+  },
+  "五彩缤纷": {
+    "sentence": "花园里开满了五彩缤纷的花。",
+    "source": "llm"
+  },
+  "朝气蓬勃": {
+    "sentence": "同学们朝气蓬勃地走进校园。",
+    "source": "llm"
+  },
+  "兴致勃勃": {
+    "sentence": "我们兴致勃勃地出发了。",
+    "source": "llm"
+  },
+  "翩翩起舞": {
+    "sentence": "蝴蝶在花丛中翩翩起舞。",
+    "source": "llm"
+  },
+  "恍然大悟": {
+    "sentence": "听了讲解，我恍然大悟。",
+    "source": "llm"
+  },
+  "画蛇添足": {
+    "sentence": "小明画蛇添足，给画加了脚。",
+    "source": "llm"
+  },
+  "念书": {
+    "sentence": "我在教室里念书。",
+    "source": "llm"
+  },
+  "跟前": {
+    "sentence": "我站在妈妈跟前。",
+    "source": "llm"
+  },
+  "炉子": {
+    "sentence": "炉子烧得旺旺的。",
+    "source": "llm"
+  },
+  "后退": {
+    "sentence": "遇到困难不要后退。",
+    "source": "llm"
+  },
+  "化妆": {
+    "sentence": "妹妹在房间里化妆。",
+    "source": "llm"
+  },
+  "杨梅": {
+    "sentence": "我爱吃酸甜的杨梅。",
+    "source": "llm"
+  },
+  "闹钟": {
+    "sentence": "闹钟叫我起床。",
+    "source": "llm"
+  },
+  "甘心": {
+    "sentence": "我甘心帮助同学。",
+    "source": "llm"
+  },
+  "蘑菇": {
+    "sentence": "蘑菇像小伞。",
+    "source": "llm"
+  },
+  "燕子": {
+    "sentence": "燕子在天上飞。",
+    "source": "llm"
+  },
+  "蚂蚁": {
+    "sentence": "蚂蚁在搬粮食。",
+    "source": "llm"
+  },
+  "蝴蝶": {
+    "sentence": "蝴蝶在花丛中飞舞。",
+    "source": "llm"
+  },
+  "香蕉": {
+    "sentence": "我吃了一个香蕉。",
+    "source": "llm"
+  },
+  "葡萄": {
+    "sentence": "葡萄甜甜的，真好吃。",
+    "source": "llm"
+  },
+  "琴声": {
+    "sentence": "琴声悠扬，真好听。",
+    "source": "llm"
+  },
+  "留下": {
+    "sentence": "春天留下了美丽的回忆。",
+    "source": "llm"
+  },
+  "邓州": {
+    "sentence": "邓州是我的家乡。",
+    "source": "llm"
+  },
+  "边界": {
+    "sentence": "小河的边界是两岸。",
+    "source": "llm"
+  },
+  "湿气": {
+    "sentence": "雨后空气里满是湿气。",
+    "source": "llm"
+  },
+  "队长": {
+    "sentence": "队长带领我们前进。",
+    "source": "llm"
+  },
+  "穷尽": {
+    "sentence": "我们穷尽了所有办法。",
+    "source": "llm"
+  },
+  "挤进": {
+    "sentence": "他挤进人群。",
+    "source": "llm"
+  },
+  "低声": {
+    "sentence": "他在低声说话。",
+    "source": "llm"
+  },
+  "烟花": {
+    "sentence": "烟花在夜空中绽放。",
+    "source": "llm"
+  },
+  "斜阳": {
+    "sentence": "斜阳照在河面上。",
+    "source": "llm"
+  },
+  "跌跤": {
+    "sentence": "他跑太快跌跤了。",
+    "source": "llm"
+  },
+  "厘清": {
+    "sentence": "我厘清了这道题的思路。",
+    "source": "llm"
+  },
+  "吞下": {
+    "sentence": "小兔子吞下了一颗大萝卜。",
+    "source": "llm"
+  },
+  "跳舞": {
+    "sentence": "妹妹在台上跳舞。",
+    "source": "llm"
+  },
+  "感觉": {
+    "sentence": "我感觉到春天的温暖。",
+    "source": "llm"
+  },
+  "木桶": {
+    "sentence": "木桶可以用来装水。",
+    "source": "llm"
+  },
+  "众多": {
+    "sentence": "公园里花朵众多。",
+    "source": "llm"
+  },
+  "室内": {
+    "sentence": "我们在室内上课。",
+    "source": "llm"
+  },
+  "书店": {
+    "sentence": "我在书店里看书。",
+    "source": "llm"
+  },
+  "皆是": {
+    "sentence": "满园皆是花香。",
+    "source": "llm"
+  },
+  "连接": {
+    "sentence": "这条小路连接了两座村庄。",
+    "source": "llm"
+  },
+  "米饭": {
+    "sentence": "米饭香喷喷的，真好吃。",
+    "source": "llm"
+  },
+  "姓氏": {
+    "sentence": "我的姓氏是王。",
+    "source": "llm"
+  },
+  "胆大": {
+    "sentence": "小明胆大，敢一个人睡觉。",
+    "source": "llm"
+  },
+  "破坏": {
+    "sentence": "小明不要破坏花草。",
+    "source": "llm"
+  },
+  "好像": {
+    "sentence": "月亮好像一个白玉盘。",
+    "source": "llm"
+  },
+  "方式": {
+    "sentence": "我用画图的方式表达想法。",
+    "source": "llm"
+  },
+  "规定": {
+    "sentence": "学校规定不能迟到。",
+    "source": "llm"
+  },
+  "棒球": {
+    "sentence": "我和爸爸一起打棒球。",
+    "source": "llm"
+  },
+  "洞口": {
+    "sentence": "洞口有一棵大树。",
+    "source": "llm"
+  },
+  "黄豆": {
+    "sentence": "黄豆可以用来做豆浆。",
+    "source": "llm"
+  },
+  "棵把": {
+    "sentence": "院子里有棵把树。",
+    "source": "llm"
+  },
+  "孩童": {
+    "sentence": "孩童在公园里快乐地玩耍。",
+    "source": "llm"
+  },
+  "强壮": {
+    "sentence": "爸爸的身体很强壮。",
+    "source": "llm"
+  },
+  "护士": {
+    "sentence": "护士阿姨打针很温柔。",
+    "source": "llm"
+  },
+  "句号": {
+    "sentence": "句号表示一句话说完了。",
+    "source": "llm"
+  },
+  "各种": {
+    "sentence": "花园里有各种颜色的花。",
+    "source": "llm"
+  },
+  "小狗": {
+    "sentence": "小狗在草地上跑。",
+    "source": "llm"
+  },
+  "棵子": {
+    "sentence": "地里的棵子绿油油的。",
+    "source": "llm"
+  },
+  "聚拢": {
+    "sentence": "同学们聚拢在操场。",
+    "source": "llm"
+  },
+  "剧本": {
+    "sentence": "这个剧本很有趣。",
+    "source": "llm"
+  },
+  "中介": {
+    "sentence": "中介帮买卖双方联系。",
+    "source": "llm"
+  },
+  "跌足": {
+    "sentence": "他急得直跌足。",
+    "source": "llm"
+  },
+  "烂泥": {
+    "sentence": "雨后小路变成烂泥。",
+    "source": "llm"
+  },
+  "搭建": {
+    "sentence": "我们在花园里搭建帐篷。",
+    "source": "llm"
+  },
+  "钓竿": {
+    "sentence": "他拿着钓竿去钓鱼。",
+    "source": "llm"
+  },
+  "价格下跌等": {
+    "sentence": "今天菜价下跌了。",
+    "source": "llm"
+  },
+  "未来": {
+    "sentence": "未来是充满希望的。",
+    "source": "llm"
+  },
+  "霜降": {
+    "sentence": "霜降到了，天气变冷了。",
+    "source": "llm"
+  },
+  "抽纸": {
+    "sentence": "我用抽纸擦桌子。",
+    "source": "llm"
+  },
+  "广州": {
+    "sentence": "广州是一座美丽的城市。",
+    "source": "llm"
+  },
+  "晒干": {
+    "sentence": "太阳把衣服晒干了。",
+    "source": "llm"
+  },
+  "保持": {
+    "sentence": "我们要保持教室干净。",
+    "source": "llm"
+  },
+  "峻岭": {
+    "sentence": "高高的峻岭像巨人。",
+    "source": "llm"
+  },
+  "牛奶": {
+    "sentence": "我每天喝牛奶。",
+    "source": "llm"
+  },
+  "补习": {
+    "sentence": "我放学后去补习数学。",
+    "source": "llm"
+  },
+  "在乎": {
+    "sentence": "我在乎朋友的感受。",
+    "source": "llm"
+  },
+  "安静": {
+    "sentence": "教室里很安静。",
+    "source": "llm"
+  },
+  "均匀": {
+    "sentence": "妈妈把蛋糕切得很均匀。",
+    "source": "llm"
+  },
+  "始末": {
+    "sentence": "这件事的始末我全知道。",
+    "source": "llm"
+  },
+  "客人": {
+    "sentence": "客人来了，我请他们喝茶。",
+    "source": "llm"
+  },
+  "四季": {
+    "sentence": "四季有不同的美景。",
+    "source": "llm"
+  },
+  "克制": {
+    "sentence": "我克制住想吃的冲动。",
+    "source": "llm"
+  },
+  "马匹": {
+    "sentence": "草原上有许多马匹。",
+    "source": "llm"
+  },
+  "霜花": {
+    "sentence": "玻璃上结了美丽的霜花。",
+    "source": "llm"
+  },
+  "哭闹": {
+    "sentence": "弟弟哭闹着要买玩具。",
+    "source": "llm"
+  },
+  "忘我": {
+    "sentence": "他读书时很忘我。",
+    "source": "llm"
+  },
+  "敢于": {
+    "sentence": "敢于承认错误是好孩子。",
+    "source": "llm"
+  },
+  "弹弓": {
+    "sentence": "他拿着弹弓打麻雀。",
+    "source": "llm"
+  },
+  "大伙": {
+    "sentence": "大伙一起玩游戏。",
+    "source": "llm"
+  },
+  "充饥": {
+    "sentence": "我吃苹果充饥。",
+    "source": "llm"
+  },
+  "宫殿": {
+    "sentence": "这座宫殿真漂亮。",
+    "source": "llm"
+  },
+  "吸收": {
+    "sentence": "植物吸收阳光和水分。",
+    "source": "llm"
+  },
+  "罚球": {
+    "sentence": "他在罚球线上投篮。",
+    "source": "llm"
+  },
+  "红鲤": {
+    "sentence": "红鲤在池塘里游来游去。",
+    "source": "llm"
+  },
+  "愿望": {
+    "sentence": "我的愿望是当一名老师。",
+    "source": "llm"
+  },
+  "火炉": {
+    "sentence": "火炉烧得旺旺的。",
+    "source": "llm"
+  },
+  "答案": {
+    "sentence": "答案就在书里。",
+    "source": "llm"
+  },
+  "地区": {
+    "sentence": "我们住在这个地区。",
+    "source": "llm"
+  },
+  "医院": {
+    "sentence": "医院里医生给病人治病。",
+    "source": "llm"
+  },
+  "透气": {
+    "sentence": "这件衣服很透气。",
+    "source": "llm"
+  },
+  "句子": {
+    "sentence": "我爱学习语文。",
+    "source": "llm"
+  },
+  "任务": {
+    "sentence": "今天的任务是打扫教室。",
+    "source": "llm"
+  },
+  "齐心": {
+    "sentence": "大家齐心，很快完成了任务。",
+    "source": "llm"
+  },
+  "尝试": {
+    "sentence": "我尝试自己系鞋带。",
+    "source": "llm"
+  },
+  "场所": {
+    "sentence": "公园是休闲的场所。",
+    "source": "llm"
+  },
+  "抬头": {
+    "sentence": "他抬头看天空。",
+    "source": "llm"
+  },
+  "继承": {
+    "sentence": "我们继承祖先的优良传统。",
+    "source": "llm"
+  },
+  "枫叶": {
+    "sentence": "秋天的枫叶像火一样红。",
+    "source": "llm"
+  },
+  "枚举": {
+    "sentence": "老师让我们枚举例子。",
+    "source": "llm"
+  },
+  "混乱": {
+    "sentence": "房间里一片混乱。",
+    "source": "llm"
+  },
+  "纸币": {
+    "sentence": "我用纸币买书。",
+    "source": "llm"
+  },
+  "愤怒": {
+    "sentence": "他愤怒地摔门。",
+    "source": "llm"
+  },
+  "杂乱": {
+    "sentence": "房间里很杂乱。",
+    "source": "llm"
+  },
+  "哎呀": {
+    "sentence": "哎呀，我忘带铅笔了。",
+    "source": "llm"
   }
 }

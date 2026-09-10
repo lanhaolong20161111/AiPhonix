@@ -30,6 +30,40 @@ class ChatRequest(BaseModel):
     prompt: str = ""
 
 
+# ── 响应模型：与客户端契约逐字段一致 ──
+
+class CallLogItem(BaseModel):
+    time: str
+    caller: str
+    model: str
+    prompt_tokens: int
+    comp_tokens: int
+    total_tokens: int
+    cost_yuan: float
+    duration_ms: int
+    success: bool
+    error: str
+
+
+class LLMLogsResponse(BaseModel):
+    total_calls: int
+    success: int
+    failed: int
+    total_tokens: int
+    total_cost: float
+    logs: list[CallLogItem]
+
+
+class BudgetResponse(BaseModel):
+    date: str | None
+    total_cost: float
+    calls: int
+    max_cost_per_day: float
+    max_cost_per_call: float
+    max_input_chars: int
+    blocked: bool
+
+
 @router.post("/llm/chat")
 async def llm_chat(req: ChatRequest):
     system_prompt = req.prompt
@@ -52,7 +86,7 @@ async def llm_chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail=f"LLM 调用失败: {e}")
 
 
-@router.get("/llm/logs")
+@router.get("/llm/logs", response_model=LLMLogsResponse)
 async def llm_logs():
     logs = get_call_logs()
     total_calls = len(logs)
@@ -92,7 +126,7 @@ async def llm_logs_clear():
     return {"status": "ok"}
 
 
-@router.get("/llm/budget")
+@router.get("/llm/budget", response_model=BudgetResponse)
 async def llm_budget():
     """预算守卫状态：当日已用费用 + 阈值"""
     day = get_day_cost()

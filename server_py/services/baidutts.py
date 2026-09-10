@@ -2,11 +2,17 @@
 
 import hashlib
 import json
+import logging
 import os
 import time
 from urllib.parse import urlencode
 
 import httpx
+
+logger = logging.getLogger(__name__)
+
+# 百度 TTS 偶发返回极短无效音频（864 字节 ≈ 0.1s 静音），此阈值以下视为失败
+MIN_VALID_AUDIO_BYTES = 1000
 
 
 class BaiduTTSService:
@@ -77,7 +83,7 @@ class BaiduTTSService:
             "per": speaker or "0",
             "spd": str(max(speed, 1) if speed > 0 else 5),
             "pit": "5",
-            "vol": "5",
+            "vol": "9",  # 音量 0-15（默认 5）；调到 9 让 TTS 更响亮
             "aue": "3",  # MP3
         }
 
@@ -86,11 +92,34 @@ class BaiduTTSService:
         sign = hashlib.md5(sign_str.encode()).hexdigest()
         form["sign"] = sign
 
-        resp = self.client.post(self.TTS_URL, data=form)
+        # 百度 API 偶发 SSL 断开（UNEXPECTED_EOF_WHILE_READING）：网络异常自动重试 3 次
+        resp = None
+        last_err: Exception | None = None
+        for attempt in range(3):
+            try:
+                resp = self.client.post(
+                    self.TTS_URL, data=form, timeout=httpx.Timeout(120.0, connect=10.0)
+                )
+                break
+            except Exception as e:  # 网络/SSL 异常 → 重试
+                last_err = e
+                logger.warning("百度 TTS 请求异常（第 %d 次）: %s", attempt + 1, e)
+                time.sleep(1)
+        if resp is None:
+            raise RuntimeError(f"百度 TTS 请求失败（重试 3 次仍异常）: {last_err}")
+
         content_type = resp.headers.get("content-type", "")
 
         if "audio/" in content_type:
             audio = resp.content
+            # 百度 TTS 偶发返回极短无效音频（如 864 字节 ≈ 0.1s 静音），
+            # 会导致"朗读无声音"。写入缓存前校验最小有效长度，坏音频直接丢弃。
+            if len(audio) < MIN_VALID_AUDIO_BYTES:
+                logger.warning(
+                    "百度 TTS 返回音频过短(%d bytes)，视为失败丢弃；ct=%s head=%s",
+                    len(audio), content_type, audio[:48].hex(),
+                )
+                raise RuntimeError("百度 TTS 合成结果无效（音频过短）")
             # 写缓存
             if self.cache_dir and len(audio) > 100:
                 key = self._cache_key(text, speaker, speed)

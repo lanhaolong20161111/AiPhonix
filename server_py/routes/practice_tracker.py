@@ -40,3 +40,15 @@ class GetCharWeightsRequest(BaseModel):
 async def get_char_weights(req: GetCharWeightsRequest):
     weights = tracker.get_all_weights(req.chars)
     return {"weights": weights}
+
+
+class GetRecordsRequest(BaseModel):
+    chars: list[str] = []
+
+
+@router.post("/practice/records")
+async def get_practice_records(req: GetRecordsRequest):
+    """查询练习记录（每字的拼音/发音对错次数、连续正确、上次时间）。
+    供练习页展示"练过几次"，家长/学生可见。"""
+    records = tracker.get_records(req.chars if req.chars else None)
+    return {"total": len(records), "records": records}

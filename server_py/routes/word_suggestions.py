@@ -6,7 +6,7 @@ import os
 import threading
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from config import Config
 from services.deepseek import BudgetExceededError, DeepSeekService
@@ -20,6 +20,15 @@ svc: DeepSeekService = None  # type: ignore
 cache: dict[str, list[str]] = {}
 cache_lock = threading.Lock()
 CACHE_PATH = "data/word_suggestions.json"
+
+class WordSuggestionEntry(BaseModel):
+    """word_suggestions.json 静态联想条目（坏条目加载时跳过）"""
+
+    model_config = ConfigDict(extra="ignore")
+
+    char: str = ""
+    words: list[str] = []
+
 
 # 静态字词联想数据
 FALLBACK_WORDS: list[dict] = []
@@ -46,9 +55,20 @@ def init(config: Config):
     if os.path.exists(fallback_path):
         try:
             with open(fallback_path, encoding="utf-8") as f:
-                FALLBACK_WORDS = json.load(f)
-        except Exception:
-            FALLBACK_WORDS = []
+                raw_items = json.load(f)
+        except Exception as e:
+            logger.warning("word_suggestions.json 读取失败: %s", e)
+            raw_items = []
+        loaded: list[dict] = []
+        for item in raw_items:
+            try:
+                entry = WordSuggestionEntry.model_validate(item)
+            except ValidationError:
+                logger.warning("word_suggestions 坏条目跳过: %s", item.get("char", "?"))
+                continue
+            if entry.char:
+                loaded.append(entry.model_dump())
+        FALLBACK_WORDS = loaded
 
 
 def _save_cache():

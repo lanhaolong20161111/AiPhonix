@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-UPLOAD_DIR = "data/uploads"
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "uploads")
 TIMEOUT_SECONDS = 90
 
 
@@ -67,7 +67,7 @@ async def free_llm_chat(
     try:
         # SDK 是同步调用，丢到线程池；外层套超时防止免费模型卡死
         text = await asyncio.wait_for(
-            asyncio.to_thread(service.chat, req.prompt, image_paths),
+            asyncio.to_thread(service.chat, req.prompt, image_paths=image_paths),
             timeout=TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError:

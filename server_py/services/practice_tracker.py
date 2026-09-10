@@ -118,3 +118,23 @@ class PracticeTracker:
 
     def get_all_weights(self, chars: list[str]) -> dict[str, float]:
         return {c: self.get_weight(c) for c in chars}
+
+    def get_records(self, chars: list[str] | None = None) -> list[dict]:
+        """返回练习记录列表（char / 对错次数 / 连续正确 / 上次时间）。
+        chars 为空返回全部；否则只返回其中出现的字。"""
+        with self._lock:
+            out = []
+            for char, r in self._records.items():
+                if chars is not None and char not in chars:
+                    continue
+                out.append({
+                    "char": r.char,
+                    "pinyin_correct": r.pinyin_correct,
+                    "pinyin_wrong": r.pinyin_wrong,
+                    "pronunciation_correct": r.pronunciation_correct,
+                    "pronunciation_wrong": r.pronunciation_wrong,
+                    "consecutive_correct": r.consecutive_correct,
+                    "last_seen": r.last_seen,
+                    "last_correct": r.last_correct,
+                })
+            return out

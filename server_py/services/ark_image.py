@@ -2,26 +2,21 @@
 
 import logging
 import os
-from dataclasses import dataclass, field
 from typing import Optional
 
+from config import ArkImageConfig
+from volcenginesdkarkruntime import Ark
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ArkImageConfig:
-    api_key: str = ""
-    model: str = ""  # 端点 ID，如 ep-20260728164448-w9fqp
 
 
 class ArkImageService:
     def __init__(self, config: ArkImageConfig):
         self.config = config
-        self._client = None
+        self._client: Optional[Ark] = None
 
-    def _get_client(self):
+    def _get_client(self) -> Ark:
         if self._client is None:
-            from volcenginesdkarkruntime import Ark
             self._client = Ark(
                 base_url="https://ark.cn-beijing.volces.com/api/v3",
                 api_key=self.config.api_key or os.environ.get("ARK_API_KEY", ""),

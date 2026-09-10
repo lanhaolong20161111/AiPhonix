@@ -24,7 +24,7 @@ router = APIRouter()
 
 # ── 请求模型 ──
 class UserImportItem(BaseModel):
-    kind: str = "word"  # word / char / article / sentence / quiz / answer
+    kind: str = "word"  # word / char / article / sentence / quiz / answer / problem（problem=AI 作业数学应用题，payload 存题目结构化 JSON）
     text: str = ""
     pinyin: str = ""
     meaning: str = ""

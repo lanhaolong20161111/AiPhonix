@@ -17,8 +17,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-UPLOAD_DIR = "data/uploads"
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "uploads")
 MAX_FILE_MB = 20
+
+
+# 图片处理工具（拆分自胖路由，见 utils/ai_image_utils.py）
+from utils.ai_image_utils import auto_orient as _auto_orient
 
 # ── EasyOCR 单例（懒加载，后台线程使用）──
 _reader = None
@@ -86,6 +90,8 @@ async def upload_photo(
     path = os.path.join(UPLOAD_DIR, file_name)
     with open(path, "wb") as f:
         f.write(data)
+    # 图片方向自动校正（EXIF Orientation → 旋转像素为正向），保证 OCR 识别方向正确
+    path = await asyncio.to_thread(_auto_orient, path)
 
     record = UploadRecord(
         kind="photo",

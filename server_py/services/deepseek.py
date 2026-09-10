@@ -5,11 +5,14 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field, asdict
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import httpx
 
 from config import DeepSeekConfig
+
+if TYPE_CHECKING:
+    from services.free_llm import ArkChatService
 
 logger = logging.getLogger(__name__)
 
@@ -150,10 +153,12 @@ class DeepSeekService:
         user_prompt: str,
         max_tokens: int = 2048,
         caller: str = "",
+        disable_thinking: bool = False,
     ) -> str:
         """LLM 调用：免费优先（火山 Ark doubao），失败自动回退 DeepSeek（付费）。
 
         业务路由全部经由本方法，因此切换免费模型对所有功能一次性生效。
+        disable_thinking=True 关闭深度思考：结构化提取任务（analyze 等）实测快 ~5 倍且质量不降。
         """
         caller = caller or self.caller
         start = time.time()
@@ -171,7 +176,7 @@ class DeepSeekService:
         if ark is not None:
             log.model = ark.config.model
             try:
-                return self._chat_ark(ark, system_prompt, user_prompt, max_tokens, log, start)
+                return self._chat_ark(ark, system_prompt, user_prompt, max_tokens, log, start, disable_thinking)
             except Exception as e:
                 # 免费模型失败 → 回退付费 DeepSeek，保证功能可用
                 logger.warning("Ark 免费模型调用失败（caller=%s），回退 DeepSeek: %s", caller, e)
@@ -189,10 +194,10 @@ class DeepSeekService:
         except Exception:
             return None
 
-    def _chat_ark(self, ark, system_prompt: str, user_prompt: str, max_tokens: int, log: LLMCallLog, start: float) -> str:
+    def _chat_ark(self, ark, system_prompt: str, user_prompt: str, max_tokens: int, log: LLMCallLog, start: float, disable_thinking: bool = False) -> str:
         """调用免费 Ark 模型，记录调用日志（费用恒为 0，不扣预算）"""
         try:
-            content = ark.chat(user_prompt, system_prompt=system_prompt, max_tokens=max_tokens)
+            content = ark.chat(user_prompt, system_prompt=system_prompt, max_tokens=max_tokens, disable_thinking=disable_thinking)
             usage = getattr(ark, "last_usage", None) or {}
             log.prompt_tokens = usage.get("input_tokens", 0)
             log.comp_tokens = usage.get("output_tokens", 0)
@@ -250,27 +255,46 @@ class DeepSeekService:
             raise BudgetExceededError(log.error)
 
         try:
-            payload = {
-                "model": self.config.model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                "max_tokens": max_tokens,
-                "temperature": 0.7,
-            }
+            # 推理模型（deepseek-v4-flash 等）会把 max_tokens 大量耗在内部推理上：
+            # 复杂 prompt 时可能出现 finish_reason=length 且 content 为空。
+            # 首次空 content 时自动放宽 max_tokens 重试一次（推理已完成，输出一般能出来）。
+            for attempt in (0, 1):
+                payload = {
+                    "model": self.config.model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    "max_tokens": max_tokens if attempt == 0 else max_tokens * 2 + 512,
+                    "temperature": 0.7,
+                }
 
-            url = f"{self.config.base_url.rstrip('/')}/v1/chat/completions"
-            headers = {
-                "Authorization": f"Bearer {self.config.api_key}",
-                "Content-Type": "application/json",
-            }
+                url = f"{self.config.base_url.rstrip('/')}/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {self.config.api_key}",
+                    "Content-Type": "application/json",
+                }
 
-            resp = self.client.post(url, json=payload, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
+                resp = self.client.post(url, json=payload, headers=headers)
+                resp.raise_for_status()
+                data = resp.json()
 
-            content = data["choices"][0]["message"]["content"]
+                content = data["choices"][0]["message"]["content"]
+                finish_reason = data["choices"][0].get("finish_reason", "")
+                if content:
+                    break
+                # content 为空：仅当 finish_reason=length（推理耗光 token）时才值得放宽重试；
+                # 否则（空输出本身）不再重试，直接按失败处理。
+                if attempt == 0 and finish_reason == "length":
+                    logger.warning(
+                        "DeepSeek 推理模型输出被 max_tokens=%s 截断（finish_reason=length），放宽后重试（caller=%s）",
+                        max_tokens, log.caller,
+                    )
+                    continue
+                break
+            else:
+                content = ""
+
             usage = data.get("usage", {})
             pt = usage.get("prompt_tokens", 0)
             ct = usage.get("completion_tokens", 0)

@@ -33,6 +33,8 @@ class PlanItemIn(BaseModel):
     done: bool = False
     doneAt: int | None = None
     lastResult: dict | None = None
+    # 家长对该训练项的配置（如认字选哪个年级批次：{"grades": ["一年级上", ...]}）
+    config: dict | None = None
 
 
 class TrainingPlanIn(BaseModel):
@@ -103,7 +105,7 @@ async def submit_progress(
     if not body.plan_item_id:
         raise HTTPException(status_code=400, detail="plan_item_id 必填")
     date = body.date or _today()
-    row = await session.scalar(
+    row: PracticeSessionRow | None = await session.scalar(
         select(PracticeSessionRow).where(
             PracticeSessionRow.user_id == user.id,
             PracticeSessionRow.plan_item_id == body.plan_item_id,

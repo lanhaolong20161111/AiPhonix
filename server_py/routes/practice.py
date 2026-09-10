@@ -46,6 +46,38 @@ class PracticeStats:
         self.per_char_attempts: dict[str, int] = {}
 
 
+# ── 响应模型：与客户端契约逐字段一致 ──
+
+class PracticeSubmitResponse(BaseModel):
+    status: str
+    score: int
+    max_score: int
+
+
+class PracticeStatsResponse(BaseModel):
+    total_sessions: int
+    total_chars: int
+    first_try_correct: int
+    total_correct: int
+    per_char: dict[str, int]
+    per_char_attempts: dict[str, int]
+
+
+class PracticeHistoryItem(BaseModel):
+    module: str
+    grade: str
+    total_score: int
+    max_score: int
+    timestamp: str
+    date: str
+    records: int
+
+
+class PracticeHistoryResponse(BaseModel):
+    total: int
+    sessions: list[PracticeHistoryItem]
+
+
 class PracticeHandler:
     def __init__(self, data_dir: str):
         self._lock = threading.Lock()
@@ -105,7 +137,7 @@ def init(data_dir: str):
     handler = PracticeHandler(data_dir)
 
 
-@router.post("/practice/submit")
+@router.post("/practice/submit", response_model=PracticeSubmitResponse)
 async def practice_submit(session: PracticeSession):
     now = datetime.now(timezone.utc)
     session.timestamp = now.isoformat()
@@ -125,7 +157,7 @@ async def practice_submit(session: PracticeSession):
     return {"status": "ok", "score": correct, "max_score": len(session.records)}
 
 
-@router.get("/practice/stats")
+@router.get("/practice/stats", response_model=PracticeStatsResponse)
 async def practice_stats(module: str = ""):
     with handler._lock:
         sessions = handler._sessions
@@ -154,7 +186,7 @@ async def practice_stats(module: str = ""):
         }
 
 
-@router.get("/practice/history")
+@router.get("/practice/history", response_model=PracticeHistoryResponse)
 async def practice_history(module: str = "", limit: int = 20):
     with handler._lock:
         sessions = handler._sessions

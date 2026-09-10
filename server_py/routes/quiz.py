@@ -5,7 +5,7 @@ import logging
 import os
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from config import Config
 from services.deepseek import DeepSeekService
@@ -28,6 +28,41 @@ class QuizRequest(BaseModel):
     subtitle_text: str
     video_name: str
     count: int = 30
+
+
+class QuizItem(BaseModel):
+    """题库条目（与客户端契约逐字段一致；缺省字段补默认值）"""
+
+    english: str = ""
+    chinese: str = ""
+    difficulty: int = 1
+    display: str = ""
+    blankAnswer: str = ""
+
+
+class QuizResponse(BaseModel):
+    source: str
+    items: list[QuizItem]
+
+
+def _parse_quiz_items(text: str) -> list[QuizItem]:
+    """容错解析 LLM 题库 JSON：整体非 JSON 返回空列表，坏条目丢弃不整体失败"""
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError:
+        logger.warning("quiz LLM 输出非 JSON，返回空题库")
+        return []
+    if not isinstance(raw, list):
+        logger.warning("quiz LLM 输出非数组，返回空题库")
+        return []
+    items = []
+    for entry in raw:
+        try:
+            items.append(QuizItem.model_validate(entry))
+        except ValidationError:
+            logger.warning("quiz 条目校验失败，丢弃: %s", str(entry)[:80])
+            continue
+    return items
 
 
 def _clean_subtitle(text: str) -> str:
@@ -88,12 +123,13 @@ def _generate_quiz(subtitle_text: str, count: int, caller: str) -> str:
             json.loads(reply2)
             reply = reply2
         except json.JSONDecodeError:
-            raise HTTPException(status_code=500, detail="LLM 返回格式错误")
+            # 重试仍失败：不抛 500，交给 _parse_quiz_items 降级为空题库
+            logger.warning("quiz LLM 重试后仍非 JSON，降级为空题库（caller=%s）", caller)
 
     return reply
 
 
-@router.post("/llm/quiz")
+@router.post("/llm/quiz", response_model=QuizResponse)
 async def llm_quiz(req: QuizRequest):
     cache_path = f"data/quiz_cache_{req.video_name}.json"
     count = req.count if req.count > 0 else 30
@@ -117,7 +153,7 @@ async def llm_quiz(req: QuizRequest):
     except Exception as e:
         logger.warning("写入缓存失败: %s", e)
 
-    return {"source": "llm", "items": json.loads(reply)}
+    return {"source": "llm", "items": _parse_quiz_items(reply)}
 
 
 class QuizGenerateRequest(BaseModel):
@@ -126,9 +162,9 @@ class QuizGenerateRequest(BaseModel):
     count: int = 30
 
 
-@router.post("/llm/quiz-generate")
+@router.post("/llm/quiz-generate", response_model=QuizResponse)
 async def llm_quiz_generate(req: QuizGenerateRequest):
     """强制重新生成（忽略缓存）"""
     count = req.count if req.count > 0 else 30
     reply = _generate_quiz(req.subtitle_text, count, "quiz_generate_cached")
-    return {"source": "llm", "items": json.loads(reply)}
+    return {"source": "llm", "items": _parse_quiz_items(reply)}

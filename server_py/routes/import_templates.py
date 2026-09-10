@@ -13,7 +13,7 @@ import os
 import threading
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
 
@@ -73,6 +73,8 @@ async def get_import_templates(
     """获取导入提示词模板列表（或单个模板）"""
     if handler is None:
         init()
+    if handler is None:
+        raise HTTPException(status_code=500, detail="模板模块未初始化")
     if id:
         tpl = handler.get_one(id)
         if not tpl:

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, ConfigDict
 from pypinyin import pinyin as _pypinyin, Style
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,37 @@ _index_map: dict[str, dict] = {}  # char -> entry
 _pinyin_cache: dict[str, str] = {}  # char -> pinyin
 
 
+class CharImageEntry(BaseModel):
+    """识字卡索引条目。字段不固定（extra=allow 保留未知字段保证透传），
+    仅校验已知字段类型；缺失 char 的坏条目在加载时跳过，不再崩启动。"""
+
+    model_config = ConfigDict(extra="allow")
+
+    char: str = ""
+    image: str = ""
+    grade: str = ""
+    semester: str = ""
+    type: str = ""
+    pinyin: str = ""
+    ipa: str | None = None
+    ipa_uk: str | None = None
+    phonemes: list[str] | None = None
+    phonemes_uk: list[str] | None = None
+    chinese: str | None = None
+
+
+class FeedbackRequest(BaseModel):
+    user_id: int = 0
+    char: str = ""
+    grade: str = ""
+    semester: str = ""
+    type: str = ""
+    learning_status: str | None = None
+    needs_regen: bool = False
+
+
 def init(*args):
-    """初始化：加载索引"""
+    """初始化：加载索引（坏条目跳过，不再崩启动）"""
     global _index, _index_map
     _index = []
     _index_map = {}
@@ -33,11 +63,24 @@ def init(*args):
     os.makedirs(IMAGE_DIR, exist_ok=True)
 
     if os.path.exists(INDEX_FILE):
-        with open(INDEX_FILE, encoding="utf-8") as f:
-            data = json.load(f)
-        _index = data.get("items", [])
-        for item in _index:
-            _index_map[item["char"]] = item
+        try:
+            with open(INDEX_FILE, encoding="utf-8") as f:
+                data = json.load(f)
+            raw_items = data.get("items", []) if isinstance(data, dict) else data
+        except Exception as e:
+            logger.warning("读取图片索引失败: %s", e)
+            raw_items = []
+        for item in raw_items:
+            try:
+                entry = CharImageEntry.model_validate(item)
+            except Exception as e:
+                logger.warning("跳过非法索引条目 %s: %s", item.get("char", "?"), e)
+                continue
+            if not entry.char:
+                logger.warning("跳过缺失 char 的索引条目")
+                continue
+            _index.append(entry.model_dump())
+            _index_map[entry.char] = entry.model_dump()
 
     logger.info("汉字图片索引已加载: %d 条", len(_index))
 
@@ -92,9 +135,9 @@ async def list_char_images(
     total_before_limit = len(result)
     if limit > 0:
         result = result[:limit]
-    # 添加拼音
+    # 添加拼音（索引无 pinyin 或为空串时动态生成）
     for item in result:
-        if "pinyin" not in item:
+        if not item.get("pinyin"):
             item["pinyin"] = _get_pinyin(item.get("char", ""))
     return {"total": total_before_limit, "items": result}
 
@@ -115,17 +158,17 @@ def _save_feedback(items: list):
         json.dump(items, f, ensure_ascii=False, indent=2)
 
 @router.post("/char-images/feedback")
-async def submit_feedback(body: dict):
+async def submit_feedback(body: FeedbackRequest):
     """提交图片反馈（幂等：同 user_id+char+grade+semester+type 覆盖旧记录，不追加）"""
     from datetime import datetime
     entry = {
-        "user_id": int(body.get("user_id", 0) or 0),
-        "char": body.get("char", ""),
-        "grade": body.get("grade", ""),
-        "semester": body.get("semester", ""),
-        "type": body.get("type", ""),
-        "learning_status": body.get("learning_status"),
-        "needs_regen": body.get("needs_regen", False),
+        "user_id": body.user_id,
+        "char": body.char,
+        "grade": body.grade,
+        "semester": body.semester,
+        "type": body.type,
+        "learning_status": body.learning_status,
+        "needs_regen": body.needs_regen,
         "timestamp": datetime.now().isoformat(),
     }
     feedbacks = _load_feedback()
@@ -170,7 +213,7 @@ async def list_feedback(user_id: int = 0, limit: int = 50, offset: int = 0):
             stats[s] += 1
         else:
             stats["unmarked"] += 1
-    return {"total": total, "stats": stats, "items": items[offset:offset + max(1, min(limit, 200))]}
+    return {"total": total, "stats": stats, "items": items[offset:offset + max(1, min(limit, 100000))]}
 
 
 @router.get("/char-images/{char}")
