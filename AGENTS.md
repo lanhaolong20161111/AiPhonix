@@ -118,6 +118,17 @@
 | 优化 Splash Screen（Android 12+ 有原生支持） |
 | 优先用 **矢量图 (vector drawables)**，其次 WebP |
 
+### 字体颜色规范（视觉高对比，强约束）
+> 项目专属 — 家长明确要求，所有页面一律遵守
+
+| 规范 |
+|---|
+| **文字默认纯黑 `Color(0xFF000000)`**（白底/浅色卡片底一律纯黑），禁止用浅灰/淡蓝等低对比颜色作正文 |
+| 正文/副标题/说明文字不用 `onSurfaceVariant` 灰色，也不用主题蓝等彩色；统一 `Color(0xFF000000)` |
+| 语义强调色仅限：正确=绿 `0xFF2E7D32`、错误=红 `0xFFB71C1C`、播放中高亮=浅蓝 `0xFF90CAF9` |
+| 背景色允许浅色（米黄 `0xFFFFF3D6`、浅绿 `0xFFE8F5E9` 等），但其上文字必须纯黑 |
+| 图标/边框/选中态等非文字元素不受此限（可保留视觉功能色） |
+
 ### Kotlin 风格指南
 > 来源: [Kotlin style guide](kb://android/kotlin/style-guide)
 
@@ -287,4 +298,85 @@
 | startRecording() on uninitialized AudioRecord | 设备不支持 16kHz 采样率返回 `ERROR_BAD_VALUE` → AudioRecord 未初始化 | 采样率降级链 16000→44100→8000 + 初始化状态检查 |
 | 字段默认值 pinyin="" 未生效 | Gson 绕过 Kotlin 构造器，缺省字段留为 null | 测试改为 `assertEquals(null, ...)` 匹配实际行为 |
 | 词库清理后剩余 712→603 词 | 大量 LLM 生成时残留的提示词指令被当作词语录入 | `clean_garbage.py` 按标点/长度/LLM关键词 规则过滤 |
+
+---
+
+## 5️⃣ Web 化开发约定（2026-08-15 起）
+
+> AiPhonix Web 端（`web/`，React 19 + Vite + TS）开发规范
+
+### 测试方式
+- **用户一律用手机浏览器测试页面**（Android Chrome 访问 `https://192.168.1.10:5173/web/`）。验证时优先考虑手机触控布局，不只测桌面。
+- 手机首次访问自签证书需「高级→继续前往」；改代码后手机需清缓存或硬刷新。
+- 麦克风录音（getUserMedia）必须在 **https 或 localhost** 下才能用——dev 用自签 https，生产需真 https。
+
+### Web 端关键架构
+- API 走同源 `/api/v1`（dev 由 Vite proxy → 127.0.0.1:8080，避免 https→http mixed content 被拦）。
+- 字母视频 `/letter-clips/`、ipa 音频 `/api/v1/ipa-audio`、拼音音频 `/api/v1/pinyin-audio`。
+- TTS 走服务端 `/tts/synthesize`（百度；edge-tts 已装可作回退）；全局 `audioManager` 保证同一时刻只播一个、切页中断。
+- 录音：`lib/pcmRecorder.ts`（AudioWorklet 16kHz/16bit PCM）→ `useSoeScore` → `/api/v1/soe/evaluate`。
+- 词库：`web/public/chinese_wordbank.json`（语文）+ `wordbank.json`/`english_vocabulary.json`（英语）。
+- 家长按年级配置字词范围存在 `training/plan` 的 `PlanItem.config.grades`，练习页读取过滤。
+
+### Web 端语音评分明细
+- 发音评分页（`/module/pronounce/:wordId`）：**单词显示每个音素得分**（`result.words[0].phone_infos`），**句子显示每词得分**。明细颜色：≥80 绿 / 60-79 黄 / <60 红。
+- `useSoeScore` 的 `state.result` 含完整 SoeResult（words + phone_infos）。
+
+### 已知遗留
+- 手机浏览器录音偶发「没检测到声音」/0 分——已加音量条调试，录音链路仍有待手机端实机验证（pcmRecorder 算法已验证正确）。
+- Web 端已实现：登录/注册、首页+打卡、家长设置（PIN+年级批次）、认字/默写/词语/拼音、英语（字母/音素/发音评分）。未实现：视频跟读、词汇图片练习、AI 陪练、文章、素材导入等（占位页）。
+
+---
+
+## 6️⃣ 🔴 常犯错误清单（每次改代码前必查，避免重蹈覆辙）
+
+> 这些错误都实际犯过并踩坑，按「改什么代码 → 查什么」组织。**改相关代码前先读对应条目**。
+
+### SOE 评测模式必须按被测对象类型选（反复犯错）
+> 腾讯 SOE 的 `eval_mode` 决定返回粒度，**选错模式拿不到对应明细**（尤其段落模式无音素 PhoneInfo）。这是反复出错的根因，已重构根治。
+
+**腾讯 SOE eval_mode 枚举（接口文档 1774/107497）：**
+| eval_mode | 模式 | 被测对象 | 返回粒度 |
+|---|---|---|---|
+| 0 | 单词/单字 | 英文 1 词 / 中文 1 汉字 | 单词+**音素**明细 |
+| 1 | 句子 | 中文 ≤30 字 / 英文 ≤30 词 | 单词+音素明细 |
+| 2 | 段落 | ≤120 字/词 | **只有单词级，无音素** |
+| 8 | 拼音 | ≤30 拼音 | 音素明细 |
+
+**调用约定（后端 `services/soe.py` + `routes/soe.py`）：**
+- **前端必须传 `scene` 参数**（被测对象类型），值固定为 `word` / `sentence` / `paragraph` / `pinyin`，**不要传模糊的 eval_mode 数字**。
+- 服务端 `_resolve_eval_mode(scene, eval_mode, ref_text, is_zh)` 统一映射 scene → eval_mode，优先级：`scene` > 旧 `eval_mode` > 自动判断。
+- 各场景固定 scene：发音评分页（单英文单词）→ `word`；认字页（单汉字）→ `word`；拼音练习页 → `pinyin`；默写/词语页（组词/例句）→ `sentence`；长文 → `paragraph`。
+- 改 SOE 相关代码后，必须用场景表逐项验证：word 单字出音素 / sentence 多词出多 word / 中文单字限 1 字（2 字传 word 会 4104 属预期）。
+- `sentence_info_enabled` 必须为 `"1"`，否则 Words/PhoneInfos 全空，只有总分。
+
+### 智聆音素 → 国际音标（支持英式/美式，官方映射表）
+> 腾讯文档《音素标注》（884/33698）提供了官方映射表。**智聆返回小写音素**（ae/ah/iy/ow），与 ARPAbet 大写不同。
+- 映射实现：`web/src/lib/arpabet.ts`（`arpabetToIpa(phone, style)`，style=uk/us），**别自己发明映射表**，按官方文档。
+- 英式关键差异（长音 `ː`）：`iy`→`/iː/`、`uw`→`/uː/`、`ao`→`/ɔː/`、`aa`→`/ɑː/`、`er`→`/ɜː/`、`ow`→`/əʊ/`（美式 `/oʊ/`）、`ey`→`/eɪ/`（美式 `/e/`）。
+- 带 r 双元音：`ih,r`→`/ɪə/`、`eh,r`→`/eə/`、`uh,r`→`/ʊə/`。
+- 发音评分页有**英/美切换**（`usePronStyle`，localStorage，默认英式，与 Android 一致）；单词的 ipa/phonemes 也按风格选（英式用 `ipa_uk`/`phonemes_uk`）。
+
+### 环境/链路类
+- **改 `vite.config.ts` / 服务端 `main.py` 挂载后必须重启对应进程**：dev server 加 proxy、`/letter-clips` 挂载等，不重启不生效。手机访问的地址不变（IP 固定），但改代码后手机需**清缓存/硬刷新**。
+- **百度 TTS 偶发返回极短坏音频（864 字节 ≈ 0.1s）**：`baidutts.py` 已加 `<1000 字节视为失败` 防护；**服务端冷启动初期 token 未就绪也可能返回坏音频**，改 TTS 后先等 `health ok` 稳定再验证。
+- **https 页面不能请求 http 接口**（Mixed Content 被浏览器拦截）：dev 必须走 Vite proxy 同源 `/api/v1`，不能直接 fetch `http://192.168.1.10:8080`。
+- **浏览器 autoplay 策略**：非用户手势的 `audio.play()` 会被拒（NotAllowedError）。默写/词语页自动朗读必须有「开始朗读」按钮解锁；改录音/朗读流程后注意手势链。
+- **手机录音 getUserMedia 需 https 或 localhost**：dev 用自签 https，生产必须真 https。
+
+### 前端 React 特有
+- **StrictMode 双挂载**：组件 mount→unmount→remount，`useRef` 保留旧值。cleanup 置 false 的标志（如 `mountedRef`/`cycleRef`）必须在 useEffect **setup 阶段重置**，否则第二次挂载后功能永久失效（如「点击开始朗读没反应」）。
+- **CSS scroll-snap 分页定位**：切页（字母/音素详情）加载完成后必须 `scrollTo(target * clientWidth)` 并用 `requestAnimationFrame` 等布局就绪，只 `setCurrent(idx)` 不滚动容器会导致永远停在第一屏（点 B 显示 A）。
+- **全局 `button { width:100% }` 副作用**：App.css 有全局 button 样式，做横向排列的按钮（音素/字母 chip、声母韵母）必须覆盖 `width: auto`，否则每个占满一行。
+- **全局 TTS `audioManager` 互斥**：所有音频播放（TTS/拼音部件/ipa）必须走 `audioManager`（同一时刻一个、切页中断、卸载中断）；组件卸载后 async 循环里的 `speak()` 必须被 `mountedRef` 拒绝，否则切页后仍继续播。
+- **fetch 超时**：LLM 类接口（如 `/llm/sentence-generate`）要传 `timeoutMs`，失败降级，避免卡加载。
+
+### 数据/模型类
+- **词库等静态资源**：中文 `chinese_wordbank.json`、英语 `wordbank.json`/`english_vocabulary.json` 在 `web/public/`，改词库需同步复制 Android assets；前端 fetch 路径必须是绝对 `/web/xxx.json`。
+- **家长年级配置**存 `training/plan` 的 `PlanItem.config.grades`（服务端 `PlanItemIn` 已支持 dict 透传），练习页用 `useFeatureGrades(featureId)` 读取过滤，改动需同步服务端模型。
+
+### 修改流程约束
+- 改 Python 服务端：先 `python -m py_compile` 语法检查 → 重启服务端 → 等 `health ok` → 实测对应接口。
+- 改前端：`npx tsc -b` → `npm run lint` → `npm run build` → dev server 热更新 → 手机硬刷新验证。
+- 遇到「0 分 / 无明细 / 无声」先查：是否模式选错（SOE）、是否重启生效（环境）、是否手势/混域（前端）、是否坏音频（TTS）。
 
