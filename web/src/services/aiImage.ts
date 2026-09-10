@@ -187,6 +187,8 @@ export interface ParseImageStreamHandlers {
   onStage?: (stage: ParseStage) => void
   /** 每识别出一行文字就回调一次（前端可实时追加到阅读区） */
   onLine?: (text: string) => void
+  /** 提前结束：abort 后立刻返回已收到的部分文字（且不写本地缓存，避免用残缺结果污染缓存） */
+  signal?: AbortSignal
 }
 
 /**
@@ -203,7 +205,7 @@ export async function parseImageStream(
   noCache = false,
   handlers: ParseImageStreamHandlers = {},
 ): Promise<ParseImageResult | null> {
-  const { onStage, onLine } = handlers
+  const { onStage, onLine, signal } = handlers
   // 用户显式选 Paddle 时走非流式（Paddle 结果一次成型，无增量）
   const engine = getOcrEngine()
   if (engine === "paddle") return null
@@ -239,6 +241,7 @@ export async function parseImageStream(
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: form,
+      signal,
     })
   }
 
@@ -319,6 +322,7 @@ export async function parseImageStream(
     }
   }
   result.fingerprint = fp
-  putCachedParse(module, fp, result, engine)
+  // 用户提前结束（abort）时拿到的是残缺正文，绝不写缓存，避免下次同图命中残缺结果
+  if (!signal?.aborted) putCachedParse(module, fp, result, engine)
   return result
 }

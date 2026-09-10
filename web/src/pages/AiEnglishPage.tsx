@@ -1,9 +1,10 @@
 /** AI 英语页 — 复制自 AI 语文：粘贴/拍照图片 → 识别；输入文本 → 直接提问 LLM 回答。后续精修英语专用（暂用语文识别通道）。 */
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { parseImage, parseImageStream, type ParseImageResult, type ParseStage } from "../services/aiImage"
 import { prepareImageFile } from "../lib/imageCompress"
+import { useTts } from "../hooks/useTts"
 import { AiInputBox } from "../components/AiInputBox"
 import { ParseTimer } from "../components/ParseTimer"
 import { AiChatPanel } from "../components/AiChatPanel"
@@ -22,6 +23,31 @@ export function AiEnglishPage() {
   const [parseStage, setParseStage] = useState<ParseStage | null>(null)
   // 流式识图：边识别边追加的实时文字
   const [liveLines, setLiveLines] = useState<string[]>([])
+  // 流式期间正在朗读的行号（-1 无）；点行朗读 / 再点停止
+  const [readingIdx, setReadingIdx] = useState(-1)
+  // 提前结束：abort 流式请求，用已收到的文字直接进结果页
+  const abortRef = useRef<AbortController | null>(null)
+  const tts = useTts()
+  useEffect(() => {
+    if (!tts.speaking) setReadingIdx(-1)
+  }, [tts.speaking])
+  /** 点实时行朗读（正在读该行则停止） */
+  const readLiveLine = (text: string, i: number) => {
+    if (readingIdx === i && tts.speaking) {
+      tts.stop()
+      setReadingIdx(-1)
+      return
+    }
+    tts.stop()
+    setReadingIdx(i)
+    void tts.speak(text)
+  }
+  const liveChars = liveLines.reduce((n, t) => n + t.length, 0)
+  /** 提前结束识别：中断流式请求，用已识别的文字直接进结果页 */
+  const finishNow = () => {
+    tts.stop()
+    abortRef.current?.abort()
+  }
 
   // 切块识别：待切块的图片（已转正）+ 是否打开切块选择器
   const [sliceTarget, setSliceTarget] = useState<{ file: File | Blob; previewUrl: string } | null>(null)
@@ -44,15 +70,27 @@ export function AiEnglishPage() {
     setParsing(true)
     setParseStage("preparing")
     setLiveLines([])
+    setReadingIdx(-1)
     setError("")
+    const controller = new AbortController()
+    abortRef.current = controller
     void (async () => {
       try {
         // 流式优先：边识别边显示（首行 1~3s）；不可用则回退非流式
         let res = await parseImageStream(file, "english", noCache, {
           onStage: setParseStage,
           onLine: (t) => setLiveLines((prev) => [...prev, t]),
+          signal: controller.signal,
         })
-        if (!res) res = await parseImage(file, "english", noCache, setParseStage)
+        // 用户点了「就按这些字来」→ 不再回退非流式
+        if (!res) {
+          if (controller.signal.aborted) return
+          res = await parseImage(file, "english", noCache, setParseStage)
+        }
+        if (!res.text?.trim()) {
+          setError("没识别到文字，换一张更清晰的照片试试～")
+          return
+        }
         useParseSessionStore.getState().setSession({
           sessionId: newSessionId(),
           module: "english",
@@ -66,11 +104,14 @@ export function AiEnglishPage() {
         })
         navigate("/module/ai_parse_result")
       } catch (err) {
+        if (controller.signal.aborted) return
         setError(`识别失败: ${detailFromError(err)}`)
       } finally {
+        if (abortRef.current === controller) abortRef.current = null
         setParsing(false)
         setParseStage(null)
         setLiveLines([])
+        setReadingIdx(-1)
       }
     })()
   }
@@ -199,11 +240,32 @@ export function AiEnglishPage() {
       {/* 流式识图：边识别边显示文字，学生可先读已出的部分 */}
       {liveLines.length > 0 && (
         <div className="parse-live">
-          <div className="parse-live-head">✨ 正在识别，已出 {liveLines.length} 行 —— 可以先读起来</div>
+          <div className="parse-live-head">
+            <span>
+              ✨ 正在识别 · 已出 {liveLines.length} 行 / {liveChars} 字
+            </span>
+            <button type="button" className="parse-live-finish" onClick={finishNow}>
+              就按这些字来 →
+            </button>
+          </div>
+          <p className="parse-live-hint">👆 点任意一行可以听读音</p>
           <div className="parse-live-body">
             {liveLines.map((t, i) => (
-              <p key={i} className="parse-live-line">
+              <p
+                key={i}
+                className={`parse-live-line${readingIdx === i ? " reading" : ""}`}
+                onClick={() => readLiveLine(t, i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    readLiveLine(t, i)
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
                 {t}
+                {readingIdx === i && <span className="parse-live-speaker">🔊</span>}
               </p>
             ))}
             <span className="parse-live-caret" />
