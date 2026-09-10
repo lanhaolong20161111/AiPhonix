@@ -13,7 +13,7 @@ import { TapCharText } from "../components/TapCharText"
 import { EchoLadder } from "../components/EchoLadder"
 import { useTts } from "../hooks/useTts"
 import { zhTeachSetup, zhTeachJudge, type TeachScript, type TeachItem } from "../services/zhTeach"
-import { zhPoemSetup, zhPoemSummary, type PoemScript, type PoemLine } from "../services/zhPoem"
+import { zhPoemSetup, zhPoemSummary, zhPoemSearch, type PoemScript, type PoemLine, type PoemSearchHit } from "../services/zhPoem"
 
 type Stage = "setup" | "question" | "judging" | "finished"
 const SIX_SECONDS = 6000
@@ -29,6 +29,11 @@ export function SpeechComposePage() {
   const [wordsText, setWordsText] = useState("")
   const [sentencesText, setSentencesText] = useState("")
   const [poemText, setPoemText] = useState("")
+  // 小学古诗库搜索（标题搜 → 一键填入原文）
+  const [poemQuery, setPoemQuery] = useState("")
+  const [poemHits, setPoemHits] = useState<PoemSearchHit[]>([])
+  const [poemSearching, setPoemSearching] = useState(false)
+  const [poemPicked, setPoemPicked] = useState("")
   const [settingUp, setSettingUp] = useState(false)
   const [setupError, setSetupError] = useState("")
   const [waitSec, setWaitSec] = useState(0)
@@ -50,6 +55,33 @@ export function SpeechComposePage() {
   const item: TeachItem | null = script?.items[idx] ?? null
 
   const [stage, setStage] = useState<Stage>("setup")
+
+  // ── 小学古诗库搜索：300ms 防抖调后端数据匹配（纯数据不走 LLM） ──
+  useEffect(() => {
+    const q = poemQuery.trim()
+    if (!q) {
+      setPoemHits([])
+      setPoemSearching(false)
+      return
+    }
+    setPoemSearching(true)
+    const t = setTimeout(() => {
+      void zhPoemSearch(q)
+        .then((hits) => setPoemHits(hits))
+        .catch(() => setPoemHits([]))
+        .finally(() => setPoemSearching(false))
+    }, 300)
+    return () => clearTimeout(t)
+  }, [poemQuery])
+
+  /** 选中库中古诗 → 自动填入原文（清搜索结果，保留提示） */
+  const pickPoem = (h: PoemSearchHit) => {
+    setPoemText(h.text)
+    setPoemQuery("")
+    setPoemHits([])
+    setPoemPicked(`已选《${h.title}》 ${h.dynasty}·${h.author}`)
+    setSetupError("")
+  }
 
   // 作答区
   const [answer, setAnswer] = useState("")
@@ -378,13 +410,46 @@ export function SpeechComposePage() {
             value={sentencesText}
             onChange={(e) => setSentencesText(e.target.value)}
           />
+          {poemPicked && (
+            <p style={{ margin: "0 0 8px", color: "#0a7d43", fontWeight: 700 }}>✅ {poemPicked}，可直接点「开始学」</p>
+          )}
+          <label style={{ fontWeight: 700 }}>🔍 搜小学古诗（输入诗题，选一条自动填入）</label>
+          <input
+            className="text-input"
+            style={{ width: "100%", margin: "6px 0 6px" }}
+            placeholder="如：静夜思 / 望庐山瀑布 / 小池"
+            value={poemQuery}
+            onChange={(e) => setPoemQuery(e.target.value)}
+          />
+          {poemSearching && <p style={{ margin: "0 0 8px", color: "#666" }}>搜索中…</p>}
+          {poemHits.length > 0 && (
+            <div style={{ margin: "0 0 10px", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
+              {poemHits.map((h, i) => (
+                <button
+                  key={`${h.title}-${i}`}
+                  onClick={() => pickPoem(h)}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
+                    background: i % 2 ? "#f8fafc" : "#fff", border: "none", borderBottom: i < poemHits.length - 1 ? "1px solid #eef2f7" : "none",
+                    cursor: "pointer", fontSize: 15,
+                  }}
+                >
+                  <b>《{h.title}》</b> {h.dynasty}·{h.author}
+                  <span style={{ color: "#64748b", marginLeft: 8, fontSize: 13 }}>{h.text.split("\n")[0]}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <label style={{ fontWeight: 700 }}>要练的古诗（可选，填了就练古诗）</label>
           <textarea
             className="text-input"
             style={{ width: "100%", margin: "6px 0 12px", minHeight: 72, resize: "vertical" }}
             placeholder={"如：床前明月光，疑是地上霜。\n举头望明月，低头思故乡。"}
             value={poemText}
-            onChange={(e) => setPoemText(e.target.value)}
+            onChange={(e) => {
+              setPoemText(e.target.value)
+              if (poemPicked) setPoemPicked("")
+            }}
           />
           {setupError && <p className="err">{setupError}</p>}
           <button className="btn-primary" style={{ width: "100%" }} disabled={settingUp} onClick={() => void handleSetup()}>

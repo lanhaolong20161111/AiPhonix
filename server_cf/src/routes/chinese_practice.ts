@@ -12,6 +12,7 @@ import { chat } from "../lib/deepseek.js"
 import { parsePinyin } from "../lib/pinyin.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
 import { ruleCheckSentence, buildCheckPrompt, parseCheckResult, generateWithGuard } from "../lib/sentenceGuard.js"
+import { searchPrimaryPoems } from "../data/primary_poems.js"
 
 const router = new Hono()
 
@@ -823,6 +824,15 @@ router.post("/zh-poem-setup", async (c) => {
     } catch { /* 忽略 */ }
     return c.json({ detail: `古诗内容生成未通过审核：${(e as Error).message}` }, 422)
   }
+})
+
+// GET /api/v1/llm/zh-poem-search?q=静夜思 — 小学必背古诗库标题搜索（纯数据匹配，不走 LLM，亚毫秒返回）。
+// 匹配规则：标题完全相等 > 标题互相包含 > 首句包含 > 全文包含；结果按相关度排序，最多 8 条。
+router.get("/zh-poem-search", async (c) => {
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const q = String(c.req.query("q") ?? "").trim()
+  if (!q) return c.json({ poems: [] })
+  return c.json({ poems: searchPrimaryPoems(q) })
 })
 
 // POST /api/v1/llm/zh-poem-summary — 古诗快速概括（开场等待专用）：只生成题目+概括，不拆句不逐字，1~3s 出。

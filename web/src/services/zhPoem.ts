@@ -38,3 +38,18 @@ export async function zhPoemSummary(poem: string): Promise<{ title: string; summ
     timeoutMs: 20000,
   })
 }
+
+export interface PoemSearchHit {
+  title: string
+  dynasty: string
+  author: string
+  text: string
+}
+
+/** 按标题搜索小学必背古诗库（服务器内置数据，不走 LLM）；q 为空返回空 */
+export async function zhPoemSearch(q: string): Promise<PoemSearchHit[]> {
+  const r = await api<{ poems: PoemSearchHit[] }>(`/llm/zh-poem-search?q=${encodeURIComponent(q.trim())}`, {
+    timeoutMs: 10000,
+  })
+  return r?.poems ?? []
+}
