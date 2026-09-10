@@ -25,7 +25,7 @@ import { askLlm } from "../services/aiAsk"
 import { detailFromError } from "../services/auth"
 import { addWordbook, addWordbookMany } from "../services/wordbook"
 import { SpeakableTable } from "../components/SpeakableTable"
-import { splitInlineTables } from "../lib/paragraphFlow"
+import { splitInlineTables, reflowText, stripMdHeaders } from "../lib/paragraphFlow"
 
 /** 点读即加生词本的文本判定：只收中文汉字（点读单字）或英文单词（点读整词），
  * 不收数字/标点/纯字母串（避免污染词库，如数学题面的数字、拼音注音）。 */
@@ -230,6 +230,9 @@ function EnglishResult({
   posTags?: PosTagItem[]
   storyTags?: StoryElementItem[]
 }) {
+  // 去掉模型偶发写出的 markdown 标题记号（`## Tom's Family`），否则会原样显示 `##`。
+  // 英语路径不经 tidyInlineSpaces/reflowText，需在这里显式清理。
+  const clean = useMemo(() => stripMdHeaders(text), [text])
   // 表格课文本期不着色（cell 匹配复杂），仅普通逐词渲染时启用
   // 合并词性 + 要素为短语列表；同一词同时命中时要素优先（story priority=1 > pos=0）
   const phrases = useMemo(() => {
@@ -249,7 +252,7 @@ function EnglishResult({
   // 内嵌 HTML 表格（Paddle/豆包表格模式把表格混排在正文里）：按 `<table>` 切段 ——
   // 表格段画成真正的表格方框（整词/整格朗读），其余文本段照常逐词点读。
   // 直接整段丢给 SpeakableTable 会丢掉表格前后的文字，整段丢给逐词渲染则标签会被显示成尖括号。
-  const segs = useMemo(() => splitInlineTables(text), [text])
+  const segs = useMemo(() => splitInlineTables(clean), [clean])
   if (segs.some((s) => s.type === "table")) {
     return (
       <>
@@ -276,7 +279,7 @@ function EnglishResult({
     )
   }
   // markdown 管道表兜底（识别文本里没有 HTML 标签、只有 | a | b | 的情形）
-  const tbl = toTableHtml(text)
+  const tbl = toTableHtml(clean)
   if (tbl) {
     return (
       <SpeakableTable
@@ -289,7 +292,7 @@ function EnglishResult({
   }
   return (
     <EnglishWordTap
-      text={text}
+      text={clean}
       speakingWord={speakingWord}
       onWordSpeak={onWordSpeak}
       phrases={phrases}
@@ -599,13 +602,24 @@ export function AiParseResultPage() {
       ),
     )
 
-  /** 文本段渲染：表格 → 可点读表格；其余 → 逐字。供数学/语文纯文本分支复用。 */
+  /** 文本段渲染：表格 → 可点读表格；正文 → 按语义段落逐字渲染。
+   *
+   *  为什么要段落化：OCR 文本是按图片物理行硬折行的，旧实现把 `\n` 渲染成 <br>，
+   *  容器又是 white-space:pre-wrap，于是图片上每一行都被硬断行 —— 出现
+   *  「行内还有空间、下一个字另起一行到行首」。现在把物理行并回语义段落，
+   *  交给浏览器自动折行。
+   *  ⚠️ 段落首行缩进用**两个全角空格**，不要用 CSS text-indent：段落里每个字都是
+   *  独立行内盒，text-indent 会把每个字盒撑宽 2em（实测 `、` 24px→64px）。 */
   const renderMixedText = (t: string, tag: string) =>
     splitInlineTables(t).map((seg, si) =>
       seg.type === "table" ? (
         <SpeakableTable key={`t${si}`} html={seg.text} speakingChar={speakingChar} onCharClick={handleCharClick} />
       ) : (
-        <span key={`x${si}`}>{renderTapChars(seg.text, tag)}</span>
+        reflowText(seg.text).map((para, pi) => (
+          <div key={`x${si}-${pi}`} className="flow-para">
+            {renderTapChars(`\u3000\u3000${para}`, tag)}
+          </div>
+        ))
       ),
     )
 

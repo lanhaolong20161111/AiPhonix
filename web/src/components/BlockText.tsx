@@ -4,12 +4,12 @@
  */
 
 import { useEffect, useMemo, useState } from "react"
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 import type { TextBlock } from "../services/aiImage"
 import type { HighlightMarkItem, PosTagItem, StoryElementItem } from "../services/aichinese"
 import { isSpeakableChar } from "../lib/chars"
 import { tokenizePinyinText, applyToneStr } from "../lib/pinyin"
-import { buildParagraphs } from "../lib/paragraphFlow"
+import { buildParagraphs, BLANK_RE, splitBlanks } from "../lib/paragraphFlow"
 import { PinyinInline } from "./PinyinInline"
 import { getCharPinyinDict } from "../services/wordbank"
 import { useSoeScore } from "../hooks/useSoeScore"
@@ -308,57 +308,80 @@ export function BlockText({
     narrowSpace = false,
     rangeInfo?: { from: number; to: number } | null,
   ) => {
+    /** 单字渲染：空格 / 标点 / 可点读汉字（带拼音条）。 */
+    const oneChar = (ch: string, ci: number, key: string): ReactElement => {
+      if (ch === " " || ch === "\u3000") {
+        return (
+          <span key={key} className="block-char-space">
+            {/* 段落流（西文词间空格）按半角显示；逐行块仍用全角，保持诗句/缩进原有宽度 */}
+            {narrowSpace || ch === "\u3000" ? ch : "\u3000"}
+          </span>
+        )
+      }
+      // 标点等不可发音字符不可点（点读只对汉字/拼音/数字生效）
+      if (!isSpeakableChar(ch)) {
+        return (
+          <span key={key} className="block-char-noop">
+            {ch}
+          </span>
+        )
+      }
+      const isPlaying = speakingChar === ch
+      const isReading = reading !== null && reading.text === (block.text || "") && reading.char === ch
+      const isMarked = marking && markedChars.has(ch)
+      // 连读高亮：范围内每个字符标 hl-base；范围末字（句尾）额外标 hl-end
+      const inRange = !!rangeInfo && ci >= rangeInfo.from && ci < rangeInfo.to
+      const isRangeEnd = inRange && !!rangeInfo && ci === rangeInfo.to - 1
+      const charSpan = (
+        <span
+          key={key}
+          className={`block-char${isPlaying ? " playing" : ""}${isReading ? " reading" : ""}${isMarked ? " marked" : ""}${inRange ? " hl-base" : ""}${isRangeEnd ? " hl-end" : ""}`}
+          onClick={() => onCharClick(ch)}
+          title="点读自动加生词本"
+        >
+          {ch}
+        </span>
+      )
+      // 汉字上方注拼音（ruby）：拼音可点击 → 播放 声母/韵母/介母/整体认读；汉字仍点读整字
+      const pyDisp = pyMap[ch]
+      if (pyDisp) {
+        return (
+          <ruby key={key} className="block-char-ruby">
+            {charSpan}
+            <rt className="block-char-py">
+              <PinyinInline syllable={pyDisp} playOnly />
+            </rt>
+          </ruby>
+        )
+      }
+      return charSpan
+    }
     return tokenizePinyinText(text).flatMap(function (part, pi) {
       if (part.type === "pinyin") {
         return [<PinyinInline key={`${keyPrefix}-p${pi}`} syllable={part.text} />]
       }
-      return [...part.text].map(function (ch: string, ci: number) {
-        if (ch === " " || ch === "\u3000") {
-          return (
-            <span key={`${keyPrefix}-${pi}-${ci}`} className="block-char-space">
-              {/* 段落流（西文词间空格）按半角显示；逐行块仍用全角，保持诗句/缩进原有宽度 */}
-              {narrowSpace || ch === "\u3000" ? ch : "\u3000"}
-            </span>
+      const raw = part.text
+      if (!BLANK_RE.test(raw)) {
+        return [...raw].map((ch: string, ci: number) => oneChar(ch, ci, `${keyPrefix}-${pi}-${ci}`))
+      }
+      // 含填空位：`（  ）` 整体渲染成不可断单元（否则会在括号之间断行，
+      // 右括号被甩到下一行行首），其余照常逐字渲染。
+      const out: ReactElement[] = []
+      let ci = 0
+      for (const seg of splitBlanks(raw)) {
+        const chars = [...seg.text]
+        if (seg.blank) {
+          out.push(
+            <span key={`${keyPrefix}-${pi}-b${ci}`} className="block-blank">
+              {seg.text}
+            </span>,
           )
+        } else {
+          chars.forEach((ch, k) => out.push(oneChar(ch, ci + k, `${keyPrefix}-${pi}-${ci + k}`)))
         }
-        // 标点等不可发音字符不可点（点读只对汉字/拼音/数字生效）
-        if (!isSpeakableChar(ch)) {
-          return (
-            <span key={`${keyPrefix}-${pi}-${ci}`} className="block-char-noop">
-              {ch}
-            </span>
-          )
-        }
-        const isPlaying = speakingChar === ch
-        const isReading = reading !== null && reading.text === (block.text || "") && reading.char === ch
-        const isMarked = marking && markedChars.has(ch)
-        // 连读高亮：范围内每个字符标 hl-base；范围末字（句尾）额外标 hl-end
-        const inRange = !!rangeInfo && ci >= rangeInfo.from && ci < rangeInfo.to
-        const isRangeEnd = inRange && !!rangeInfo && ci === rangeInfo.to - 1
-        const charSpan = (
-          <span
-            key={`${keyPrefix}-${pi}-${ci}`}
-            className={`block-char${isPlaying ? " playing" : ""}${isReading ? " reading" : ""}${isMarked ? " marked" : ""}${inRange ? " hl-base" : ""}${isRangeEnd ? " hl-end" : ""}`}
-            onClick={() => onCharClick(ch)}
-            title="点读自动加生词本"
-          >
-            {ch}
-          </span>
-        )
-        // 汉字上方注拼音（ruby）：拼音可点击 → 播放 声母/韵母/介母/整体认读；汉字仍点读整字
-        const pyDisp = pyMap[ch]
-        if (pyDisp) {
-          return (
-            <ruby key={`${keyPrefix}-${pi}-${ci}`} className="block-char-ruby">
-              {charSpan}
-              <rt className="block-char-py">
-                <PinyinInline syllable={pyDisp} playOnly />
-              </rt>
-            </ruby>
-          )
-        }
-        return charSpan
-      })
+        ci += chars.length
+      }
+      return out
     })
   }
 
@@ -401,12 +424,16 @@ export function BlockText({
                     // 逐段推进「可发音字」累计值，把块级 range 映射到每段的局部下标
                     let acc = 0
                     return flowParas.map((para, i) => {
-                      const pr = paraRange(para, acc, range)
+                      // 段落首行缩进用「两个全角空格」实现，**不能**用 CSS text-indent：
+                      // 段落内每个字都是独立的行内盒，text-indent 会把每个行内盒的宽度
+                      // 都撑大 2em（实测 `、` 24px→64px），导致整行字被拆得七零八落。
+                      const body = `\u3000\u3000${para}`
+                      const pr = paraRange(body, acc, range)
                       acc = pr.total
                       return (
-                        // 语义段落：整段交给浏览器自动折行，首行缩进两格（段落开头空两格）
-                        <div key={i} className="block-line-row block-para" style={{ textIndent: "2em" }}>
-                          {renderLine(para, i, true, pr.from >= 0 && pr.from < pr.to ? { from: pr.from, to: pr.to } : null)}
+                        // 语义段落：整段交给浏览器自动折行
+                        <div key={i} className="block-line-row block-para">
+                          {renderLine(body, i, true, pr.from >= 0 && pr.from < pr.to ? { from: pr.from, to: pr.to } : null)}
                         </div>
                       )
                     })

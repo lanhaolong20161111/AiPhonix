@@ -4814,8 +4814,13 @@ button.btn-mode-off {
   font-weight: 800;
 }
 
+/* 逐字点读的字盒。
+   ⚠️ 必须是 display:inline，不能是 inline-block：
+   inline-block 会把每个字变成「原子盒」，浏览器就**不再套用中文断行禁则**，
+   于是 `）` `，` `。` 这类标点会被断到下一行行首（「字另起一行到行首」），
+   而且段落自动折行时任意两字之间都会断开。inline 保持文字流，禁则恢复正常。 */
 .block-char {
-  display: inline-block;
+  display: inline;
   padding: 1px 2px;
   border-radius: 4px;
   cursor: pointer;
@@ -4827,9 +4832,25 @@ button.btn-mode-off {
 
 /* 标点等不可发音字符：不可点击 */
 .block-char-noop {
-  display: inline-block;
-  padding: 1px 2px;
+  display: inline;
+  padding: 0 1px;
   cursor: default;
+}
+
+/* 填空位 `（  ）`：整体不许断行（要填几个字是给孩子看的，不能被拆到两行） */
+.block-blank {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* 题目 / 纯文本的语义段落（英语、数学、语文兜底路径）。
+   white-space 必须归位为 normal：外层的 .tap-char / .import-text / .ai-question-block-text
+   都是 pre-wrap（本意是保留识别文本换行），但那会让「物理行硬断行」钉死在版面上。
+   这里已把物理行并回段落，交浏览器自动折行。 */
+.flow-para {
+  white-space: normal;
+  text-align: left;
+  word-break: break-word;
 }
 
 .block-char.playing {
@@ -4923,14 +4944,16 @@ button.btn-mode-off {
 .block-score.ok { color: #f9a825; }
 .block-score.bad { color: #b71c1c; }
 
-/* 逐字点读（AI 数学识别题目） */
+/* 逐字点读（AI 数学识别题目）
+   ⚠️ 同 .block-char：必须 display:inline，inline-block 会让中文断行禁则失效，
+   标点会被断到下一行行首、且折行处任意两字都能断开。 */
 .tap-char {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .tap-char-item {
-  display: inline-block;
+  display: inline;
   padding: 0 1px;
   border-radius: 3px;
   cursor: pointer;

@@ -240,3 +240,31 @@ server_py/bench_*
 
 # 本地 dev 日志（不入库；历史已跟踪的那份需单独处理）
 server_cf/local_dev_log.txt
+
+# 鎺掔増 e2e 璇婃柇宸ュ叿涓庝骇鐗╋紙鏈湴鍙鐢紝涓嶅叆搴擄級
+web/_e2e_layout.cjs
+web/_reg_token.py
+web/_make_english_img.cjs
+web/_parse_diag.py
+web/_dbg_en.cjs
+web/_layout_*.png
+web/_en_test.png
+web/_dbg_en.png
+web/_math_*.png
+web/_a_*.png
+web/_b_*.png
+web/_c_*.png
+
+# 鎺掔増 e2e 璇婃柇宸ュ叿涓庝骇鐗╋紙鏈湴鍙鐢紝涓嶅叆搴擄級
+web/_e2e_layout.cjs
+web/_reg_token.py
+web/_make_english_img.cjs
+web/_parse_diag.py
+web/_dbg_en.cjs
+web/_layout_*.png
+web/_en_test.png
+web/_dbg_en.png
+web/_math_*.png
+web/_a_*.png
+web/_b_*.png
+web/_c_*.png
