@@ -1,221 +1,221 @@
-/** AI 对话学 — 和 AI 一问一答练口语表达（原造句小助手，"我说你接"中文口语对话版；流式实时显示 + 结束短语音兜底）
+/** AI 对话学语文（SpeechComposePage）— 覆盖式多轮问答教学
  *
- * 识别链路：百度实时流式（zh dev_pid 15372）边说边显示；点「结束」若流式没给出字
- * （单字偶发），把本轮完整 PCM 上传短语音（/asr/short）兜底。
- * 无自动逐词提示：卡壳用「💡 提示整句」按钮（点击给整句并发音一次，录音中点会在
- * 暂停窗口播放并自动恢复）。
- * 其余：中文剧情（lang=zh）、AI 声音百度 6221、错误句朗读 + 16k_zh 跟读、无翻译。
+ * 设置 主题+考查词语/句子 → 后端 zh-teach-setup 生成逐题剧本（参考回答覆盖全部考查词/句）。
+ * 每轮：AI 提问自动朗读（百度 6221）→ 6s 未作答自动逐级给提示并朗读（意思→例句→句型骨架，最多 3 级）
+ * → 孩子**文本输入作答**（手机输入法可语音转文字）→ zh-teach-judge：
+ *   对 → 朗读表扬 → 下一问；
+ *   错 → 显示并朗读参考回答 → 孩子麦克风朗读测评参考句（EchoLadder 单级，16k_zh，≥70 过关）→ 下一问。
+ * 全部题目完成后展示覆盖清单。
  */
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { TapCharText } from "../components/TapCharText"
-import { useEnglishTurn } from "../hooks/useEnglishTurn"
+import { EchoLadder } from "../components/EchoLadder"
 import { useTts } from "../hooks/useTts"
-import { useSoeScore } from "../hooks/useSoeScore"
-import { shortAsr } from "../services/asrShort"
-import { zhDialogueSetup, zhAnswerJudge, type DialogueScript } from "../services/zhDialogue"
+import { zhTeachSetup, zhTeachJudge, type TeachScript, type TeachItem } from "../services/zhTeach"
+import { zhPoemSetup, type PoemScript, type PoemLine } from "../services/zhPoem"
 
-type Phase = "idle" | "recording" | "reading" | "judging"
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+type Stage = "setup" | "question" | "judging" | "finished"
+const SIX_SECONDS = 6000
+/** 古诗模块朗读音色：百度 度逍遥（per=3），更有诗词朗诵感 */
+const POEM_VOICE = "3"
 
 export function SpeechComposePage() {
   const navigate = useNavigate()
-  const { speak, speakChar } = useTts()
+  const { speak, speakChar, warm } = useTts()
 
   // 设置
   const [topic, setTopic] = useState("")
   const [wordsText, setWordsText] = useState("")
   const [sentencesText, setSentencesText] = useState("")
+  const [poemText, setPoemText] = useState("")
   const [settingUp, setSettingUp] = useState(false)
   const [setupError, setSetupError] = useState("")
+  const [waitSec, setWaitSec] = useState(0)
 
-  // 剧情
-  const [script, setScript] = useState<DialogueScript | null>(null)
-  const [turnIdx, setTurnIdx] = useState(0)
+  // ── 古诗模式 ──
+  const [poem, setPoem] = useState<PoemScript | null>(null)
+  const [poemIdx, setPoemIdx] = useState(0)
+  const [poemIntroDone, setPoemIntroDone] = useState(false)
+  const [charTip, setCharTip] = useState<{ c: string; m: string } | null>(null)
+  const [ttsBusy, setTtsBusy] = useState(false) // 任意古诗 TTS 进行中（点击即时反馈 + 防竞态）
+  const [evalBusy, setEvalBusy] = useState(false) // 测评（朗读/录音）中 → 禁点 TTS
+  const poemBusyRef = useRef(false)
+  const poemLine: PoemLine | null = poem?.lines[poemIdx] ?? null
 
-  // 整句提示记录（按钮触发，逐轮保留）
-  const [hintRows, setHintRows] = useState<{ text: string; full: boolean }[]>([])
-  const lastHintTextRef = useRef("")
+  // 剧本
+  const [script, setScript] = useState<TeachScript | null>(null)
+  const [units, setUnits] = useState<string[]>([])
+  const [idx, setIdx] = useState(0)
+  const item: TeachItem | null = script?.items[idx] ?? null
 
-  // 阶段
-  const [phase, setPhase] = useState<Phase>("idle")
-  const phaseRef = useRef<Phase>("idle")
-  const setPh = (p: Phase) => {
-    phaseRef.current = p
-    setPhase(p)
-  }
-  const busyRef = useRef(false)
+  const [stage, setStage] = useState<Stage>("setup")
 
-  // 判定结果
-  const [feedback, setFeedback] = useState<{ ok: boolean; praise: string; correct: string; said: string } | null>(null)
-  const [judging, setJudging] = useState(false)
-  const [errText, setErrText] = useState("")
+  // 作答区
+  const [answer, setAnswer] = useState("")
+  // 当前题判定结果（ok=表扬后可下一问；no=先测评后下一问）
+  const [judge, setJudge] = useState<{ ok: boolean; praise: string; correct: string } | null>(null)
+  const [echoOpen, setEchoOpen] = useState(false)
+  const [echoDone, setEchoDone] = useState(false)
+  // 未作答自动提示
+  const [hintLvl, setHintLvl] = useState(0)
+  const [hintTip, setHintTip] = useState("")
+  const hintLvlRef = useRef(0)
+  const lastActRef = useRef(0)
 
-  const line = script?.lines[turnIdx]
+  // 覆盖统计（考查单位）
+  const [covered, setCovered] = useState<Set<string>>(new Set())
 
-  // ── 录音：百度实时流式（zh）。停顿提示已改按钮 → 停检不触发（pauseMs 极大）──
-  const turn = useEnglishTurn({
-    lang: "zh",
-    pauseMs: 600_000,
-    initialSilenceMs: 0,
-    onPause: () => { /* 无自动提示 */ },
-  })
-
-  // ── 正确句跟读评测（16k_zh）──
-  const correctRef = useRef("")
-  const correctSoe = useSoeScore(() => ({
-    refText: correctRef.current,
-    scene: "sentence",
-    engine: "16k_zh",
-    source: "zh_talk_correct",
-  }))
-
-  // ── 朗读：百度 6221 ──
   const talkSpeak = async (t: string) => {
     if (!t.trim()) return
     await speak(t, { speaker: "6221" })
   }
 
-  /** 录音中打断朗读：暂停 ASR（等流式收尾）→ 窗口内播放 → 停 1.2s → 自动恢复 */
-  const interruptSpeak = async (fn: () => Promise<void>) => {
-    const recNow: Phase = phaseRef.current
-    if (recNow !== "recording" || busyRef.current) return
-    busyRef.current = true
-    setPh("reading")
-    await turn.pause()
+  const markCovered = (focus: string) => {
+    setCovered((prev) => {
+      const next = new Set(prev)
+      if (focus) next.add(focus)
+      return next
+    })
+  }
+
+  // ── 古诗朗读（全部走 speaker=3；串行 + 忙碌锁，避免多个 TTS 竞态） ──
+  /** 硬超时：底层播放 promise 万一不返回（浏览器差异），也不让流程卡死 */
+  const withTimeout = <T,>(p: Promise<T>, ms = 12_000): Promise<T | void> =>
+    Promise.race([p, new Promise<void>((r) => setTimeout(r, ms))])
+
+  const speakPoem = async (t: string) => {
+    if (!t.trim() || poemBusyRef.current || evalBusy) return
+    poemBusyRef.current = true
+    setTtsBusy(true)
     try {
-      await fn()
-      await sleep(1200)
+      await withTimeout(speak(t, { speaker: POEM_VOICE }))
     } finally {
-      busyRef.current = false
-      if (phaseRef.current === "reading") {
-        const resumed = await turn.resume().catch(() => false)
-        if (resumed) setPh("recording")
-        else {
-          setPh("idle")
-          setErrText("麦克风恢复失败，请点「开始录音」重试")
-        }
-      }
+      poemBusyRef.current = false
+      setTtsBusy(false)
     }
   }
 
-  const playWhole = (t: string) => {
-    if (!t.trim()) return
-    if (phaseRef.current === "recording") void interruptSpeak(() => talkSpeak(t))
-    else void talkSpeak(t)
-  }
-  const playCharGuarded = (ch: string) => {
-    if (phaseRef.current === "recording") void interruptSpeak(async () => { await speakChar(ch) })
-    else void speakChar(ch)
-  }
-
-  /** 💡 提示整句：点击给完整目标句一次并发音 */
-  const hintWhole = async () => {
-    if (busyRef.current || judging || !line?.target) return
-    const target = line.target
-    const wasRecording = phaseRef.current === "recording"
-    const fn = async () => {
-      if (target !== lastHintTextRef.current) {
-        lastHintTextRef.current = target
-        setHintRows((rows) => [...rows, { text: target, full: true }])
-      }
-      await talkSpeak(target)
-    }
-    if (wasRecording) await interruptSpeak(fn)
-    else await fn()
-  }
-
-  /** 绿色「开始录音」 */
-  const startRecording = async () => {
-    if (phaseRef.current !== "idle" || judging) return
-    setErrText("")
-    const ok = await turn.start()
-    if (ok) {
-      setPh("recording")
-    } else if (!turn.state.error) {
-      setErrText("开始录音失败，请检查麦克风权限")
-    }
-  }
-
-  /** 红色「结束」：取整句；流式空结果 → 整段 PCM 短语音兜底 → 判定 */
-  const finishRecording = async () => {
-    const recNow: Phase = phaseRef.current
-    if (recNow !== "recording" || judging) return
-    setJudging(true)
-    setPh("judging")
+  /** 单字点读：先读这个字（指定音色），紧接着读这个字的意思 */
+  const tapPoemChar = async (c: string, m: string) => {
+    if (poemBusyRef.current || evalBusy) return
+    setCharTip({ c, m })
+    poemBusyRef.current = true
+    setTtsBusy(true)
     try {
-      let whole = (await turn.stop()).trim()
-      if (!whole) {
-        // 流式没给出字（短音/单字偶发）→ 用本轮完整 PCM 走短语音兜底
-        const pcm = turn.takePcm()
-        if (pcm.length >= 1600) {
-          const t = await shortAsr(pcm, "zh").catch(() => "")
-          whole = t.trim()
+      await withTimeout(speak(c, { speaker: POEM_VOICE }))
+      if (m) await withTimeout(speak(m, { speaker: POEM_VOICE }))
+    } finally {
+      poemBusyRef.current = false
+      setTtsBusy(false)
+    }
+  }
+
+  /** 预取：当前句在播时，后台先把下一句原文+白话合成好（点击即读，减少等待感） */
+  const warmPoemNext = (i: number) => {
+    const nx = poem?.lines[i + 1]
+    if (!nx) return
+    void warm(nx.verse, { speaker: POEM_VOICE })
+    void warm(nx.meaning, { speaker: POEM_VOICE })
+  }
+
+  /** 进入某一句古诗：先读原文，再读白话意思；读完才出现测评 */
+  const enterPoemVerse = async (i: number) => {
+    setPoemIdx(i)
+    setCharTip(null)
+    setEvalBusy(true) // 原文/白话朗读期间禁点其它 TTS
+    poemBusyRef.current = true
+    setTtsBusy(true)
+    try {
+      const l = poem?.lines[i]
+      if (l) {
+        await withTimeout(speak(l.verse, { speaker: POEM_VOICE }))
+        await withTimeout(speak(l.meaning, { speaker: POEM_VOICE }))
+      }
+    } finally {
+      poemBusyRef.current = false
+      setTtsBusy(false)
+      setEvalBusy(false)
+    }
+    warmPoemNext(i) // 后台预取下一句
+  }
+
+  /** 古诗模式入口：先用原文切句**立即开始**（不等 LLM），讲解/白话在后台生成好后原地补上 */
+  const startPoem = async () => {
+    const raw = poemText.trim()
+    setSetupError("")
+    const segs = (raw.match(/[^，。！？；：\n]+[，。！？；：]?/g) ?? []).map((s) => s.trim()).filter(Boolean)
+    if (!segs.length) {
+      setSetupError("请先粘贴要练的古诗原文")
+      return
+    }
+    const local: PoemScript = {
+      title: "古诗练习",
+      summary: "",
+      lines: segs.map((v) => ({ verse: v, meaning: "", chars: [] })),
+      fallback: true,
+    }
+    setPoem(local)
+    setPoemIdx(0)
+    setPoemIntroDone(true) // 不等概括：直接进入"逐句朗读+测评"
+    setStage("question") // 离开 setup 界面（否则第 320 行 stage==="setup" 恒真，古诗界面永远不渲染）
+    void enterPoemVerse(0)
+
+    // 后台生成讲解（概括/白话/逐字义）；成功后按诗句原地合并，不打断当前练习
+    try {
+      const p = await zhPoemSetup(raw)
+      setPoem((prev) => {
+        if (!prev) return prev
+        const zhMap = new Map(p.lines.map((l) => [l.verse.replace(/\s+/g, ""), l]))
+        return {
+          title: p.title || prev.title,
+          summary: p.summary || prev.summary,
+          lines: prev.lines.map((l) => {
+            const hit = zhMap.get(l.verse.replace(/\s+/g, ""))
+            return hit ? { ...l, meaning: hit.meaning || l.meaning, chars: hit.chars?.length ? hit.chars : l.chars, verse: l.verse } : l
+          }),
+          fallback: false,
         }
-      }
-      if (!whole) {
-        setPh("idle")
-        setJudging(false)
-        setErrText("没有识别到内容，请再试一次")
-        return
-      }
-      if (!line) {
-        setPh("idle")
-        setJudging(false)
-        return
-      }
-      const res = await zhAnswerJudge(line.target, whole)
-      correctRef.current = res.correct || ""
-      setFeedback({ ok: res.ok, praise: res.praise, correct: res.correct, said: whole })
-      if (res.ok) {
-        await talkSpeak(res.praise)
-      } else {
-        await talkSpeak(res.praise)
-        if (res.correct) await talkSpeak(res.correct)
-      }
+      })
     } catch {
-      if (line) {
-        correctRef.current = line.target
-        setFeedback({ ok: false, praise: "再试一次！", correct: line.target, said: turn.state.saidText })
-      }
-    } finally {
-      setJudging(false)
-      setPh("idle")
+      /* 讲解生成失败：保持原文练习可用，不报错打断 */
     }
+
+    // 无设置阶段等待：settingUp 不置位，按钮即时恢复
   }
 
-  /** 正确句跟读评测 */
-  const toggleCorrectEval = async () => {
-    if (correctSoe.state.recording) await correctSoe.stop()
-    else {
-      setErrText("")
-      await correctSoe.start()
-    }
-  }
-
-  // ── 开始练习 ──
+  // ── 生成剧本 ──
   const handleSetup = async () => {
+    // 填了古诗 → 走古诗练习模式
+    if (poemText.trim()) {
+      await startPoem()
+      return
+    }
     const words = wordsText.split(/[,，、\s]+/).map((s) => s.trim()).filter(Boolean)
     const sentences = sentencesText.split(/\n+/).map((s) => s.trim()).filter(Boolean)
     if (!words.length && !sentences.length && !topic.trim()) {
-      setSetupError("请输入至少一个练习词 / 句子，或主题")
+      setSetupError("请输入至少一个要练的词 / 句子，或主题（也可以填一首古诗）")
       return
     }
     setSettingUp(true)
     setSetupError("")
     try {
-      const sc = await zhDialogueSetup(topic.trim(), words, sentences)
+      const sc = await zhTeachSetup(topic.trim(), words, sentences)
+      if (!sc.items?.length) throw new Error("AI 没有生成题目，请稍后重试")
       setScript(sc)
-      setTurnIdx(0)
-      setFeedback(null)
-      setErrText("")
-      lastHintTextRef.current = ""
-      busyRef.current = false
-      setHintRows([])
-      correctRef.current = ""
-      correctSoe.reset()
-      setPh("idle")
-      if (sc.lines[0]?.ai) void talkSpeak(sc.lines[0].ai)
+      setUnits([...words, ...sentences])
+      setIdx(0)
+      setStage("question")
+      setAnswer("")
+      setJudge(null)
+      setEchoOpen(false)
+      setEchoDone(false)
+      setHintLvl(0)
+      setHintTip("")
+      setCovered(new Set())
+      hintLvlRef.current = 0
+      lastActRef.current = Date.now()
+      if (sc.items[0]?.q) void talkSpeak(sc.items[0].q)
     } catch (e) {
       setSetupError(`生成失败：${String((e as Error)?.message ?? e)}`)
     } finally {
@@ -223,219 +223,376 @@ export function SpeechComposePage() {
     }
   }
 
-  const reReadAi = () => {
-    if (line?.ai) playWhole(line.ai)
+  // 切题重置
+  const enterQuestion = (nextIdx: number) => {
+    setIdx(nextIdx)
+    setStage("question")
+    setAnswer("")
+    setJudge(null)
+    setEchoOpen(false)
+    setEchoDone(false)
+    setHintLvl(0)
+    setHintTip("")
+    hintLvlRef.current = 0
+    lastActRef.current = Date.now()
+    const q = script?.items[nextIdx]?.q
+    if (q) void talkSpeak(q)
   }
 
-  // ── 下一轮 / 完成 ──
-  const nextTurn = async () => {
-    if (correctSoe.state.recording || correctSoe.state.evaluating) return
-    const next = turnIdx + 1
-    if (next < (script?.lines.length ?? 0)) {
-      await turn.stop().catch(() => "")
-      setTurnIdx(next)
-      setFeedback(null)
-      setErrText("")
-      lastHintTextRef.current = ""
-      setHintRows([])
-      correctRef.current = ""
-      correctSoe.reset()
-      setPh("idle")
-      const aiLine = script!.lines[next].ai
-      if (aiLine) void talkSpeak(aiLine)
-    } else {
-      correctSoe.reset()
-      setScript(null)
-      setTopic("")
-      setWordsText("")
-      setSentencesText("")
+  // 出题等待计时（让"AI 出题中…"看得见进度，不像卡死）
+  useEffect(() => {
+    if (!settingUp) {
+      setWaitSec(0)
+      return
+    }
+    const id = window.setInterval(() => setWaitSec((s) => s + 1), 1000)
+    return () => window.clearInterval(id)
+  }, [settingUp])
+
+  // 6s 未作答 → 逐级提示并朗读（意思 → 例句 → 句型骨架）
+  useEffect(() => {
+    if (stage !== "question" || !item || judge || echoOpen) return
+    const id = window.setInterval(() => {
+      const hints = item.hints ?? []
+      if (hintLvlRef.current < hints.length && Date.now() - lastActRef.current >= SIX_SECONDS) {
+        const h = hints[hintLvlRef.current]
+        hintLvlRef.current += 1
+        setHintLvl(hintLvlRef.current)
+        setHintTip(h)
+        void talkSpeak(h)
+        lastActRef.current = Date.now()
+      }
+    }, 1000)
+    return () => window.clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, idx, item, judge, echoOpen])
+
+  // 提交作答
+  const submit = async () => {
+    if (!item || !answer.trim() || stage !== "question" || judge) return
+    setStage("judging")
+    lastActRef.current = Date.now()
+    try {
+      const res = await zhTeachJudge(item.q, item.ref, answer.trim())
+      setJudge(res)
+      if (res.ok) {
+        markCovered(item.focus)
+        await talkSpeak(res.praise || "真棒！")
+        setStage("question")
+      } else {
+        // 先显示并朗读参考回答，再进入麦克风测评
+        if (res.correct) await talkSpeak(res.correct)
+        setEchoOpen(true)
+        setStage("question")
+      }
+    } catch {
+      setJudge({ ok: false, praise: "评分出错了，再试一次。", correct: "" })
+      setStage("question")
     }
   }
 
+  // 测评过关（错句 ≥70）→ 记覆盖，可下一问
+  const onEchoFinished = () => {
+    if (item) markCovered(item.focus)
+    setEchoOpen(false)
+    setEchoDone(true)
+  }
+
+  const gotoNext = () => {
+    const next = idx + 1
+    if (next < (script?.items.length ?? 0)) enterQuestion(next)
+    else setStage("finished")
+  }
+
+  const backToSetup = () => {
+    setScript(null)
+    setPoem(null)
+    setPoemIntroDone(false)
+    setPoemIdx(0)
+    setCharTip(null)
+    setStage("setup")
+    setTopic("")
+    setWordsText("")
+    setSentencesText("")
+    setPoemText("")
+  }
+
   // ── 设置界面 ──
-  if (!script) {
+  if (stage === "setup" || (!script && !poem)) {
     return (
       <div className="page aihomework-page">
         <header className="module-header">
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
-          <h1>🤖 AI 和你对话学语文</h1>
+          <h1>🤖 AI 对话学语文</h1>
         </header>
         <div className="card" style={{ padding: 16 }}>
-          <p className="module-hint">AI 和你对话学语文：告诉它要练的词句，AI 会编一段小对话和你一问一答，你开口回答，AI 老师即时判定并纠正。</p>
+          <p className="module-hint">
+            先告诉 AI 主题和要练的词语/句子，它会出好多道题带你一问一答，把每个词的意思和用法都练到。每题你都可以**打字或用输入法语音**回答。
+          </p>
           <label style={{ fontWeight: 700 }}>主题 / 场景（可选，不填 AI 自动决定）</label>
           <input
             className="text-input"
             style={{ width: "100%", margin: "6px 0 12px" }}
-            placeholder="如：在公园 / 去动物园 / 我的家人"
+            placeholder="如：春天的公园 / 我的周末"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
           />
-          <label style={{ fontWeight: 700 }}>练习词语（逗号或空格分隔）</label>
+          <label style={{ fontWeight: 700 }}>要练的词语（逗号或空格分隔）</label>
           <input
             className="text-input"
             style={{ width: "100%", margin: "6px 0 12px" }}
-            placeholder="如：苹果、快乐、跑步"
+            placeholder="如：快乐、颜色、跑步"
             value={wordsText}
             onChange={(e) => setWordsText(e.target.value)}
           />
-          <label style={{ fontWeight: 700 }}>练习句子（每行一句，可选）</label>
+          <label style={{ fontWeight: 700 }}>要练的句子（每行一句，可选）</label>
           <textarea
             className="text-input"
             style={{ width: "100%", margin: "6px 0 12px", minHeight: 64, resize: "vertical" }}
-            placeholder={"如：我喜欢吃苹果。\n今天天气真好！"}
+            placeholder={"如：我喜欢和好朋友一起玩。\n公园里的花真漂亮！"}
             value={sentencesText}
             onChange={(e) => setSentencesText(e.target.value)}
           />
+          <label style={{ fontWeight: 700 }}>要练的古诗（可选，填了就练古诗）</label>
+          <textarea
+            className="text-input"
+            style={{ width: "100%", margin: "6px 0 12px", minHeight: 72, resize: "vertical" }}
+            placeholder={"如：床前明月光，疑是地上霜。\n举头望明月，低头思故乡。"}
+            value={poemText}
+            onChange={(e) => setPoemText(e.target.value)}
+          />
           {setupError && <p className="err">{setupError}</p>}
           <button className="btn-primary" style={{ width: "100%" }} disabled={settingUp} onClick={() => void handleSetup()}>
-            {settingUp ? "AI 编剧情中…" : "✨ 开始对话"}
+            {settingUp ? `AI 出题中… ${waitSec}s（超过 60 秒会自动用原文先开始）` : "✨ 开始学"}
           </button>
         </div>
       </div>
     )
   }
 
-  // ── 对话界面 ──
-  const recording = turn.state.recording
-  const canStop = phase === "recording"
-  const correctScore = correctSoe.state.score
+  // ── 古诗界面 ──
+  if (poem) {
+    const total = poem.lines.length
+    const ttsBlocked = ttsBusy || evalBusy // 朗读/评测中：禁点 TTS（含单字）
+    if (poemIdx >= total) {
+      return (
+        <div className="page aihomework-page">
+          <header className="module-header">
+            <button className="back-btn" onClick={backToSetup}>←</button>
+            <h1>🎉 古诗学完啦</h1>
+          </header>
+          <div className="card" style={{ padding: 16 }}>
+            <p className="talk-feedback-praise">《{poem.title}》全部 {total} 句都读完啦！</p>
+            <p className="module-hint">{poem.summary}</p>
+            <button className="btn-primary" style={{ width: "100%" }} onClick={backToSetup}>🔁 再练一首</button>
+          </div>
+        </div>
+      )
+    }
+    return (
+      <div className="page aihomework-page">
+        <header className="module-header">
+          <button className="back-btn" onClick={backToSetup}>←</button>
+          <h1>📜 {poem.title}</h1>
+          <span style={{ fontSize: 13, color: "#536471" }}>第 {poemIdx + 1}/{total} 句</span>
+        </header>
+
+        {/* 上面：古诗原文（单字可点：先读字，再读字义） */}
+        <div className="card" style={{ marginTop: 8, padding: 12 }}>
+          <div style={{ fontSize: 20, lineHeight: 1.9, fontWeight: 700, color: "#0f1419" }}>
+            {poem.lines.map((l, li) => (
+              <div key={li} style={li === poemIdx ? { background: "#fff8e1", borderRadius: 8, padding: "2px 6px" } : { opacity: 0.6 }}>
+                {(() => {
+                  let cjk = 0
+                  return [...l.verse].map((ch, ci) => {
+                    const punct = !/[\u4e00-\u9fff]/.test(ch)
+                    if (punct) return <span key={ci}>{ch}</span>
+                    const info = l.chars[cjk] ?? null
+                    cjk += 1
+                    return (
+                      <span
+                        key={ci}
+                        onClick={() => { if (!ttsBlocked && info) void tapPoemChar(info.c, info.m) }}
+                        style={{ cursor: ttsBlocked ? "default" : "pointer", padding: "0 1px" }}
+                      >
+                        {ch}
+                      </span>
+                    )
+                  })
+                })()}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 下面：解释（白话意思 + 点到的字义） */}
+        <div className="card" style={{ marginTop: 8, padding: 12 }}>
+          <p className="module-hint" style={{ marginTop: 0 }}>📖 解释</p>
+          {poemLine?.meaning
+            ? <p style={{ fontSize: 16, fontWeight: 600, color: "#1b5e20", margin: "4px 0" }}>{poemLine.meaning}</p>
+            : <p className="module-hint" style={{ margin: "4px 0" }}>（这句的白话意思稍后补上，先跟 AI 读一遍）</p>}
+          {charTip && (
+            <p style={{ fontSize: 15, color: "#e65100", margin: "4px 0" }}>
+              「{charTip.c}」：{charTip.m}
+            </p>
+          )}
+          {ttsBusy && <p className="speech-completing">🔊 朗读中…</p>}
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => poemLine && void speakPoem(poemLine.verse)}>🔊 读原文</button>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => poemLine && void speakPoem(poemLine.meaning)}>🔊 读意思</button>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked || !poem.summary} onClick={() => void speakPoem(poem.summary)}>🔊 全诗概括</button>
+          </div>
+        </div>
+
+        {/* 逐句测评：读完原文+白话后出现（先听后评，≥70 进下一句） */}
+        {poemIntroDone && !ttsBusy && poemLine && (
+          <EchoLadder
+            key={poemIdx}
+            sentence={poemLine.verse}
+            chunks={[poemLine.verse]}
+            engine="16k_zh"
+            speaker={POEM_VOICE}
+            praise="读得真好！"
+            autoReadFirst={false}
+            source="zh_poem_echo"
+            onBusyChange={setEvalBusy}
+            onFinished={() => void enterPoemVerse(poemIdx + 1)}
+          />
+        )}
+      </div>
+    )
+  }
+
+  // 到这里只剩"词语/句子教学"模式；script 必然存在（上面 setup / poem 分支已返回）
+  if (!script) return null
+
+  if (stage === "finished") {
+    const missing = units.filter((u) => !covered.has(u))
+    return (
+      <div className="page aihomework-page">
+        <header className="module-header">
+          <button className="back-btn" onClick={backToSetup}>←</button>
+          <h1>🎉 学完啦</h1>
+        </header>
+        <div className="card" style={{ padding: 16 }}>
+          <p className="talk-feedback-praise">全部 {script.items.length} 道题都完成了！</p>
+          <p className="module-hint">已练到的内容：{units.filter((u) => covered.has(u)).join("、") || "（无）"}</p>
+          {missing.length > 0 && (
+            <p className="module-hint">还没覆盖（可再开一轮专门练）：{missing.join("、")}</p>
+          )}
+          <button className="btn-primary" style={{ width: "100%" }} onClick={backToSetup}>
+            🔁 再练一轮
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 答题界面 ──
+  const showNext = judge?.ok === true || echoDone || (judge && !judge.ok && !echoOpen && judge.correct === "")
+  const coveredCount = units.filter((u) => covered.has(u)).length
 
   return (
     <div className="page aihomework-page">
       <header className="module-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>←</button>
-        <h1>🤖 {script.title || "AI 和你对话学语文"}</h1>
-        <span style={{ fontSize: 13, color: "#536471" }}>{turnIdx + 1}/{script.lines.length}</span>
+        <button className="back-btn" onClick={backToSetup}>←</button>
+        <h1>🤖 AI 对话学语文</h1>
+        <span style={{ fontSize: 13, color: "#536471" }}>
+          {idx + 1}/{script.items.length} · 覆盖 {coveredCount}/{units.length}
+        </span>
       </header>
 
-      {/* AI 台词气泡 */}
-      {line && (
+      {/* AI 提问气泡 */}
+      {item && (
         <div className="talk-bubble ai">
-          <div className="talk-bubble-label">🤖 AI · {topic || "对话"}</div>
+          <div className="talk-bubble-label">🤖 AI · {script.title || topic || "语文对话"}</div>
           <div className="talk-bubble-text">
-            <TapCharText text={line.ai} charSpeakOverride={playCharGuarded} />
+            <TapCharText text={item.q} charSpeakOverride={(ch) => void speakChar(ch)} />
           </div>
           <div className="talk-bubble-ops">
-            <button className="btn-secondary btn-sm" onClick={reReadAi}>🔊 再读</button>
+            <button className="btn-secondary btn-sm" onClick={() => void talkSpeak(item.q)}>🔊 再读</button>
           </div>
         </div>
       )}
 
-      {/* 孩子回答区 */}
-      <div className="card" style={{ marginTop: 10 }}>
-        <p className="module-hint" style={{ marginTop: 0 }}>
-          听清 AI 的话后，点「🎤 开始录音」说出你的回答。卡住了点「💡 提示整句」。说完了点红色「⏹ 结束」，AI 来点评。
-        </p>
-        <div className="talk-live">
-          <span className="speech-said">{turn.state.saidText}</span>
-          {turn.state.interimText && <span className="speech-interim">{turn.state.interimText}</span>}
-          {!turn.state.saidText && !turn.state.interimText && !turn.state.recording && (
-            <span className="speech-placeholder">（还没说）</span>
+      {/* 自动提示卡（6s 未答） */}
+      {hintTip && stage === "question" && !judge && (
+        <div className="talk-hints card" style={{ marginTop: 8 }}>
+          <div className="talk-hints-title">💡 提示（第 {hintLvl} 级）</div>
+          <p className="talk-hint-text">{hintTip}</p>
+        </div>
+      )}
+
+      {/* 文本作答区 */}
+      {stage === "question" && !judge && !echoOpen && (
+        <div className="card teach-answer-card" style={{ marginTop: 8 }}>
+          <textarea
+            className="text-input"
+            style={{ width: "100%", minHeight: 72, resize: "vertical" }}
+            placeholder={"在这里输入/用输入法语音说出你的回答…"}
+            value={answer}
+            onChange={(e) => {
+              setAnswer(e.target.value)
+              lastActRef.current = Date.now() // 有输入就重置 6s 计时
+            }}
+          />
+          <button className="btn-primary" style={{ width: "100%", marginTop: 8 }} disabled={!answer.trim()} onClick={() => void submit()}>
+            ✅ 回答好了
+          </button>
+        </div>
+      )}
+      {stage === "judging" && <p className="speech-completing">🤔 AI 在看你的回答…</p>}
+
+      {/* 判定反馈 */}
+      {judge && !echoOpen && (
+        <div className={`talk-feedback${judge.ok ? " ok" : " no"}`} style={{ marginTop: 8 }}>
+          <p className="talk-feedback-praise">{judge.ok ? "✅ " : ""}{judge.praise}</p>
+          {!judge.ok && judge.correct && (
+            <div className="talk-feedback-correct">
+              <div className="talk-correct-head">
+                <span>参考回答：</span>
+                <button className="btn-secondary btn-sm" onClick={() => void talkSpeak(judge.correct)}>🔊 再读</button>
+              </div>
+              <TapCharText text={judge.correct} charSpeakOverride={(ch) => void speakChar(ch)} />
+            </div>
+          )}
+          {!judge.ok && judge.correct && !echoDone && !echoOpen && (
+            <div className="talk-correct-eval">
+              <button
+                className="btn-secondary"
+                style={{ width: "100%", marginTop: 10, padding: "10px 14px" }}
+                onClick={() => setEchoOpen(true)}
+              >
+                🎤 跟读测评这句（≥70 分过关）
+              </button>
+              <button className="btn-secondary btn-sm" onClick={gotoNext}>跳过此题</button>
+            </div>
           )}
         </div>
-
-        {phase === "recording" && (
-          <div className="talk-status go"><span className="talk-dot" /> 录音中… 说完了点下方红色结束</div>
-        )}
-        {phase === "reading" && (
-          <div className="talk-status busy"><span className="talk-dot" /> 🔊 朗读中… 录音已暂停</div>
-        )}
-        {recording && (
-          <div className="speech-level"><div className="speech-level-bar" style={{ width: `${Math.max(4, Math.min(100, turn.state.level * 100))}%` }} /></div>
-        )}
-        {errText && <p className="err">{errText}</p>}
-        {turn.state.error && <p className="err">{turn.state.error}</p>}
-
-        {(phase === "idle" || phase === "recording") && !feedback && !judging && !!line?.target && (
-          <button
-            className="btn-secondary"
-            style={{ width: "100%", marginBottom: 8, padding: "10px 14px" }}
-            onClick={() => void hintWhole()}
-            title="点击后朗读完整的目标句"
-          >
-            💡 提示整句
-          </button>
-        )}
-
-        <div className="speech-actions">
-          {phase === "idle" && !feedback && !judging ? (
-            <button className="btn-lg talk-rec go" onClick={() => void startRecording()}>🎤 开始录音</button>
-          ) : canStop ? (
-            <button className="btn-lg talk-rec stop" onClick={() => void finishRecording()}>⏹ 结束</button>
-          ) : phase === "reading" ? (
-            <button className="btn-lg talk-rec busy" disabled>🔊 朗读中…</button>
-          ) : null}
-        </div>
-
-        {/* 判定反馈 */}
-        {judging && <p className="speech-completing">🤔 AI 在听你回答…</p>}
-        {feedback && (
-          <div className={`talk-feedback${feedback.ok ? " ok" : " no"}`}>
-            {feedback.said && (
-              <p className="talk-feedback-said">
-                你说：{feedback.said}{feedback.said.trim() ? "。" : ""}
-              </p>
-            )}
-            <p className="talk-feedback-praise">{feedback.ok ? "✅ " : ""}{feedback.praise}</p>
-            {!feedback.ok && feedback.correct && (
-              <div className="talk-feedback-correct">
-                <div className="talk-correct-head">
-                  <span>正确说法：</span>
-                  <button className="btn-secondary btn-sm" onClick={() => playWhole(feedback.correct)}>🔊 再读</button>
-                </div>
-                <TapCharText text={feedback.correct} charSpeakOverride={playCharGuarded} />
-                <div className="talk-correct-eval">
-                  <button
-                    className={`btn-lg talk-rec${correctSoe.state.recording ? " stop" : " go"}`}
-                    onClick={() => void toggleCorrectEval()}
-                    disabled={correctSoe.state.evaluating}
-                  >
-                    {correctSoe.state.recording
-                      ? "⏹ 停止评测"
-                      : correctSoe.state.evaluating
-                        ? "…评分中"
-                        : correctScore !== null
-                          ? "🎤 再读一遍"
-                          : "🎤 跟读这句"}
-                  </button>
-                  {correctScore !== null && (
-                    <span className={`talk-word-score${correctScore >= 70 ? " good" : " bad"}`}>
-                      {correctScore >= 70 ? `✅ ${correctScore}分，读得不错！` : `⚠️ ${correctScore}分，再练一次`}
-                    </span>
-                  )}
-                  {correctSoe.state.error && <span className="talk-word-err">{correctSoe.state.error}</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 整句提示记录 */}
-      {hintRows.length > 0 && (
-        <div className="talk-hints card" style={{ marginTop: 8 }}>
-          <div className="talk-hints-title">💡 提示记录</div>
-          {hintRows.map((h, i) => (
-            <div className="talk-hint-row" key={i}>
-              <span className="talk-hint-no">{i + 1}</span>
-              <span className="talk-hint-main">
-                <span className="talk-hint-text">（整句）{h.text}</span>
-              </span>
-              <button className="btn-secondary btn-sm" onClick={() => playWhole(h.text)}>🔊</button>
-            </div>
-          ))}
-        </div>
       )}
 
-      {/* 下一轮 */}
-      {feedback && (
+      {/* 错句测评（先听后评单级） */}
+      {judge && !judge.ok && judge.correct && echoOpen && (
+        <EchoLadder
+          sentence={judge.correct}
+          chunks={[judge.correct]}
+          engine="16k_zh"
+          source="zh_teach_echo"
+          speaker="6221"
+          praise="读得真好！"
+          onFinished={onEchoFinished}
+          onSkip={() => setEchoOpen(false)}
+        />
+      )}
+
+      {/* 过关后下一问 */}
+      {showNext && !echoOpen && (
         <button
           className="btn-primary"
           style={{ width: "100%", marginTop: 8 }}
-          onClick={() => void nextTurn()}
-          disabled={correctSoe.state.recording || correctSoe.state.evaluating}
+          onClick={gotoNext}
         >
-          {turnIdx + 1 < (script?.lines.length ?? 0) ? "下一轮 →" : "🎉 完成，再来一次"}
+          {idx + 1 < (script.items.length ?? 0) ? "下一题 →" : "🎉 完成"}
         </button>
       )}
     </div>
