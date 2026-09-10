@@ -34,6 +34,8 @@ export function SpeechComposePage() {
   const [poemHits, setPoemHits] = useState<PoemSearchHit[]>([])
   const [poemSearching, setPoemSearching] = useState(false)
   const [poemPicked, setPoemPicked] = useState("")
+  /** 选中的库内古诗元信息（朝代/作者），用于标题栏与讲解来源显示 */
+  const [poemMeta, setPoemMeta] = useState<{ title: string; dynasty: string; author: string } | null>(null)
   const [settingUp, setSettingUp] = useState(false)
   const [setupError, setSetupError] = useState("")
   const [waitSec, setWaitSec] = useState(0)
@@ -80,6 +82,7 @@ export function SpeechComposePage() {
     setPoemQuery("")
     setPoemHits([])
     setPoemPicked(`已选《${h.title}》 ${h.dynasty}·${h.author}`)
+    setPoemMeta({ title: h.title, dynasty: h.dynasty, author: h.author })
     setSetupError("")
   }
 
@@ -116,26 +119,33 @@ export function SpeechComposePage() {
   const withTimeout = <T,>(p: Promise<T>, ms = 12_000): Promise<T | void> =>
     Promise.race([p, new Promise<void>((r) => setTimeout(r, ms))])
 
-  const speakPoem = async (t: string) => {
+  /** 古诗朗读参数：给了逐字拼音就锁读（多音字读对，如「石径斜」的斜 xie2），否则交给百度默认 */
+  const poemSpeakOpts = (pinyin?: string) =>
+    pinyin && pinyin.trim()
+      ? { speaker: POEM_VOICE, pinyin, polyphoneOnly: false, avoidPregen: true }
+      : { speaker: POEM_VOICE }
+
+  const speakPoem = async (t: string, pinyin?: string) => {
     if (!t.trim() || poemBusyRef.current || evalBusy) return
     poemBusyRef.current = true
     setTtsBusy(true)
     try {
-      await withTimeout(speak(t, { speaker: POEM_VOICE }))
+      await withTimeout(speak(t, poemSpeakOpts(pinyin)))
     } finally {
       poemBusyRef.current = false
       setTtsBusy(false)
     }
   }
 
-  /** 单字点读：先读这个字（指定音色），紧接着读这个字的意思 */
-  const tapPoemChar = async (c: string, m: string) => {
+  /** 单字点读：先读这个字（指定音色+该字读音），紧接着读这个字的意思 */
+  const tapPoemChar = async (c: string, m: string, p?: string) => {
     if (poemBusyRef.current || evalBusy) return
-    setCharTip({ c, m })
+    setCharTip(p ? { c, m: `${p}｜${m}` } : { c, m })
     poemBusyRef.current = true
     setTtsBusy(true)
     try {
-      await withTimeout(speak(c, { speaker: POEM_VOICE }))
+      // 单字也带读音：百度对孤立字的默认读音并不可靠（如「斜」会读成古音 xiá）
+      await withTimeout(speak(c, poemSpeakOpts(p)))
       if (m) await withTimeout(speak(m, { speaker: POEM_VOICE }))
     } finally {
       poemBusyRef.current = false
@@ -147,7 +157,7 @@ export function SpeechComposePage() {
   const warmPoemNext = (i: number) => {
     const nx = poem?.lines[i + 1]
     if (!nx) return
-    void warm(nx.verse, { speaker: POEM_VOICE })
+    void warm(nx.verse, poemSpeakOpts(nx.pinyin))
     void warm(nx.meaning, { speaker: POEM_VOICE })
   }
 
@@ -161,7 +171,7 @@ export function SpeechComposePage() {
     try {
       const l = poem?.lines[i]
       if (l) {
-        await withTimeout(speak(l.verse, { speaker: POEM_VOICE }))
+        await withTimeout(speak(l.verse, poemSpeakOpts(l.pinyin)))
         await withTimeout(speak(l.meaning, { speaker: POEM_VOICE }))
       }
     } finally {
@@ -181,9 +191,12 @@ export function SpeechComposePage() {
       setSetupError("请先粘贴要练的古诗原文")
       return
     }
+    const meta = poemMeta // 库内选中时已有确定的题目/朝代/作者，先显示，不等 LLM
     const local: PoemScript = {
-      title: "古诗练习",
+      title: meta?.title || "古诗练习",
       summary: "",
+      dynasty: meta?.dynasty,
+      author: meta?.author,
       lines: segs.map((v) => ({ verse: v, meaning: "", chars: [] })),
       fallback: true,
     }
@@ -192,7 +205,7 @@ export function SpeechComposePage() {
     setPoemIntroDone(false) // 先听"整篇古诗 + 全诗概括"，听完才进入逐句测评
     setStage("question") // 离开 setup 界面（否则第 320 行 stage==="setup" 恒真，古诗界面永远不渲染）
 
-    // 快速概括（只生成题目+概括，1~3s）：整篇朗读期间就绪，开场不用等完整讲解
+    // 快速概括（题目+概括+全诗逐字拼音，1~3s）：整篇朗读前先拿它的拼音，锁住多音字读音
     const summaryPromise = zhPoemSummary(raw)
       .then((s) => {
         if (s?.summary) setPoem((prev) => (prev ? { ...prev, title: s.title || prev.title, summary: prev.summary || s.summary } : prev))
@@ -200,20 +213,32 @@ export function SpeechComposePage() {
       })
       .catch(() => null)
 
-    // 后台生成完整讲解（概括/白话/逐字义）；成功后原地合并，失败保持原文练习可用
-    // 后台生成完整讲解（逐句白话/逐字释义），就绪后原地合并；失败保持原文练习可用
+    // 后台生成完整讲解（逐句白话/逐字释义/逐字拼音）；成功后原地合并，失败保持原文练习可用
     void (async () => {
       try {
         const p = await zhPoemSetup(raw)
         setPoem((prev) => {
           if (!prev) return prev
-          const zhMap = new Map(p.lines.map((l) => [l.verse.replace(/\s+/g, ""), l]))
+          // 匹配键去掉标点/空白：LLM 与本地切句的标点常不一致（如「，」丢/换），否则整篇对不上
+          const keyOf = (s: string) => s.replace(/[^\u4e00-\u9fff0-9a-zA-Z]/g, "")
+          const zhMap = new Map(p.lines.filter((l) => keyOf(l.verse)).map((l) => [keyOf(l.verse), l] as const))
+          const sameLen = p.lines.length === prev.lines.length
           return {
-            title: p.title || prev.title,
+            title: prev.title !== "古诗练习" ? prev.title : p.title || prev.title,
             summary: p.summary || prev.summary,
-            lines: prev.lines.map((l) => {
-              const hit = zhMap.get(l.verse.replace(/\s+/g, ""))
-              return hit ? { ...l, meaning: hit.meaning || l.meaning, chars: hit.chars?.length ? hit.chars : l.chars, verse: l.verse } : l
+            dynasty: prev.dynasty,
+            author: prev.author,
+            lines: prev.lines.map((l, li) => {
+              // ① 去标点后按原文匹配；② 对不上但句数一致时按下标兜底（切句方式不同也能补上）
+              const hit = zhMap.get(keyOf(l.verse)) ?? (sameLen ? p.lines[li] : undefined)
+              if (!hit) return l
+              return {
+                ...l,
+                verse: l.verse,
+                pinyin: l.pinyin || hit.pinyin || "",
+                meaning: hit.meaning || l.meaning,
+                chars: hit.chars?.length ? hit.chars : l.chars,
+              }
             }),
             fallback: false,
           }
@@ -223,14 +248,14 @@ export function SpeechComposePage() {
       }
     })()
 
-    // 开场：先朗读整篇古诗，再读全诗概括（快速端点，通常朗读期间已就绪；最多再等 8s，失败则跳过），然后才逐句
+    // 开场：先朗读整篇古诗（有全诗拼音则锁读多音字），再读全诗概括，然后才逐句
     setEvalBusy(true)
     poemBusyRef.current = true
     setTtsBusy(true)
     try {
-      await withTimeout(speak(raw, { speaker: POEM_VOICE }), 40_000).catch(() => { /* 朗读失败不阻塞流程 */ })
-      // 优先用快速概括；万一它也慢，最多再等 8s（正常已在整篇朗读期间就绪）
-      const s = await Promise.race([summaryPromise, new Promise<null>((r) => setTimeout(() => r(null), 8_000))])
+      // 概括端点很快（1~3s）；最多等 3s 拿它的全诗拼音，让"整篇朗读"的读音也正确
+      const s = await Promise.race([summaryPromise, new Promise<null>((r) => setTimeout(() => r(null), 3_000))])
+      await withTimeout(speak(raw, poemSpeakOpts(s?.pinyin)), 40_000).catch(() => { /* 朗读失败不阻塞流程 */ })
       if (s?.summary) await withTimeout(speak(s.summary, { speaker: POEM_VOICE }), 20_000).catch(() => { /* 同上 */ })
     } finally {
       poemBusyRef.current = false
@@ -372,6 +397,8 @@ export function SpeechComposePage() {
     setWordsText("")
     setSentencesText("")
     setPoemText("")
+    setPoemPicked("")
+    setPoemMeta(null)
   }
 
   // ── 设置界面 ──
@@ -452,6 +479,7 @@ export function SpeechComposePage() {
             onChange={(e) => {
               setPoemText(e.target.value)
               if (poemPicked) setPoemPicked("")
+              if (poemMeta) setPoemMeta(null) // 手改原文后不再认定是库里那首（作者/题目提示同步撤掉）
             }}
           />
           {setupError && <p className="err">{setupError}</p>}
@@ -489,33 +517,44 @@ export function SpeechComposePage() {
           <h1>📜 {poem.title}</h1>
           <span style={{ fontSize: 13, color: "#536471" }}>第 {poemIdx + 1}/{total} 句</span>
         </header>
+        {(poem.dynasty || poem.author) && (
+          <p style={{ margin: "2px 4px 0", fontSize: 14, color: "#0a7d43", fontWeight: 600 }}>
+            {poem.dynasty}{poem.dynasty && poem.author ? "·" : ""}{poem.author}
+          </p>
+        )}
 
         {/* 上面：古诗原文（单字可点：先读字，再读字义） */}
         <div className="card" style={{ marginTop: 8, padding: 12 }}>
           <div style={{ fontSize: 20, lineHeight: 1.9, fontWeight: 700, color: "#0f1419" }}>
-            {poem.lines.map((l, li) => (
-              <div key={li} style={li === poemIdx ? { background: "#fff8e1", borderRadius: 8, padding: "2px 6px" } : { opacity: 0.6 }}>
-                {(() => {
-                  let cjk = 0
-                  return [...l.verse].map((ch, ci) => {
-                    const punct = !/[\u4e00-\u9fff]/.test(ch)
-                    if (punct) return <span key={ci}>{ch}</span>
+            {poem.lines.map((l, li) => {
+              // 逐字拼音兜底：LLM 逐字释义没到时，也能用整句拼音索引到每个字的读音
+              const pys = l.pinyin ? l.pinyin.trim().split(/\s+/).filter(Boolean) : []
+              let cjk = 0
+              return (
+                <div key={li} style={li === poemIdx ? { background: "#fff8e1", borderRadius: 8, padding: "2px 6px" } : { opacity: 0.6 }}>
+                  {[...l.verse].map((ch, ci) => {
+                    if (!/[\u4e00-\u9fff]/.test(ch)) return <span key={ci}>{ch}</span>
                     const info = l.chars[cjk] ?? null
+                    const py = info?.p || pys[cjk] || ""
                     cjk += 1
                     return (
                       <span
                         key={ci}
-                        onClick={() => { if (!ttsBlocked && info) void tapPoemChar(info.c, info.m) }}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => { if (!ttsBlocked) void tapPoemChar(ch, info?.m ?? "", py) }}
+                        onKeyDown={(e) => { if (!ttsBlocked && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); void tapPoemChar(ch, info?.m ?? "", py) } }}
                         style={{ cursor: ttsBlocked ? "default" : "pointer", padding: "0 1px" }}
                       >
                         {ch}
                       </span>
                     )
-                  })
-                })()}
-              </div>
-            ))}
+                  })}
+                </div>
+              )
+            })}
           </div>
+          <p className="module-hint" style={{ margin: "6px 0 0", fontSize: 12 }}>👆 点任意一个字：听读音 + 讲意思</p>
         </div>
 
         {/* 下面：解释（白话意思 + 点到的字义） */}
@@ -523,16 +562,16 @@ export function SpeechComposePage() {
           <p className="module-hint" style={{ marginTop: 0 }}>📖 解释</p>
           {poemLine?.meaning
             ? <p style={{ fontSize: 16, fontWeight: 600, color: "#1b5e20", margin: "4px 0" }}>{poemLine.meaning}</p>
-            : <p className="module-hint" style={{ margin: "4px 0" }}>（这句的白话意思稍后补上，先跟 AI 读一遍）</p>}
+            : <p className="module-hint" style={{ margin: "4px 0" }}>（这句的白话意思还在生成，先跟 AI 读一遍）</p>}
           {charTip && (
             <p style={{ fontSize: 15, color: "#e65100", margin: "4px 0" }}>
               「{charTip.c}」：{charTip.m}
             </p>
           )}
           {ttsBusy && <p className="speech-completing">🔊 朗读中…</p>}
-          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => poemLine && void speakPoem(poemLine.verse)}>🔊 读原文</button>
-            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => poemLine && void speakPoem(poemLine.meaning)}>🔊 读意思</button>
+          <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => poemLine && void speakPoem(poemLine.verse, poemLine.pinyin)}>🔊 读原文</button>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked || !poemLine?.meaning} onClick={() => poemLine && void speakPoem(poemLine.meaning)}>🔊 读意思</button>
             <button className="btn-secondary btn-sm" disabled={ttsBlocked || !poem.summary} onClick={() => void speakPoem(poem.summary)}>🔊 全诗概括</button>
           </div>
         </div>
@@ -550,6 +589,8 @@ export function SpeechComposePage() {
             source="zh_poem_echo"
             onBusyChange={setEvalBusy}
             onFinished={() => void enterPoemVerse(poemIdx + 1)}
+            // 「跳过」必须接上：不接时按钮点了毫无反应（原来的 bug）
+            onSkip={() => void enterPoemVerse(poemIdx + 1)}
           />
         )}
       </div>

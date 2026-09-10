@@ -737,7 +737,8 @@ router.post("/zh-poem-setup", async (c) => {
   const CACHE_PATH = dataPath("zh_poem.json")
   const REJECTS_PATH = dataPath("en_dialogue_rejects.json")
   const MAX_REJECT_RECORDS = 200
-  const hash = createHash("sha256").update(`zhPoem|${poem}`).digest("hex")
+  // v2：新增逐句/逐字拼音（古诗多音字读音锁定，如「斜」xie2）；带 v2 前缀避免命中无拼音的旧缓存。
+  const hash = createHash("sha256").update(`zhPoem|v2|${poem}`).digest("hex")
   const cacheAll = ((await readJson<Record<string, unknown>>(CACHE_PATH, {}).catch(() => ({}))) ?? {}) as Record<string, unknown>
   if (cacheAll[hash]) return c.json(cacheAll[hash])
 
@@ -749,9 +750,14 @@ router.post("/zh-poem-setup", async (c) => {
     `1. "summary"：整体概括（现代汉语，≤80 字，说清写了什么、什么心情/画面）。\n` +
     `2. "lines"：按原诗顺序逐句拆开（每句 4~7 字为常见，也可按逗号/句号切）。每句：\n` +
     `   - "verse"：该句原文（保留原字，不要改动）。\n` +
+    `   - "pinyin"：该句**逐字**拼音，用空格分隔，与 verse 里的汉字严格一一对应（标点不占位）。\n` +
+    `     必须按这首诗的语境给读音，**多音字一定要给对**（例：「远上寒山石径斜」的「斜」= xie2；\n` +
+    `     「风吹草低见牛羊」的「见」= xian4；「朝辞白帝彩云间」的「朝」= zhao1；「不教胡马度阴山」的「教」= jiao4）。\n` +
+    `     统一用「字母+声调数字」写法（xie2 / chu4 / zhao1 / de5）。\n` +
     `   - "meaning"：该句现代文意思（≤40 字，给孩子讲明白）。\n` +
-    `   - "chars"：该句逐字释义数组（不含标点，顺序与 verse 一致），每项 {"c":"字","m":"这个字在本句中的意思(≤12字)"}。\n` +
-    `只输出 JSON：{"title":"诗题","summary":"...","lines":[{"verse":"...","meaning":"...","chars":[{"c":"...","m":"..."}]}]}`
+    `   - "chars"：该句逐字释义数组（不含标点，顺序与 verse 一致），\n` +
+    `     每项 {"c":"字","p":"这个字在本句中的读音(字母+声调数字)","m":"这个字在本句中的意思(≤12字)"}。\n` +
+    `只输出 JSON：{"title":"诗题","summary":"...","lines":[{"verse":"...","pinyin":"...","meaning":"...","chars":[{"c":"...","p":"...","m":"..."}]}]}`
 
   const attempt = async (feedback: string) => {
     let p = prompt
@@ -763,9 +769,10 @@ router.post("/zh-poem-setup", async (c) => {
     const lines = (Array.isArray(j?.lines) ? j.lines : [])
       .map((l: any) => ({
         verse: String(l?.verse ?? "").trim(),
+        pinyin: String(l?.pinyin ?? "").trim(),
         meaning: String(l?.meaning ?? "").trim(),
         chars: (Array.isArray(l?.chars) ? l.chars : [])
-          .map((ch: any) => ({ c: String(ch?.c ?? "").trim(), m: String(ch?.m ?? "").trim() }))
+          .map((ch: any) => ({ c: String(ch?.c ?? "").trim(), p: String(ch?.p ?? "").trim(), m: String(ch?.m ?? "").trim() }))
           .filter((ch: { c: string }) => ch.c),
       }))
       .filter((l: { verse: string }) => l.verse)
@@ -773,7 +780,11 @@ router.post("/zh-poem-setup", async (c) => {
     return { title, summary, lines }
   }
 
-  const verify = async (out: { title: string; summary: string; lines: { verse: string; meaning: string; chars: { c: string; m: string }[] }[] }) => {
+  type PoemLineOut = { verse: string; pinyin: string; meaning: string; chars: { c: string; p: string; m: string }[] }
+  /** 拼音音节数（空格分隔） */
+  const sylCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length
+
+  const verify = async (out: { title: string; summary: string; lines: PoemLineOut[] }) => {
     if (!out.summary) return { ok: false, reason: "缺少整体概括" }
     if (!out.lines.length) return { ok: false, reason: "没有拆出诗句" }
     if (norm(out.lines.map((l) => l.verse).join("")) !== norm(poem)) {
@@ -789,6 +800,10 @@ router.post("/zh-poem-setup", async (c) => {
         return { ok: false, reason: `"${l.verse}" 逐字释义的字序与原文不一致` }
       }
       if (l.chars.some((ch) => !ch.m)) return { ok: false, reason: `"${l.verse}" 有字缺少释义` }
+      // 拼音：给了就必须逐字对齐（数量不符会让前端整体放弃注音 → 多音字读错）；没给不强制（旧行为仍可用）
+      if (l.pinyin && sylCount(l.pinyin) !== verseChars.length) {
+        return { ok: false, reason: `"${l.verse}" 逐字拼音数量与字数不符（应 ${verseChars.length} 个音节）` }
+      }
     }
     return { ok: true, reason: "" }
   }
@@ -806,7 +821,7 @@ router.post("/zh-poem-setup", async (c) => {
         return c.json({
           title: "古诗练习",
           summary: "（AI 讲解暂时没准备好，我们先练朗读，正文和意思稍后补上。）",
-          lines: lines.map((v) => ({ verse: v, meaning: "", chars: [] })),
+          lines: lines.map((v) => ({ verse: v, pinyin: "", meaning: "", chars: [] })),
           fallback: true,
         })
       }
@@ -844,20 +859,24 @@ router.post("/zh-poem-summary", async (c) => {
   if (!poem) return c.json({ detail: "请提供要练的古诗" }, 400)
 
   const CACHE_PATH = dataPath("zh_poem_summary.json")
-  const hash = createHash("sha256").update(`zhPoemSum|${poem}`).digest("hex")
+  // v2：新增全诗逐字拼音（供"开场整篇朗读"锁定多音字读音，如「斜」xie2）
+  const hash = createHash("sha256").update(`zhPoemSum|v2|${poem}`).digest("hex")
   const cacheAll = ((await readJson<Record<string, unknown>>(CACHE_PATH, {}).catch(() => ({}))) ?? {}) as Record<string, unknown>
   if (cacheAll[hash]) return c.json(cacheAll[hash])
 
   const prompt =
     `给 7-12 岁孩子概括下面这首古诗（写了什么内容、什么画面或心情），现代汉语 ≤60 字。\n` +
     `古诗原文：\n${poem}\n` +
-    `只输出 JSON：{"title":"诗题","summary":"概括"}`
+    `另外给出全诗**逐字拼音**：按原诗汉字顺序（标点不占位），用空格分隔，多音字按本诗语境取正确读音\n` +
+    `（如「远上寒山石径斜」的「斜」= xie2），统一用「字母+声调数字」写法（xie2 / zhao1 / de5）。\n` +
+    `只输出 JSON：{"title":"诗题","summary":"概括","pinyin":"全诗逐字拼音，空格分隔"}`
   try {
-    const reply = await chat("你只输出 JSON。", prompt, 200, "zh_poem_summary", true)
+    const reply = await chat("你只输出 JSON。", prompt, 600, "zh_poem_summary", true)
     const j = extractJson(reply)
     const out = {
       title: String(j?.title ?? "").trim() || "古诗练习",
       summary: String(j?.summary ?? "").trim(),
+      pinyin: String(j?.pinyin ?? "").trim(),
     }
     if (!out.summary) throw new Error("empty summary")
     await writeJson(CACHE_PATH, { ...cacheAll, [hash]: out }).catch(() => {})

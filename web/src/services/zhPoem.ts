@@ -5,18 +5,26 @@ import { api } from "./api"
 export interface PoemChar {
   c: string
   m: string
+  /** 该字在本句中的读音（字母+声调数字，如 xie2）；缺省则不做注音锁读 */
+  p?: string
 }
 
 export interface PoemLine {
   verse: string
   meaning: string
   chars: PoemChar[]
+  /** 该句逐字拼音（空格分隔，与 verse 汉字一一对应）——用于锁定多音字读音 */
+  pinyin?: string
 }
 
 export interface PoemScript {
   title: string
   summary: string
   lines: PoemLine[]
+  /** 朝代（出自古诗库搜索） */
+  dynasty?: string
+  /** 作者（出自古诗库搜索） */
+  author?: string
   /** true = 后端 LLM 讲解不可用时按原诗切句的兜底（无白话/字义） */
   fallback?: boolean
 }
@@ -30,9 +38,9 @@ export async function zhPoemSetup(poem: string): Promise<PoemScript> {
   })
 }
 
-/** 古诗快速概括（开场等待专用）：只生成题目+整体概括，1~3s 出；逐句/逐字仍用 zhPoemSetup 后台生成 */
-export async function zhPoemSummary(poem: string): Promise<{ title: string; summary: string }> {
-  return api<{ title: string; summary: string }>("/llm/zh-poem-summary", {
+/** 古诗快速概括（开场等待专用）：题目+整体概括+全诗逐字拼音，1~3s 出；逐句/逐字仍用 zhPoemSetup 后台生成 */
+export async function zhPoemSummary(poem: string): Promise<{ title: string; summary: string; pinyin?: string }> {
+  return api<{ title: string; summary: string; pinyin?: string }>("/llm/zh-poem-summary", {
     method: "POST",
     body: { poem },
     timeoutMs: 20000,
