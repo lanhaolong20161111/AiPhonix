@@ -311,7 +311,8 @@ router.post("/ai-chat/ask", async (c) => {
     // 多模态 90s 超时 → 504（对齐 PY asyncio.wait_for timeout=90）
     try {
       raw = await withTimeout(
-        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [ctx.imagePath], max_tokens: 1024, model_override: multimodalModel() }),
+        // 2026-09-10：识图回退路径同样关思维链（豆包 seed 系列默认开 thinking，白耗数秒）
+        getArk().chat({ prompt: userPrompt, system_prompt: system, image_paths: [ctx.imagePath], max_tokens: 1024, model_override: multimodalModel(), disable_thinking: true }),
         90000
       )
     } catch (e) {
