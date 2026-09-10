@@ -157,31 +157,47 @@ export function SpeechComposePage() {
     }
     setPoem(local)
     setPoemIdx(0)
-    setPoemIntroDone(true) // 不等概括：直接进入"逐句朗读+测评"
+    setPoemIntroDone(false) // 先听"整篇古诗 + 全诗概括"，听完才进入逐句测评
     setStage("question") // 离开 setup 界面（否则第 320 行 stage==="setup" 恒真，古诗界面永远不渲染）
-    void enterPoemVerse(0)
 
-    // 后台生成讲解（概括/白话/逐字义）；成功后按诗句原地合并，不打断当前练习
+    // 后台生成讲解（概括/白话/逐字义）；整篇朗读期间大概率已就绪，成功后原地合并
+    const setupPromise = (async () => {
+      try {
+        const p = await zhPoemSetup(raw)
+        setPoem((prev) => {
+          if (!prev) return prev
+          const zhMap = new Map(p.lines.map((l) => [l.verse.replace(/\s+/g, ""), l]))
+          return {
+            title: p.title || prev.title,
+            summary: p.summary || prev.summary,
+            lines: prev.lines.map((l) => {
+              const hit = zhMap.get(l.verse.replace(/\s+/g, ""))
+              return hit ? { ...l, meaning: hit.meaning || l.meaning, chars: hit.chars?.length ? hit.chars : l.chars, verse: l.verse } : l
+            }),
+            fallback: false,
+          }
+        })
+        return p
+      } catch {
+        return null // 讲解生成失败：保持原文练习可用，不报错打断
+      }
+    })()
+
+    // 开场：先朗读整篇古诗，再读全诗概括（讲解未就绪最多等 20s，失败则跳过），然后才逐句
+    setEvalBusy(true)
+    poemBusyRef.current = true
+    setTtsBusy(true)
     try {
-      const p = await zhPoemSetup(raw)
-      setPoem((prev) => {
-        if (!prev) return prev
-        const zhMap = new Map(p.lines.map((l) => [l.verse.replace(/\s+/g, ""), l]))
-        return {
-          title: p.title || prev.title,
-          summary: p.summary || prev.summary,
-          lines: prev.lines.map((l) => {
-            const hit = zhMap.get(l.verse.replace(/\s+/g, ""))
-            return hit ? { ...l, meaning: hit.meaning || l.meaning, chars: hit.chars?.length ? hit.chars : l.chars, verse: l.verse } : l
-          }),
-          fallback: false,
-        }
-      })
-    } catch {
-      /* 讲解生成失败：保持原文练习可用，不报错打断 */
+      await withTimeout(speak(raw, { speaker: POEM_VOICE }), 40_000).catch(() => { /* 朗读失败不阻塞流程 */ })
+      const p = await Promise.race([setupPromise, new Promise<null>((r) => setTimeout(() => r(null), 20_000))])
+      if (p?.summary) await withTimeout(speak(p.summary, { speaker: POEM_VOICE }), 20_000).catch(() => { /* 同上 */ })
+    } finally {
+      poemBusyRef.current = false
+      setTtsBusy(false)
+      setEvalBusy(false)
     }
-
-    // 无设置阶段等待：settingUp 不置位，按钮即时恢复
+    setPoemIntroDone(true)
+    void enterPoemVerse(0)
   }
 
   // ── 生成剧本 ──
