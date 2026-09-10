@@ -413,11 +413,11 @@ export function SpeechComposePage() {
           {poemPicked && (
             <p style={{ margin: "0 0 8px", color: "#0a7d43", fontWeight: 700 }}>✅ {poemPicked}，可直接点「开始学」</p>
           )}
-          <label style={{ fontWeight: 700 }}>🔍 搜小学古诗（输入诗题，选一条自动填入）</label>
+          <label style={{ fontWeight: 700 }}>🔍 搜小学古诗（输入诗题或作者，选一条自动填入）</label>
           <input
             className="text-input"
             style={{ width: "100%", margin: "6px 0 6px" }}
-            placeholder="如：静夜思 / 望庐山瀑布 / 小池"
+            placeholder="如：静夜思 / 望庐山瀑布 / 李白"
             value={poemQuery}
             onChange={(e) => setPoemQuery(e.target.value)}
           />
@@ -426,7 +426,7 @@ export function SpeechComposePage() {
             <div style={{ margin: "0 0 10px", border: "1px solid #e2e8f0", borderRadius: 10, overflow: "hidden" }}>
               {poemHits.map((h, i) => (
                 <button
-                  key={`${h.title}-${i}`}
+                  key={`${h.title}-${h.author}-${i}`}
                   onClick={() => pickPoem(h)}
                   style={{
                     display: "block", width: "100%", textAlign: "left", padding: "10px 12px",
@@ -434,8 +434,11 @@ export function SpeechComposePage() {
                     cursor: "pointer", fontSize: 15,
                   }}
                 >
-                  <b>《{h.title}》</b> {h.dynasty}·{h.author}
-                  <span style={{ color: "#64748b", marginLeft: 8, fontSize: 13 }}>{h.text.split("\n")[0]}</span>
+                  <span style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                    <b style={{ fontSize: 16 }}>《{h.title}》</b>
+                    <span style={{ color: "#0a7d43", fontWeight: 600, fontSize: 14 }}>{h.dynasty}·{h.author}</span>
+                  </span>
+                  <span style={{ display: "block", color: "#64748b", fontSize: 13, marginTop: 3 }}>{h.text.split("\n")[0]}</span>
                 </button>
               ))}
             </div>

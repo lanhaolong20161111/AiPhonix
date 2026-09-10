@@ -1,5 +1,5 @@
-/** 小学必背古诗库（部编版小学语文 1~6 年级 + 传统必背 75 首扩充，共 90 首）
- *  供 /llm/zh-poem-search 标题搜索：孩子在「AI 和你对话学语文」输入诗题即可一键填入原文。
+/** 小学必背古诗库（部编版小学语文 1~6 年级 + 传统必背 75 首扩充，共 108 首）
+ *  供 /llm/zh-poem-search 标题/作者搜索：孩子在「AI 和你对话学语文」输入诗题（或作者）即可一键填入原文。
  *  text 为练习用原文（含标点，一句一行），不收录教材节选以外的长诗全文（如《长歌行》全篇收录，《古朗月行》只收节选段并标注）。
  */
 
@@ -103,6 +103,27 @@ export const PRIMARY_POEMS: PrimaryPoem[] = [
   { title: "所见", dynasty: "清", author: "袁枚", text: "牧童骑黄牛，歌声振林樾。\n意欲捕鸣蝉，忽然闭口立。" },
   { title: "村居", dynasty: "清", author: "高鼎", text: "草长莺飞二月天，拂堤杨柳醉春烟。\n儿童散学归来早，忙趁东风放纸鸢。" },
   { title: "己亥杂诗", dynasty: "清", author: "龚自珍", text: "九州生气恃风雷，万马齐喑究可哀。\n我劝天公重抖擞，不拘一格降人才。" },
+  // ── 补录：部编版常考但此前遗漏（2026-09-10 补） ──
+  { title: "画", dynasty: "唐", author: "王维", text: "远看山有色，近听水无声。\n春去花还在，人来鸟不惊。" },
+  { title: "梅花", dynasty: "宋", author: "王安石", text: "墙角数枝梅，凌寒独自开。\n遥知不是雪，为有暗香来。" },
+  { title: "夜宿山寺", dynasty: "唐", author: "李白", text: "危楼高百尺，手可摘星辰。\n不敢高声语，恐惊天上人。" },
+  { title: "夜书所见", dynasty: "宋", author: "叶绍翁", text: "萧萧梧叶送寒声，江上秋风动客情。\n知有儿童挑促织，夜深篱落一灯明。" },
+  { title: "舟夜书所见", dynasty: "清", author: "查慎行", text: "月黑见渔灯，孤光一点萤。\n微微风簇浪，散作满河星。" },
+  { title: "赠刘景文", dynasty: "宋", author: "苏轼", text: "荷尽已无擎雨盖，菊残犹有傲霜枝。\n一年好景君须记，正是橙黄橘绿时。" },
+  { title: "采莲曲", dynasty: "唐", author: "王昌龄", text: "荷叶罗裙一色裁，芙蓉向脸两边开。\n乱入池中看不见，闻歌始觉有人来。" },
+  { title: "乞巧", dynasty: "唐", author: "林杰", text: "七夕今宵看碧霄，牵牛织女渡河桥。\n家家乞巧望秋月，穿尽红丝几万条。" },
+  { title: "嫦娥", dynasty: "唐", author: "李商隐", text: "云母屏风烛影深，长河渐落晓星沉。\n嫦娥应悔偷灵药，碧海青天夜夜心。" },
+  { title: "暮江吟", dynasty: "唐", author: "白居易", text: "一道残阳铺水中，半江瑟瑟半江红。\n可怜九月初三夜，露似真珠月似弓。" },
+  { title: "雪梅", dynasty: "宋", author: "卢梅坡", text: "梅雪争春未肯降，骚人搁笔费评章。\n梅须逊雪三分白，雪却输梅一段香。" },
+  { title: "宿新市徐公店", dynasty: "宋", author: "杨万里", text: "篱落疏疏一径深，树头新绿未成阴。\n儿童急走追黄蝶，飞入菜花无处寻。" },
+  { title: "寒食", dynasty: "唐", author: "韩翃", text: "春城无处不飞花，寒食东风御柳斜。\n日暮汉宫传蜡烛，轻烟散入五侯家。" },
+  { title: "十五夜望月", dynasty: "唐", author: "王建", text: "中庭地白树栖鸦，冷露无声湿桂花。\n今夜月明人尽望，不知秋思落谁家。" },
+  { title: "马诗", dynasty: "唐", author: "李贺", text: "大漠沙如雪，燕山月似钩。\n何当金络脑，快走踏清秋。" },
+  { title: "采薇（节选）", dynasty: "先秦", author: "《诗经》", text: "昔我往矣，杨柳依依。\n今我来思，雨雪霏霏。" },
+  { title: "山居秋暝", dynasty: "唐", author: "王维", text: "空山新雨后，天气晚来秋。\n明月松间照，清泉石上流。\n竹喧归浣女，莲动下渔舟。\n随意春芳歇，王孙自可留。" },
+  { title: "村晚", dynasty: "宋", author: "雷震", text: "草满池塘水满陂，山衔落日浸寒漪。\n牧童归去横牛背，短笛无腔信口吹。" },
+  { title: "长相思", dynasty: "清", author: "纳兰性德", text: "山一程，水一程，身向榆关那畔行。夜深千帐灯。\n风一更，雪一更，聒碎乡心梦不成。故园无此声。" },
+  { title: "清平乐·春归何处", dynasty: "宋", author: "黄庭坚", text: "春归何处？寂寞无行路。若有人知春去处，唤取归来同住。\n春无踪迹谁知？除非问取黄鹂。百啭无人能解，因风飞过蔷薇。" },
 ]
 
 /** 归一化：去空白，便于标题模糊匹配 */
@@ -110,19 +131,25 @@ export function normalizePoemTitle(s: string): string {
   return s.replace(/\s+/g, "").replace(/[《》〔〕「」]/g, "")
 }
 
-/** 按标题/首句关键词搜索古诗；q 为空返回空数组。标题完全相等 > 标题包含 > 首句包含 */
+/** 按诗题/作者关键词搜索古诗；q 为空返回空数组。
+ * 优先级：标题完全相等 > 标题包含 > 作者包含（≥2字）> 首句包含（≥4字）> 全文包含（≥4字）。
+ * ⚠️ 反查（首句/全文）要求 key ≥4 字，避免「山行」这类短题命中别的诗正文里恰好出现的同字串
+ *    （如《三衢道中》"小溪泛尽却山行"）；同时不再用「query 含标题」的反向匹配，
+ *    避免「夜书所见」被拆成「所见」误配（正解应先精确命中《夜书所见》）。 */
 export function searchPrimaryPoems(q: string, limit = 8): PrimaryPoem[] {
   const key = normalizePoemTitle(q)
   if (!key) return []
   const scored: { p: PrimaryPoem; score: number }[] = []
   for (const p of PRIMARY_POEMS) {
     const t = normalizePoemTitle(p.title)
+    const author = normalizePoemTitle(p.author)
     const first = normalizePoemTitle(p.text.split("\n")[0] ?? "")
     let score = 0
     if (t === key) score = 100
-    else if (t.includes(key) || key.includes(t)) score = 80 - Math.abs(t.length - key.length)
-    else if (first.includes(key) || key.includes(first)) score = 60
-    else if (normalizePoemTitle(p.text).includes(key)) score = 40
+    else if (t.includes(key)) score = 80 - Math.min(t.length - key.length, 30)
+    else if (key.length >= 2 && author.includes(key)) score = 70
+    else if (key.length >= 4 && first.includes(key)) score = 60
+    else if (key.length >= 4 && normalizePoemTitle(p.text).includes(key)) score = 40
     if (score > 0) scored.push({ p, score })
   }
   scored.sort((a, b) => b.score - a.score)
