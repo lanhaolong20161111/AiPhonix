@@ -12,11 +12,13 @@ interface TapCharTextProps {
   text: string
   /** 点击单个可读字符后的额外回调（如上报认读画像） */
   onCharClick?: (ch: string) => void
+  /** 单字朗读副作用注入（默认内部 speakChar；页面可在"录音中朗读"场景接管为暂停 ASR→读→恢复） */
+  charSpeakOverride?: (ch: string) => void
   /** 追加到容器上的 className（默认已含 tap-char） */
   className?: string
 }
 
-export function TapCharText({ text, onCharClick, className }: TapCharTextProps) {
+export function TapCharText({ text, onCharClick, charSpeakOverride, className }: TapCharTextProps) {
   const { speakChar } = useTts()
   const [speakingChar, setSpeakingChar] = useState<string | null>(null)
 
@@ -24,7 +26,11 @@ export function TapCharText({ text, onCharClick, className }: TapCharTextProps) 
     if (!isSpeakableChar(ch)) return
     setSpeakingChar(ch)
     try {
-      await speakChar(ch)
+      if (charSpeakOverride) {
+        charSpeakOverride(ch)
+      } else {
+        await speakChar(ch)
+      }
     } finally {
       setSpeakingChar(null)
     }

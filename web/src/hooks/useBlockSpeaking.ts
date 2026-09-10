@@ -17,13 +17,16 @@ export function useBlockSpeaking() {
     // 多音字锁定读音。走 annotateTts 的 `字(pinyin数字调)` 语法 —— 该语法经实测生效；
     // 旧的 `{字^拼音}` 是无效语法，拼音会被当字面内容念出来，已废弃。
     // 此处拼音由调用方显式给出，故 polyphoneOnly=false（不受多音字集合限制）。
-    await speak(ch, pinyin ? { pinyin, polyphoneOnly: false } : undefined)
+    await speak(ch, {
+      speaker: "6221",
+      ...(pinyin ? { pinyin, polyphoneOnly: false } : {}),
+    })
     setSpeakingChar(null)
   }
 
   const speakBlock = async (text: string) => {
     setSpeakingChar(null)
-    await speak(text)
+    await speak(text, { speaker: "6221" })
   }
 
   // 上报单字认读画像（char-click）

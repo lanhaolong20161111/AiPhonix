@@ -12,6 +12,8 @@ export interface RecorderCallbacks {
   onError?: (err: unknown) => void
   /** 每 ~200ms 回调一次音量等级（0-1），用于实时电平显示/调试 */
   onLevel?: (level: number) => void
+  /** 每 ~200ms 回调最新一段 PCM 块（16kHz/16bit/mono），供实时流式消费（如 ASR 边录边发） */
+  onPcmChunk?: (chunk: Uint8Array) => void
 }
 
 // AudioWorklet 处理器源码（以 Blob 加载，与腾讯 SDK 一致）
@@ -153,6 +155,21 @@ export class PcmRecorder {
     }
     this.stream = stream
 
+    // 浏览器自动播放策略下，非用户手势里新建的 AudioContext 会停在 suspended
+    // （提示词暂停→自动恢复录音重建上下文时就踩中：不 resume 则永远静默、无文本）。
+    // 显式 resume；仍失败则抛错，让调用方把"录音没起来"显示出来，而不是无声失败。
+    try {
+      if (ctx.state !== "running") await ctx.resume()
+    } catch {
+      /* resume 失败由下方状态检查兜底报错 */
+    }
+    if (ctx.state !== "running") {
+      stream.getTracks().forEach((t) => t.stop())
+      this.stream = null
+      this.audioContext = null
+      throw new Error("麦克风音频未激活（浏览器限制），请重新点一次录音按钮")
+    }
+
     const source = ctx.createMediaStreamSource(stream)
     this.recording = true
 
@@ -184,6 +201,7 @@ export class PcmRecorder {
           }
           for (const c of incoming) {
             this.chunks.push(c)
+            this.cb.onPcmChunk?.(c)
             this.cb.onLevel?.(energyLevel(c))
           }
         }
@@ -203,6 +221,7 @@ export class PcmRecorder {
       const resampled = this.to16kHz(inputData, ctx.sampleRate)
       const pcm = this.to16BitPCM(resampled)
       this.chunks.push(pcm)
+      this.cb.onPcmChunk?.(pcm)
       this.cb.onLevel?.(energyLevel(pcm))
     }
     source.connect(sp)

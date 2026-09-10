@@ -29,6 +29,8 @@ export interface SoeScoreState {
   score: number | null
   /** 完整评测明细（每词/每音素得分） */
   result: SoeResult | null
+  /** 最近一次成功评测的原始 PCM（16kHz/16bit/mono，无 WAV 头），用于 A/B 回放；null=无 */
+  lastPcm: Uint8Array | null
   error: string
 }
 
@@ -44,9 +46,12 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
     level: 0,
     score: null,
     result: null,
+    lastPcm: null,
     error: "",
   })
   const recorderRef = useRef<PcmRecorder | null>(null)
+  /** 最近一次成功评分的 PCM（同步更新，供调用方在 stop().then 里立即读，做 A/B 回放） */
+  const lastPcmRef = useRef<Uint8Array | null>(null)
 
   // 卸载时务必释放麦克风：组件被路由切换/页面关闭时若仍在录音，
   // 不显式 stop 会导致 MediaStream 永久占用（麦克风指示灯常亮）——P1-9。
@@ -76,7 +81,8 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
       onLevel: (l) => setState((s) => ({ ...s, level: l })),
     })
     recorderRef.current = recorder
-    setState((s) => ({ ...s, recording: false, evaluating: false, score: null, result: null, error: "", level: 0 }))
+    lastPcmRef.current = null
+    setState((s) => ({ ...s, recording: false, evaluating: false, score: null, result: null, lastPcm: null, error: "", level: 0 }))
     try {
       await recorder.start()
       setState((s) => ({ ...s, recording: true }))
@@ -101,9 +107,11 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
     const { refText, engine, evalMode, minBytes, scene, source } = opts()
     const min = minBytes ?? 12800
     if (pcm.length < min) {
+      lastPcmRef.current = null
       setState((s) => ({
         ...s,
         evaluating: false,
+        lastPcm: null,
         error: "录音太短，请再读一次",
       }))
       return null
@@ -114,12 +122,15 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
       const userId = useAuthStore.getState().session?.user.user_id ?? 0
       const result = await evaluateSoe(refText, pcm, engine ?? "", evalMode ?? "", scene ?? "", userId, source ?? "")
       const score = Math.round(result.pron_accuracy)
-      setState((s) => ({ ...s, evaluating: false, score, result }))
+      lastPcmRef.current = pcm
+      setState((s) => ({ ...s, evaluating: false, score, result, lastPcm: pcm }))
       return score
     } catch (e) {
+      lastPcmRef.current = null
       setState((s) => ({
         ...s,
         evaluating: false,
+        lastPcm: null,
         error: `评分失败: ${String((e as Error)?.message ?? e)}`,
       }))
       return null
@@ -136,16 +147,18 @@ export function useSoeScore(opts: () => UseSoeScoreOptions) {
       }
     }
     recorderRef.current = null
+    lastPcmRef.current = null
     setState((s) => ({
       ...s,
       recording: false,
       evaluating: false,
       score: null,
       result: null,
+      lastPcm: null,
       error: "",
       level: 0,
     }))
   }, [])
 
-  return { state, start, stop, reset }
+  return { state, start, stop, reset, lastPcmRef }
 }

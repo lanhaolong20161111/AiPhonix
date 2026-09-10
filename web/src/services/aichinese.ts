@@ -81,3 +81,45 @@ export async function highlightMark(text: string): Promise<HighlightMarkResult> 
     timeoutMs: 40000,
   })
 }
+
+/** 词性标注（名词/动词/形容词），供前端词性着色 */
+export type PosTag = "n" | "v" | "adj"
+
+export interface PosTagItem {
+  word: string
+  pos: PosTag
+}
+
+export interface PosTagResult {
+  lang: "zh" | "en"
+  tags: PosTagItem[]
+}
+
+export async function posTags(text: string, lang: "zh" | "en"): Promise<PosTagResult> {
+  return api<PosTagResult>("/ai-chinese/pos-tags", {
+    method: "POST",
+    body: { text, lang },
+    timeoutMs: 40000,
+  })
+}
+
+/** 文章要素标注（记叙六要素），供前端要素着色 */
+export type StoryKind = "person" | "time" | "place" | "cause" | "process" | "result" | "event"
+
+export interface StoryElementItem {
+  word: string
+  kind: StoryKind
+}
+
+export interface StoryElementsResult {
+  lang: "zh" | "en"
+  elements: StoryElementItem[]
+}
+
+export async function storyElements(text: string, lang: "zh" | "en"): Promise<StoryElementsResult> {
+  return api<StoryElementsResult>("/ai-chinese/story-elements", {
+    method: "POST",
+    body: { text, lang },
+    timeoutMs: 40000,
+  })
+}

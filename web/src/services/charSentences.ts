@@ -1,6 +1,6 @@
 /** 看图识词句子客户端 — 从静态资源加载豆包生成的词语句子
  *
- * 数据由 server_py/scripts/gen_char_sentences.py 用免费 ARK（doubao-seed-evolving）批量生成：
+ * 数据由 server_py/scripts/gen_char_sentences.py 用免费 ARK（doubao-seed-2-1-turbo-260628）批量生成：
  * {"词语": "句子"}
  * 前端按词语查询，点击 TTS 发音 / 评测。
  */
@@ -29,7 +29,7 @@ export async function getAllCharSentences(): Promise<CharSentencesFile> {
   return loadSentences()
 }
 
-/** 看图识词【英文单词】句子客户端 — 豆包（doubao-seed-evolving）批量生成：{"word": "English sentence"} */
+/** 看图识词【英文单词】句子客户端 — 豆包（doubao-seed-2-1-turbo-260628）批量生成：{"word": "English sentence"} */
 
 type EnglishWordSentencesFile = Record<string, string>
 

@@ -36,52 +36,100 @@ export function DailyChinesePage() {
   // ── 拍照识别自动导入（字/词/句） ──
   type OcrField = "chars" | "words" | "sentences"
   const [ocrMsg, setOcrMsg] = useState("")
-  const [pickFile, setPickFile] = useState<File | null>(null)
+  // 一次 OCR 导入可以包含多张图片；相册支持多选，手机相机则可通过「继续拍一张」追加。
+  const [pickFiles, setPickFiles] = useState<File[]>([])
+  const [pickIndex, setPickIndex] = useState(0)
+  const [ocrBatchTexts, setOcrBatchTexts] = useState<string[]>([])
+  const [lastImportedField, setLastImportedField] = useState<OcrField | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null) // 拍照（capture 强制相机）
   const albumInputRef = useRef<HTMLInputElement>(null) // 相册选图（不带 capture）
   const ocrTargetRef = useRef<OcrField | null>(null)
+  const ocrAppendRef = useRef(false) // 「继续拍一张」时追加到当前字段，否则替换本次字段内容
+  const ocrBaseTextRef = useRef("")
   // 当前 OCR 目标字段（用于决定导入到哪个字段，以及练字场景是否加空格）
   const [ocrField, setOcrField] = useState<OcrField>("chars")
+
+  /** 多图结果的字段级拼接：练字每个字之间留空格，练词/练句按图片和条目换行。 */
+  const joinOcrTexts = useCallback((field: OcrField, texts: string[]): string => {
+    const nonEmpty = texts.map((t) => t.trim()).filter(Boolean)
+    if (field === "chars") {
+      return nonEmpty.flatMap((t) => t.split(/\\s+/).filter(Boolean)).join(" ")
+    }
+    return nonEmpty.join("\\n")
+  }, [])
 
   /** source: "camera" 拍照 / "album" 相册选图 */
   const pickFor = useCallback((field: OcrField, source: "camera" | "album" = "camera") => {
     ocrTargetRef.current = field
     setOcrField(field)
+    setLastImportedField(null)
     const el = source === "album" ? albumInputRef.current : fileInputRef.current
     el?.click()
   }, [])
 
-  // 拿到文件后先打开识别选择器（自由框选多个区域），确认后才填入
+  // 拿到文件后先打开识别选择器（每张图可自由框选多个区域），确认后按图片顺序合并
   const onOcrFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith("image/"))
     e.target.value = "" // 允许重复选择同一文件
-    if (!file || !ocrTargetRef.current) return
+    const field = ocrTargetRef.current
+    if (!files.length || !field) return
     setOcrMsg("")
-    setPickFile(file)
-  }, [])
+    ocrBaseTextRef.current = ocrAppendRef.current ? draft[field] : ""
+    ocrAppendRef.current = false
+    setOcrBatchTexts([])
+    setPickIndex(0)
+    setPickFiles(files)
+  }, [draft])
 
-  // 拍照导入确认 → 填入并【立即自动保存】（服务端+本地镜像），无需再手动点保存，其他设备/重进都生效
+  // 一组图片全部识别确认后，按图片选择顺序一次性填入并自动保存。
   const confirmOcr = useCallback(async (text: string) => {
     const field = ocrTargetRef.current
-    setPickFile(null)
     if (!field) return
+    const texts = [...ocrBatchTexts, text]
+    const nextIndex = pickIndex + 1
+    if (nextIndex < pickFiles.length) {
+      setOcrBatchTexts(texts)
+      setPickIndex(nextIndex)
+      return
+    }
+
+    const combined = joinOcrTexts(field, [ocrBaseTextRef.current, ...texts])
+    setPickFiles([])
+    setPickIndex(0)
+    setOcrBatchTexts([])
     ocrTargetRef.current = null
-    const next: DailyZhConfig = { ...draft, [field]: text, updatedAt: new Date().toISOString() }
+    const next: DailyZhConfig = { ...draft, [field]: combined, updatedAt: new Date().toISOString() }
     setDraft(next)
     setCfg(next)
     setPrefillHint(false)
+    setLastImportedField(field)
     writeLocalMirror(next)
     if (accessToken) {
       try {
         await saveDailyZh(next)
-        setOcrMsg(`✅ 已导入并保存（${text.length} 字，跨设备同步）`)
+        setOcrMsg(`✅ 已按图片顺序导入 ${texts.length} 张并保存（${combined.length} 字，跨设备同步）`)
       } catch {
-        setOcrMsg("✅ 已导入并保存到本机（联网同步失败，可在设置里点「保存」重试）")
+        setOcrMsg(`✅ 已按图片顺序导入 ${texts.length} 张并保存到本机（联网同步失败，可点「保存」重试）`)
       }
     } else {
-      setOcrMsg("✅ 已导入并保存到本机（登录后可跨设备同步）")
+      setOcrMsg(`✅ 已按图片顺序导入 ${texts.length} 张并保存到本机（登录后可跨设备同步）`)
     }
-  }, [draft, accessToken])
+  }, [accessToken, draft, joinOcrTexts, ocrBatchTexts, pickFiles.length, pickIndex])
+
+  // 相机和电脑相册都支持「一张一张追加」：不依赖系统是否支持多选。
+  const continueOcr = useCallback((source: "camera" | "album") => {
+    if (!lastImportedField) return
+    ocrAppendRef.current = true
+    pickFor(lastImportedField, source)
+  }, [lastImportedField, pickFor])
+
+  const closeOcr = useCallback(() => {
+    setPickFiles([])
+    setPickIndex(0)
+    setOcrBatchTexts([])
+    ocrTargetRef.current = null
+    ocrAppendRef.current = false
+  }, [])
 
   // 进入页面：已登录拉取服务端（今日 config 或最近一次 last 预填）；未登录用本地镜像
   useEffect(() => {
@@ -224,23 +272,36 @@ export function DailyChinesePage() {
             <div className="settings-sheet-body">
               {/* 拍照识别入口（手机调相机，桌面选图片） */}
               <input ref={fileInputRef} type="file" accept="image/*" capture="environment" hidden onChange={onOcrFile} />
-              {/* 相册选图入口（不带 capture，可打开系统相册/文件选择器） */}
-              <input ref={albumInputRef} type="file" accept="image/*" hidden onChange={onOcrFile} />
+              {/* 相册选图入口（电脑不支持多选时，可导入一张后点击「继续选一张」） */}
+              <input ref={albumInputRef} type="file" accept="image/*" multiple hidden onChange={onOcrFile} />
               {ocrMsg && (
                 <p style={{ fontSize: 12, color: ocrMsg.startsWith("❌") ? "#dc2626" : "#16a34a", margin: "0 0 8px", padding: "6px 8px", background: ocrMsg.startsWith("❌") ? "#fef2f2" : "#f0fdf4", borderRadius: 6 }}>
                   {ocrMsg}
                 </p>
               )}
+              {lastImportedField && !pickFiles.length && (
+                <div style={{ marginBottom: 8, padding: "8px 10px", borderRadius: 8, background: "#eff6ff", color: "#1e40af", fontSize: 12 }}>
+                  <div style={{ marginBottom: 6 }}>还要导入下一张？电脑请点击「🖼️ 继续选一张」，每次选一张即可，系统会按追加顺序合并。</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <button className="btn-secondary btn-sm" onClick={() => continueOcr("album")} title="从电脑/相册再选一张并追加">
+                      🖼️ 继续选一张
+                    </button>
+                    <button className="btn-secondary btn-sm" onClick={() => continueOcr("camera")} title="继续拍一张并追加">
+                      📷 继续拍一张
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="settings-row">
                 <span className="settings-row-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span>🔤 今天练的字</span>
                   <span style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => pickFor("chars", "camera")} disabled={!!pickFile} title="拍照识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
-                      {pickFile ? "⏳" : "📷"}
+                    <button onClick={() => pickFor("chars", "camera")} disabled={pickFiles.length > 0} title="拍照识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
+                      {pickFiles.length > 0 ? "⏳" : "📷"}
                     </button>
-                    <button onClick={() => pickFor("chars", "album")} disabled={!!pickFile} title="从相册选图识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
+                    <button onClick={() => pickFor("chars", "album")} disabled={pickFiles.length > 0} title="从相册选图识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
                       🖼️
                     </button>
                   </span>
@@ -257,12 +318,12 @@ export function DailyChinesePage() {
                 <span className="settings-row-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span>📚 今天练的词</span>
                   <span style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => pickFor("words", "camera")} disabled={!!pickFile} title="拍照识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
-                      {pickFile ? "⏳" : "📷"}
+                    <button onClick={() => pickFor("words", "camera")} disabled={pickFiles.length > 0} title="拍照识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
+                      {pickFiles.length > 0 ? "⏳" : "📷"}
                     </button>
-                    <button onClick={() => pickFor("words", "album")} disabled={!!pickFile} title="从相册选图识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
+                    <button onClick={() => pickFor("words", "album")} disabled={pickFiles.length > 0} title="从相册选图识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
                       🖼️
                     </button>
                   </span>
@@ -279,12 +340,12 @@ export function DailyChinesePage() {
                 <span className="settings-row-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span>✏️ 今天练的句子/句型</span>
                   <span style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => pickFor("sentences", "camera")} disabled={!!pickFile} title="拍照识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
-                      {pickFile ? "⏳" : "📷"}
+                    <button onClick={() => pickFor("sentences", "camera")} disabled={pickFiles.length > 0} title="拍照识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#eef2ff", color: "#4f46e5", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
+                      {pickFiles.length > 0 ? "⏳" : "📷"}
                     </button>
-                    <button onClick={() => pickFor("sentences", "album")} disabled={!!pickFile} title="从相册选图识别，自动填入"
-                      style={{ border: "1px solid #e2e8f0", background: pickFile ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFile ? "wait" : "pointer" }}>
+                    <button onClick={() => pickFor("sentences", "album")} disabled={pickFiles.length > 0} title="从相册选图识别，自动填入"
+                      style={{ border: "1px solid #e2e8f0", background: pickFiles.length > 0 ? "#f1f5f9" : "#f0fdf4", color: "#16a34a", borderRadius: 6, padding: "2px 8px", fontSize: 12, cursor: pickFiles.length > 0 ? "wait" : "pointer" }}>
                       🖼️
                     </button>
                   </span>
@@ -316,16 +377,22 @@ export function DailyChinesePage() {
         </div>
       )}
 
-      {/* 拍照识别选择器：自由框选多个区域，按顺序拼接后导入 */}
-      {pickFile && (
+      {/* 多图拍照识别：每张图先框选/识别，全部完成后按选择顺序合并导入 */}
+      {pickFiles.length > 0 && (
         <OcrPickSheet
-          file={pickFile}
-          title="📷 识别要导入的内容（自动去除拼音）"
+          key={`${pickIndex}-${pickFiles[pickIndex].name}`}
+          file={pickFiles[pickIndex]}
+          title={`📷 识别第 ${pickIndex + 1}/${pickFiles.length} 张图片（自动去除拼音）`}
           stripPinyin
           spaceChars={ocrField === "chars"}
-          onClose={() => { setPickFile(null); ocrTargetRef.current = null }}
+          onClose={closeOcr}
           onConfirm={confirmOcr}
         />
+      )}
+      {lastImportedField && !pickFiles.length && (
+        <p style={{ fontSize: 12, color: "#64748b", margin: "8px 0 0" }}>
+          已完成本次导入；如还有下一张图片，点击该字段的 📷 可继续拍照追加，系统会在字段内按顺序保留空格/换行。
+        </p>
       )}
     </div>
   )

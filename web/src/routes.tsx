@@ -14,6 +14,8 @@ const PinyinPracticePage = lazy(() => import("./pages/PinyinPracticePage").then(
 const RecognitionPage = lazy(() => import("./pages/RecognitionPage").then((m) => ({ default: m.RecognitionPage })))
 const DictationPage = lazy(() => import("./pages/DictationPage").then((m) => ({ default: m.DictationPage })))
 const WordPracticePage = lazy(() => import("./pages/WordPracticePage").then((m) => ({ default: m.WordPracticePage })))
+const SpeechComposePage = lazy(() => import("./pages/SpeechComposePage").then((m) => ({ default: m.SpeechComposePage })))
+const AiEnglishTalkPage = lazy(() => import("./pages/AiEnglishTalkPage").then((m) => ({ default: m.AiEnglishTalkPage })))
 const EnglishLearningPage = lazy(() => import("./pages/EnglishLearningPage").then((m) => ({ default: m.EnglishLearningPage })))
 const LetterIndexPage = lazy(() => import("./pages/LetterIndexPage").then((m) => ({ default: m.LetterIndexPage })))
 const LetterDetailPage = lazy(() => import("./pages/LetterDetailPage").then((m) => ({ default: m.LetterDetailPage })))
@@ -34,6 +36,7 @@ const AiChinesePage = lazy(() => import("./pages/AiChinesePage").then((m) => ({ 
 const AiEnglishPage = lazy(() => import("./pages/AiEnglishPage").then((m) => ({ default: m.AiEnglishPage })))
 const AiParseResultPage = lazy(() => import("./pages/AiParseResultPage").then((m) => ({ default: m.AiParseResultPage })))
 const AiHistoryPage = lazy(() => import("./pages/AiHistoryPage").then((m) => ({ default: m.AiHistoryPage })))
+const CoursewareManagerPage = lazy(() => import("./pages/CoursewareManagerPage").then((m) => ({ default: m.CoursewareManagerPage })))
 const VideoPracticePage = lazy(() => import("./pages/VideoPracticePage").then((m) => ({ default: m.VideoPracticePage })))
 const SubtitleCapturePage = lazy(() => import("./pages/SubtitleCapturePage").then((m) => ({ default: m.SubtitleCapturePage })))
 const SoeDemoPage = lazy(() => import("./pages/SoeDemoPage").then((m) => ({ default: m.SoeDemoPage })))
@@ -47,6 +50,7 @@ const DailyPracticePage = lazy(() => import("./pages/DailyPracticePage").then((m
 const DailyChinesePage = lazy(() => import("./pages/DailyChinesePage").then((m) => ({ default: m.DailyChinesePage })))
 const DailyEnglishPage = lazy(() => import("./pages/DailyEnglishPage").then((m) => ({ default: m.DailyEnglishPage })))
 const MurmurPage = lazy(() => import("./pages/MurmurPage").then((m) => ({ default: m.MurmurPage })))
+const MemoryJoyPage = lazy(() => import("./pages/MemoryJoyPage").then((m) => ({ default: m.MemoryJoyPage })))
 
 /** 懒加载分片加载中的占位（居中轻量提示，避免白屏闪烁） */
 function PageFallback() {
@@ -95,6 +99,8 @@ export const router = createBrowserRouter(
         { path: "module/recognition", element: <RecognitionPage /> },
         { path: "module/dictation", element: <DictationPage /> },
         { path: "module/word_practice", element: <WordPracticePage /> },
+        { path: "module/speech_compose", element: <SpeechComposePage /> },
+        { path: "module/ai_english_talk", element: <AiEnglishTalkPage /> },
         { path: "module/english_learning", element: <EnglishLearningPage /> },
         { path: "module/letters", element: <LetterIndexPage /> },
         { path: "module/letter/:char", element: <LetterDetailPage /> },
@@ -107,6 +113,7 @@ export const router = createBrowserRouter(
         { path: "module/char_image/practice", element: <CharImagePage /> },
         { path: "module/soe_history", element: <SoeHistoryPage /> },
         { path: "module/wordbook", element: <WordbookPage /> },
+        { path: "module/memory_joy", element: <MemoryJoyPage /> },
         { path: "module/sentence_practice", element: <SentencePracticePage /> },
         { path: "module/char_map", element: <CharMapPage /> },
         { path: "module/parent_report", element: <ParentReportPage /> },
@@ -120,6 +127,7 @@ export const router = createBrowserRouter(
         { path: "module/ai_english", element: <AiEnglishPage /> },
         { path: "module/ai_parse_result", element: <AiParseResultPage /> },
         { path: "module/ai_history", element: <AiHistoryPage /> },
+        { path: "module/courseware_manager", element: <CoursewareManagerPage /> },
         { path: "module/video_practice", element: <VideoPracticePage /> },
         { path: "module/subtitle_capture", element: <SubtitleCapturePage /> },
         { path: "module/quiz_practice", element: <QuizPracticePage /> },

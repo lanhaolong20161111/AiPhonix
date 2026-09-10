@@ -1,6 +1,7 @@
 /** AI 识别历史存储 — localStorage 按模块（语文/数学）保存识别会话，供「历史会话」回看 */
 
 import type { TextBlock } from "../services/aiImage"
+import type { PosTagItem, StoryElementItem } from "../services/aichinese"
 
 export type AiModule = "chinese" | "math" | "english"
 
@@ -40,6 +41,10 @@ export interface AiHistoryItem {
   turns?: ChatTurn[]
   /** 后端对话会话 id（会话型条目；有此字段=可恢复续聊的对话线程） */
   sessionId?: string
+  /** 词性标注：语文按块下标、英语按题下标 → 该段词性（与结果页 posMap 对齐） */
+  pos?: Record<number, PosTagItem[]>
+  /** 文章要素标注：同上按块/题下标 → 该段要素 */
+  story?: Record<number, StoryElementItem[]>
 }
 
 const KEY = "ai_phonix_web_ai_history"

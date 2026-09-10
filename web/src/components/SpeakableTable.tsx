@@ -4,10 +4,9 @@
  * 保留 colspan/rowspan/align 等表格结构属性；标点/空格原样渲染。
  * 清洗失败（无 <table>）回退为纯文本。 */
 import { useMemo } from "react"
-import type { ReactNode, PointerEvent as ReactPointerEvent } from "react"
+import type { ReactNode } from "react"
 import { sanitizeTableHtml } from "../lib/safeHtml"
 import { isSpeakableChar } from "../lib/chars"
-import { useCharLongPressFactory } from "../hooks/useCharLongPress"
 
 interface SpeakableTableProps {
   html: string
@@ -15,24 +14,19 @@ interface SpeakableTableProps {
   cellTapMode?: "char" | "word"
   speakingChar?: string | null
   onCharClick?: (ch: string) => void
-  onCharLongPress?: (ch: string) => void
   speakingWord?: string | null
   onWordClick?: (word: string) => void
-  onWordLongPress?: (word: string) => void
 }
 
 interface RenderCtx {
   speakingChar: string | null
   onCharClick: (ch: string) => void
-  makeLpHandlers: (ch: string) => Record<string, (e: ReactPointerEvent<HTMLElement>) => void>
   cellTapMode: "char" | "word"
   speakingWord: string | null
   onWordClick?: (word: string) => void
-  onWordLongPress?: (word: string) => void
-  makeWordLpHandlers: (word: string) => Record<string, (e: ReactPointerEvent<HTMLElement>) => void>
 }
 
-/** 把文本拆成逐字 span：可发音字符可点读+长按，其余原样 */
+/** 把文本拆成逐字 span：可发音字符可点读，其余原样（点读加词由父级 onCharClick/onWordClick 处理） */
 function renderText(text: string, ctx: RenderCtx, key: string): ReactNode[] {
   // 英语整词模式：按空白切词，点词内任意字母朗读整个单词（整词/整格）
   if (ctx.cellTapMode === "word") {
@@ -53,8 +47,7 @@ function renderText(text: string, ctx: RenderCtx, key: string): ReactNode[] {
           key={k}
           className={`block-char tap-char-word${playing ? " playing" : ""}`}
           onClick={() => ctx.onWordClick?.(word)}
-          title="点读整词 · 长按加生词本"
-          {...(ctx.makeWordLpHandlers?.(word) ?? {})}
+          title="点读自动加生词本"
         >
           {word}
         </span>
@@ -76,8 +69,7 @@ function renderText(text: string, ctx: RenderCtx, key: string): ReactNode[] {
         key={k}
         className={`block-char${isPlaying ? " playing" : ""}`}
         onClick={() => ctx.onCharClick?.(ch)}
-        title="点读 · 长按加生词本"
-        {...ctx.makeLpHandlers(ch)}
+        title="点读自动加生词本"
       >
         {ch}
       </span>
@@ -151,27 +143,20 @@ export function SpeakableTable({
   cellTapMode = "char",
   speakingChar,
   onCharClick,
-  onCharLongPress,
   speakingWord,
   onWordClick,
-  onWordLongPress,
 }: SpeakableTableProps) {
   const cleaned = useMemo(() => sanitizeTableHtml(html), [html])
-  const makeLpHandlers = useCharLongPressFactory(onCharLongPress ?? (() => {}))
-  const makeWordLpHandlers = useCharLongPressFactory(onWordLongPress ?? (() => {}))
 
   const ctx: RenderCtx = useMemo(
     () => ({
       speakingChar: cellTapMode === "word" ? null : speakingChar ?? null,
       onCharClick: onCharClick ?? (() => {}),
-      makeLpHandlers,
       cellTapMode,
       speakingWord: cellTapMode === "word" ? speakingWord ?? null : null,
       onWordClick,
-      onWordLongPress,
-      makeWordLpHandlers,
     }),
-    [speakingChar, onCharClick, makeLpHandlers, cellTapMode, speakingWord, onWordClick, onWordLongPress, makeWordLpHandlers],
+    [speakingChar, onCharClick, cellTapMode, speakingWord, onWordClick],
   )
 
   const rendered = useMemo(() => {

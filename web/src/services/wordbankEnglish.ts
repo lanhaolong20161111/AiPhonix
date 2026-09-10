@@ -109,6 +109,36 @@ export async function getAllEnglishWords(): Promise<EnglishWordEntry[]> {
   return (await loadVocab()).words
 }
 
+/** 单词 → 中文释义 的本地词典（懒建，首次查询时同步命中、零网络等待）。
+ *  数据源 english_vocabulary.json 的 meanings 是课标词义，比实时 LLM 更稳更快。 */
+let meaningMap: Map<string, string> | null = null
+/** 释义词典构建失败过 → 不再反复重试（词库缺失时避免每次查询都打一次网络） */
+let meaningMapFailed = false
+
+/** 同步查单词中文释义；词库未加载/查不到返回 ""（调用方再走服务端兜底）。 */
+export function lookupWordZhSync(word: string): string {
+  const key = word.trim().toLowerCase().replace(/[^a-z']/g, "")
+  if (!key) return ""
+  const m = meaningMap?.get(key)
+  if (m) return m
+  if (meaningMap || meaningMapFailed) return "" // 词典已就绪/已放弃 → 不必等
+  // 词典还没建好：后台建好供下次命中，本次返回空（调用方异步兜底）
+  void loadVocab()
+    .then((v) => {
+      const map = new Map<string, string>()
+      for (const w of v.words) {
+        const k = w.word.trim().toLowerCase()
+        if (k && !map.has(k)) map.set(k, (w.meanings ?? []).filter(Boolean).join("；"))
+      }
+      meaningMap = map
+    })
+    .catch(() => {
+      meaningMapFailed = true
+      vocabPromise = null // 失败不缓存失败的 Promise，允许以后重试
+    })
+  return ""
+}
+
 export async function getEnglishWordsForLetter(letter: string): Promise<EnglishWordEntry[]> {
   const l = letter.toLowerCase()
   return (await loadVocab()).words.filter((w) => w.word.toLowerCase().startsWith(l))

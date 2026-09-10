@@ -52,7 +52,7 @@ export function WordbookPage() {
         <h1>📓 生词本</h1>
         <span className="module-level">{items.length}</span>
       </header>
-      <p className="module-hint">对话里长按生字就能收进来。到期的词每天复习一遍，认对的间隔会越来越长。</p>
+      <p className="module-hint">点读生字/生词就能自动收进来。到期的词每天复习一遍，认对的间隔会越来越长。</p>
 
       <div className="wordbook-tabs">
         <button className={tab === "review" ? "active" : ""} onClick={() => setTab("review")}>
@@ -73,7 +73,7 @@ export function WordbookPage() {
               <p style={{ fontWeight: 700, margin: "8px 0 4px" }}>
                 {doneCount > 0 ? `本轮复习完成，答对 ${doneCount} 个！` : "今天没有到期的生词"}
               </p>
-              <p style={{ color: "#6b7280", fontSize: 13 }}>对话里长按生字可以继续收集</p>
+              <p style={{ color: "#6b7280", fontSize: 13 }}>点读生字/生词可以继续收集</p>
             </div>
           ) : (
             <div className="card wordbook-card">
@@ -103,7 +103,7 @@ export function WordbookPage() {
       {tab === "list" && (
         <>
           {items.length === 0 ? (
-            <p className="empty">还没有生词，去对话里长按生字收集吧</p>
+            <p className="empty">还没有生词，去点读生字/生词收集吧</p>
           ) : (
             items.map((it) => (
               <div key={it.id} className="card history-card">

@@ -9,6 +9,7 @@ import { ParseTimer } from "../components/ParseTimer"
 import { AiChatPanel } from "../components/AiChatPanel"
 import { ImageSliceSheet } from "../components/ImageSliceSheet"
 import { OcrPickSheet } from "../components/OcrPickSheet"
+import { CoursewarePickerSheet } from "../components/CoursewarePickerSheet"
 import { useParseSessionStore, newSessionId } from "../stores/parseSessionStore"
 import { useAiChat } from "../hooks/useAiChat"
 import { detailFromError } from "../services/auth"
@@ -28,6 +29,15 @@ export function AiHomeworkPage() {
 
   // 多轮对话（纯文本提问）
   const chat = useAiChat("math")
+  // 课件选择弹层
+  const [coursewareOpen, setCoursewareOpen] = useState(false)
+
+  /** 课件选中：包成 File 走「仅图片→识别结果页」，与拍照一致 */
+  const onCoursewarePick = (blob: Blob, fileName: string) => {
+    setCoursewareOpen(false)
+    const file = new File([blob], fileName, { type: blob.type || "image/jpeg" })
+    void handleSubmit({ file, source: "pick" })
+  }
 
   const gotoParseResult = (file: File | Blob, previewUrl: string, noCache: boolean, initialQuestion?: string) => {
     setParsing(true)
@@ -154,13 +164,17 @@ export function AiHomeworkPage() {
       </header>
       <p className="module-hint">拍照识别题目或输入文字，点「提问」让 AI 直接解答/讲解。</p>
 
-      <button
-        className="btn-secondary"
-        style={{ width: "100%", marginBottom: 8 }}
-        onClick={() => navigate("/module/ai_history?module=math")}
-      >
-        🗂 历史会话
-      </button>
+      <div className="ai-header-actions">
+        <button
+          className="btn-secondary"
+          onClick={() => navigate("/module/ai_history?module=math")}
+        >
+          🗂 历史会话
+        </button>
+        <button className="btn-secondary" onClick={() => setCoursewareOpen(true)}>
+          📚 课件
+        </button>
+      </div>
 
       {/* 识别分阶段进度：处理图片→上传→AI识别中（替代笼统"处理中"） */}
       {parseStage && (
@@ -203,6 +217,14 @@ export function AiHomeworkPage() {
           onConfirmResult={gotoFreePickResult}
         />
       )}
+
+      {/* 课件选择：选一张课件图当拍照识别 */}
+      <CoursewarePickerSheet
+        open={coursewareOpen}
+        module="math"
+        onClose={() => setCoursewareOpen(false)}
+        onPick={onCoursewarePick}
+      />
     </div>
   )
 }

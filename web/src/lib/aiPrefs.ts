@@ -9,10 +9,11 @@ import { useCallback, useEffect, useState } from "react"
 import { getPrefs, subscribePrefs, updatePrefs } from "./userPrefs"
 
 export type AiRole = "" | "libai" | "wukong" | "foreigner" | "teacher_gao" | "student"
-export type VoiceId = "0" | "1" | "3" | "4"
+export type VoiceId = "6221" | "0" | "1" | "3" | "4"
 
-/** 音色目录（百度 TTS speaker id） */
+/** 音色目录（百度 TTS speaker id）——6221 度云萱-旁白女声为当前默认（2026-09-04 切换） */
 export const VOICES: Array<{ id: VoiceId; label: string }> = [
+  { id: "6221", label: "👩 度云萱" },
   { id: "0", label: "🧑‍🏫 老师" },
   { id: "1", label: "🧑‍🎓 学长" },
   { id: "3", label: "🙇 爷爷" },
@@ -57,10 +58,21 @@ function normModule(module: string): string {
   return MODULES.includes(module) ? module : "chinese"
 }
 
-/** 该模块的默认音色（未设置时落回 "0" 老师） */
+/** 2026-09-04 前的旧音色集合（0/1/3/4 基础音库）——新默认统一 6221 度云萱，读到时自动迁移一次 */
+const LEGACY_VOICE_IDS = new Set(["0", "1", "3", "4"])
+/** 当前默认音色（度云萱-旁白女声，臻品音库） */
+const DEFAULT_VOICE: VoiceId = "6221"
+
+/** 该模块的默认音色（未设置/旧音色 → "6221" 度云萱） */
 export function getVoice(module: string): VoiceId {
   const m = normModule(module)
-  return (getPrefs().voiceByModule?.[m] ?? "0") as VoiceId
+  const stored = getPrefs().voiceByModule?.[m]
+  // 旧音色（0/1/3/4）强制迁移到 6221：读时归一化 + 幂等落盘一次（此后用户可在 UI 重新选择）
+  if (stored && LEGACY_VOICE_IDS.has(stored)) {
+    setVoice(m, DEFAULT_VOICE)
+    return DEFAULT_VOICE
+  }
+  return (stored ?? DEFAULT_VOICE) as VoiceId
 }
 
 export function setVoice(module: string, v: VoiceId): void {

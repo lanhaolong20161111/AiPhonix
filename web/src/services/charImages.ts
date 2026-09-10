@@ -27,6 +27,9 @@ export async function listCharImages(params: {
   semester?: string
   type_?: string
   q?: string
+  /** true → q 在服务端按「字完全相等」匹配（不做 %LIKE% 模糊）。认字页取当前字字卡图时必须用，
+   *  否则会命中含该字的词（查「日」命中「节日」），把别的字的图当这个字的图。 */
+  exact?: boolean
   limit?: number
 } = {}): Promise<CharImageItem[]> {
   const qs = new URLSearchParams()
@@ -34,6 +37,7 @@ export async function listCharImages(params: {
   if (params.semester) qs.set("semester", params.semester)
   if (params.type_) qs.set("type", params.type_)
   if (params.q) qs.set("q", params.q)
+  if (params.exact) qs.set("exact", "1")
   if (params.limit) qs.set("limit", String(params.limit))
   const q = qs.toString()
   const res = await api<CharImageListResponse>(`/char-images${q ? `?${q}` : ""}`, { auth: false })

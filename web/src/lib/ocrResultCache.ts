@@ -90,13 +90,18 @@ function writeAll(entries: CacheEntry[]): void {
   }
 }
 
+/** 缓存键版本号：识别结果结构变化时 bump，旧键自然失效（避免沿用坏数据）。
+ * v3 = 2026-09-10 表格修复：此前 HTML 表格正文被「去印刷拼音」删成 `<></>`，
+ * 学生看到尖括号乱码且单元格不能点读；bump 后重传图片即拿到修好的表格块。 */
+const KEY_V = "v3"
+
 /** 读取命中结果（自动带上已缓存的多音字补丁）；未命中返回 null。
  * @param variant 识别变体（如所选模型 paddle/doubao/auto），不同模型结果互不污染缓存 */
 export function getCachedParse(module: string, fp: string, variant = ""): ParseImageResult | null {
   if (!fp || fp.startsWith("u")) return null // 随机指纹不参与缓存
   try {
     const now = Date.now()
-    const key = `${module}:${fp}${variant ? ":" + variant : ""}`
+    const key = `${KEY_V}:${module}:${fp}${variant ? ":" + variant : ""}`
     const entries = readAll()
     const hit = entries.find((e) => e.key === key)
     if (!hit) return null
@@ -125,7 +130,7 @@ export function getCachedParse(module: string, fp: string, variant = ""): ParseI
 export function putCachedParse(module: string, fp: string, result: ParseImageResult, variant = ""): boolean {
   if (!fp || fp.startsWith("u")) return false
   try {
-    const key = `${module}:${fp}${variant ? ":" + variant : ""}`
+    const key = `${KEY_V}:${module}:${fp}${variant ? ":" + variant : ""}`
     const serialized = JSON.stringify(result)
     if (serialized.length > SIZE_LIMIT) return false
     const entries = readAll().filter((e) => e.key !== key && Date.now() - e.ts <= TTL_MS)
@@ -142,7 +147,7 @@ export function putCachedParse(module: string, fp: string, result: ParseImageRes
 export function patchCachedPoly(module: string, fp: string, poly: Record<string, string>): void {
   if (!fp || fp.startsWith("u") || !poly || !Object.keys(poly).length) return
   try {
-    const prefix = `${module}:${fp}`
+    const prefix = `${KEY_V}:${module}:${fp}`
     const entries = readAll()
     const targets = entries
       .map((e, i) => ({ e, i }))

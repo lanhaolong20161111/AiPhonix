@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import type { TextBlock } from "../services/aiImage"
+import type { PosTagItem, StoryElementItem } from "../services/aichinese"
 
 export interface ParseSession {
   /** 会话 id：问答 scope 前缀，识别/回看时生成（crypto.randomUUID） */
@@ -23,6 +24,10 @@ export interface ParseSession {
   turns?: { role: "user" | "assistant"; content: string }[]
   /** 页面按题目/区域裁剪的小图（Vision bbox 检测），前端附图对照 */
   crops?: { id: number; title: string; image: string; bbox: number[] }[]
+  /** 词性标注：语文按块下标、英语按题下标 → 该段词性（历史回看时由条目透传） */
+  pos?: Record<number, PosTagItem[]>
+  /** 文章要素标注：同上按块/题下标 → 该段要素 */
+  story?: Record<number, StoryElementItem[]>
 }
 
 interface ParseSessionState {

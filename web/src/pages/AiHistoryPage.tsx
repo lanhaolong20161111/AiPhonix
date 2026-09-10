@@ -94,6 +94,8 @@ export function AiHistoryPage() {
       file: null,
       fromHistory: true, // 回看历史：不触发自动保存（避免重复记录）
       turns: it.turns,
+      pos: it.pos, // 词性/要素标注随历史透传，回看页直接用（无需重新拉取）
+      story: it.story,
     })
     navigate("/module/ai_parse_result")
   }

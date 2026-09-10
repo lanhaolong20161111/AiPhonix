@@ -23,6 +23,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      // 注册逻辑改由 src/main.tsx 完全接管（含 controllerchange 自动刷新 + 定期检查更新），
+      // 关闭默认注入的纯注册脚本 registerSW.js，避免双份注册。
+      injectRegister: false,
       manifest: {
         name: "AiPhonix",
         short_name: "AiPhonix",
@@ -44,6 +47,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+        // 新 SW 安装后立即 skipWaiting + claim clients，确保部署后旧 SW 不卡在 waiting。
+        // （autoUpdate 模式下双保险：workbox 自动 skipWaiting + main.tsx 发 SKIP_WAITING message）
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],

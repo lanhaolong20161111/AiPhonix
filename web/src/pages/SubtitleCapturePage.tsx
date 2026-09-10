@@ -789,7 +789,7 @@ export function SubtitleCapturePage() {
     try {
       const audio = await api<Blob>("/tts/synthesize", {
         method: "POST",
-        body: { text, speaker: "0", speed: 5 },
+        body: { text, speed: 5 }, // 音色跟随 useTts 默认（6221）；英文文本由服务端自动改走 4193 大模型音色
         responseType: "blob",
       })
       const aUrl = URL.createObjectURL(audio)

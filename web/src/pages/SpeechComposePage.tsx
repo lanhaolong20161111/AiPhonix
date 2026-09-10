@@ -48,6 +48,8 @@ export function SpeechComposePage() {
   const [ttsBusy, setTtsBusy] = useState(false) // 任意古诗 TTS 进行中（点击即时反馈 + 防竞态）
   const [evalBusy, setEvalBusy] = useState(false) // 测评（朗读/录音）中 → 禁点 TTS
   const poemBusyRef = useRef(false)
+  /** 「古诗学完啦」祝贺词已朗读过（每首诗只自动读一次，防重复渲染重复读） */
+  const congratsSpokenRef = useRef(false)
   const poemLine: PoemLine | null = poem?.lines[poemIdx] ?? null
 
   // 剧本
@@ -399,7 +401,33 @@ export function SpeechComposePage() {
     setPoemText("")
     setPoemPicked("")
     setPoemMeta(null)
+    congratsSpokenRef.current = false // 换一首诗 → 允许再自动读祝贺词
   }
+
+  // ── 古诗全部读完：朗读祝贺词 + 白话概括（孩子还不识字，光显示等于没反馈） ──
+  const poemTotal = poem?.lines.length ?? 0
+  const poemAllDone = !!poem && poemTotal > 0 && poemIdx >= poemTotal
+
+  /** 用诗词音色（度逍遥）读「《题》全部 N 句都读完啦！」＋ 白话概括；串行，忙碌期不重入 */
+  const speakPoemCompletion = async () => {
+    if (!poem || poemBusyRef.current) return
+    poemBusyRef.current = true
+    setTtsBusy(true)
+    try {
+      await withTimeout(speak(`《${poem.title}》全部 ${poem.lines.length} 句都读完啦！真棒！`, { speaker: POEM_VOICE }))
+      if (poem.summary.trim()) await withTimeout(speak(poem.summary, { speaker: POEM_VOICE }))
+    } finally {
+      poemBusyRef.current = false
+      setTtsBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!poemAllDone || congratsSpokenRef.current) return
+    congratsSpokenRef.current = true // 先落标记：避免 StrictMode 双挂载/重复渲染读两遍
+    void speakPoemCompletion()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poemAllDone])
 
   // ── 设置界面 ──
   if (stage === "setup" || (!script && !poem)) {
@@ -493,9 +521,8 @@ export function SpeechComposePage() {
 
   // ── 古诗界面 ──
   if (poem) {
-    const total = poem.lines.length
     const ttsBlocked = ttsBusy || evalBusy // 朗读/评测中：禁点 TTS（含单字）
-    if (poemIdx >= total) {
+    if (poemIdx >= poemTotal) {
       return (
         <div className="page aihomework-page">
           <header className="module-header">
@@ -503,8 +530,16 @@ export function SpeechComposePage() {
             <h1>🎉 古诗学完啦</h1>
           </header>
           <div className="card" style={{ padding: 16 }}>
-            <p className="talk-feedback-praise">《{poem.title}》全部 {total} 句都读完啦！</p>
-            <p className="module-hint">{poem.summary}</p>
+            <p className="talk-feedback-praise">《{poem.title}》全部 {poemTotal} 句都读完啦！</p>
+            {poem.summary && <p className="module-hint">{poem.summary}</p>}
+            <button
+              className="btn-secondary"
+              style={{ width: "100%", marginBottom: 8 }}
+              disabled={ttsBusy}
+              onClick={() => void speakPoemCompletion()}
+            >
+              {ttsBusy ? "🔊 朗读中…" : "🔊 再听一遍祝贺"}
+            </button>
             <button className="btn-primary" style={{ width: "100%" }} onClick={backToSetup}>🔁 再练一首</button>
           </div>
         </div>
@@ -515,7 +550,7 @@ export function SpeechComposePage() {
         <header className="module-header">
           <button className="back-btn" onClick={backToSetup}>←</button>
           <h1>📜 {poem.title}</h1>
-          <span style={{ fontSize: 13, color: "#536471" }}>第 {poemIdx + 1}/{total} 句</span>
+          <span style={{ fontSize: 13, color: "#536471" }}>第 {poemIdx + 1}/{poemTotal} 句</span>
         </header>
         {(poem.dynasty || poem.author) && (
           <p style={{ margin: "2px 4px 0", fontSize: 14, color: "#0a7d43", fontWeight: 600 }}>

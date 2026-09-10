@@ -13,6 +13,7 @@ import { OcrPickSheet } from "../components/OcrPickSheet"
 import { CoursewarePickerSheet } from "../components/CoursewarePickerSheet"
 import { useParseSessionStore, newSessionId } from "../stores/parseSessionStore"
 import { schedulePolyPatch } from "../lib/polyPatch"
+import { tidyInlineSpaces } from "../lib/paragraphFlow"
 import { useAiChat } from "../hooks/useAiChat"
 import { detailFromError } from "../services/auth"
 
@@ -276,7 +277,7 @@ export function AiChinesePage() {
                 role="button"
                 tabIndex={0}
               >
-                {t}
+                {tidyInlineSpaces(t)}
                 {readingIdx === i && <span className="parse-live-speaker">🔊</span>}
               </p>
             ))}

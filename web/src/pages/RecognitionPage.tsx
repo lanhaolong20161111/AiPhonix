@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { queryChars, queryCharsByGrades, queryCharsByTexts, findWordContaining, type WordBankEntry } from "../services/wordbank"
-import { getCharExample } from "../services/charExamples"
+import { queryCharsByGrades, queryCharsByTexts, getCharPinyinDict, findWordContaining, type WordBankEntry } from "../services/wordbank"
+import { getCharExample, type CharExample } from "../services/charExamples"
 import { ensureGenerated, type GeneratedEntry } from "../services/generatedDict"
 import { getCharInfo, pinyinInitial, type CharInfo } from "../services/charInfo"
 import { listCharImages, charImageUrl } from "../services/charImages"
@@ -14,6 +14,7 @@ import { useTts } from "../hooks/useTts"
 import { useFeatureGrades } from "../hooks/useTrainingConfig"
 import { loadDailyZhSynced } from "../services/dailyZh"
 import { fetchPracticeRecords, recordTotalCount, markCharPassed } from "../services/practice"
+import { JoyStoryCard } from "../components/JoyStoryCard"
 import { SoeDetail } from "../components/SoeDetail"
 // cache-bust: 触发新构建哈希，打破 recognition 选字页 SW 缓存链
 
@@ -113,6 +114,10 @@ export function RecognitionPage() {
   const [charInfo, setCharInfo] = useState<CharInfo | null>(null)
   // 今日练字列表（家长设置的每日字，点选可直接练对应字，不按固定顺序）
   const [todayChars, setTodayChars] = useState<string[]>([])
+  /** 今日字里真正能练的字（词库命中 ∪ 大模型补全成功）；选字页用它判置灰 */
+  const [practisableChars, setPractisableChars] = useState<Set<string>>(new Set())
+  // 今日配置原文（供记忆快乐本卡片展示/生成；空串=没设置。认字页只传字，词由练词页自己生成）
+  const [todayRawChars, setTodayRawChars] = useState("")
   // 今日字选字页：有今日配置时先展示宫格选字，点击某个字才进入练习
   const [pickOpen, setPickOpen] = useState(true)
   // 本轮已练且通过的字（选字页/选词条标绿用，会话内有效）
@@ -187,8 +192,9 @@ export function RecognitionPage() {
     try {
       // 每日一练指定了今日字 → 优先按手打列表过滤（词库命中才练）；否则按年级/全部
       // loadDailyZhSynced：已登录走服务端（跨设备同步），失败退本地镜像
-      const dailyTexts = (await loadDailyZhSynced())
-        .chars.split(/[,，、;\s]+/)
+      const dailyCfg = await loadDailyZhSynced()
+      setTodayRawChars(dailyCfg.chars ?? "")
+      const dailyTexts = dailyCfg.chars.split(/[,，、;\s]+/)
         .map((x) => x.trim())
         .filter(Boolean)
       setTodayChars(dailyTexts)
@@ -200,14 +206,40 @@ export function RecognitionPage() {
         const misses = dailyTexts.filter((t) => !hitSet.has(t))
         let genEntries: WordBankEntry[] = []
         if (misses.length > 0) {
-          // 词库没有的字 → 调大模型生成（拼音+2组词+1句），结果由后端缓存复用
-          const gen = await ensureGenerated(misses.map((t) => ({ type: "char", text: t })))
+          // 字库没有的字：**先看内置示例库**（char_examples.json 覆盖 1849 个小学字，
+          // 与字库同源，拼音/2组词/1句俱全），只有内置也查不到的才去问大模型。
+          // 这样正常的超纲小学字秒开、不白等一次 LLM 往返，也不受 LLM 抽风影响。
+          const pinyinDict = await getCharPinyinDict().catch(() => ({} as Record<string, string>))
+          const localOf = new Map<string, CharExample | null>()
+          for (const t of misses) {
+            localOf.set(t, await getCharExample(t).catch(() => null))
+          }
+          const needLlm = misses.filter((t) => {
+            const l = localOf.get(t)
+            return !(pinyinDict[t] || l?.words?.length || l?.sentence)
+          })
+          const genMap = new Map<string, GeneratedEntry>()
+          if (needLlm.length) {
+            const gen = await ensureGenerated(needLlm.map((t) => ({ type: "char", text: t })))
+            for (const g of gen) genMap.set(g.text, g)
+          }
           const map: Record<string, GeneratedEntry> = {}
-          for (const g of gen) {
-            map[g.text] = g
+          for (const t of misses) {
+            const l = localOf.get(t) ?? null
+            const g = genMap.get(t)
+            // 逐字段兜底：大模型缺哪项就用内置的补哪项
+            const pinyin = (g?.pinyin ?? "").trim() || pinyinDict[t] || ""
+            const llmWords = (g?.words ?? []).filter(Boolean).slice(0, 2)
+            const words = llmWords.length ? llmWords : (l?.words ?? []).filter(Boolean).slice(0, 2)
+            const sentence = (g?.sentence ?? "").trim() || l?.sentence || ""
+            // 拼音/组词/句子一条都没有 → 别塞进 items：否则选字页点进去也过不了关
+            // （没有组词句子可读，isCorrect 恒为 null 会卡住）。这类字如实置灰。
+            if (!pinyin && !words.length && !sentence) continue
+            map[t] = { type: "char", text: t, words, sentence, pinyin, source: g?.source ?? "cache" }
+            hitSet.add(t) // 补出内容的字同样可练，选字页不能把它置灰
             genEntries.push({
-              text: g.text,
-              pinyin: g.pinyin ?? "",
+              text: t,
+              pinyin,
               tags: ["识字"],
               type: "char",
               ipa: "",
@@ -224,15 +256,18 @@ export function RecognitionPage() {
         } else {
           generatedMapRef.current = {}
         }
+        // 可练集合 = 词库命中 ∪ 补全成功。**必须在 if 外面无条件设置**：
+        // 全命中（misses 为空）时 if 分支不执行，漏掉这句就会把 12 个字全判成不可练而置灰。
+        setPractisableChars(new Set(hitSet))
         all = [...hits, ...genEntries]
         dailyNote = `今日练字：${dailyTexts.join("、")}`
         if (all.length === 0) {
-          setMessage(`字库中没有这些字，请检查每日设置：${dailyTexts.join("、")}`)
+          setMessage(`这些字没能练习：${dailyTexts.join("、")}（内置字库和大模型都没有内容）`)
           setLoading(false)
           return
         }
       } else {
-        all = grades.length > 0 ? await queryCharsByGrades(grades) : await queryChars("识字")
+        all = grades.length > 0 ? await queryCharsByGrades(grades) : await queryCharsByTexts([])
       }
       if (all.length === 0) {
         setMessage(grades.length > 0 ? "所选年级暂无识字字，请家长调整范围" : "字库中没有识字类汉字")
@@ -336,13 +371,15 @@ export function RecognitionPage() {
     void (async () => {
       const ch = current.text
       setCharInfo(null)
-      // 字卡图（看图识字库按字模糊匹配：优先精确命中该字的图，否则用第一条相关图）
+      // 字卡图：**只认精确命中该字的图**（exact=1 让服务端按字完全相等匹配）。
+      // 导入的字若不在看图识字字库（字库只收 二/三年级 共 1449 字），就查不到图 ——
+      // 此时不显示图片，走下面的无图回退（大字 + 四角标注），拼音/跟读/组词句子照常。
+      // 绝不能用模糊匹配的第一条：查「日」会命中「节日」/「值日」，等于拿别的字的图教这个字。
       try {
-        const imgs = await listCharImages({ q: ch, limit: 10 })
+        const imgs = await listCharImages({ q: ch, exact: true, limit: 5 })
         if (!cancelled) {
-          const exact = imgs.find((i) => i.char === ch)
-          const pick = exact ?? imgs[0]
-          setCharImg(pick ? charImageUrl(pick.image, 640) : "")
+          const hit = imgs.find((i) => i.char === ch)
+          setCharImg(hit ? charImageUrl(hit.image, 640) : "")
         }
       } catch {
         if (!cancelled) setCharImg("")
@@ -600,14 +637,16 @@ export function RecognitionPage() {
           <span className="module-level">今日 {todayChars.length} 字</span>
         </header>
         <p className="module-hint">点选要练的字👇（<span style={{ color: "#15803d" }}>绿色=已通过</span>，灰色=未测）</p>
+        <JoyStoryCard chars={todayRawChars} words="" scope="char" />
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, padding: "8px 6px" }}>
           {todayChars.map((t, i) => {
-            const idx = items.findIndex((e) => e.text === t)
-            const hit = idx >= 0
+            // 可练判定用 practisableChars（词库命中 ∪ 大模型补全），不要用 items：
+            // 大模型补出来的字也进了 items，但两者判据不一致时会出现「置灰却明明能练」。
+            const hit = practisableChars.has(t)
             const passed = passedChars.has(t)
             return (
               <button key={`${t}-${i}`} disabled={!hit} onClick={() => jumpToChar(t)}
-                title={hit ? (passed ? `已通过：「${t}」` : `练「${t}」`) : "词库未命中该字"}
+                title={hit ? (passed ? `已通过：「${t}」` : `练「${t}」`) : "这个字没能补全，暂时练不了"}
                 style={{
                   width: 72, height: 72, fontSize: 34, lineHeight: 1, position: "relative",
                   borderRadius: 14, cursor: hit ? "pointer" : "not-allowed",
@@ -622,9 +661,9 @@ export function RecognitionPage() {
             )
           })}
         </div>
-        {todayChars.some((t) => !items.some((e) => e.text === t)) && (
+        {todayChars.some((t) => !practisableChars.has(t)) && (
           <p style={{ fontSize: 11, color: "#94a3b8", padding: "0 6px" }}>
-            置灰的字不在词库中，无法练习（可在每日设置里调整）
+            置灰的字在内置字典和大模型里都查不到内容（小学字不会出现；多是生僻字或识别错字），可在每日设置里改一下
           </p>
         )}
       </div>
@@ -657,6 +696,7 @@ export function RecognitionPage() {
         )}
       </header>
 
+      <JoyStoryCard chars={todayRawChars} words="" scope="char" />
       <div className="recog-layout">
         <div className="recog-card">
           {/* 主图（看图识字）：有字卡图时展示图片+四角标注，否则回退大字（同样带四角标注） */}

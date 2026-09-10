@@ -4,6 +4,7 @@
  * 每轮 AI 台词(EnglishWordTap 点读 + 🀄翻译 + 🔊整句 TTS，可切百度/豆包音) →
  * 孩子点绿色「🎤 开始录音」自由说（百度 ASR en 流式）→
  * 停顿 2s：自动暂停 ASR → 播放下一个提示词（只读不评，文本逐行保留）→ 1.5s 后自动恢复录音 →
+ * **提示记录里的句子＝先读英文、紧接着读中文**（整句提示行带中文翻译，词提示行只读英文）→
  * 孩子说完点红色「⏹ 结束」→ /llm/en-answer-judge 判定：
  *   ✅ 表扬（朗读）/ ❌ 显示并朗读正确句 → 孩子可「🎤 跟读正确句」SOE 评分加深记忆 → 下一轮。
  *
@@ -18,6 +19,7 @@ import { useEnglishTurn } from "../hooks/useEnglishTurn"
 import { useTts } from "../hooks/useTts"
 import { enDialogueSetup, enAnswerJudge, type DialogueScript } from "../services/englishTalk"
 import { fetchSentenceInfo, fetchWordInfo } from "../services/dailyEn"
+import { lookupWordZhSync } from "../services/wordbankEnglish"
 
 type Phase = "idle" | "recording" | "hinting" | "reading" | "judging"
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -41,17 +43,18 @@ function fallbackChunks(sentence: string): string[] {
   return out.length ? out : [sentence]
 }
 
+/** 只保留英文部分：若文本里混入了中文翻译后缀，裁掉（防 AI 台词"英文+中文翻译"被一起朗读） */
+function englishOnly(t: string): string {
+  const i = t.search(/[\u4e00-\u9fff]/)
+  return i > 0 ? t.slice(0, i).trim() : t.trim()
+}
+
 export function AiEnglishTalkPage() {
   const navigate = useNavigate()
-  const { speak, warm } = useTts()
+  const { speak } = useTts()
 
-  // ── 朗读引擎（页面级切换：百度 ⇄ 豆包，localStorage 记住本页选择）──
-  // 整句级朗读（AI 台词/表扬/正确句/再读）跟随引擎；提示词（词/整句）走快速通道（百度），
-  // 避免孩子卡顿时等豆包 seed-audio 长生成。
-  const [voice, setVoice] = useState<"baidu" | "doubao">(() =>
-    typeof localStorage !== "undefined" && localStorage.getItem("aiTalkTtsEngine") === "doubao" ? "doubao" : "baidu",
-  )
-  const speakVoiceSafe = (t: string) => void speak(t, voice === "doubao" ? { engine: "doubao" } : {})
+  // 朗读统一走百度链路（中文 6221 度云萱 / 英文自动 4193 度泽言）
+  const speakAi = (t: string) => void speak(englishOnly(t))
 
   // 设置
   const [topic, setTopic] = useState("")
@@ -75,6 +78,12 @@ export function AiEnglishTalkPage() {
   const hintWordsRef = useRef<string[]>([])
   const hintIdxRef = useRef(0)
   const lastHintTextRef = useRef("")
+  /** 轮次序号：换轮/重开时 +1，作废上一轮还在飞的中文翻译请求 */
+  const turnSeqRef = useRef(0)
+  /** 本页会话内 英文→中文 缓存（跨轮复用，避免同句反复调 LLM 翻译） */
+  const zhCacheRef = useRef<Map<string, string>>(new Map())
+  /** 进行中的翻译请求（同一句并发只发一次） */
+  const zhInflightRef = useRef<Map<string, Promise<string>>>(new Map())
 
   // 阶段
   const [phase, setPhase] = useState<Phase>("idle")
@@ -128,41 +137,97 @@ export function AiEnglishTalkPage() {
     onInitialSilence: () => initialSilenceRef.current(),
   })
 
-  // ── 整句朗读：表扬/正确句按当前引擎；提示词走快速通道 ──
+  // ── 整句朗读：表扬/正确句；提示词走快速通道 ──
   const playLines = async (texts: string[]) => {
     for (const t of texts) {
-      if (!t) continue
-      await speak(t, voice === "doubao" ? { engine: "doubao" } : {})
+      const en = englishOnly(t)
+      if (!en) continue
+      await speak(en)
     }
   }
   const speakHint = async (t: string) => {
-    void speak(t, {}) // 快速通道（百度/预生成本就 ~1s）
+    void speak(englishOnly(t)) // 快速通道（预生成命中 ~1s；未命中走百度实时合成）
   }
 
-  /** 取英文（词/句）的中文翻译（服务端缓存） */
+  /** 取英文（词/句）的中文翻译：先查本地课标词库（单词，同步秒出）→ 本页会话缓存 → 服务端缓存。
+   *  同一句/词并发只发一次请求（提示行补显与「读中文」共用同一 promise）。 */
   const fetchZhFor = async (text: string, full: boolean): Promise<string> => {
-    try {
-      if (full) return (await fetchSentenceInfo(text)).translation ?? ""
-      const info = await fetchWordInfo(text)
-      return info.translation || info.meaning || ""
-    } catch {
-      return ""
+    const ck = `${full ? "s" : "w"}:${text.trim().toLowerCase()}`
+    const hitCache = zhCacheRef.current.get(ck)
+    if (hitCache) return hitCache
+    const inflight = zhInflightRef.current.get(ck)
+    if (inflight) return inflight
+    const task = (async (): Promise<string> => {
+      try {
+        if (!full) {
+          const local = lookupWordZhSync(text)
+          if (local) return local
+        }
+        const zh = full
+          ? (await fetchSentenceInfo(text)).translation ?? ""
+          : await fetchWordInfo(text).then((info) => info.translation || info.meaning || "")
+        if (zh) zhCacheRef.current.set(ck, zh) // 同句/同词在后续轮次不再重复请求
+        return zh
+      } catch {
+        return ""
+      } finally {
+        zhInflightRef.current.delete(ck)
+      }
+    })()
+    zhInflightRef.current.set(ck, task)
+    return task
+  }
+
+  /** 带超时的翻译查询：中文朗读不能因为翻译迟迟不来卡住整轮对话。
+   *  超时给足——整句翻译是 LLM 实时生成（首次 3~8s），中文必须读出来；
+   *  录音已暂停，多等这几秒只是「提示中」状态多停一会，不会漏录。 */
+  const fetchZhTimed = (text: string, full: boolean, ms = 9000): Promise<string> => {
+    const local = full ? "" : lookupWordZhSync(text)
+    if (local) return Promise.resolve(local)
+    return Promise.race([
+      fetchZhFor(text, full),
+      new Promise<string>((r) => setTimeout(() => r(""), ms)),
+    ])
+  }
+
+  /**
+   * 朗读提示行：**先读英文，紧接着读中文**（用户要求「读完英语后接着读中文意思」）。
+   * 只有整句提示行读中文——逐词提示读单个中文字（如「我」）没教学意义还占时长。
+   * 中文等不到（超时/失败）就只读英文，不阻塞录音恢复。
+   * @param rowIndex 该行在 hintRows 中的下标；换轮后下标可能被复用，故配合 turnSeq 校验
+   */
+  const readHintAloud = async (text: string, full: boolean, rowIndex?: number): Promise<void> => {
+    const en = englishOnly(text)
+    if (en) await speak(en)
+    if (!full) return
+    const seq = turnSeqRef.current
+    const zh = await fetchZhTimed(text, true)
+    if (!zh || seq !== turnSeqRef.current) return
+    await speak(zh)
+    // 翻译是后到的 → 补写回该行，保证「提示句子的中文翻译」一定显示
+    if (rowIndex !== undefined) {
+      setHintRows((rows) => rows.map((r, i) => (i === rowIndex && !r.zh ? { ...r, zh } : r)))
     }
   }
 
-  /** 追加提示词记录行（逐行保留）+ 自动懒加载中文翻译 */
+  /** 追加提示词记录行（逐行保留）+ 自动懒加载中文翻译（整句/单词都补，单词走本地词库秒出） */
   const pushHintRow = (text: string, full: boolean) => {
     const idx = hintCountRef.current
     hintCountRef.current += 1
-    setHintRows((rows) => [...rows, { text, full, zh: "" }])
+    const seq = turnSeqRef.current
+    const local = full ? "" : lookupWordZhSync(text)
+    setHintRows((rows) => [...rows, { text, full, zh: local }])
+    if (local) return
     void fetchZhFor(text, full).then((zh) => {
-      if (zh) setHintRows((rows) => rows.map((r, i) => (i === idx ? { ...r, zh } : r)))
+      if (zh && seq === turnSeqRef.current) {
+        setHintRows((rows) => rows.map((r, i) => (i === idx ? { ...r, zh } : r)))
+      }
     })
   }
 
   /** 录音中主动点击 TTS 朗读：暂停 ASR（防录到扬声器）+ 冻结停顿计时，
    *  按钮灰置不可点；读完后停 1.2s 自动恢复录音继续计时。非录音中直接朗读。 */
-  const playTts = async (t: string, withEngine: boolean) => {
+  const playTts = async (t: string) => {
     if (!t.trim()) return
     const wasRecording = phaseRef.current === "recording"
     if (wasRecording) {
@@ -170,7 +235,7 @@ export function AiEnglishTalkPage() {
       setPh("reading")
       await turnHook.pause()
     }
-    await speak(t, withEngine && voice === "doubao" ? { engine: "doubao" } : {})
+    await speak(englishOnly(t))
     if (wasRecording) {
       await sleep(1200)
       hintBusyRef.current = false
@@ -212,11 +277,14 @@ export function AiEnglishTalkPage() {
     }
     if (text && text !== lastHintTextRef.current) {
       lastHintTextRef.current = text
+      const rowIdx = hintCountRef.current // pushHintRow 内会 +1，先记下写入下标
       pushHintRow(text, isFull)
+      await readHintAloud(text, isFull, rowIdx) // 整句：英文读完接着读中文
+    } else if (text) {
+      await speakHint(text)
     }
-    if (text) await speakHint(text)
 
-    // 播完提示词停 1.5s 让 TA 消化，再自动切回 ASR 继续录
+    // 播完提示词停一下让 TA 消化，再自动切回 ASR 继续录
     await sleep(1500)
     hintBusyRef.current = false
     if (phaseRef.current === "hinting") {
@@ -237,13 +305,15 @@ export function AiEnglishTalkPage() {
     hintBusyRef.current = true
     await turnHook.stop().catch(() => "")
     hintBusyRef.current = false
-    const words = (line.target.match(/[A-Za-z']+(?:['’][A-Za-z]+)?/g) ?? []).filter(Boolean)
-    // 显示整句提示行（可重听），再朗读整句，最后挂载单词阶梯
-    setHintRows((rows) => [...rows, { text: line.target, full: true, zh: "" }])
+    const en = englishOnly(line.target)
+    const words = (en.match(/[A-Za-z']+(?:['’][A-Za-z]+)?/g) ?? []).filter(Boolean)
+    // 显示整句提示行（可重听，中文翻译异步补上），再「英文→中文」朗读，最后挂载单词阶梯
+    const rowIdx = hintCountRef.current // pushHintRow 内会 +1，先记下写入下标
+    pushHintRow(en, true)
     setPh("idle")
     setFeedback(null)
-    await speak(line.target, voice === "doubao" ? { engine: "doubao" } : {})
-    setGuided({ sentence: line.target, units: words.length ? words : [line.target], done: false })
+    await readHintAloud(en, true, rowIdx)
+    setGuided({ sentence: en, units: words.length ? words : [en], done: false })
   }
   initialSilenceRef.current = () => {
     void startGuided()
@@ -290,7 +360,8 @@ export function AiEnglishTalkPage() {
       if (res.ok) {
         await playLines([res.praise]) // ✅ 表扬朗读
       } else {
-        await playLines([res.praise, res.correct]) // ❌ 鼓励 + 朗读正确句
+        await playLines([res.praise]) // ❌ 鼓励 + 正确句
+        if (res.correct) await readHintAloud(res.correct, true) // 正确句：英文读完接着读中文
       }
     } catch {
       if (line) {
@@ -324,21 +395,18 @@ export function AiEnglishTalkPage() {
       lastHintTextRef.current = ""
       fullHintGivenRef.current = false
       hintCountRef.current = 0
+      turnSeqRef.current += 1
       setHintRows([])
       setLineZh({})
       zhFetchRef.current = {}
+      zhCacheRef.current.clear() // 新剧情 → 清空翻译缓存
+      zhInflightRef.current.clear()
       setCorrectZh("")
       setLadderOpen(false)
       setGuided(null)
       setPh("idle")
-      // AI 首句自动朗读（同时后台预取下一句豆包音频）
-      if (sc.lines[0]?.ai) {
-        speakVoiceSafe(sc.lines[0].ai)
-        if (voice === "doubao") {
-          const nx = sc.lines[1]?.ai
-          if (nx) void warm(nx, { engine: "doubao" })
-        }
-      }
+      // AI 首句自动朗读
+      if (sc.lines[0]?.ai) speakAi(sc.lines[0].ai)
     } catch (e) {
       setSetupError(`生成失败：${String((e as Error)?.message ?? e)}`)
     } finally {
@@ -346,17 +414,9 @@ export function AiEnglishTalkPage() {
     }
   }
 
-  /** 重读当前 AI 台词（引擎切换后也用它对比听感；录音中会先暂停 ASR） */
+  /** 重读当前 AI 台词（录音中会先暂停 ASR） */
   const reReadAi = () => {
-    if (line?.ai) void playTts(line.ai, true)
-  }
-
-  const toggleVoice = () => {
-    const next = voice === "baidu" ? "doubao" : "baidu"
-    setVoice(next)
-    localStorage.setItem("aiTalkTtsEngine", next)
-    // 对话中切换：立即用新引擎重读当前 AI 句，方便听感对比（录音中会自动暂停/恢复）
-    if (script && line) void playTts(line.ai, true)
+    if (line?.ai) void playTts(line.ai)
   }
 
   // ── 下一轮 / 完成 ──
@@ -375,16 +435,11 @@ export function AiEnglishTalkPage() {
       lastHintTextRef.current = ""
       fullHintGivenRef.current = false
       hintCountRef.current = 0
+      turnSeqRef.current += 1
       setHintRows([])
       setPh("idle")
       const aiLine = script!.lines[next].ai
-      if (aiLine) {
-        speakVoiceSafe(aiLine)
-        if (voice === "doubao") {
-          const nx = script!.lines[next + 1]?.ai
-          if (nx) void warm(nx, { engine: "doubao" })
-        }
-      }
+      if (aiLine) speakAi(aiLine)
     } else {
       // 全部完成
       await turnHook.stop()
@@ -402,13 +457,6 @@ export function AiEnglishTalkPage() {
         <header className="module-header">
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
           <h1>🗣 AI 英语对话</h1>
-          <button
-            className={`voice-toggle${voice === "doubao" ? " on" : ""}`}
-            onClick={toggleVoice}
-            title="切换 AI 朗读声音：百度 / 豆包（本页生效）"
-          >
-            🔊 {voice === "doubao" ? "豆包音" : "百度音"}
-          </button>
         </header>
         <div className="card" style={{ padding: 16 }}>
           <p className="module-hint">设置要练的词语或句子（场景可不填，AI 会自己挑合适的），AI 会编一段小剧情和你对话。</p>
@@ -462,17 +510,10 @@ export function AiEnglishTalkPage() {
         <div className="talk-bubble ai">
           <div className="talk-bubble-label">🤖 AI · {topic || "对话"}</div>
           <div className="talk-bubble-text">
-            <EnglishWordTap text={line.ai} speakOverride={(w) => void playTts(w, false)} />
+            <EnglishWordTap text={englishOnly(line.ai)} speakOverride={(w) => void playTts(w)} />
           </div>
           <div className="talk-bubble-ops">
             <button className="btn-secondary btn-sm" onClick={reReadAi}>🔊 再读</button>
-            <button
-              className={`btn-secondary btn-sm voice-toggle${voice === "doubao" ? " on" : ""}`}
-              onClick={toggleVoice}
-              title="切换 AI 朗读声音：百度 / 豆包（本页生效）"
-            >
-              🔊 {voice === "doubao" ? "豆包音" : "百度音"}
-            </button>
           </div>
           {lineZh[turn] && <p className="talk-translation">{lineZh[turn]}</p>}
         </div>
@@ -532,15 +573,15 @@ export function AiEnglishTalkPage() {
               <div className="talk-feedback-correct">
                 <div className="talk-correct-head">
                   <span>正确说法：</span>
-                  <button className="btn-secondary btn-sm" onClick={() => void playTts(feedback.correct, true)}>🔊 再读</button>
+                  <button className="btn-secondary btn-sm" onClick={() => void playTts(feedback.correct)}>🔊 再读</button>
                 </div>
-                <EnglishWordTap text={feedback.correct} speakOverride={(w) => void playTts(w, false)} />
+                <EnglishWordTap text={feedback.correct} speakOverride={(w) => void playTts(w)} />
                 {correctZh && <p className="talk-translation">{correctZh}</p>}
                 {/* 跟读阶梯：片段→扩长→整句（错句修复用） */}
                 {ladderOpen ? (
                   <EchoLadder
-                    sentence={feedback.correct}
-                    chunks={line?.chunks ?? fallbackChunks(feedback.correct)}
+                    sentence={englishOnly(feedback.correct)}
+                    chunks={line?.chunks ?? fallbackChunks(englishOnly(feedback.correct))}
                     engine="16k_en"
                     source="english_talk_ladder"
                     onFinished={() => { /* 完成：鼓励已内置播放 */ }}
@@ -572,7 +613,7 @@ export function AiEnglishTalkPage() {
                 <span className="talk-hint-text">{h.full ? `（整句）${h.text}` : h.text}</span>
                 {h.zh && <span className="talk-hint-zh">{h.zh}</span>}
               </span>
-              <button className="btn-secondary btn-sm" onClick={() => void playTts(h.text, false)}>🔊</button>
+              <button className="btn-secondary btn-sm" onClick={() => void playTts(h.text)}>🔊</button>
             </div>
           ))}
         </div>

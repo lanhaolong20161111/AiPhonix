@@ -4840,6 +4840,29 @@ button.btn-mode-off {
   background: #ffcdd2;
 }
 
+/* 连读高亮：点某个字 → 该字到句尾整段高亮（浅琥珀底，文字仍纯黑）；
+   句尾那个字额外加深 + 下划线，让孩子看清「读到哪结束」 */
+.block-char.hl-base {
+  background: #ffe9a8;
+  border-radius: 2px;
+}
+.block-char.hl-end {
+  background: #ffc93c;
+  font-weight: 800;
+  border-bottom: 2px solid #e08e00;
+}
+/* 连读模式按钮的激活态 */
+.block-ops-btn.range-on {
+  background: #ffe9a8;
+  border-color: #e0a800;
+}
+/* 录音回放/错误提示（块级录音） */
+.block-rec-err {
+  font-size: 12px;
+  color: #b71c1c;
+  margin-left: 4px;
+}
+
 /* 识别结果逐字注音：汉字上方 ruby 拼音，可点击播放 声母/韵母/介母/整体认读 */
 .block-char-ruby {
   ruby-position: over;
