@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { parseImage, type ParseImageResult, type ParseStage } from "../services/aiImage"
+import { parseImage, parseImageStream, type ParseImageResult, type ParseStage } from "../services/aiImage"
 import { prepareImageFile } from "../lib/imageCompress"
 import { AiInputBox } from "../components/AiInputBox"
 import { ParseTimer } from "../components/ParseTimer"
 import { AiChatPanel } from "../components/AiChatPanel"
 import { ImageSliceSheet } from "../components/ImageSliceSheet"
 import { OcrPickSheet } from "../components/OcrPickSheet"
+import { CoursewarePickerSheet } from "../components/CoursewarePickerSheet"
 import { useParseSessionStore, newSessionId } from "../stores/parseSessionStore"
 import { schedulePolyPatch } from "../lib/polyPatch"
 import { useAiChat } from "../hooks/useAiChat"
@@ -20,6 +21,8 @@ export function AiChinesePage() {
   const [parsing, setParsing] = useState(false)
   // 识别分阶段进度（处理图片→上传→AI识别中），展示给用户降低等待焦虑
   const [parseStage, setParseStage] = useState<ParseStage | null>(null)
+  // 流式识图：边识别边追加的实时文字（学生 1~3s 就能开始读）
+  const [liveLines, setLiveLines] = useState<string[]>([])
 
   // 切块识别：待切块的图片（已转正）+ 是否打开切块选择器
   const [sliceTarget, setSliceTarget] = useState<{ file: File | Blob; previewUrl: string } | null>(null)
@@ -28,14 +31,29 @@ export function AiChinesePage() {
 
   // 多轮对话（纯文本提问）
   const chat = useAiChat("chinese")
+  // 课件选择弹层
+  const [coursewareOpen, setCoursewareOpen] = useState(false)
+
+  /** 课件选中：包成 File 走「仅图片→识别结果页」，与拍照一致 */
+  const onCoursewarePick = (blob: Blob, fileName: string) => {
+    setCoursewareOpen(false)
+    const file = new File([blob], fileName, { type: blob.type || "image/jpeg" })
+    void handleSubmit({ file, source: "pick" })
+  }
 
   const gotoParseResult = (file: File | Blob, previewUrl: string, noCache: boolean, initialQuestion?: string) => {
     setParsing(true)
     setParseStage("preparing")
+    setLiveLines([])
     setError("")
     void (async () => {
       try {
-        const res = await parseImage(file, "chinese", noCache, setParseStage)
+        // 流式优先：边识别边显示文字（首行 1~3s）；不可用/未出字则回退非流式完整链路
+        let res = await parseImageStream(file, "chinese", noCache, {
+          onStage: setParseStage,
+          onLine: (t) => setLiveLines((prev) => [...prev, t]),
+        })
+        if (!res) res = await parseImage(file, "chinese", noCache, setParseStage)
         useParseSessionStore.getState().setSession({
           sessionId: newSessionId(),
           module: "chinese",
@@ -55,6 +73,7 @@ export function AiChinesePage() {
       } finally {
         setParsing(false)
         setParseStage(null)
+        setLiveLines([])
       }
     })()
   }
@@ -162,13 +181,17 @@ export function AiChinesePage() {
       </header>
       <p className="module-hint">拍照识别课文，或在框内输入问题/内容，点「提问」让 AI 直接回答。</p>
 
-      <button
-        className="btn-secondary"
-        style={{ width: "100%", marginBottom: 8 }}
-        onClick={() => navigate("/module/ai_history?module=chinese")}
-      >
-        🗂 历史会话
-      </button>
+      <div className="ai-header-actions">
+        <button
+          className="btn-secondary"
+          onClick={() => navigate("/module/ai_history?module=chinese")}
+        >
+          🗂 历史会话
+        </button>
+        <button className="btn-secondary" onClick={() => setCoursewareOpen(true)}>
+          📚 课件
+        </button>
+      </div>
 
       {/* 识别分阶段进度：处理图片→上传→AI识别中（替代笼统"处理中"） */}
       {parseStage && (
@@ -180,6 +203,23 @@ export function AiChinesePage() {
               ? "⬆️ 图片已就绪，正在上传…"
               : "🔍 AI 识别中，整页/复杂图片约需 30–60 秒，请稍候…"}
         </p>
+      )}
+
+      {/* 流式识图：边识别边显示文字，学生可先读已出的部分（不必等整页完成） */}
+      {liveLines.length > 0 && (
+        <div className="parse-live">
+          <div className="parse-live-head">
+            ✨ 正在识别，已出 {liveLines.length} 行 —— 可以先读起来
+          </div>
+          <div className="parse-live-body">
+            {liveLines.map((t, i) => (
+              <p key={i} className="parse-live-line">
+                {t}
+              </p>
+            ))}
+            <span className="parse-live-caret" />
+          </div>
+        </div>
       )}
 
       {/* 统一输入：文本提问 或 粘贴/选择图片后点「提问」识别；选图后可「🖱️ 自由框选」或「✂️ 切块识别」 */}
@@ -211,6 +251,14 @@ export function AiChinesePage() {
           onConfirmResult={gotoFreePickResult}
         />
       )}
+
+      {/* 课件选择：选一张课件图当拍照识别 */}
+      <CoursewarePickerSheet
+        open={coursewareOpen}
+        module="chinese"
+        onClose={() => setCoursewareOpen(false)}
+        onPick={onCoursewarePick}
+      />
     </div>
   )
 }

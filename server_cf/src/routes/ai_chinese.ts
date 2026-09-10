@@ -3,6 +3,7 @@
  * Cloudflare 版：fs → R2（data/ai_chinese_*），db → await getDb()，sqlite FTS → sqlAll，quest 缓存已 async。
  */
 import { Hono } from "hono"
+import { streamSSE } from "hono/streaming"
 import { createHash } from "node:crypto"
 import { and, desc, eq } from "drizzle-orm"
 import { getDb, sqlAll } from "../db/index.js"
@@ -35,11 +36,12 @@ import {
 import { splitPinyinWord } from "../lib/pinyin.js"
 import { exists, readBlob, writeBlob } from "../lib/storage.js"
 import { paddleOcrExtract, paddleV6DetectBlocks, type PaddleOcrOpts } from "../lib/paddleOcr.js"
+import { IncrementalLineExtractor } from "../lib/incrementalJsonText.js"
 import { getEnv } from "../env.js"
 
 import { stripFence, parseJsonObj, readCache, writeCache, renderAnalyze, makeSentenceAudioPath } from "../lib/aiShared.js"
 
-import { DOUBAO_OCR_PROMPT, DOUBAO_OCR_JSON_PROMPT, DOUBAO_OCR_JSON_PROMPT_NO_POLY, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
+import { DOUBAO_OCR_PROMPT, DOUBAO_OCR_JSON_PROMPT, DOUBAO_OCR_JSON_PROMPT_NO_POLY, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
 // 按域拆分的子路由（挂载于根 = 透明合并）
 import kbRoutes from "./ai_chinese_kb.js"
 import questRoutes from "./ai_chinese_quest.js"
@@ -168,7 +170,7 @@ async function arkExtractBlocksTwoPass(imageKey: string, isTable: boolean): Prom
   }
   const text = rawText
 
-  // 免费 Ark 排版（doubao-seed-evolving）优先；失败再兜底付费 deepseek（有预算守卫）
+  // 免费 Ark 排版（doubao-seed-2-1-turbo-260628）优先；失败再兜底付费 deepseek（有预算守卫）
   try {
     if (ark.enabled) {
       const relayoutPrompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
@@ -329,11 +331,16 @@ async function runPolyphonesAsync(blocks: any[], patchKey: string, mainCacheKey:
   }
 }
 
+// ── 流式识图：增量 JSON 解析（2026-09-10） ─────────────────────────────
+// 豆包 OCR 合并调用输出 `{"blocks":[{"type":...,"lines":[{"text":"行",...}]}]}`，
+// 文本藏在 lines[].text。要在流式过程中尽早出字，不能等完整 JSON —— 增量提取器
+// 扫描已累积的 JSON 文本，把每个已闭合的 `"text":"…"` 字符串值按出现顺序吐出来。
+// 实现见 lib/incrementalJsonText.ts（独立文件便于单测）。
+
 /** D 方案：PaddleOCR/豆包 识图后，用 LLM 把「不符合的文本」去掉。
  * 删除 OCR 噪声行（水印/页码/页眉页脚/装饰乱码/广告图标文字/纯分隔符），
  * 并把相邻正文行合并为通顺段落（段间一个空行）。不改写正文、不新增解释。
- * ⚠️ 与 fillPolyphones 一致：失败/超时/返回空 → 自动降级为原文，绝不阻塞主链路。 */
-async function llmFilterOcrText(text: string): Promise<string> {
+ * ⚠️ 与 fillPolyphones 一致：失败/超时/返回空 → 自动降级为原文，绝不阻塞主链路。 */async function llmFilterOcrText(text: string): Promise<string> {
   const t = (text || "").trim()
   if (!t || t.length < 8) return text // 太短无需清洗
   if (t.length > MAX_QUESTION_LEN) return text // 超上下文则跳过，避免截断
@@ -566,6 +573,178 @@ router.post("/ai-chinese/parse-image", async (c) => {
   })
 })
 
+// POST /api/v1/ai-chinese/parse-image-stream — SSE 流式识图（2026-09-10）
+// 目标：让学生以最快速度开始阅读识别出的文字。
+// 策略：先用**纯文本 OCR 提示词**流式调用豆包（无 JSON 包裹 → 首行 1~3s 就能吐），
+//       delta 事件按行增量推送 text；流结束后再补发结构化 blocks（后台用原 JSON 调用，
+//       拿到逐行/类型/对齐/注音，用于结果页的精细排版与点读）。
+// 事件格式（data: JSON）：
+//   meta{img_hash} → line{text,index}* → done{text,questions,blocks,poly_pending,poly_token} / error{detail}
+// 说明：本端点只走豆包（OCR_ENGINE=doubao 为生产默认）；Paddle 用户仍走非流式 parse-image。
+router.post("/ai-chinese/parse-image-stream", async (c) => {
+  const user = await resolveCurrentUser(c.req.header("Authorization"))
+  if (!user) return c.json({ detail: "未登录" }, 401)
+  const form = await c.req.formData().catch(() => null)
+  if (!form) return c.json({ detail: "缺少文件" }, 400)
+  const file = form.get("file")
+  if (!file || typeof file === "string") return c.json({ detail: "缺少文件" }, 400)
+  const data = new Uint8Array(await (file as File).arrayBuffer())
+  if (!data.length) return c.json({ detail: "图片为空" }, 422)
+  const noCache = c.req.query("no_cache") === "true"
+  const mode = c.req.query("mode") === "english" ? "english" : "chinese"
+  const polyAsync = mode !== "english" && c.req.query("poly_async") !== "0"
+  const reqT0 = Date.now()
+  const imgHash = createHash("sha256").update(data).digest("hex")
+  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}.json`
+  console.log(`[parse-image-stream] 收到图片 ${data.length} 字节, no_cache=${noCache}, mode=${mode}`)
+
+  // 缓存命中：无流可放（或需要增量吐？）——直接一次性把完整结果发出来，前端秒显示
+  if (!noCache && (await exists(cacheKey))) {
+    try {
+      const cached = await readCache(cacheKey)
+      const stripPinyin = mode !== "english"
+      const cachedText = cleanBookScanText(dedupeLines(cleanOcrText(recoverTextFromJson(String(cached?.text ?? ""))).trim()).trim(), { stripPinyin })
+      const cachedBlocks = cleanBookScanBlocks(Array.isArray(cached?.blocks) ? cached.blocks : [], { stripPinyin })
+      const cachedQs = splitQuestions(cachedText)
+      const hasPoly = cachedBlocks.some((b: any) => b?.polyphones && Object.keys(b.polyphones).length)
+      const polyToken = polyAsync && !hasPoly ? imgHash : null
+      console.log(`[parse-image-stream] 缓存命中, 文本 ${cachedText.length} 字, 耗时 ${Date.now() - reqT0}ms`)
+      return streamSSE(c, async (stream) => {
+        const send = (p: Record<string, unknown>) => stream.writeSSE({ data: JSON.stringify(p) })
+        await send({ type: "meta", img_hash: imgHash, cached: true })
+        for (const ln of cachedText.split("\n")) {
+          if (ln) await send({ type: "line", text: ln })
+        }
+        await send({
+          type: "done",
+          text: cachedText,
+          questions: cachedQs.length ? cachedQs : cachedText ? [cachedText] : [],
+          blocks: cachedBlocks,
+          crops: Array.isArray(cached?.crops) ? cached.crops : [],
+          page_bounds: cached?.page_bounds ?? null,
+          poly_pending: polyToken ? true : undefined,
+          poly_token: polyToken ?? undefined,
+        })
+      })
+    } catch {
+      /* 缓存损坏忽略，走正常识别 */
+    }
+  }
+
+  // 落盘 + 方向校正
+  const ext = (file as File).name?.match(/\.([a-zA-Z0-9]+)$/)?.[1] ? "." + (file as File).name!.match(/\.([a-zA-Z0-9]+)$/)![1] : ".jpg"
+  const fname = `${crypto.randomUUID().replace(/-/g, "")}${ext}`
+  const path = `${IMAGE_DIR}/${fname}`
+  await writeBlob(path, data, "image/jpeg")
+  let oriented = path
+  try {
+    oriented = await autoOrient(path)
+  } catch {
+    /* 跳过 */
+  }
+
+  return streamSSE(c, async (stream) => {
+    const send = (p: Record<string, unknown>) => stream.writeSSE({ data: JSON.stringify(p) })
+    const ark = getArk()
+    if (!ark.enabled) {
+      await send({ type: "error", detail: "免费 AI 服务未配置（缺少 ARK_API_KEY）" })
+      return
+    }
+    const extractor = new IncrementalLineExtractor()
+    let streamed = ""
+    let firstLineMs = 0
+    try {
+      await send({ type: "meta", img_hash: imgHash })
+      // 纯文本 OCR 提示词：模型直接按行输出正文，无需 JSON 包裹，首行最快
+      const iter = ark.chatStream({
+        prompt: mode === "english" ? DOUBAO_OCR_PROMPT : DOUBAO_OCR_PROMPT,
+        system_prompt: "你是一个小学课本 OCR 逐行转录器，只输出识别到的文字行。",
+        image_paths: [oriented],
+        max_tokens: 8192,
+        model_override: multimodalModel(),
+        disable_thinking: true,
+        timeout_ms: 90_000,
+      })
+      for await (const delta of iter) {
+        if (!delta) continue
+        // 纯文本路径：delta 本身就带换行，按行切分增量推送
+        // （若模型误输出 JSON 包裹，IncrementalLineExtractor 也能兜住 —— 双保险）
+        const looksJson = delta.includes('"text"') || delta.trimStart().startsWith("{")
+        if (looksJson) {
+          for (const ln of extractor.push(delta)) {
+            if (!firstLineMs) firstLineMs = Date.now() - reqT0
+            streamed += (streamed ? "\n" : "") + ln
+            await send({ type: "line", text: ln })
+          }
+        } else {
+          for (const ln of delta.split("\n")) {
+            const t = ln.trim()
+            if (!t) continue
+            if (!firstLineMs) firstLineMs = Date.now() - reqT0
+            streamed += (streamed ? "\n" : "") + t
+            await send({ type: "line", text: t })
+          }
+        }
+      }
+      console.log(`[parse-image-stream] 流式文本完成 首行=${firstLineMs}ms 总耗时=${Date.now() - reqT0}ms 文本=${streamed.length}字`)
+    } catch (e) {
+      console.warn(`[parse-image-stream] 流式失败(已出${streamed.length}字): ${(e as Error).message}`)
+      if (!streamed) {
+        await send({ type: "error", detail: `识图失败：${(e as Error).message}` })
+        return
+      }
+      // 已出部分文本：继续走下面的收尾（结构化能拿到多少算多少）
+    }
+
+    // 流结束后：文本清洗
+    let text = cleanOcrText(streamed).trim()
+    text = recoverTextFromJson(text).trim()
+    text = cleanBookScanText(text, { stripPinyin: mode !== "english" })
+    if (!text) {
+      await send({ type: "error", detail: "图片识别失败（未识别到文字）" })
+      return
+    }
+
+    // 结构化 blocks：后台跑一次原 JSON 调用（版面/对齐/逐字注音），失败则退化为单块纯文本
+    let blocks: any[] = []
+    let structured = false
+    try {
+      const result = await arkExtractBlocks(oriented, false, !polyAsync)
+      if (result.blocks.length) {
+        blocks = cleanBookScanBlocks(result.blocks, { stripPinyin: mode !== "english" })
+        structured = result.structured
+      }
+    } catch (e) {
+      console.warn(`[parse-image-stream] 结构化补 blocks 失败(退化为纯文本块): ${(e as Error).message}`)
+    }
+    if (!blocks.length) {
+      blocks = [{ type: "body", text, align: "left", lines: text.split("\n").map((t) => ({ text: t, indent: 0 })), polyphones: {} }]
+    }
+    const questions = splitQuestions(text)
+    const polyToken = polyAsync && blocks.length ? imgHash : null
+    const cachePayload = { text, questions, blocks, page_bounds: null, crops: [] }
+    await writeCache(cacheKey, cachePayload).catch(() => {})
+    if (polyToken) {
+      try {
+        c.executionCtx?.waitUntil(runPolyphonesAsync(blocks, polyPatchKey(polyToken), cacheKey, cachePayload))
+      } catch {
+        /* 后台补注音失败：前端拿不到注音，不影响正文阅读 */
+      }
+    }
+    console.log(`[parse-image-stream] 完成 总耗时=${Date.now() - reqT0}ms 文本=${text.length}字 blocks=${blocks.length} structured=${structured}`)
+    await send({
+      type: "done",
+      text,
+      questions: questions.length ? questions : [text],
+      blocks,
+      crops: [],
+      page_bounds: null,
+      poly_pending: polyToken ? true : undefined,
+      poly_token: polyToken ?? undefined,
+    })
+  })
+})
+
 /** 异步补多音字补丁查询（2026-09-02）：parse-image 返回 poly_token 后，前端轮询此接口拿注音。
  * 未就绪返回 {ready:false}；完成返回 {ready:true, polyphones:{字:拼音}}（可能为空对象=没补到）。 */
 router.get("/ai-chinese/parse-polyphones", async (c) => {
@@ -665,6 +844,140 @@ router.post("/ai-chinese/highlight-mark", async (c) => {
     /* 解析失败返回空 */
   }
   return c.json({ text, highlights, tip })
+})
+
+// ── pos-tags：中/英课文词性标注（名词/动词/形容词，供前端词性着色）──
+
+router.post("/ai-chinese/pos-tags", async (c) => {
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const body = await c.req.json().catch(() => null)
+  const text = String(body?.text ?? "").trim()
+  const lang = String(body?.lang ?? "zh").trim() === "en" ? "en" : "zh"
+  if (!text) return c.json({ detail: "文本不能为空" }, 422)
+  if (text.length > 4000) return c.json({ detail: "文本过长" }, 422)
+
+  // 缓存：同语言同文本不重复调 LLM（复用现有 sha256 → R2 缓存模式）
+  const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
+  const cacheKey = `${CACHE_DIR}/postags_${hash}.json`
+  const cached = await readCache(cacheKey).catch(() => null)
+  if (cached && Array.isArray((cached as any).tags)) {
+    return c.json({ lang, tags: (cached as any).tags })
+  }
+
+  const subject = lang === "en" ? "英语" : "语文"
+  const prompt = POS_TAGS_PROMPT.replace("{subject}", subject).replace("{text}", text)
+  let reply = ""
+  try {
+    reply = await getArk().chat({
+      prompt,
+      system_prompt: `你是一个只输出 JSON 的小学${subject}老师。`,
+      max_tokens: 2048,
+      model_override: multimodalModel(),
+      disable_thinking: true,
+    })
+  } catch {
+    try {
+      reply = await deepseekChat(`你是一个只输出 JSON 的小学${subject}老师。`, prompt, 2048, "pos_tags")
+    } catch {
+      reply = ""
+    }
+  }
+
+  const tags: { word: string; pos: string }[] = []
+  const seen = new Set<string>()
+  try {
+    const data = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))
+    const arr = data && Array.isArray(data.tags) ? data.tags : []
+    for (const t of arr.slice(0, 200)) {
+      if (!t || typeof t !== "object") continue
+      const word = String(t.word ?? "").trim()
+      const pos = String(t.pos ?? "").trim().toLowerCase()
+      if (!["n", "v", "adj"].includes(pos)) continue
+      // 只采纳原文连续子串；同一词只留一条（大小写不敏感去重）
+      if (!word) continue
+      if (lang === "en" ? text.toLowerCase().includes(word.toLowerCase()) : text.includes(word)) {
+        const key = word.toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        tags.push({ word, pos })
+      }
+    }
+  } catch {
+    /* 解析失败返回空 */
+  }
+
+  if (tags.length) {
+    await writeCache(cacheKey, { lang, tags }).catch(() => {})
+  }
+  return c.json({ lang, tags })
+})
+
+// ── story-elements：中/英课文记叙要素标注（人物/时间/地点/起因/经过/结果，供前端要素着色）──
+
+const STORY_KINDS = new Set(["person", "time", "place", "cause", "process", "result", "event"])
+
+router.post("/ai-chinese/story-elements", async (c) => {
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const body = await c.req.json().catch(() => null)
+  const text = String(body?.text ?? "").trim()
+  const lang = String(body?.lang ?? "zh").trim() === "en" ? "en" : "zh"
+  if (!text) return c.json({ detail: "文本不能为空" }, 422)
+  if (text.length > 4000) return c.json({ detail: "文本过长" }, 422)
+
+  // 缓存：同语言同文本不重复调 LLM
+  const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
+  const cacheKey = `${CACHE_DIR}/storyelems_${hash}.json`
+  const cached = await readCache(cacheKey).catch(() => null)
+  if (cached && Array.isArray((cached as any).elements)) {
+    return c.json({ lang, elements: (cached as any).elements })
+  }
+
+  const subject = lang === "en" ? "英语" : "语文"
+  const prompt = STORY_ELEMENTS_PROMPT.replace("{subject}", subject).replace("{text}", text)
+  let reply = ""
+  try {
+    reply = await getArk().chat({
+      prompt,
+      system_prompt: `你是一个只输出 JSON 的小学${subject}老师。`,
+      max_tokens: 2048,
+      model_override: multimodalModel(),
+      disable_thinking: true,
+    })
+  } catch {
+    try {
+      reply = await deepseekChat(`你是一个只输出 JSON 的小学${subject}老师。`, prompt, 2048, "story_elements")
+    } catch {
+      reply = ""
+    }
+  }
+
+  const elements: { word: string; kind: string }[] = []
+  const seen = new Set<string>()
+  try {
+    const data = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))
+    const arr = data && Array.isArray(data.elements) ? data.elements : []
+    for (const t of arr.slice(0, 200)) {
+      if (!t || typeof t !== "object") continue
+      const word = String(t.word ?? "").trim()
+      const kind = String(t.kind ?? "").trim().toLowerCase()
+      if (!STORY_KINDS.has(kind)) continue
+      if (!word) continue
+      // 只采纳原文连续子串；同一词只留一条（大小写不敏感去重）
+      if (lang === "en" ? text.toLowerCase().includes(word.toLowerCase()) : text.includes(word)) {
+        const key = word.toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        elements.push({ word, kind })
+      }
+    }
+  } catch {
+    /* 解析失败返回空 */
+  }
+
+  if (elements.length) {
+    await writeCache(cacheKey, { lang, elements }).catch(() => {})
+  }
+  return c.json({ lang, elements })
 })
 
 // ── text-ask ──

@@ -6787,20 +6787,22 @@ button.btn-mode-off {
 .talk-word-score.good { color: #2e7d32; }
 .talk-word-score.bad { color: #c62828; }
 .talk-word-err { color: #c62828; font-size: 13px; }
-/* AI 朗读引擎切换（页面级，AI 英语对话页）：百度 ⇄ 豆包 */
-.voice-toggle {
-  border: 1px solid #cfd8e3;
-  background: #fff;
-  color: #4a5568;
-  border-radius: 999px;
-  font-size: 13px;
+
+/* 首页右下角版号角标：部署核对用（黑色数字，无边框） */
+.app-version {
+  position: fixed;
+  right: 10px;
+  bottom: 8px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 4px 10px;
-  cursor: pointer;
-  white-space: nowrap;
+  color: #000;
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding: 0;
+  pointer-events: none;
+  z-index: 20;
 }
-.voice-toggle.on { background: #1a73e8; border-color: #1a73e8; color: #fff; }
-.module-header .voice-toggle { margin-left: auto; }
 
 /* AI 英语对话两态录音：绿=开始/录音中、红=结束、灰=提示中(自动恢复) */
 .talk-rec {
@@ -6863,7 +6865,10 @@ button.btn-mode-off {
   justify-content: center;
   flex: none;
 }
-.talk-hint-text { flex: 1; font-size: 15px; font-weight: 700; color: #0f1419; word-break: break-word; }
+.talk-hint-main { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.talk-hint-text { font-size: 15px; font-weight: 700; color: #0f1419; word-break: break-word; }
+.talk-hint-zh { font-size: 12px; color: #657786; font-weight: 500; word-break: break-word; }
+.talk-feedback-said { font-size: 13px; color: #657786; margin-bottom: 4px; word-break: break-word; }
 
 /* 错误后跟读 AI 正确句（SOE 评测） */
 .talk-correct-head {
@@ -6875,6 +6880,19 @@ button.btn-mode-off {
   font-weight: 700;
 }
 .talk-correct-eval { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+
+/* 跟读阶梯（片段→扩长→整句） */
+.echo-ladder-title { display: flex; justify-content: space-between; align-items: center; font-weight: 700; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+.echo-ladder-line { display: flex; flex-wrap: wrap; gap: 6px; font-size: 17px; font-weight: 700; color: #0f1419; margin: 4px 0 8px; }
+.echo-chunk { padding: 2px 6px; border-radius: 6px; }
+.echo-chunk.done-chunk { color: #2e7d32; }
+.echo-chunk.active-chunk { background: #fff3cd; border-bottom: 2px solid #f9a825; }
+.echo-chunk.plain-chunk { color: #657786; }
+.echo-ladder-drill { margin: 4px 0 8px; font-size: 17px; font-weight: 700; }
+.echo-ladder-label { color: #e65100; font-weight: 700; margin-right: 6px; }
+.echo-ladder-ops { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.echo-ladder-ops .talk-rec { width: auto; flex: 1; padding: 10px 14px; font-size: 16px; }
+.echo-ladder.done { padding: 10px 12px; }
 @media (prefers-color-scheme: dark) {
   .text-input { background: #253341; border-color: #38444d; color: #e7e9ea; }
   .talk-bubble.ai { background: #162d40; border-color: #1e4970; }
@@ -6888,5 +6906,61 @@ button.btn-mode-off {
   .talk-hint { background: #3d2e14; border-color: #e65100; }
   .talk-hints-title { color: #b6c2cf; }
   .talk-hint-text { color: #e7e9ea; }
+  .talk-hint-zh { color: #9aa8b8; }
+  .talk-feedback-said { color: #b6c2cf; }
   .talk-status.busy { color: #cbd5e1; background: #253341; }
+  .app-version { color: #000; }
+  .echo-ladder-line { color: #e7e9ea; }
+  .echo-chunk.active-chunk { background: #4a3a0e; border-bottom-color: #f9a825; }
+  .echo-chunk.plain-chunk { color: #9aa8b8; }
+}
+
+/* ── 流式识图：边识别边显示（2026-09-10） ── */
+.parse-live {
+  margin: 10px 4px 14px;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
+}
+.parse-live-head {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+.parse-live-body {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.parse-live-line {
+  margin: 0 0 6px;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+  animation: parse-live-in 0.25s ease-out;
+}
+@keyframes parse-live-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.parse-live-caret {
+  display: inline-block;
+  width: 8px;
+  height: 18px;
+  background: #2563eb;
+  border-radius: 2px;
+  animation: parse-live-blink 1s steps(2, start) infinite;
+  vertical-align: text-bottom;
+}
+@keyframes parse-live-blink {
+  50% { opacity: 0; }
+}
+@media (prefers-color-scheme: dark) {
+  .parse-live { background: linear-gradient(180deg, #16233a 0%, #0f172a 100%); border-color: #1e4970; }
+  .parse-live-head { color: #7db8ff; }
+  .parse-live-line { color: #e7e9ea; }
+  .parse-live-caret { background: #7db8ff; }
 }

@@ -1,10 +1,13 @@
 /** AI 图片识别 API 客户端 — 对应 server_py/routes/ai_homework.py + ai_chinese.py 的 parse-image
  *
  * 服务端识图链路（已实现，前端仅透传）：
- * Ark 豆包多模态（doubao-seed-evolving）识图 → EasyOCR 回退 → 题目拆分
+ * Ark 豆包多模态（doubao-seed-2-1-turbo-260628）识图 → EasyOCR 回退 → 题目拆分
  */
 
 import { api } from "./api"
+import { API_BASE } from "./config"
+import { tryRefreshFromStore } from "./auth"
+import { useAuthStore } from "../stores/authStore"
 import { prepareImageFile } from "../lib/imageCompress"
 import { fingerprintBlob, getCachedParse, putCachedParse } from "../lib/ocrResultCache"
 import { getOcrEngine } from "../stores/ocrEngineStore"
@@ -132,8 +135,7 @@ export async function parseImage(
 }
 
 /**
- * 合并多个切块识别结果为一个整页结果（切块识别专用）。
- * - text：各块 text 用换行连接（过滤空块）
+ * 合并多个切块识别结果为一个整页结果（切块识别专用）。 * - text：各块 text 用换行连接（过滤空块）
  * - questions：各块 questions 顺序合并
  * - blocks：各块 blocks 顺序合并
  * - page_bounds / crops：取第一块的（整页坐标在切块下无意义）
@@ -176,4 +178,147 @@ function isTimeoutError(e: unknown): boolean {
   if (e instanceof DOMException && e.name === "AbortError") return true
   if (e instanceof Error && (e.name === "AbortError" || /abort|超时|signal is aborted/i.test(e.message))) return true
   return false
+}
+
+// ── 流式识图（2026-09-10）：SSE 逐行回传文字，学生 1~3s 就能开始阅读 ──
+
+export interface ParseImageStreamHandlers {
+  /** 识别分阶段进度（与 parseImage 一致） */
+  onStage?: (stage: ParseStage) => void
+  /** 每识别出一行文字就回调一次（前端可实时追加到阅读区） */
+  onLine?: (text: string) => void
+}
+
+/**
+ * 流式版识图：POST /ai-chinese/parse-image-stream（SSE）。
+ * - onLine 逐行回传（服务端边识别边推，首行通常 1~3s）
+ * - 返回与 parseImage 同构的最终结果（含结构化 blocks / 注音 token）
+ * - 返回 null = 流式不可用（服务端未升级/404/未出字前失败）→ 调用方回退 parseImage
+ *
+ * 仅 chinese / english 模块支持（数学走 /ai-homework，暂未流式）；engine=paddle 时返回 null 走非流式。
+ */
+export async function parseImageStream(
+  file: File | Blob,
+  module: "chinese" | "english",
+  noCache = false,
+  handlers: ParseImageStreamHandlers = {},
+): Promise<ParseImageResult | null> {
+  const { onStage, onLine } = handlers
+  // 用户显式选 Paddle 时走非流式（Paddle 结果一次成型，无增量）
+  const engine = getOcrEngine()
+  if (engine === "paddle") return null
+
+  onStage?.("preparing")
+  const prepared = await prepareImageFile(file, 1600, 0.85)
+  const name = file instanceof File && file.name ? file.name : "image.jpg"
+  // 本地结果缓存：同图秒出
+  const fp = await fingerprintBlob(prepared)
+  if (!noCache) {
+    const hit = getCachedParse(module, fp, engine)
+    if (hit) {
+      onStage?.("recognizing")
+      // 缓存结果一次性推给 onLine，保持调用方逻辑统一
+      for (const ln of (hit.text ?? "").split("\n")) if (ln.trim()) onLine?.(ln)
+      return { ...hit, fingerprint: fp }
+    }
+  }
+
+  const params = new URLSearchParams()
+  if (module === "english") params.set("mode", "english")
+  if (noCache) params.set("no_cache", "true")
+  if (module === "chinese") params.set("poly_async", "1")
+
+  onStage?.("uploading")
+  const stageTimer =
+    onStage && typeof window !== "undefined" ? window.setTimeout(() => onStage("recognizing"), 4000) : undefined
+
+  const doFetch = (token: string) => {
+    const form = new FormData()
+    form.append("file", prepared, name)
+    return fetch(`${API_BASE}/ai-chinese/parse-image-stream?${params.toString()}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    })
+  }
+
+  let res: Response
+  try {
+    let token = useAuthStore.getState().session?.access_token ?? ""
+    res = await doFetch(token)
+    if (res.status === 401) {
+      const fresh = await tryRefreshFromStore().catch(() => null)
+      if (!fresh) return null
+      res = await doFetch(fresh)
+    }
+  } catch {
+    return null
+  } finally {
+    if (stageTimer) clearTimeout(stageTimer)
+  }
+  if (!res.ok || !res.body) return null
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ""
+  const streamedLines: string[] = []
+  let result: ParseImageResult | null = null
+
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buf += decoder.decode(value, { stream: true })
+      let idx: number
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const frame = buf.slice(0, idx)
+        buf = buf.slice(idx + 2)
+        const line = frame.split("\n").find((l) => l.startsWith("data:"))
+        if (!line) continue
+        let evt: Record<string, unknown>
+        try {
+          evt = JSON.parse(line.slice(5).trim()) as Record<string, unknown>
+        } catch {
+          continue
+        }
+        if (evt.type === "line") {
+          const t = String(evt.text ?? "").trim()
+          if (t) {
+            streamedLines.push(t)
+            onLine?.(t)
+          }
+        } else if (evt.type === "done") {
+          result = {
+            text: String(evt.text ?? streamedLines.join("\n")),
+            questions: Array.isArray(evt.questions) ? (evt.questions as string[]) : [],
+            blocks: (evt.blocks as TextBlock[]) ?? [],
+            crops: (evt.crops as CropItem[]) ?? [],
+            page_bounds: (evt.page_bounds as ParseImageResult["page_bounds"]) ?? null,
+            poly_pending: evt.poly_pending ? true : undefined,
+            poly_token: (evt.poly_token as string) ?? undefined,
+          }
+        } else if (evt.type === "error") {
+          // 一个字都没出：返回 null 让调用方回退非流式
+          if (!streamedLines.length) return null
+        }
+      }
+    }
+  } catch {
+    if (!streamedLines.length) return null
+  }
+
+  if (!result) {
+    if (!streamedLines.length) return null
+    // 流中断但已有部分文字：用已到手的行拼一个最小可用结果（保证学生能读）
+    result = {
+      text: streamedLines.join("\n"),
+      questions: [streamedLines.join("\n")],
+      blocks: [{ type: "body", text: streamedLines.join("\n"), align: "left", lines: streamedLines.map((t) => ({ text: t, indent: 0 })), polyphones: {} }],
+      crops: [],
+      page_bounds: null,
+    }
+  }
+  result.fingerprint = fp
+  putCachedParse(module, fp, result, engine)
+  return result
 }
