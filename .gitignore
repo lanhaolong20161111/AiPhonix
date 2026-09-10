@@ -177,3 +177,66 @@ server_ts/subcap_out.txt
 # 取消忽略 server_cf 部署脚本（被上面 scripts/ 规则误伤，应入库以供审计）
 !server_cf/scripts/
 models/
+
+# ─────────────────────────────────────────────────────────────
+# 仓库整理（2026-09-10）：构建产物 / 备份 / 一次性调试产物不入库
+# 目标：git status 只反映真实源码改动
+# ─────────────────────────────────────────────────────────────
+
+# 部署换源时产生的旧 web 产物备份（根目录与 server_cf 下都有，各 100MB+）
+_web_backups/
+
+# 临时发布/实验目录（不入库，但保留在磁盘）
+_proddist/
+overlay_tool/
+server_go/
+
+# 本地自启动/看门狗备份与工具状态
+autostart_backup_*/
+autostart_disabled_*/
+.codebuddy/
+
+# 构建与测试日志转储（根目录几十个 build_*_out.txt）
+build_*_out.txt
+build_test*.txt
+auc_run.err
+
+# 一次性删除清单
+server_cf/_del_ids.txt
+
+# 根目录散落的调试截图
+/_*.jpg
+/_*.jpeg
+/_*.webp
+/*_verify.png
+/bili_embed_fake.png
+
+# web 下的调试截图与一次性 e2e 脚本
+/web/recog_*.png
+/web/_poem_fix.png
+/web/_home_grid_mobile.png
+/web/_home_shot.mjs
+/web/_e2e_recog.*
+
+# 一次性实验/调试脚本（下划线开头，勿入库）
+/_*.ps1
+seedasr_auc_demo.ts
+server_cf/scripts/_tmp_chunk.js
+
+# server_py（已退役）运行时产物
+server_py/backend.err
+server_py/_*
+server_py/data/_*
+server_py/data/*.sqlite*
+server_py/data/*-bak
+server_py/data/*.imported-bak
+server_py/data/ai_chinese_*/
+server_py/data/ai_homework_*/
+server_py/data/chat_sessions/
+server_py/data/subtitle_captures/
+server_py/data/uploads/
+server_py/routes/data/
+server_py/bench_*
+
+# 本地 dev 日志（不入库；历史已跟踪的那份需单独处理）
+server_cf/local_dev_log.txt
