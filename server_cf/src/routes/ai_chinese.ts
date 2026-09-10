@@ -49,6 +49,7 @@ import questRoutes from "./ai_chinese_quest.js"
 import textbookRoutes from "./ai_chinese_textbook.js"
 import questionsRoutes from "./ai_chinese_questions.js"
 import { CACHE_DIR, IMAGE_DIR, MAX_QUESTION_LEN, multimodalModel, PROBLEM_IMAGE_DIR, SENTENCE_AUDIO_DIR, autoCropWhite, nowIso, resolveImagePath, searchTitle, strList, basenameOf, chineseSearch } from "../lib/aiChineseContext.js"
+import { cleanPolyphones, sanitizeBlockPolyphones } from "../lib/pinyinValue.js"
 
 const router = new Hono()
 const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
@@ -281,15 +282,9 @@ async function fillPolyphones(blocks: any[]): Promise<any[]> {
     console.warn(`[parse-image] 豆包补多音字失败(保持空): ${(e as Error).message}`)
     return blocks
   }
-  const poly: Record<string, string> = {}
   const data = parseJsonObj(reply)
-  if (data?.polyphones && typeof data.polyphones === "object") {
-    for (const [k, v] of Object.entries(data.polyphones as Record<string, unknown>)) {
-      const ks = String(k ?? "").trim()
-      const vs = String(v ?? "").trim()
-      if (ks && ks.length === 1 && vs) poly[ks] = vs
-    }
-  }
+  // cleanPolyphones：值必须是真拼音，挡掉「(非多音，跳过)」这类被模型写进值里的说明文字
+  const poly = data?.polyphones ? cleanPolyphones(data.polyphones) : {}
   if (Object.keys(poly).length) {
     return (blocks || []).map((b: any) =>
       b?.type && b.type !== "table" ? { ...b, polyphones: { ...(b.polyphones || {}), ...poly } } : b,
@@ -394,9 +389,12 @@ router.post("/ai-chinese/parse-image", async (c) => {
   )
 
   const imgHash = createHash("sha256").update(data).digest("hex")
+  // _r4 = 多音字版本号（2026-09-10）：旧缓存里可能落进了「(非多音，跳过)」这类被模型写进
+  // polyphones 值的说明文字（结果页会把它当拼音显示在字上方）。加版本后缀让旧缓存失效一次，
+  // 之后同图仍照常命中；读取路径另有 sanitizeBlockPolyphones 兜底，双保险。
   // _r3 = 表格版本号：2026-09-10 起「去印刷拼音」不再误删 HTML 标签名、正文里的 HTML 表格
   // 提升为 table 块（此前 <table> 被删成 <>，学生看到 <></> 尖括号且单元格不能点读）。
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r3.json`
+  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r4.json`
   if (!noCache && (await exists(cacheKey))) {
     try {
       const cached = await readCache(cacheKey)
@@ -406,7 +404,7 @@ router.post("/ai-chinese/parse-image", async (c) => {
       // 课本扫描清洗（命中缓存也要过滤：去印刷拼音 + 去角落页码）
       const stripPinyin = mode !== "english"
       const cleanedText = cleanBookScanText(deduped, { stripPinyin })
-      const cleanedBlocks = cleanBookScanBlocks(cachedBlocks, { stripPinyin })
+      const cleanedBlocks = sanitizeBlockPolyphones(cleanBookScanBlocks(cachedBlocks, { stripPinyin }))
       const cleanedQs = splitQuestions(cleanedText)
       // 命中缓存但注音为空（异步路径先落的无注音版本，或历史同步请求本就没补到）→ 给 token 让前端轮询补丁
       const hasPoly = cachedBlocks.some((b: any) => b?.polyphones && Object.keys(b.polyphones).length)
@@ -603,10 +601,12 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
   const polyAsync = mode !== "english" && c.req.query("poly_async") !== "0"
   const reqT0 = Date.now()
   const imgHash = createHash("sha256").update(data).digest("hex")
+  // _r4 = 多音字版本号（2026-09-10）：旧缓存可能落进了「(非多音，跳过)」这类脏注音值，
+  // 加后缀让旧缓存失效一次；读取路径另有 sanitizeBlockPolyphones 兜底。
   // _r3 = 排版/表格版本号（r2 = 段落聚合；r3 = 2026-09-10 表格块修复：HTML 标签不再被去拼音
   // 删成 <>、正文内嵌 HTML 表格提升为可点读 table 块）。旧缓存命中会绕过新逻辑，故加版本后缀
   // 让旧结果自然失效一次；识别结果本身不变，之后同图仍照常命中缓存。
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r3.json`
+  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r4.json`
   console.log(`[parse-image-stream] 收到图片 ${data.length} 字节, no_cache=${noCache}, mode=${mode}`)
 
   // 缓存命中：无流可放（或需要增量吐？）——直接一次性把完整结果发出来，前端秒显示
@@ -615,7 +615,7 @@ router.post("/ai-chinese/parse-image-stream", async (c) => {
       const cached = await readCache(cacheKey)
       const stripPinyin = mode !== "english"
       const cachedText = cleanBookScanText(dedupeLines(cleanOcrText(recoverTextFromJson(String(cached?.text ?? ""))).trim()).trim(), { stripPinyin })
-      const cachedBlocks = cleanBookScanBlocks(Array.isArray(cached?.blocks) ? cached.blocks : [], { stripPinyin })
+      const cachedBlocks = sanitizeBlockPolyphones(cleanBookScanBlocks(Array.isArray(cached?.blocks) ? cached.blocks : [], { stripPinyin }))
       const cachedQs = splitQuestions(cachedText)
       const hasPoly = cachedBlocks.some((b: any) => b?.polyphones && Object.keys(b.polyphones).length)
       const polyToken = polyAsync && !hasPoly ? imgHash : null
@@ -1463,16 +1463,9 @@ router.post("/ai-chinese/polyphones", async (c) => {
   } catch (e) {
     console.warn(`[polyphones] 豆包标注失败(返回空): ${(e as Error).message}`)
   }
-  const result: Record<string, string> = {}
   const data = parseJsonObj(reply)
-  if (data && data.polyphones && typeof data.polyphones === "object") {
-    for (const [k, v] of Object.entries(data.polyphones as Record<string, unknown>)) {
-      const ks = String(k ?? "").trim()
-      const vs = String(v ?? "").trim()
-      if (ks && ks.length === 1 && vs) result[ks] = vs
-    }
-  }
-  return c.json({ polyphones: result })
+  // 同 fillPolyphones：值必须是真拼音，挡掉「(非多音，跳过)」这类说明文字
+  return c.json({ polyphones: data?.polyphones ? cleanPolyphones(data.polyphones) : {} })
 })
 
 // ── classify（语文页分类） ──
