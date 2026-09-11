@@ -76,7 +76,7 @@ const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
       { to: "/module/memory_joy", emoji: "🌟", title: "记忆快乐本", subtitle: "今日字词自动编成小故事" },
       { to: "/module/sentence_practice", emoji: "✏️", title: "造句练习", subtitle: "用一个词写句话，AI 老师批改" },
       { to: "/module/oral_writing", emoji: "🎙️", title: "口述作文", subtitle: "看图/听题口述表达，AI 评分润色" },
-      { to: "/module/speech_compose", emoji: "🤖", title: "AI 对话学语文", subtitle: "和 AI 一问一答，对话中学语文" },
+      { to: "/module/speech_compose", emoji: "🤖", title: "AI 对话学语文", subtitle: "一问一答学语文，粘贴文章分句背诵跟读" },
       { to: "/module/ai_english_talk", emoji: "💬", title: "AI 英语对话", subtitle: "和 AI 用英语聊天，卡住有提示" },
       { to: "/module/char_map", emoji: "🗺️", title: "汉字地图", subtitle: "点亮学过的每一个字" },
       { to: "/module/diary", emoji: "📖", title: "成长日记", subtitle: "每天一句话，AI 帮你记下来" },

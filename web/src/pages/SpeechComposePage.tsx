@@ -14,6 +14,8 @@ import { EchoLadder } from "../components/EchoLadder"
 import { useTts } from "../hooks/useTts"
 import { zhTeachSetup, zhTeachJudge, type TeachScript, type TeachItem } from "../services/zhTeach"
 import { zhPoemSetup, zhPoemSummary, zhPoemSearch, type PoemScript, type PoemLine, type PoemSearchHit } from "../services/zhPoem"
+import { articleReciteSetup } from "../services/zhRecite"
+import { splitSentences, mergeShorts, type ArticleLine } from "../lib/articleSplit"
 
 type Stage = "setup" | "question" | "judging" | "finished"
 const SIX_SECONDS = 6000
@@ -51,6 +53,17 @@ export function SpeechComposePage() {
   /** 「古诗学完啦」祝贺词已朗读过（每首诗只自动读一次，防重复渲染重复读） */
   const congratsSpokenRef = useRef(false)
   const poemLine: PoemLine | null = poem?.lines[poemIdx] ?? null
+
+  // ── 文章模式（粘贴文章 → 逐句朗读 + 跟读测评 + LLM 背诵提示）──
+  const [articleText, setArticleText] = useState("")
+  const [article, setArticle] = useState<ArticleLine[] | null>(null)
+  const [artIdx, setArtIdx] = useState(0)
+  /** 当前句 TTS 领读完成，可以开始跟读测评 */
+  const [artReady, setArtReady] = useState(false)
+  /** 背诵提示（缩写）生成中 */
+  const [shortsLoading, setShortsLoading] = useState(false)
+  const artBusyRef = useRef(false)
+  const artCongratsRef = useRef(false)
 
   // 剧本
   const [script, setScript] = useState<TeachScript | null>(null)
@@ -268,8 +281,95 @@ export function SpeechComposePage() {
     void enterPoemVerse(0)
   }
 
+  // ── 文章练习 ──
+  /** 朗读一句文章（全站默认音色 6221；串行 + 忙碌锁，防竞态） */
+  const speakArticle = async (t: string) => {
+    if (!t.trim() || artBusyRef.current || evalBusy) return
+    artBusyRef.current = true
+    setTtsBusy(true)
+    try {
+      await withTimeout(speak(t), 30_000)
+    } finally {
+      artBusyRef.current = false
+      setTtsBusy(false)
+    }
+  }
+
+  /** 进入某一句：先 TTS 领读该句，读完再出现跟读测评（一句一轮） */
+  const enterArticleSentence = async (items: ArticleLine[], i: number) => {
+    if (i >= items.length) {
+      setArtIdx(i) // 越界 = 全部完成，交给完成分支
+      return
+    }
+    setArtIdx(i)
+    setArtReady(false)
+    setEvalBusy(true)
+    artBusyRef.current = true
+    setTtsBusy(true)
+    try {
+      const sent = items[i]?.text
+      if (sent) await withTimeout(speak(sent), 30_000)
+    } finally {
+      artBusyRef.current = false
+      setTtsBusy(false)
+      setEvalBusy(false)
+    }
+    setArtReady(true)
+  }
+
+  /** 开始文章练习：本地切句**立即**进入；每句的「背诵缩写」后台生成后原地合并 */
+  const startArticle = async () => {
+    const raw = articleText.trim()
+    setSetupError("")
+    const segs = splitSentences(raw)
+    if (!segs.length) {
+      setSetupError("没有识别到句子，请检查文章内容")
+      return
+    }
+    const lines: ArticleLine[] = segs.map((text) => ({ text, short: "" }))
+    setArticle(lines)
+    setArtIdx(0)
+    setArtReady(false)
+    artCongratsRef.current = false
+    setStage("question") // 离开 setup 界面
+
+    setShortsLoading(true)
+    void articleReciteSetup(segs)
+      .then((items) => setArticle(mergeShorts(segs, items)))
+      .catch(() => { /* 缩写生成失败：保持无缩写可练，不打断 */ })
+      .finally(() => setShortsLoading(false))
+
+    void enterArticleSentence(lines, 0)
+  }
+
+  /** 文章全部读完的祝贺朗读（串行） */
+  const speakArticleCompletion = async () => {
+    if (artBusyRef.current) return
+    artBusyRef.current = true
+    setTtsBusy(true)
+    try {
+      await withTimeout(speak(`全部 ${article?.length ?? 0} 句都读完啦！真棒！`))
+    } finally {
+      artBusyRef.current = false
+      setTtsBusy(false)
+    }
+  }
+
+  // 文章全部读完 → 自动朗读一次祝贺（每篇只读一次）
+  useEffect(() => {
+    if (!article || artIdx < article.length || artCongratsRef.current) return
+    artCongratsRef.current = true
+    void speakArticleCompletion()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [article, artIdx])
+
   // ── 生成剧本 ──
   const handleSetup = async () => {
+    // 填了文章 → 走文章练习模式
+    if (articleText.trim()) {
+      await startArticle()
+      return
+    }
     // 填了古诗 → 走古诗练习模式
     if (poemText.trim()) {
       await startPoem()
@@ -394,6 +494,12 @@ export function SpeechComposePage() {
     setPoemIntroDone(false)
     setPoemIdx(0)
     setCharTip(null)
+    setArticle(null)
+    setArticleText("")
+    setArtIdx(0)
+    setArtReady(false)
+    setShortsLoading(false)
+    artCongratsRef.current = false
     setStage("setup")
     setTopic("")
     setWordsText("")
@@ -430,7 +536,7 @@ export function SpeechComposePage() {
   }, [poemAllDone])
 
   // ── 设置界面 ──
-  if (stage === "setup" || (!script && !poem)) {
+  if (stage === "setup" || (!script && !poem && !article)) {
     return (
       <div className="page aihomework-page">
         <header className="module-header">
@@ -440,6 +546,7 @@ export function SpeechComposePage() {
         <div className="card" style={{ padding: 16 }}>
           <p className="module-hint">
             先告诉 AI 主题和要练的词语/句子，它会出好多道题带你一问一答，把每个词的意思和用法都练到。每题你都可以**打字或用输入法语音**回答。
+            想练背诵？把**整篇课文/段落粘贴到下面的「要练的文章」**，就会带你一句一句朗读 + 跟读测评，还给每句配一个背诵提示。
           </p>
           <label style={{ fontWeight: 700 }}>主题 / 场景（可选，不填 AI 自动决定）</label>
           <input
@@ -464,6 +571,14 @@ export function SpeechComposePage() {
             placeholder={"如：我喜欢和好朋友一起玩。\n公园里的花真漂亮！"}
             value={sentencesText}
             onChange={(e) => setSentencesText(e.target.value)}
+          />
+          <label style={{ fontWeight: 700 }}>要练的文章（可选，填了就练文章：按句朗读 + 跟读测评 + 背诵提示）</label>
+          <textarea
+            className="text-input"
+            style={{ width: "100%", margin: "6px 0 12px", minHeight: 96, resize: "vertical" }}
+            placeholder={"把要背的课文/段落整段粘贴进来，如：\n秋天的雨，是一把钥匙。它带着清凉和温柔，轻轻地，轻轻地，趁你没留意，把秋天的大门打开了。"}
+            value={articleText}
+            onChange={(e) => setArticleText(e.target.value)}
           />
           {poemPicked && (
             <p style={{ margin: "0 0 8px", color: "#0a7d43", fontWeight: 700 }}>✅ {poemPicked}，可直接点「开始学」</p>
@@ -626,6 +741,111 @@ export function SpeechComposePage() {
             onFinished={() => void enterPoemVerse(poemIdx + 1)}
             // 「跳过」必须接上：不接时按钮点了毫无反应（原来的 bug）
             onSkip={() => void enterPoemVerse(poemIdx + 1)}
+          />
+        )}
+      </div>
+    )
+  }
+
+  // ── 文章练习界面 ──
+  if (article) {
+    const total = article.length
+    const ttsBlocked = ttsBusy || evalBusy // 朗读/评测中：禁点 TTS 与跳句
+    if (artIdx >= total) {
+      return (
+        <div className="page aihomework-page">
+          <header className="module-header">
+            <button className="back-btn" onClick={backToSetup}>←</button>
+            <h1>🎉 文章背完啦</h1>
+          </header>
+          <div className="card" style={{ padding: 16 }}>
+            <p className="talk-feedback-praise">全部 {total} 句都跟读完成！</p>
+            <button
+              className="btn-secondary"
+              style={{ width: "100%", marginBottom: 8 }}
+              disabled={ttsBusy}
+              onClick={() => void speakArticleCompletion()}
+            >
+              {ttsBusy ? "🔊 朗读中…" : "🔊 再听一遍祝贺"}
+            </button>
+            <button className="btn-primary" style={{ width: "100%" }} onClick={backToSetup}>🔁 再练一篇</button>
+          </div>
+        </div>
+      )
+    }
+    const cur = article[artIdx]
+    return (
+      <div className="page aihomework-page">
+        <header className="module-header">
+          <button className="back-btn" onClick={backToSetup}>←</button>
+          <h1>📖 文章背诵</h1>
+          <span style={{ fontSize: 13, color: "#536471" }}>第 {artIdx + 1}/{total} 句</span>
+        </header>
+
+        {/* 全文逐句：当前句高亮，每句下方是 LLM 缩写（背诵框架），右侧喇叭可单独听 */}
+        <div className="card" style={{ marginTop: 8, padding: 12 }}>
+          <p className="module-hint" style={{ marginTop: 0 }}>
+            📚 全文{shortsLoading ? "（正在生成背诵提示…）" : ""}· 点句子可跳到那句
+          </p>
+          {article.map((it, i) => (
+            <div
+              key={i}
+              onClick={() => { if (!ttsBlocked) void enterArticleSentence(article, i) }}
+              style={{
+                padding: "6px 8px",
+                borderRadius: 8,
+                marginBottom: 4,
+                cursor: ttsBlocked ? "default" : "pointer",
+                background: i === artIdx ? "#fff8e1" : "transparent",
+                opacity: i === artIdx ? 1 : 0.72,
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <span style={{ flex: 1, fontSize: 17, lineHeight: 1.8, fontWeight: i === artIdx ? 700 : 400 }}>{it.text}</span>
+                <button
+                  className="btn-secondary btn-sm"
+                  disabled={ttsBlocked}
+                  onClick={(e) => { e.stopPropagation(); void speakArticle(it.text) }}
+                >
+                  🔊
+                </button>
+              </div>
+              {it.short
+                ? <div style={{ marginTop: 2, fontSize: 13, color: "#0a7d43", fontWeight: 600 }}>🧠 {it.short}</div>
+                : (shortsLoading && i === artIdx
+                  ? <div className="module-hint" style={{ marginTop: 2, fontSize: 12 }}>🧠 背诵提示生成中…</div>
+                  : null)}
+            </div>
+          ))}
+        </div>
+
+        {/* 当前句：原文 + 背诵框架 + 喇叭；下面接跟读测评（一句一轮） */}
+        <div className="card" style={{ marginTop: 8, padding: 12 }}>
+          <p className="module-hint" style={{ marginTop: 0 }}>🎯 这一句</p>
+          <p style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.9, margin: "4px 0" }}>{cur.text}</p>
+          {cur.short && (
+            <p style={{ fontSize: 14, color: "#0a7d43", fontWeight: 600, margin: "4px 0" }}>🧠 背诵框架：{cur.short}</p>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+            <button className="btn-secondary btn-sm" disabled={ttsBlocked} onClick={() => void speakArticle(cur.text)}>🔊 读这句</button>
+          </div>
+          {ttsBusy && <p className="speech-completing">🔊 朗读中…</p>}
+        </div>
+
+        {/* 跟读测评：AI 领读完成后出现（先听后评，≥70 进下一句） */}
+        {artReady && !ttsBusy && (
+          <EchoLadder
+            key={artIdx}
+            sentence={cur.text}
+            chunks={[cur.text]}
+            engine="16k_zh"
+            speaker="6221"
+            praise="这句读得真好！"
+            autoReadFirst={false}
+            source="zh_article_echo"
+            onBusyChange={setEvalBusy}
+            onFinished={() => void enterArticleSentence(article, artIdx + 1)}
+            onSkip={() => void enterArticleSentence(article, artIdx + 1)}
           />
         )}
       </div>
