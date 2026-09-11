@@ -861,4 +861,61 @@ router.post("/word-structure", async (c) => {
   }
 })
 
+// ── 文章背诵（AI 对话学语文·文章练习）──
+
+/** 文章背诵提示缓存（按句子列表 hash） */
+const RECITE_CACHE_PATH = dataPath("article_recite.json")
+
+/** 归一化：去掉标点/空白，用于把 LLM 回显的句子与前端切句对齐 */
+function normRecite(s: string): string {
+  return s.replace(/[^\u4e00-\u9fff0-9a-zA-Z]/g, "")
+}
+
+// POST /api/v1/llm/article-recite — 文章背诵：为每一句生成 ≤12 字的「简洁缩写」（背诵框架提示）。
+router.post("/article-recite", async (c) => {
+  const body = await c.req.json().catch(() => null)
+  const raw = Array.isArray(body?.sentences) ? (body.sentences as unknown[]) : []
+  const sentences = raw.map((s) => String(s ?? "").trim()).filter(Boolean).slice(0, 120)
+  if (!sentences.length) return c.json({ detail: "请提供要练的句子" }, 400)
+
+  const hash = createHash("sha256").update(`articleRecite|v1|${sentences.join("\u0001")}`).digest("hex")
+  let cacheAll: Record<string, unknown> = {}
+  try { cacheAll = (readJson<Record<string, unknown>>(RECITE_CACHE_PATH, {}) ?? {}) as Record<string, unknown> } catch { cacheAll = {} }
+  if (cacheAll[hash]) return c.json(cacheAll[hash])
+
+  const prompt =
+    `给 7-12 岁孩子做「背诵提示」。下面是一篇文章按句切好的句子（JSON 数组，顺序即文章顺序）。\n` +
+    `请为**每一句**生成一条极简提示，帮孩子记住这句话的框架和要点顺序。\n` +
+    `要求：\n` +
+    `- 每条 ≤12 个字，只保留这句话的关键词/顺序线索（可用「·」或「→」连接），不翻译、不解释、不加多余文字；\n` +
+    `- 条数与句子数完全一致，且与输入顺序一一对应（第 i 条对应第 i 句）；\n` +
+    `- 句子很短（一两个字）时，提示可与原句相同。\n` +
+    `句子：${JSON.stringify(sentences)}\n` +
+    `只输出 JSON：{"items":[{"text":"第1句原文","short":"第1句提示"}]}`
+
+  try {
+    const maxTokens = Math.min(2400, 200 + sentences.length * 48)
+    const reply = await chat("你只输出 JSON。", prompt, maxTokens, "article_recite", true)
+    const j = extractJson(reply)
+    const arr: unknown[] = Array.isArray(j?.items) ? (j!.items as unknown[]) : []
+    const byText = new Map<string, string>()
+    for (const x of arr) {
+      const o = (x ?? {}) as Record<string, unknown>
+      const t = normRecite(String(o?.text ?? ""))
+      const s = String(o?.short ?? "").trim()
+      if (t && s && !byText.has(t)) byText.set(t, s)
+    }
+    const items = sentences.map((text, i) => {
+      const o = (arr[i] ?? {}) as Record<string, unknown>
+      const short = (byText.get(normRecite(text)) || String(o?.short ?? "")).trim().slice(0, 20)
+      return { text, short }
+    })
+    const out = { items }
+    try { writeJson(RECITE_CACHE_PATH, { ...cacheAll, [hash]: out }) } catch { /* 缓存失败忽略 */ }
+    return c.json(out)
+  } catch {
+    return c.json({ items: sentences.map((text) => ({ text, short: "" })), fallback: true })
+  }
+})
+
 export default router
