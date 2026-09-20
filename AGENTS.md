@@ -318,9 +318,24 @@
 - 词库：`web/public/chinese_wordbank.json`（语文）+ `wordbank.json`/`english_vocabulary.json`（英语）。
 - 家长按年级配置字词范围存在 `training/plan` 的 `PlanItem.config.grades`，练习页读取过滤。
 
-### Web 端语音评分明细
-- 发音评分页（`/module/pronounce/:wordId`）：**单词显示每个音素得分**（`result.words[0].phone_infos`），**句子显示每词得分**。明细颜色：≥80 绿 / 60-79 黄 / <60 红。
-- `useSoeScore` 的 `state.result` 含完整 SoeResult（words + phone_infos）。
+### Web 端语音评分明细（**需求：明细 + 总分都要显示**）
+- 明细统一走共用组件 `web/src/components/SoeDetail.tsx`（**别在各页各写一套**）：
+  - **单词/单字评测**（`words.length === 1`）→ 展示**每个音素得分**（`words[0].phone_infos[].accuracy`）
+  - **句子评测**（多词）→ 展示**每个词得分**（`words[].accuracy`）
+- **总分必须与明细一起显示**：字段是 `SoeResult.pron_accuracy`。
+  现有用法可参考：`SoeDemo.tsx` 的 `score-main`、`RecognitionPage.tsx` 的「总分 xx 分」、`useSoeScore.ts` 的 `Math.round(result.pron_accuracy)`。
+  ⚠️ `SoeDetail` 目前**只出明细、不出总分** → 单词/单字与句子两种形态都要补上总分。
+- 明细颜色：≥80 绿 / 60-79 黄 / <60 红（`phoneScoreClass`：`good` / `ok` / `bad`）。
+- **英文与中文都要**（同一组件按 `engine` 分流音素显示）：
+
+  | 语言 | 句子测评 | 单词 / 单字测评 | 音素显示 |
+  |---|---|---|---|
+  | 英文 | 每个**单词**得分 + 总分 | 每个**音素**得分 + 总分 | `arpabetToIpa(phone, style)`（uk/us） |
+  | 中文 | 每个**字**得分 + 总分 | 每个**拼音**得分 + 总分 | `pinyinPhoneToDisplay(phone)`（`engine` 含 `zh`） |
+
+  - 标题文案要跟语言走：英文「音素得分 / 单词得分」，中文「拼音得分 / 汉字得分」
+    （当前 `SoeDetail` 的标题是硬编码的，中文场景会显示错字眼；`sentenceTitle` prop 已有，音素标题需一并处理）。
+- `useSoeScore` 的 `state.result` 含完整 SoeResult（`words` + `phone_infos` + `pron_accuracy`）。
 
 ### 已知遗留
 - 手机浏览器录音偶发「没检测到声音」/0 分——已加音量条调试，录音链路仍有待手机端实机验证（pcmRecorder 算法已验证正确）。
@@ -347,7 +362,7 @@
 - **前端必须传 `scene` 参数**（被测对象类型），值固定为 `word` / `sentence` / `paragraph` / `pinyin`，**不要传模糊的 eval_mode 数字**。
 - 服务端 `_resolve_eval_mode(scene, eval_mode, ref_text, is_zh)` 统一映射 scene → eval_mode，优先级：`scene` > 旧 `eval_mode` > 自动判断。
 - 各场景固定 scene：发音评分页（单英文单词）→ `word`；认字页（单汉字）→ `word`；拼音练习页 → `pinyin`；默写/词语页（组词/例句）→ `sentence`；长文 → `paragraph`。
-- 改 SOE 相关代码后，必须用场景表逐项验证：word 单字出音素 / sentence 多词出多 word / 中文单字限 1 字（2 字传 word 会 4104 属预期）。
+- 改 SOE 相关代码后，必须用场景表逐项验证：word 单字出音素 / sentence 多词出多 word / 中文单字限 1 字（2 字传 word 会 4104 属预期）；**并且明细与总分都要真的渲染出来**（英文每词+每音素、中文每字+每拼音，见 §5「Web 端语音评分明细」）。
 - `sentence_info_enabled` 必须为 `"1"`，否则 Words/PhoneInfos 全空，只有总分。
 
 ### 智聆音素 → 国际音标（支持英式/美式，官方映射表）

@@ -1,9 +1,100 @@
 # AiPhonix 项目记忆（通用交接文档）
 
-> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-08-28）。
+> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-09-14）。
 > 整合自 `AGENTS.md`、历史 `memory-export-*.md` / `SESSION_HANDOFF_*.md` 及最近会话的进展。
 
 ---
+
+---
+
+## 0.4 🈶 2026-09-14 英语识别不再删字母 + 数学算式独占一行
+
+### 英语「字母都没了」（生产 server_cf）
+- **根因**：英语页复用语文通道 `/api/v1/ai-chinese/parse-image?mode=english`，但豆包识别用的仍是**小学语文专用提示词**（`DOUBAO_OCR_JSON_PROMPT` / `DOUBAO_OCR_PROMPT` + system「小学语文识别排版器」）。语文提示词反复强调「汉字/拼音字母/声调」，豆包于是把英语单词当拼音/非目标内容处理 → 课文里字母被删。
+- **修复**：新增英语专用提示词 `DOUBAO_OCR_PROMPT_EN` / `DOUBAO_OCR_JSON_PROMPT_EN` / `DEEPSEEK_RELAYOUT_PROMPT_EN`（核心：这是英语课文、原样保留每个英文单词、禁止当拼音/省略/合并/翻译）；`arkExtractBlocks` / `arkExtractBlocksTwoPass` 加 `isEnglish` 参数，按 mode 选提示词与 `system_prompt`；流式纯文本路径（`chatStream`）同样按 mode 选。
+- **server_ts 同步**：本地后端 `ai-chinese/parse-image` **原本完全不认 `mode` 参数**（英语按语文跑），已补 `mode` 解析 + `isEnglish` 贯通 + 英语提示词；缓存 key 加 `_en` 后缀（`parse_<hash>_en.json`）避免中英互串。
+- ⚠️ 结论：**英语不是「不能去拼音」，而是不能用语文提示词**。`stripPrintedPinyin` 那条"删所有 [A-Za-z]"的规则本身没被英语触发（各路径 `stripPinyin: mode !== "english"` 都正确），别再去改它。
+- ⚠️ **必须换缓存 key**：英语缓存键原本就是 `parse_<hash>_en_r4.json`，里面存的是旧提示词产出的「被删字母」脏结果。这种脏是**提示词层面**造成的，读取路径再怎么清洗也救不回 → 英语 key 升为 `_en_r5`（`parse_<hash>_en_r5.json`）强制重识别；**中文 key 保持 `_r4` 不动**，避免全量重识别。两处路由（非流式 + 流式）都要改。
+- **顺带修掉另一处「语文规则漏到英语」**：英语结果页的「📥 整块加入生词本」原本只收汉字（点英语块必弹「该块没有可收录的汉字」）。`handleAddBlockWords` 改为按模块分流——英语按整词 `[A-Za-z]+(?:['’-][A-Za-z]+)*` 收录，语文/数学仍按汉字；按钮 title/aria 同步。
+- ✅ **用户已确认生效**（部署 + 手机硬刷新后，英语识别不再掉字母）。
+- 📌 排查结论（避免后人重复劳动）：**当前源码里英语路径不存在任何"删字母"的地方**。`stripPrintedPinyin`（`ASCII_LETTER_RUN_RE = /[A-Za-z]+/g`）与前端 `stripPinyin` 都被 `mode !== "english"` 正确挡住，前端 `OcrPickSheet` 也有 `if (!wantStrip) return s` 兜底；Paddle 链路（`paddleOcrExtract` → `markdownToBlocks`）和 `cleanOcrText`/`dedupeLines`/`fixMojibake` 都不删字母。**真正的"语文规则"是提示词**，别再往正则方向找。
+
+### 数学「算式跟在题目后面」（纯前端）
+- **根因**：数学 OCR 按【逐行保真】已把算式输出成独立物理行，是前端 `reflowText`（`web/src/lib/paragraphFlow.ts`）把非空行当续行并回了上一段。
+- **修复**：`reflowText(raw, { breakOnFormula })` 新增选项，新增导出 `isMathFormulaLine()`（不含**纯汉字**且含运算符/等号；纯数字行不算，避免拆散竖式；用纯汉字范围避免 `12+35=（ ）` 被全角括号误判）；`AiParseResultPage.renderMixedText` 加第 4 参数 `breakOnFormula`，仅数学两处调用传 `true`。语文/英语不传 → 行为零变化。
+- 测试：`web` 新增 4 个 reflowText 用例（`npx tsx --test src/lib/paragraphFlow.test.ts` → 35/35 通过）。
+
+### 英语「标题和正文挤在一行」（纯前端）
+- **根因**：英语结果页渲染 `questions`（扁平文本），而 `questions` 来自 `text`——Paddle 路径在 `paddleOcr.ts` 里做了 `cleanedMd.replace(/\n{2,}/g, "\n")`，**空行（段落边界）被压掉**；`reflowText` 又把所有非空行当续行并回上一段 → 整页（含标题）并成一行。结构化 `blocks`（带 `title/heading/body` 类型）明明在作用域里，但英语分支没用它。
+- **修复**：`reflowText` 新增两个英语选项并在英语渲染处开启（`EnglishResult.textParas`）：
+  - `breakOnSentence`：上一行以句末标点结尾（英文课本「一句一行」）→ 本行另起一段；
+  - `breakBeforeTitle`：标题样行独占一段，且**标题后必须另起段**（`prevCloses`）。
+  标题判据刻意做成「以大写/数字开头 + ≤28 字符 + **整行不含任何标点**」：正文折行几乎总含标点（`My name is Tom. I am`）故不误判，而 `Unit 3 My Family` / `Story time` / `Let's learn` 无标点故命中。
+  ⚠️ **不要**用「下一行是否小写开头」排除折行——`Let's learn` 后面跟的正是小写单词表（`doctor teacher`），那样会把真标题误判成折行。
+- 效果：`Unit 3 My Family` / 每个句子 / `Let's learn` + 单词表 各自独立成行；正文折行仍并回同一段。
+- 测试：新增 6 个英语用例（`paragraphFlow.test.ts` 共 **42/42 通过**）。
+- 缓存无关：纯渲染期处理，**已识别的历史/缓存结果刷新即生效，无需重新识别**。
+
+### OCR 提示词加固：段落/版面约束（参考"豆包版面理解"资料）
+- **适用性判断（重要，别照搬）**：资料里的 `parse_mode: detail`、返回 bounding box 属于火山**文档解析产品线**；我们走的是方舟 **chat/completions 视觉对话**（`ark.ts` 的 body 只有 `model`/`messages`/`max_tokens`/`thinking:{type:"disabled"}`），**没有该参数、也不返回 bbox**（`arkExtractBlocks` 的 pageBounds 恒 null）。能用的只有**提示词约束**这一层。
+- **已落地**：6 个提示词补【版面结构（重要）】——
+  - JSON 类（`DOUBAO_OCR_JSON_PROMPT` / `_NO_POLY` / `_EN`）：每个自然段单独一个 body 块，禁止多段并进同一块；标题各自成块；禁止改写/润色/总结/简化/翻译、禁止调整语序；
+  - 纯文本类（`DOUBAO_OCR_PROMPT` + `_EN`）：段间空一行、标题独占一行、禁止标题与正文并一行；
+  - `MATH_OCR_PROMPT`：题目与算式分行，算式另起一行。
+  server_cf + server_ts 已同步。
+- ⚠️ **豆包提示词只对豆包路径生效**：生产 `OCR_ENGINE=paddle`，Paddle 常抢跑胜出，而 **Paddle 是专用 OCR 模型、不吃提示词** → 这批改动主要改善豆包兜底/回退链路。
+- ⚠️ **已知残留（两处，别误判成"改了没用"）**：
+  ① `paddleOcrExtract` 的 `cleanedMd.replace(/\n{2,}/g, "\n")` 会压掉 `text` 的段落空行（`blocks` 不受影响，结构仍在）。**没改它**是因为 `splitQuestions` 里「空行分隔」分支优先级**高于**「行首题号」，加空行会让**数学改按空行分题**（回归风险）。
+  ② 英语结果页渲染的是扁平 `questions` 而非结构化 `blocks`，标题/段落目前靠前端 `reflowText` 启发式还原。彻底解法是英语也改用 `blocks` 渲染（UI 文案「识别到 N 段，一段一块」本来就是按这个设计的），但会牵动 `posMap`/`navCount`/`sectionLabel`/历史索引，需单独评估。
+
+### 英语版面结构三项整改（按用户「按顺序都改了」落地）
+1. **英语结果页改用结构化 `blocks` 渲染**（`web/src/pages/AiParseResultPage.tsx`）：新增模块级 `enDisplaySegments(blocks, questions, text)`，优先用服务端的 `title/heading/body` 块（版面与原图一致），没有 blocks 才退回扁平 `questions/text`。**渲染循环 / `posMap` 标注项 / `navCount` / `sectionLabel` 共用同一份**，索引才对得上；`table` 块照常渲染但跳过词性标注。这样「识别到 N 段，一段一块」的文案才名副其实（原先扁平 `questions` 通常只有 1 段）。
+   ⚠️ 该函数放在组件外、**不是 hook**（组件在 `if (!session) return` 之前已有全部 hooks，早返回之后再加 hook 会触发 hook 数量不一致）。
+2. **不再压掉 Paddle 的段落空行**（`server_cf/src/lib/paddleOcr.ts`）：`replace(/\n{2,}/g,"\n")` → 只做收敛（3+ 空行 → 1 个空行）与行尾空白清理，让 `text` 保留段落边界（`blocks` 本来就没受影响）。
+   ⚠️ **配套必改**：新增 **`splitProblemsByNumber`**（`aiTextUtils.ts`，server_cf + server_ts 同步）——数学只按【题N】/行首题号分题、**忽略空行**。因为 `splitQuestions` 的「空行分隔」分支优先级高于「行首题号」，一加空行数学就会退化成按空行切段、把题干/选项切散。`ai_homework.ts` 两处（缓存读 + 主链路）已改用它，并有单测守卫（同一文本：通用拆题 3 段 vs 数学 2 题）。
+3. **英语默认豆包优先**（`server_cf/src/routes/ai_chinese.ts` 的 `usePaddleFirst` 与 `tryPaddleFirst`）：显式传 `engine=paddle/doubao` 仍优先；否则**英语走豆包**（多模态有版面理解），其余模块维持 Paddle 优先。原因：Paddle 只吐扁平 markdown，标题层级/段落边界会丢。代价是英语首屏慢一点（Paddle 1~3s vs 豆包流式）。
+   ℹ️ server_ts 无 Paddle（只有豆包 + 腾讯/百度 API 回退链），故第 2、3 条不涉及它，只同步了 `splitProblemsByNumber`。
+
+### 卷内英文被删成标点乱码（2026-09-14 追加）
+用户截图：语文卷里夹的**英语邮件范文**，在英语模块结果页显示成 `,  ,  .` / `? / ? / ?`（英文全丢，标点/数字/中文保留）。查出**两个独立原因，都已修**：
+1. **客户端 OCR 结果缓存没被清**（`web/src/lib/ocrResultCache.ts`）：localStorage `aiphonix_ocr_cache_v1`，`KEY_V` 原为 `v3`、**TTL 7 天**、命中即秒出并**完全绕过服务端**。此前英语走语文提示词产出的脏结果就躺在这里 —— **服务端怎么改都不会影响它**（这正是"改了提示词还是乱码"的原因）。已 bump 到 **`v4`**，旧脏条目自然失效、强制重识别一次。
+2. **`stripPrintedPinyin` 会删掉中文行里的英文正文**（`server_cf/src/lib/aiTextUtils.ts`）：它无条件 `replace(/[A-Za-z]+/g, "")`，于是中文卷子里的英语范文被删成标点乱码。改为**只在该行还有汉字时才删无调拉丁段**（带声调的仍走 `PINYIN_TONE_RE` 无条件删）。
+   取舍：纯无调拼音行极罕见（教材拼音必标调），宁可漏删也绝不删英文正文。已用 `tsx` 跑**真实代码**验证：`It has been a long time…` 原样保留；`妈妈 mā ma 在家里` / `我爱 xue xi 语文` 拼音仍删净。
+   ℹ️ 只改 server_cf —— server_ts 根本没有 `stripPrintedPinyin`（它从不删拼音）。
+- ⚠️ **教训（务必记住）**：改识别质量后只 bump **服务端**缓存键（R2 blob）**不等于**清掉**客户端** localStorage 缓存；同一张图重新识别仍会命中旧脏结果。**两处都要 bump。**
+
+### 版面契约 P0+P1：三套规则收敛 + 数学补 blocks（2026-09-14 追加）
+> 完整契约见 **`docs/layout-contract.md`**（Block schema / 段落定义 / 两条元规则 / 各模块规格 / 已知取舍 / P0~P5 待办）。起因：用户反馈"版面一直搞不好"，诊断出**提示词、服务端后处理、前端渲染三套逻辑各自为政**，且数学 `blocks` 恒空导致结构规则全部悬空。
+- **P0 收尾函数统一**：`finalizeBlocks` 从 `ai_chinese.ts` 提到 `aiTextUtils.ts` 导出，三模块共用；**顺带删掉 ai_chinese.ts 里重复的第二份 inline 清洗**（`deepseekRelayout` 内，两份规则一旦漂移就会出现"同页不同分支结果不同"）。
+- **P1 数学补 blocks**：① Paddle 路径原先把 `po.blocks` **直接丢掉**，现已接上；② 豆包路径新增 `MATH_OCR_JSON_PROMPT`（内容规则与 `MATH_OCR_PROMPT` 一致，只是输出 blocks JSON），**失败自动回退纯文本提示词**（零回归）；③ 前端新增 `mathDisplaySegments`，与 `enSegments` 同构（渲染/`navCount`/`sectionLabel` 共用一份，索引对齐）；④ **`body` 块（算式/竖式）改为逐行原样渲染** + `.math-line{white-space:pre-wrap}`，保住竖式列对齐。
+- ⚠️ **两个必须记住的实现坑**：
+  ① `cleanOcrText` 会删掉 `\u25a1`（**□**）——语文无害，但数学填空方框正是 □。故 `finalizeBlocks` 加 `profile: "chinese"|"math"` **一次性表达学科差异**，并用 `lineCleaner` 注入 `mathClean`。实测：语文档位 `2. 填空：□ + 5 = 9` → `2. 填空： + 5 = 9`；数学档位完整保留。
+  ② `extractBlocks` 默认逐行 `.trim()`，会吃掉竖式行首空格 → 数学必须传 `keepLineSpaces: true`。
+- **已部署**：Version `476ea01f`（Worker + web 全量）。`web tsc` / `server_cf tsc` 均 0；`paragraphFlow` 42/42。
+- **待办**：server_ts 尚未镜像（其 `aiTextUtils` 无 `finalizeBlocks`、`extractBlocks` 无 `keepLineSpaces`）→ 见契约文档 P1.5；P2（统一分段）/P3（前端删启发式）/P4（流式对齐）/P5（边界场景）未做。
+
+### 流式 OCR 移除 + 学科隔离指令（2026-09-14 追加）
+- **用户指令（两条）**：① 英语/数学/语文**不共用逻辑，各自独立出来**；② **去掉流式 OCR**。
+- **② 已完成**（Version `9be8d9f2`，全量部署）：
+  - 前端：删 `parseImageStream` + `ParseImageStreamHandlers`（`web/src/services/aiImage.ts`，-149 行）；AI 语文/英语页改调 `parseImage`；顺带删除 `liveLines`/`readingIdx`/`abortRef`/`finishNow`（"就按这些字来"）与 TTS 逐行朗读 UI（两页各 -1.4 kB）。
+  - 服务端：删 `/ai-chinese/parse-image-stream` 路由整段（291 行）+ `streamSSE`/`IncrementalLineExtractor` 导入。
+  - 收益：**少一条重复管线**（原先非流式/流式各有一套清洗与引擎选择，任何规则改动都要改两处；且流式天生丢空行 → 契约 P4 随之作废）。
+- **① 尚未执行（下一步）**：上一步 P0 我把 `finalizeBlocks` 做成了**共用**（`profile` / `lineCleaner` 开关），与用户新指令方向**相反**。待拆成 `lib/subject/{chinese,english,math}.ts` 三份自洽实现并**删掉开关**；`Block` schema 作为前后端通信格式保留。契约文档 **§7** 已写明执行顺序与理由 —— **共用正是这串 bug 的根源**：英语吃语文提示词（英文被删）、语文去拼音删掉卷内英文正文、数学要 `□` 却用了会删 `□` 的语文清洗器。
+
+### 部署
+- 已部署生产（四次）：
+  1. Version **`10230c0c-cad0-4002-8a23-e559ec890c72`** —— 全量部署（Worker 英语提示词 + web 资产：数学算式换行）。
+  2. Version **`dcc6b5c6-43ba-4858-b138-94746e7a2b4b`** —— `deploy.ps1 -SkipWeb`（英语缓存 key → `_en_r5`，让旧脏缓存失效重识别）。
+  3. Version **`3fe07db3-ccef-4733-86b3-35d04b7ae0c0`** —— `deploy_web.ps1`（英语结果页整块收词改为按英文单词收录）。
+  4. Version **`ad6e59bb-a0b5-47ce-8a2d-5b29c9076845`** —— `deploy_web.ps1`（英语换行：标题独占一段，不与正文挤一行）。
+  5. Version **`e75dbf87-b4a0-49c8-9ca9-4e345f4f2b53`** —— `deploy.ps1 -SkipWeb`（OCR 提示词加固：段落/标题/禁止改写约束，含英语与数学）。
+  6. Version **`54ed44a5-1d2f-4988-92cf-f11ad899c0dd`** —— 全量部署（英语 blocks 渲染 + Paddle 保留段落空行 + 数学 `splitProblemsByNumber` + 英语豆包优先）。
+  7. Version **`61c23550-7b3b-4259-8373-2eb338c56289`** —— 全量部署（`stripPrintedPinyin` 不再删英文正文 + 客户端 OCR 缓存 `KEY_V` → `v4`）。
+  8. Version **`476ea01f-62fb-4134-8f52-3df69f8cf422`** —— 全量部署（版面契约 P0+P1：`finalizeBlocks` 统一 + 数学补 blocks + 竖式逐行渲染）。
+  9. Version **`9be8d9f2-e33e-4c10-8e80-0a75795ecbb2`** —— 全量部署（**移除流式 OCR**：前端 `parseImageStream` + 两页实时行 UI、服务端 SSE 路由整段）。
+- 线上验证：`web/assets/paragraphFlow-5A5zHClZ.js` 已含 `breakOnFormula`；`/health` → `{"status":"ok","d1":"ok","r2":"ok"}`。
+- 注：`deploy.ps1` 的 [3/4] verify 步骤在本机必报 `[regex]::Match` null（`curl.exe --noproxy` 返回空），**属既有噪声、不影响部署**，用 `web_fetch` 验产物即可。
+- 本地后端（server_ts 18002）本次**未在运行**，dist 已重建，下次启动即带英语模式修复。
 
 ---
 
