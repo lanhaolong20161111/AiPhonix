@@ -5,7 +5,7 @@ import { Hono } from "hono"
 import { createHash, randomUUID } from "node:crypto"
 import { writeFile, mkdir } from "node:fs/promises"
 import { existsSync, readFileSync } from "node:fs"
-import { join, basename } from "node:path"
+import { join } from "node:path"
 import { and, desc, eq, or, sql } from "drizzle-orm"
 import { db, sqlite } from "../db/index.js"
 import {
@@ -16,21 +16,8 @@ import {
 import { resolveCurrentUser } from "../middleware/auth.js"
 import { getArk } from "../lib/ark.js"
 import { chat as deepseekChat, BudgetExceededError } from "../lib/deepseek.js"
-import { autoOrient, compressImageToFile } from "../lib/image.js"
-import { ocrChain } from "../lib/ocr.js"
-import {
-  cleanOcrText,
-  dedupeLines,
-  recoverTextFromJson,
-  splitQuestions,
-  splitSentences,
-  extractBlocks,
-  extractHtmlTables,
-  mergeTableBlocks,
-  extractPageBounds,
-  markPoetry,
-  markOrderedIndent,
-} from "../lib/aiTextUtils.js"
+import { autoOrient } from "../lib/image.js"
+import { splitSentences } from "../lib/aiTextUtils.js"
 import { readJson, writeJson } from "../lib/jsonfile.js"
 import { splitPinyinWord } from "../lib/pinyin.js"
 import * as quest from "../lib/quest_graph.js"
@@ -38,13 +25,17 @@ import { DATA_DIR } from "../env.js"
 
 import { stripFence, parseJsonObj, readCache, writeCache, renderAnalyze, makeSentenceAudioPath } from "../lib/aiShared.js"
 
-import { DOUBAO_OCR_PROMPT, DOUBAO_OCR_BLOCKS_PROMPT, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, CHINESE_READING_PROMPT, CHINESE_QUESTIONS_EXTRACT_PROMPT, CHINESE_QUESTIONS_GENERATE_PROMPT, CHINESE_ESSAY_ENRICH_PROMPT, CHINESE_ESSAY_PROMPT, CHINESE_TEXTBOOK_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
+import { HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, CHINESE_READING_PROMPT, CHINESE_QUESTIONS_EXTRACT_PROMPT, CHINESE_QUESTIONS_GENERATE_PROMPT, CHINESE_ESSAY_ENRICH_PROMPT, CHINESE_ESSAY_PROMPT, CHINESE_TEXTBOOK_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
 // 按域拆分的子路由（挂载于根 = 透明合并）
 import kbRoutes from "./ai_chinese_kb.js"
 import questRoutes from "./ai_chinese_quest.js"
 import textbookRoutes from "./ai_chinese_textbook.js"
 import questionsRoutes from "./ai_chinese_questions.js"
 import { CACHE_DIR, IMAGE_DIR, MAX_QUESTION_LEN, multimodalModel, PROBLEM_IMAGE_DIR, SENTENCE_AUDIO_DIR, UPLOAD_DATA_DIR, autoCropWhite, chatJson, loadJsonArr, nowIso, resolveImagePath, searchTitle, strList } from "../lib/aiChineseContext.js"
+import { extOf, persistAndOrient, readImageRequest, sha256Hex, type SubjectOcrOutcome } from "../lib/subject/kernel.js"
+import { readChineseCachedOutcome, runChineseOcr } from "../lib/subject/chinese.js"
+import { readEnglishCachedOutcome, runEnglishOcr } from "../lib/subject/english.js"
+import type { Context } from "hono"
 
 const router = new Hono()
 const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
@@ -53,274 +44,50 @@ const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
 
 /** LLM 输出 JSON + 结构校验；失败或校验不过自动重试一次（对齐 Python _chat_json） */
 
-// ── 图片路径解析 / 白边裁剪 ──
-
-// ── 句子朗读录音（md5 命名） ──
-
-// ── render_analyze 提示词（对齐 prompts_aihomework.py） ──
-
-// ── parse-image ──
-
-// 表格专用 OCR 提示词：检测到图片含表格时使用，强化 HTML 表格还原（跨行/跨列合并、文字原样）
-
-/** 排版整理（对齐 PY _deepseek_relayout）：把清洗后的文本整理成 blocks JSON。
- * 成功返回 blocks 列表（已清洗+mark）；失败返回空数组。 */
-async function deepseekRelayout(text: string): Promise<any[]> {
-  const prompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
-  const reply = await deepseekChat("你是一个只输出JSON的小学语文排版整理器。", prompt, 4096, "ai_chinese_relayout", true)
-  const blocks = extractBlocks(reply || "")
-  if (!blocks.length) return []
-  // 复用清洗：去残留标记 + 段落首行缩进兜底
-  const cleaned = blocks
-    .filter((b) => {
-      const bt = cleanOcrText(b.text).trim()
-      return !!bt
-    })
-    .map((b) => {
-      const bt = cleanOcrText(b.text).trim()
-      const lines = (b.lines || [])
-        .map((ln) => {
-          const lt = cleanOcrText(ln.text).trim()
-          return lt ? { text: lt, indent: ln.indent } : null
-        })
-        .filter(Boolean) as { text: string; indent: number }[]
-      if (!lines.length) lines.push({ text: bt, indent: 0 })
-      if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
-      return { type: b.type, text: bt, align: b.align, lines, polyphones: b.polyphones || {} }
-    })
-  markPoetry(cleaned)
-  markOrderedIndent(cleaned)
-  return cleaned
-}
-
-/** Ark 识图 + 结构化排版（对齐 PY _ark_extract_blocks）：
- * 返回 {text, blocks, pageBounds}。识别失败抛异常（由调用方回退 OCR）。 */
-async function arkExtractBlocks(imagePath: string, isTable: boolean): Promise<{ text: string; blocks: any[]; pageBounds: any }> {
-  const ark = getArk()
-  if (!ark.enabled) throw new Error("免费 AI 服务未配置（缺少 ARK_API_KEY）")
-  // 逐行保真需要看清小字/拼音/下划线 —— 用更高的识别分辨率（区域切割专用 1400px，而非普通识图 800px）
-  const compressed = await compressImageToFile(imagePath, join(IMAGE_DIR, `${basename(imagePath).replace(/\.[^.]+$/, "")}.region.jpg`), 1400, 90)
-
-  // ── 非表格：合并识图+排版为单次 LLM 调用（省一次串行往返 ~3-8s）──
-  if (!isTable) {
-    try {
-      const mergedReply = await ark.chat({
-        prompt: DOUBAO_OCR_BLOCKS_PROMPT,
-        image_paths: [compressed],
-        max_tokens: 4096,
-        model_override: multimodalModel(),
-        disable_thinking: true,
-      })
-      const dsBlocks = extractBlocks(mergedReply || "")
-      if (dsBlocks.length) {
-        const cleaned = dsBlocks
-          .filter((b) => { const bt = cleanOcrText(b.text).trim(); return !!bt })
-          .map((b) => {
-            const bt = cleanOcrText(b.text).trim()
-            const lines = (b.lines || [])
-              .map((ln) => { const lt = cleanOcrText(ln.text).trim(); return lt ? { text: lt, indent: ln.indent } : null })
-              .filter(Boolean) as { text: string; indent: number }[]
-            if (!lines.length) lines.push({ text: bt, indent: 0 })
-            if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
-            return { type: b.type, text: bt, align: b.align, lines, polyphones: b.polyphones || {} }
-          })
-        if (cleaned.length) {
-          markPoetry(cleaned)
-          markOrderedIndent(cleaned)
-          const text = dedupeLines(cleaned.map(b => b.lines.map((l: { text: string }) => l.text).join("\n")).join("\n")).trim()
-          return { text, blocks: cleaned, pageBounds: null }
-        }
-      }
-      console.warn("[ai-chinese] 合并识图 JSON 解析失败，回退两步流程")
-    } catch (e) {
-      console.warn(`[ai-chinese] 合并识图调用失败，回退两步流程: ${(e as Error).message}`)
-    }
-  }
-
-  // ── 旧两步流程（表格 always / 非表格 fallback）──
-  const prompt = isTable ? DOUBAO_TABLE_OCR_PROMPT : DOUBAO_OCR_PROMPT
-  const reply = await ark.chat({
-    prompt,
-    image_paths: [compressed],
-    max_tokens: 4096,
-    model_override: multimodalModel(),
-    disable_thinking: true,
-  })
-  let rawText = cleanOcrText(reply || "").trim()
-  rawText = dedupeLines(rawText).trim()
-  if (!rawText) return { text: "", blocks: [], pageBounds: null }
-
-  // 表格模式：从 OCR 结果提取 <table>…</table> 作为 table 块，其余文字占位后 relayout，保持顺序
-  let tables: string[] = []
-  if (isTable) {
-    const [replaced, extracted] = extractHtmlTables(rawText)
-    rawText = replaced
-    tables = extracted
-  }
-  const text = rawText
-
-  // 免费 Ark 排版（doubao-seed-2-1-turbo-260628）优先；失败再兜底付费 deepseek（有预算守卫）
-  try {
-    if (ark.enabled) {
-      const relayoutPrompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
-      const relayoutReply = await ark.chat({
-        prompt: relayoutPrompt,
-        system_prompt: "你是一个只输出JSON的小学语文排版整理器。",
-        max_tokens: 4096,
-        model_override: multimodalModel(),
-        disable_thinking: true,
-      })
-      const dsBlocks = mergeTableBlocks(extractBlocks(relayoutReply || ""), tables)
-      if (dsBlocks.length) {
-        // 复用清洗 + 排版修正
-        const cleaned = dsBlocks
-          .filter((b) => {
-            const bt = cleanOcrText(b.text).trim()
-            return !!bt
-          })
-          .map((b) => {
-            const bt = cleanOcrText(b.text).trim()
-            const lines = (b.lines || [])
-              .map((ln) => {
-                const lt = cleanOcrText(ln.text).trim()
-                return lt ? { text: lt, indent: ln.indent } : null
-              })
-              .filter(Boolean) as { text: string; indent: number }[]
-            if (!lines.length) lines.push({ text: bt, indent: 0 })
-            if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
-            return { type: b.type, text: bt, align: b.align, lines, polyphones: b.polyphones || {} }
-          })
-        markPoetry(cleaned)
-        markOrderedIndent(cleaned)
-        return { text, blocks: cleaned, pageBounds: null }
-      }
-    }
-  } catch (e) {
-    console.warn(`[ai-chinese] 豆包 OCR 免费排版失败，改走 deepseek 兜底: ${(e as Error).message}`)
-  }
-  try {
-    const dsBlocks = mergeTableBlocks(await deepseekRelayout(text), tables)
-    if (dsBlocks.length) return { text, blocks: dsBlocks, pageBounds: null }
-  } catch (e) {
-    // BudgetExceededError 不捕获 → 全局 429
-    if (e instanceof BudgetExceededError) throw e
-    console.warn(`[ai-chinese] deepseek 排版兜底失败，用纯文本: ${(e as Error).message}`)
-  }
-  // 兜底：表格块在前 + 剩余文字作为一个 body
-  if (tables.length) {
-    const out = tables.map((t) => ({ type: "table", text: t, align: "left", lines: [{ text: t, indent: 0 }], polyphones: {} }))
-    const pure = text.trim()
-    if (pure) out.push({ type: "body", text: pure, align: "left", lines: [{ text: pure, indent: 0 }], polyphones: {} })
-    return { text, blocks: out, pageBounds: null }
-  }
-  return { text, blocks: [], pageBounds: null }
-}
-
-/** 区域裁剪 — 原基于 Python OpenCV 像素行分割 + 逐行多模态读文本。
- * Python 依赖移除后暂返回空数组（豆包 OCR 已能整页识别+排版，crops 仅作附图对照增强，非关键路径）。 */
-async function detectRegions(_imagePath: string): Promise<any[]> {
-  return []
-}
+// ── parse-image（学科隔离后的薄路由） ──
+//
+// 三个学科的识图链路各自完整地住在 lib/subject/{chinese,english,math}.ts 里
+// （自带提示词选择 / 清洗器 / 缩进规则 / blocks 收尾 / 分题 / 缓存键）。
+// 本文件不再出现任何学科规则 —— 想看语文怎么清洗，去 chinese.ts；英语去 english.ts。
+//
+// ⚠️ 这里保留一个 `mode === "english"` 分支，但它是**寻址**（选哪条链），不是学科策略：
+//    英语页历史上复用 `/ai-chinese/parse-image`（前端传 mode=english）；两条链之间
+//    没有任何交叉引用，各自独立。将来若要给英语单独开一个路由，把这点搬过去即可。
 
 router.post("/ai-chinese/parse-image", async (c) => {
-  const user = await resolveCurrentUser(c.req.header("Authorization"))
-  const form = await c.req.formData().catch(() => null)
-  if (!form) return c.json({ detail: "缺少文件" }, 400)
-  const file = form.get("file")
-  if (!file || typeof file === "string") return c.json({ detail: "缺少文件" }, 400)
-  const data = Buffer.from(await (file as File).arrayBuffer())
-  if (!data.length) return c.json({ detail: "图片为空" }, 422)
-  const noCache = c.req.query("no_cache") === "true"
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const r = await readImageRequest(c)
+  if (!r.ok) return c.json({ detail: r.detail }, r.status)
+  const { data, fileName, noCache, reqEngine } = r.req
 
-  const imgHash = createHash("sha256").update(data).digest("hex")
-  const cacheFile = join(CACHE_DIR, `parse_${imgHash}.json`)
-  if (!noCache && existsSync(cacheFile)) {
-    try {
-      const cached = JSON.parse(readFileSync(cacheFile, "utf-8"))
-      const cachedText = cleanOcrText(recoverTextFromJson(String(cached.text ?? ""))).trim()
-      const deduped = dedupeLines(cachedText).trim()
-      const cachedQs = (cached.questions ?? []).map(String).filter(Boolean)
-      return c.json({
-        text: deduped,
-        questions: cachedQs.length ? cachedQs : deduped ? [deduped] : [],
-        blocks: Array.isArray(cached.blocks) ? cached.blocks : [],
-        page_bounds: cached.page_bounds ?? null,
-        crops: Array.isArray(cached.crops) ? cached.crops : [],
-      })
-    } catch {
-      /* 缓存损坏忽略 */
-    }
+  const isEnglish = c.req.query("mode") === "english"
+  const imageHash = sha256Hex(data)
+
+  if (!noCache) {
+    const hit = isEnglish
+      ? await readEnglishCachedOutcome(imageHash)
+      : await readChineseCachedOutcome(imageHash)
+    if (hit) return respondOcr(c, hit)
   }
 
-  const ext = (file as File).name?.match(/\.([a-zA-Z0-9]+)$/)?.[1] ? "." + (file as File).name!.match(/\.([a-zA-Z0-9]+)$/)![1] : ".jpg"
-  const fname = `${randomUUID().replace(/-/g, "")}${ext}`
-  await mkdir(IMAGE_DIR, { recursive: true })
-  const path = join(IMAGE_DIR, fname)
-  await writeFile(path, data)
-
-  // EXIF 方向校正（sharp）
-  let oriented = path
-  try {
-    oriented = await autoOrient(path)
-  } catch {
-    /* 跳过 */
-  }
-
-  // 图片预分类已移除（原 Python OpenCV classifyImage）。
-  // 豆包多模态 OCR 能直接处理截图/拍照，无需裁剪 UI 残留。
-  const isTable = false
-
-  // 豆包识图（Ark 优先，失败回退 OCR API 链）+ 结构化排版
-  let text = ""
-  let blocks: any[] = []
-  let arkErr: string | null = null
-  let ocrErr: string | null = null
-  try {
-    const result = await arkExtractBlocks(oriented, isTable)
-    text = result.text
-    blocks = result.blocks
-  } catch (e) {
-    arkErr = (e as Error).message
-    console.warn(`[ai-chinese] 豆包识图失败: ${arkErr}`)
-    // 回退 OCR API 链（腾讯云 → 百度），失败则保持空文本
-    try {
-      const ocrText = await ocrChain(oriented)
-      if (ocrText) {
-        text = dedupeLines(cleanOcrText(ocrText)).trim()
-        console.warn(`[ai-chinese] OCR API 回退成功, 文本长度 ${text.length}`)
-      }
-    } catch (e2) {
-      ocrErr = (e2 as Error).message
-      console.warn(`[ai-chinese] OCR API 回退失败: ${ocrErr}`)
-    }
-  }
-
-  text = cleanOcrText(text).trim()
-  text = recoverTextFromJson(text).trim()
-  if (!text) {
-    const diag = `豆包识图:${arkErr || "成功但无文本"}` + (ocrErr ? `；OCR回退:${ocrErr}` : "")
-    return c.json({ detail: `图片识别失败（诊断：${diag}）` }, 422)
-  }
-  const questions = splitQuestions(text)
-  // 页面区域裁剪（Vision 检测 bbox → 裁剪每区小图，供前端附图对照）
-  let crops: any[] = []
-  try {
-    crops = await detectRegions(oriented)
-  } catch (e) {
-    console.warn(`[ai-chinese] 区域裁剪失败（跳过附图）: ${(e as Error).message}`)
-  }
-  const pageBounds = null // 对齐 PY：_ark_extract_blocks 恒返回 None
-  const cachePayload = { text, questions, blocks, page_bounds: pageBounds, crops }
-  await mkdir(CACHE_DIR, { recursive: true })
-  await writeFile(cacheFile, JSON.stringify(cachePayload), "utf-8")
-  return c.json({
-    text,
-    questions,
-    blocks,
-    page_bounds: pageBounds,
-    crops,
-  })
+  const { oriented } = await persistAndOrient(data, IMAGE_DIR, extOf(fileName))
+  const outcome = isEnglish
+    ? await runEnglishOcr({ oriented, imageHash, reqEngine })
+    : await runChineseOcr({ oriented, imageHash, reqEngine })
+  return respondOcr(c, outcome)
 })
+
+/** 统一的响应拼装：三个学科返回同一形状（SubjectOcrOutcome），路由不按学科分支。 */
+function respondOcr(c: Context, o: SubjectOcrOutcome) {
+  if (o.error) return c.json({ detail: `图片识别失败（诊断：${o.error}）` }, 422)
+  return c.json({
+    text: o.text,
+    questions: o.questions,
+    blocks: o.blocks,
+    page_bounds: o.pageBounds,
+    crops: o.crops,
+  })
+}
 
 // ── highlight-mark ──
 

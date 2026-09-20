@@ -389,7 +389,8 @@ router.post("/en-dialogue-setup", async (c) => {
   const topic = String(body?.topic ?? "").trim()
   const words = (Array.isArray(body?.words) ? body.words : []).map((x: unknown) => String(x ?? "").trim()).filter(Boolean)
   const sentences = (Array.isArray(body?.sentences) ? body.sentences : []).map((x: unknown) => String(x ?? "").trim()).filter(Boolean)
-  if (!words.length && !sentences.length) return c.json({ detail: "请至少提供一个词或句子" }, 400)
+  // 词、句、主题三者至少给一个：只给主题时按主题自由对话（前端设置页允许「只填场景」）
+  if (!words.length && !sentences.length && !topic) return c.json({ detail: "请至少提供一个词、句子或主题" }, 400)
 
   // 缓存：同一组词句不重调（zh/en 分开）
   const DIALOGUE_CACHE_PATH = dataPath(lang === "zh" ? "zh_dialogue.json" : "en_dialogue.json")

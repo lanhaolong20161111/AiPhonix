@@ -201,7 +201,10 @@ async function paddleOcrExtractOnce(
   const cleanedMd = cleanOcrText(stripEmbeddedHtml(md))
   const blocks = markdownToBlocks(cleanedMd)
   console.log(`[paddle-ocr] 完成 总耗时 ${Date.now() - t0}ms, md字符=${md.length}, blocks=${blocks.length}`)
-  const cleaned = cleanedMd.replace(/\n{2,}/g, "\n").trim()
+  // 保留段落空行（版面结构）：只做收敛（3+ 空行→1 个空行）与行尾空白清理。
+  // 原先 replace(/\n{2,}/g,"\n") 会把空行压成单换行 → text 丢掉段落边界，
+  // 前端只能靠启发式猜段落（「标题和正文挤一行」的根因之一）。blocks 一直没受影响。
+  const cleaned = cleanedMd.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim()
   return { ok: true, text: cleaned, blocks, markdown: md, ms: Date.now() - t0 }
 }
 

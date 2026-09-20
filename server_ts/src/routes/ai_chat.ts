@@ -12,10 +12,19 @@ import { resolveCurrentUser } from "../middleware/auth.js"
 import { getArk, MULTIMODAL_MODEL } from "../lib/ark.js"
 import { chat as deepseekChat } from "../lib/deepseek.js"
 import { DATA_DIR, getConfig } from "../env.js"
+import { findFirstExisting } from "../lib/jsonfile.js"
 
 const router = new Hono()
 const MAX_MISTAKES = 15
 const MAX_MASTERED = 10
+
+/** 词库 JSON 候选（原写成 shared/web/public/... 实际不存在 → 查词一直是空，这里补齐真实位置） */
+const WORD_BANK_CANDIDATES = [
+  join(DATA_DIR, "chinese_wordbank.json"), // 挂载卷/运维替换
+  join(DATA_DIR, "../../app/src/main/assets/chinese_wordbank.json"), // 本机 dev 原位置
+  join(DATA_DIR, "../../web/public/chinese_wordbank.json"), // 前端 public 副本
+  join(DATA_DIR, "../../server_ts/assets/chinese_wordbank.json"), // 容器镜像内自包含副本
+]
 
 /** 带超时的 Promise 包装：超时抛 timedOut 标记错误（对齐 PY asyncio.wait_for TimeoutError → 504） */
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -121,8 +130,8 @@ function parseToolTags(reply: string): [string, string, string] {
 
 function lookupWord(q: string): string {
   try {
-    const path = join(DATA_DIR, "../web/public/chinese_wordbank.json")
-    if (!existsSync(path)) return ""
+    const path = findFirstExisting(WORD_BANK_CANDIDATES)
+    if (!path) return ""
     const data = JSON.parse(readFileSync(path, "utf-8"))
     const hits: string[] = []
     for (const w of data.words ?? []) {

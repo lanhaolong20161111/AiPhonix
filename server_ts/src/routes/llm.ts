@@ -6,11 +6,14 @@ import { requireRole } from "../middleware/auth.js"
 
 const router = new Hono()
 
-// 运维端点限管理员（全站 prompt 日志 / 清空审计只开放给 admin）
-router.use(requireRole("admin"))
+// ⚠️ 运维端点限管理员（全站 prompt 日志 / 清空审计只开放给 admin）。
+// 必须**逐路由**挂门卫，不能用 `router.use(requireRole("admin"))`：
+// Hono 的 route() 会把子应用的无路径 use 合并成 `/llm/*` 中间件，从而连带把后面
+// 同前缀挂载的 chinesePracticeRoutes（en-dialogue-setup / zh-teach-setup / article-recite…）
+// 一并锁成 admin-only —— 学生端一律 403「权限不足」。server_cf 一直是逐路由写法，勿改回。
 
 // GET /api/v1/llm/logs
-router.get("/logs", (c) => {
+router.get("/logs", requireRole("admin"), (c) => {
   const logs = getCallLogs()
   let totalTokens = 0
   let totalCost = 0
@@ -42,13 +45,13 @@ router.get("/logs", (c) => {
 })
 
 // POST /api/v1/llm/logs/clear
-router.post("/logs/clear", (c) => {
+router.post("/logs/clear", requireRole("admin"), (c) => {
   clearCallLogs()
   return c.json({ status: "ok" })
 })
 
 // GET /api/v1/llm/budget
-router.get("/budget", (c) => {
+router.get("/budget", requireRole("admin"), (c) => {
   const cfg = getConfig()
   const day = getDayCost()
   return c.json({

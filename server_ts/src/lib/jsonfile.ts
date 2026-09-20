@@ -7,6 +7,14 @@ export function dataPath(...segments: string[]): string {
   return join(DATA_DIR, ...segments)
 }
 
+/** 按候选顺序返回第一个存在的路径（跨布局找资产：挂载卷 / 本机 dev / 容器镜像内） */
+export function findFirstExisting(paths: string[]): string | null {
+  for (const p of paths) {
+    if (existsSync(p)) return p
+  }
+  return null
+}
+
 export function readJson<T = unknown>(path: string, fallback: T): T {
   try {
     if (!existsSync(path)) return fallback

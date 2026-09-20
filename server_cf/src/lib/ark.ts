@@ -1,7 +1,7 @@
 /** 火山引擎 ARK 免费 LLM — Cloudflare 版：图片从 R2 读取（async），openai SDK 调用不变 */
 import OpenAI from "openai"
 import { readBlob, exists, toBase64 } from "./storage.js"
-import { preprocessForVision } from "./image.js"
+import { preprocessForVision, sniffImageKind } from "./image.js"
 import { cleanSecret, getConfig, getEnv } from "../env.js"
 
 const BASE_URL = "https://ark.cn-beijing.volces.com/api/v3"
@@ -80,9 +80,9 @@ export function createArkService(apiKey?: string, model?: string): ArkService {
     const content: Record<string, unknown>[] = [{ type: "text", text: prompt }]
     for (const path of valid) {
       let buf: Uint8Array
-      const mime = MIME_BY_EXT[extOf(path)] || "image/jpeg"
       try {
-        // 识图提速：长边1440 + jpeg80 预处理，砍掉大图 visual token（Worker 用 @jsquash 等价 sharp）
+        // 识图图片预处理：Cloudflare 版是**原样直传**（不做 1440/jpeg80 —— Worker 侧不能用 wasm，
+        // 详见 lib/image.ts 文件头；客户端上传前已压到 1600px/0.85）。
         const processed = await preprocessForVision(path)
         buf = new Uint8Array(processed)
       } catch (e) {
@@ -91,6 +91,11 @@ export function createArkService(apiKey?: string, model?: string): ArkService {
         if (!raw) continue
         buf = new Uint8Array(raw)
       }
+      // MIME 按**最终字节**判定：preprocessForVision 会把 PNG 重编码成 JPEG，
+      // 若仍按原 key 扩展名写 image/png，就会发出 mime 与字节不符的 data URL。
+      const kind = sniffImageKind(buf)
+      const mime =
+        kind === "jpeg" ? "image/jpeg" : kind === "png" ? "image/png" : MIME_BY_EXT[extOf(path)] || "image/jpeg"
       const b64 = toBase64(buf)
       content.push({ type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } })
     }

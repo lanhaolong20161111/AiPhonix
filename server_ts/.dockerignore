@@ -1,0 +1,8 @@
+node_modules
+dist
+tests
+*.log
+.dev.vars
+.env
+# 本地冒烟/诊断脚本（宿主运行，不进镜像）
+_*.cjs

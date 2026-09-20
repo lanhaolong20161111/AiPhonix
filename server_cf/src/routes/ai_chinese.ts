@@ -3,7 +3,6 @@
  * Cloudflare 版：fs → R2（data/ai_chinese_*），db → await getDb()，sqlite FTS → sqlAll，quest 缓存已 async。
  */
 import { Hono } from "hono"
-import { streamSSE } from "hono/streaming"
 import { createHash } from "node:crypto"
 import { and, desc, eq } from "drizzle-orm"
 import { getDb, sqlAll } from "../db/index.js"
@@ -13,43 +12,33 @@ import {
 } from "../db/schema.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
 import { getArk } from "../lib/ark.js"
-import { chat as deepseekChat, BudgetExceededError } from "../lib/deepseek.js"
-import { autoOrient, compressImageToFile } from "../lib/image.js"
-import { ocrChain } from "../lib/ocr.js"
+import { chat as deepseekChat } from "../lib/deepseek.js"
+import { autoOrient } from "../lib/image.js"
 import {
   cleanOcrText,
-  dedupeLines,
-  recoverTextFromJson,
-  splitQuestions,
   splitSentences,
-  extractBlocks,
-  extractHtmlTables,
-  mergeTableBlocks,
-  markPoetry,
-  markOrderedIndent,
-  mergeMarkdownTableBlocks,
   groupParagraphsByLayout,
   stripQuestionNoise,
-  stripPrintedPinyin,
-  cleanBookScanBlocks,
-  cleanBookScanText,
 } from "../lib/aiTextUtils.js"
 import { splitPinyinWord } from "../lib/pinyin.js"
 import { exists, readBlob, writeBlob } from "../lib/storage.js"
-import { paddleOcrExtract, paddleV6DetectBlocks, type PaddleOcrOpts } from "../lib/paddleOcr.js"
-import { IncrementalLineExtractor } from "../lib/incrementalJsonText.js"
+import { paddleV6DetectBlocks } from "../lib/paddleOcr.js"
 import { getEnv } from "../env.js"
+// §7 学科隔离（2026-09-15）：parse-image 的学科策略全部移入 lib/subject/*，路由只做机制
+import { extOf, persistAndOrient, readImageRequest, sha256Hex, type SubjectOcrOutcome } from "../lib/subject/kernel.js"
+import { polyPatchKey, readChineseCachedOutcome, runChineseOcr } from "../lib/subject/chinese.js"
+import { readEnglishCachedOutcome, runEnglishOcr } from "../lib/subject/english.js"
 
 import { stripFence, parseJsonObj, readCache, writeCache, renderAnalyze, makeSentenceAudioPath } from "../lib/aiShared.js"
 
-import { DOUBAO_OCR_PROMPT, DOUBAO_OCR_JSON_PROMPT, DOUBAO_OCR_JSON_PROMPT_NO_POLY, DEEPSEEK_RELAYOUT_PROMPT, DOUBAO_TABLE_OCR_PROMPT, HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
+import { HIGHLIGHT_MARK_PROMPT, POS_TAGS_PROMPT, STORY_ELEMENTS_PROMPT, TEXT_ASK_PROMPT, CHINESE_PINYIN_LEVEL_PROMPT, CHINESE_HIGHLIGHT_PROMPT, CHINESE_POLYPHONES_PROMPT, CHINESE_CLASSIFY_PROMPT, KB_ASK_PROMPT } from "../lib/prompts.js"
 // 按域拆分的子路由（挂载于根 = 透明合并）
 import kbRoutes from "./ai_chinese_kb.js"
 import questRoutes from "./ai_chinese_quest.js"
 import textbookRoutes from "./ai_chinese_textbook.js"
 import questionsRoutes from "./ai_chinese_questions.js"
 import { CACHE_DIR, IMAGE_DIR, MAX_QUESTION_LEN, multimodalModel, PROBLEM_IMAGE_DIR, SENTENCE_AUDIO_DIR, autoCropWhite, nowIso, resolveImagePath, searchTitle, strList, basenameOf, chineseSearch } from "../lib/aiChineseContext.js"
-import { cleanPolyphones, sanitizeBlockPolyphones } from "../lib/pinyinValue.js"
+import { cleanPolyphones } from "../lib/pinyinValue.js"
 
 const router = new Hono()
 const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
@@ -64,801 +53,77 @@ const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
 
 // ── render_analyze 提示词（对齐 prompts_aihomework.py） ──
 
-// ── parse-image ──
+// ── parse-image（语文 / 英语） ──────────────────────────────────────────
+// §7 学科隔离（2026-09-15）：语文与英语各自一条自洽的垂直链路，路由只做**机制**：
+//   鉴权 → 读图 → 查缓存 → 落盘 + 方向校正 → 交给本学科模块 → 拼响应 + 挂 waitUntil。
+// 识别的全部**策略**（提示词 / 引擎优先级 / 清洗器 / 缩进 / 注音 / 缓存键 / 分题）
+// 都在 lib/subject/{chinese,english}.ts 里，本文件不再出现任何 `mode === "english"` 判断。
+//
+// 历史教训：英语原先复用本接口 + **语文提示词**，模型把英文单词当拼音删掉
+//（用户看到的是"英语识图字母都没了"）。根因就是"共用" —— 故此处只保留
+// "选哪条链路"这一个分支，且该分支不承载任何学科规则。
 
-// 表格专用 OCR 提示词：检测到图片含表格时使用，强化 HTML 表格还原（跨行/跨列合并、文字原样）
-
-/** 排版整理（对齐 PY _deepseek_relayout）：把清洗后的文本整理成 blocks JSON。
- * 成功返回 blocks 列表（已清洗+mark）；失败返回空数组。 */
-async function deepseekRelayout(text: string): Promise<any[]> {
-  const prompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
-  const reply = await deepseekChat("你是一个只输出JSON的小学语文排版整理器。", prompt, 4096, "ai_chinese_relayout", true)
-  const blocks = extractBlocks(reply || "")
-  if (!blocks.length) return []
-  // 复用清洗：去残留标记 + 段落首行缩进兜底
-  const cleaned = blocks
-    .filter((b) => {
-      const bt = cleanOcrText(b.text).trim()
-      return !!bt
-    })
-    .map((b) => {
-      const bt = cleanOcrText(b.text).trim()
-      const lines = (b.lines || [])
-        .map((ln) => {
-          const lt = cleanOcrText(ln.text).trim()
-          return lt ? { text: lt, indent: ln.indent } : null
-        })
-        .filter(Boolean) as { text: string; indent: number }[]
-      if (!lines.length) lines.push({ text: bt, indent: 0 })
-      if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
-      return { type: b.type, text: bt, align: b.align, lines, polyphones: b.polyphones || {} }
-    })
-  markPoetry(cleaned)
-  markOrderedIndent(cleaned)
-  return mergeMarkdownTableBlocks(cleaned)
-}
-
-/** Ark 识图 + 结构化排版（对齐 PY _ark_extract_blocks）：
- * 返回 {text, blocks, pageBounds}。识别失败抛异常（由调用方回退 OCR）。 */
-/** 识图 + 结构化排版。
- * Tier 1 优化：非表格页用「一次合并调用」让豆包直接出结构化 JSON（砍掉原 OCR 45s + 排版 60s 两段串行）；
- * 合并调用解析为空或抛错时，自动回退到原两段式（arkExtractBlocksTwoPass），质量不退化。
- * 客户端已压到 1600px，主路径不再重复压缩（原后端 1400 重压省掉）。
- * structured=true 表示本次走的是「合并调用」成功路径（输出已是结构化 JSON 块，逐行保真）；
- * 供路由决定是否需要 LLM 去噪 —— 结构化输出只需确定性清理，省掉一次串行 LLM。
- * includePolyphones=false（poly_async=1 默认）：合并调用不输出 polyphones，注音由后台
- * runPolyphonesAsync 补，避免关键路径上多生成一坨 JSON（省时间 + 降截断风险）。 */
-async function arkExtractBlocks(imageKey: string, isTable: boolean, includePolyphones = true): Promise<{ text: string; blocks: any[]; pageBounds: any; structured: boolean }> {
-  const ark = getArk()
-  if (!ark.enabled) throw new Error("免费 AI 服务未配置（缺少 ARK_API_KEY）")
-  const tStart = Date.now()
-
-  if (!isTable) {
-    try {
-      // max_tokens 说明：合并调用要一次输出「逐行保真 + 结构 JSON」，text 与 lines 内容重复、
-      // 表格页还要嵌 HTML，4096 极易撞上限被截断 —— 而 ark.chat 截断后会用 max_tokens*3
-      // 完整重跑一次（第一次的耗时全白费）。直接给足 8192，避免那次灾难性重跑。
-      const reply = await ark.chat({
-        prompt: includePolyphones ? DOUBAO_OCR_JSON_PROMPT : DOUBAO_OCR_JSON_PROMPT_NO_POLY,
-        image_paths: [imageKey], // 客户端已压到 1600px，后端不再重复压缩
-        system_prompt: "你是一个只输出JSON的小学语文识别排版器。",
-        max_tokens: 8192,
-        model_override: multimodalModel(),
-        disable_thinking: true,
-        timeout_ms: 60_000,
-      })
-      const merged = finalizeBlocks(mergeTableBlocks(extractBlocks(reply || ""), []))
-      if (merged.length) {
-        const text = merged.map((b) => b.text).join("\n")
-        // 路径打点：merged 路径应只有一次 ark 调用；若日志里出现两条 [ark] attempt=0，
-        // 说明首次被 max_tokens 截断并触发了 max_tokens*3 重跑（调大 max_tokens 消除）。
-        console.log(`[ai-chinese] 合并调用成功 blocks=${merged.length} total=${Date.now() - tStart}ms`)
-        return { text, blocks: merged, pageBounds: null, structured: true }
-      }
-      console.warn(`[ai-chinese] 合并调用解析为空,回退两段式 (已耗时 ${Date.now() - tStart}ms)`)
-    } catch (e) {
-      console.warn(`[ai-chinese] 合并调用失败,回退两段式: ${(e as Error).message} (已耗时 ${Date.now() - tStart}ms)`)
-    }
-  }
-  const fallback = await arkExtractBlocksTwoPass(imageKey, isTable)
-  console.log(`[ai-chinese] 两段式完成 blocks=${fallback.blocks.length} total=${Date.now() - tStart}ms`)
-  return { ...fallback, structured: false }
-}
-
-/** 原两段式：豆包 OCR 出纯文本 → 排版出 JSON（表格模式也走这里）。作为合并调用的回退，保证质量。 */
-async function arkExtractBlocksTwoPass(imageKey: string, isTable: boolean): Promise<{ text: string; blocks: any[]; pageBounds: any }> {
-  const ark = getArk()
-  // 逐行保真需要看清小字/拼音/下划线 —— 用更高的识别分辨率（区域切割专用 1400px，而非普通识图 800px）
-  const compressed = await compressImageToFile(imageKey, `${IMAGE_DIR}/${basenameOf(imageKey).replace(/\.[^.]+$/, "")}.region.jpg`, 1400, 90)
-  const prompt = isTable ? DOUBAO_TABLE_OCR_PROMPT : DOUBAO_OCR_PROMPT
-  const reply = await ark.chat({
-    prompt,
-    image_paths: [compressed],
-    max_tokens: 4096,
-    model_override: multimodalModel(),
-    disable_thinking: true,
-    timeout_ms: 45_000,
-  })
-  let rawText = cleanOcrText(reply || "").trim()
-  rawText = dedupeLines(rawText).trim()
-  if (!rawText) return { text: "", blocks: [], pageBounds: null }
-
-  // 表格模式：从 OCR 结果提取 <table>…</table> 作为 table 块，其余文字占位后 relayout，保持顺序
-  let tables: string[] = []
-  if (isTable) {
-    const [replaced, extracted] = extractHtmlTables(rawText)
-    rawText = replaced
-    tables = extracted
-  }
-  const text = rawText
-
-  // 免费 Ark 排版（doubao-seed-2-1-turbo-260628）优先；失败再兜底付费 deepseek（有预算守卫）
-  try {
-    if (ark.enabled) {
-      const relayoutPrompt = DEEPSEEK_RELAYOUT_PROMPT.replace("{text}", text.slice(0, 8000))
-      const relayoutReply = await ark.chat({
-        prompt: relayoutPrompt,
-        system_prompt: "你是一个只输出JSON的小学语文排版整理器。",
-        max_tokens: 4096,
-        model_override: multimodalModel(),
-        disable_thinking: true,
-        timeout_ms: 60_000,
-      })
-      const dsBlocks = finalizeBlocks(mergeTableBlocks(extractBlocks(relayoutReply || ""), tables))
-      if (dsBlocks.length) return { text, blocks: dsBlocks, pageBounds: null }
-    }
-  } catch (e) {
-    console.warn(`[ai-chinese] 豆包 OCR 免费排版失败，改走 deepseek 兜底: ${(e as Error).message}`)
-  }
-  try {
-    const dsBlocks = mergeTableBlocks(await deepseekRelayout(text), tables)
-    if (dsBlocks.length) return { text, blocks: dsBlocks, pageBounds: null }
-  } catch (e) {
-    // BudgetExceededError 不捕获 → 全局 429
-    if (e instanceof BudgetExceededError) throw e
-    console.warn(`[ai-chinese] deepseek 排版兜底失败，用纯文本: ${(e as Error).message}`)
-  }
-  // 兜底：表格块在前 + 剩余文字作为一个 body
-  if (tables.length) {
-    const out = tables.map((t) => ({ type: "table", text: t, align: "left", lines: [{ text: t, indent: 0 }], polyphones: {} }))
-    const pure = text.trim()
-    if (pure) out.push({ type: "body", text: pure, align: "left", lines: [{ text: pure, indent: 0 }], polyphones: {} })
-    return { text, blocks: out, pageBounds: null }
-  }
-  return { text, blocks: [], pageBounds: null }
-}
-
-/** 复用清洗 + 排版修正：去空、逐行清洗、body 首行缩进、诗歌/有序缩进标记。供合并调用与两段式共用。
- * text 可推导：提示词已不再要求输出冗余的 text（其内容是 lines 的逐行拼接），
- * 模型未给 text 时由 lines 推导；仍给 text 时按原样使用（向后兼容）。 */
-function finalizeBlocks(raw: any[]): any[] {
-  const cleaned = (raw || [])
-    .map((b: any) => {
-      const lines = (b.lines || [])
-        .map((ln: any) => {
-          const lt = cleanOcrText(String(ln?.text ?? "")).trim()
-          if (!lt) return null
-          let indent = Number(ln?.indent ?? 0)
-          if (!Number.isFinite(indent) || indent < 0) indent = 0
-          if (indent > 3) indent = 3
-          return { text: lt, indent }
-        })
-        .filter(Boolean) as { text: string; indent: number }[]
-      // text 缺失（提示词已省略该字段）→ 由 lines 逐行拼接推导
-      let bt = cleanOcrText(String(b?.text ?? "")).trim()
-      if (!bt && lines.length) bt = lines.map((l) => l.text).join("\n")
-      if (!bt) return null
-      if (!lines.length) lines.push({ text: bt, indent: 0 })
-      if (b.type === "body" && lines[0].indent === 0) lines[0].indent = 1
-      return { type: b.type, text: bt, align: b.align ?? "left", lines, polyphones: b.polyphones || {} }
-    })
-    .filter(Boolean) as any[]
-  markPoetry(cleaned)
-  markOrderedIndent(cleaned)
-  // 豆包偶尔把 markdown 表格逐行当正文输出 → 合并回 HTML table 块，避免前端显示一串竖线
-  return mergeMarkdownTableBlocks(cleaned)
-}
-
-/** 区域裁剪 — 原基于 Python OpenCV 像素行分割 + 逐行多模态读文本。
- * Python 依赖移除后暂返回空数组（豆包 OCR 已能整页识别+排版，crops 仅作附图对照增强，非关键路径）。 */
-async function detectRegions(_imageKey: string): Promise<any[]> {
-  return []
-}
-
-/** C 方案：PaddleOCR 主路径不标多音字（polyphones 恒空），这里用 LLM 对整页文本
- * 补一次多音字标注，再合并进每个非表格 block。这样既保住 Paddle 4 秒级速度，又保住点读/
- * 注音的多音字正确性。失败不阻塞主链路——保持空 polyphones（前端回退词库默认读音）。
- *
- * ⚠️ 模型选型教训：deepseek-v4-flash / Ark 托管的 deepseek-v4-flash-ga-260731 都是思考模型，
- * disableThinking 无效，补多音字这种要"直接输出短 JSON"的任务会被思维链耗尽 max_tokens → 空 content
- * + 70s。因此这里**强制用已验证可用的豆包多模态模型 doubao-seed-2-1-turbo-260628**（纯文本调用不传图），
- * 可靠且快；不再叠加付费 deepseek 兜底（慢且空，只会拖垮 Paddle 的速度优势）。 */
-async function fillPolyphones(blocks: any[]): Promise<any[]> {
-  const text = (blocks || [])
-    .filter((b) => b?.type && b.type !== "table")
-    .map((b) => b?.text ?? "")
-    .filter(Boolean)
-    .join("\n")
-    .trim()
-  // 文本过短（无正文）或超过 LLM 上下文限制则跳过
-  if (!text || text.length > MAX_QUESTION_LEN) return blocks
-  const prompt = CHINESE_POLYPHONES_PROMPT.replace("{text}", text)
-  let reply = ""
-  try {
-    // 豆包多模态模型（纯文本调用，model_override 强制用 doubao-seed-2-1-turbo-260628）
-    reply = await getArk().chat({
-      prompt,
-      system_prompt: "你是一个只输出JSON的小学语文老师。",
-      max_tokens: 4096,
-      model_override: multimodalModel(),
-      disable_thinking: true,
-      timeout_ms: 40_000,
-    })
-    if (!reply) {
-      console.warn("[parse-image] 豆包补多音字返回空，保持空 polyphones")
-      return blocks
-    }
-  } catch (e) {
-    console.warn(`[parse-image] 豆包补多音字失败(保持空): ${(e as Error).message}`)
-    return blocks
-  }
-  const data = parseJsonObj(reply)
-  // cleanPolyphones：值必须是真拼音，挡掉「(非多音，跳过)」这类被模型写进值里的说明文字
-  const poly = data?.polyphones ? cleanPolyphones(data.polyphones) : {}
-  if (Object.keys(poly).length) {
-    return (blocks || []).map((b: any) =>
-      b?.type && b.type !== "table" ? { ...b, polyphones: { ...(b.polyphones || {}), ...poly } } : b,
-    )
-  }
-  return blocks
-}
-
-/** 异步补多音字（2026-09-02）：Paddle 主路径原本串行等 fillPolyphones 约 3-35s 才返回，
- * 用户白等且结果页正文其实早已可用。改为：主请求先返回无注音结果，注音在 waitUntil 后台补，
- * 补完写「补丁缓存」，前端拿到 poly_token 轮询补丁接口回填。
- * 同时回写主缓存（带注音版本），保证后续同图命中也带注音。 */
-function polyPatchKey(hash: string): string {
-  return `${CACHE_DIR}/poly_${hash}.json`
-}
-
-async function runPolyphonesAsync(blocks: any[], patchKey: string, mainCacheKey: string, basePayload: any): Promise<void> {
-  try {
-    const t0 = Date.now()
-    const filled = await fillPolyphones(blocks)
-    const poly: Record<string, string> = {}
-    for (const b of filled || []) {
-      if (b?.polyphones && typeof b.polyphones === "object") Object.assign(poly, b.polyphones)
-    }
-    await writeCache(patchKey, { ready: true, polyphones: poly })
-    // 回写主缓存（带注音版本），后续同图命中直接带注音，无需再轮询
-    try {
-      await writeCache(mainCacheKey, { ...basePayload, blocks: filled })
-    } catch {
-      /* 主缓存回写失败不影响补丁可用性 */
-    }
-    console.log(`[parse-image] 异步补多音字完成, 耗时 ${Date.now() - t0}ms, 多音字 ${Object.keys(poly).length} 个`)
-  } catch (e) {
-    console.warn(`[parse-image] 异步补多音字失败(保持空注音): ${(e as Error).message}`)
-    // 写 ready 标记，避免前端轮询到超时
-    try {
-      await writeCache(patchKey, { ready: true, polyphones: {} })
-    } catch {
-      /* 忽略 */
-    }
-  }
-}
-
-// ── 流式识图：增量 JSON 解析（2026-09-10） ─────────────────────────────
-// 豆包 OCR 合并调用输出 `{"blocks":[{"type":...,"lines":[{"text":"行",...}]}]}`，
-// 文本藏在 lines[].text。要在流式过程中尽早出字，不能等完整 JSON —— 增量提取器
-// 扫描已累积的 JSON 文本，把每个已闭合的 `"text":"…"` 字符串值按出现顺序吐出来。
-// 实现见 lib/incrementalJsonText.ts（独立文件便于单测）。
-
-/** D 方案：PaddleOCR/豆包 识图后，用 LLM 把「不符合的文本」去掉。
- * 删除 OCR 噪声行（水印/页码/页眉页脚/装饰乱码/广告图标文字/纯分隔符），
- * 并把相邻正文行合并为通顺段落（段间一个空行）。不改写正文、不新增解释。
- * ⚠️ 与 fillPolyphones 一致：失败/超时/返回空 → 自动降级为原文，绝不阻塞主链路。 */async function llmFilterOcrText(text: string): Promise<string> {
-  const t = (text || "").trim()
-  if (!t || t.length < 8) return text // 太短无需清洗
-  if (t.length > MAX_QUESTION_LEN) return text // 超上下文则跳过，避免截断
-  const prompt =
-    "下面是一张小学语文试卷/课本页面经 OCR 识别出的文本，可能混有噪声。请做如下清洗：\n" +
-    "1) 只保留题目/正文（课文、题目、选项、答案、标题等），删除所有非题目信息（页眉页脚、页码、水印、" +
-    "广告、图标文字、纯分隔线、装饰性乱码）；\n" +
-    "2) 删除所有括号（）/( )，包括空括号（ ）（答案、注释、小提示、填空横线均按需求全部过滤）；\n" +
-    "3) 删除下划线符号 _（老师标注线/填空横线在 OCR 里常被识别成连续下划线）；\n" +
-    "4) 把相邻的正文行合并为通顺段落，不同段落之间用「一个空行」分隔。\n" +
-    "严格要求：①不要改写、纠错或补充正文内容；②不要输出任何解释或标记，只输出清洗并排版后的纯文本；" +
-    "③如果整段都是噪声，输出空内容。\n\n原文：\n" + t
-  try {
-    const reply = await getArk().chat({
-      prompt,
-      system_prompt: "你是一个只做文本清洗的 OCR 后处理助手，输出纯文本。",
-      max_tokens: 4096,
-      model_override: multimodalModel(),
-      disable_thinking: true,
-      timeout_ms: 30_000,
-    })
-    const cleaned = (reply || "").trim()
-    if (!cleaned) return text // 模型返回空 → 保留原文，避免误删
-    return cleaned
-  } catch (e) {
-    console.warn(`[parse-image] LLM 去噪失败(保留原文): ${(e as Error).message}`)
-    return text
+/** 学科链路返回形状 → parse-image 响应体 */
+function toParseResponse(o: SubjectOcrOutcome) {
+  return {
+    text: o.text,
+    questions: o.questions,
+    blocks: o.blocks,
+    page_bounds: o.pageBounds,
+    crops: o.crops,
+    poly_pending: o.polyToken ? true : undefined,
+    poly_token: o.polyToken ?? undefined,
   }
 }
 
 router.post("/ai-chinese/parse-image", async (c) => {
-  const user = await resolveCurrentUser(c.req.header("Authorization"))
-  const form = await c.req.formData().catch(() => null)
-  if (!form) return c.json({ detail: "缺少文件" }, 400)
-  const file = form.get("file")
-  if (!file || typeof file === "string") return c.json({ detail: "缺少文件" }, 400)
-  const data = new Uint8Array(await (file as File).arrayBuffer())
-  if (!data.length) return c.json({ detail: "图片为空" }, 422)
-  const noCache = c.req.query("no_cache") === "true"
-  // 英语模式（2026-09-02）：英语页复用本接口的 OCR 能力，但跳过中文特有后处理
-  // （补多音字注音、LLM 中文去噪）。缓存键加后缀隔离，避免两模式互相污染。
-  const mode = c.req.query("mode") === "english" ? "english" : "chinese"
-  // 异步补多音字（2026-09-02）：语文/数学模式默认开启（前端可用 poly_async=0 关闭）。
-  // 主请求先返回正文，注音由 waitUntil 后台补齐（见 runPolyphonesAsync），前端轮询回填。
-  const polyAsync = mode !== "english" && c.req.query("poly_async") !== "0"
-  const reqT0 = Date.now()
+  await resolveCurrentUser(c.req.header("Authorization"))
+  const parsed = await readImageRequest(c)
+  if (!parsed.ok) return c.json({ detail: parsed.detail }, parsed.status)
+  const { data, fileName, noCache, reqEngine } = parsed.req
+
+  // 唯一的学科分支：只选链路，不承载任何学科规则
+  const isEnglish = c.req.query("mode") === "english"
+  const allowPolyAsync = c.req.query("poly_async") !== "0"
+  const imageHash = sha256Hex(data)
   console.log(
-    `[parse-image] 收到图片 ${data.length} 字节 (${(data.length / 1024 / 1024).toFixed(2)} MB), no_cache=${noCache}, mode=${mode}`
+    `[parse-image] 收到图片 ${data.length} 字节 (${(data.length / 1024 / 1024).toFixed(2)} MB), no_cache=${noCache}, subject=${isEnglish ? "english" : "chinese"}`,
   )
 
-  const imgHash = createHash("sha256").update(data).digest("hex")
-  // _r4 = 多音字版本号（2026-09-10）：旧缓存里可能落进了「(非多音，跳过)」这类被模型写进
-  // polyphones 值的说明文字（结果页会把它当拼音显示在字上方）。加版本后缀让旧缓存失效一次，
-  // 之后同图仍照常命中；读取路径另有 sanitizeBlockPolyphones 兜底，双保险。
-  // _r3 = 表格版本号：2026-09-10 起「去印刷拼音」不再误删 HTML 标签名、正文里的 HTML 表格
-  // 提升为 table 块（此前 <table> 被删成 <>，学生看到 <></> 尖括号且单元格不能点读）。
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r4.json`
-  if (!noCache && (await exists(cacheKey))) {
-    try {
-      const cached = await readCache(cacheKey)
-      const cachedText = cleanOcrText(recoverTextFromJson(String(cached?.text ?? ""))).trim()
-      const deduped = dedupeLines(cachedText).trim()
-      const cachedBlocks = Array.isArray(cached?.blocks) ? cached.blocks : []
-      // 课本扫描清洗（命中缓存也要过滤：去印刷拼音 + 去角落页码）
-      const stripPinyin = mode !== "english"
-      const cleanedText = cleanBookScanText(deduped, { stripPinyin })
-      const cleanedBlocks = sanitizeBlockPolyphones(cleanBookScanBlocks(cachedBlocks, { stripPinyin }))
-      const cleanedQs = splitQuestions(cleanedText)
-      // 命中缓存但注音为空（异步路径先落的无注音版本，或历史同步请求本就没补到）→ 给 token 让前端轮询补丁
-      const hasPoly = cachedBlocks.some((b: any) => b?.polyphones && Object.keys(b.polyphones).length)
-      return c.json({
-        text: cleanedText,
-        questions: cleanedQs.length ? cleanedQs : cleanedText ? [cleanedText] : [],
-        blocks: cleanedBlocks,
-        page_bounds: cached?.page_bounds ?? null,
-        crops: Array.isArray(cached?.crops) ? cached.crops : [],
-        poly_pending: polyAsync && !hasPoly ? true : undefined,
-        poly_token: polyAsync && !hasPoly ? imgHash : undefined,
+  // 命中缓存 → 直接返回（缓存清洗也由各学科模块按自己的档位做）
+  if (!noCache) {
+    const hit = isEnglish
+      ? await readEnglishCachedOutcome(imageHash)
+      : await readChineseCachedOutcome(imageHash, allowPolyAsync)
+    if (hit) return c.json(toParseResponse(hit))
+  }
+
+  const { oriented } = await persistAndOrient(data, IMAGE_DIR, extOf(fileName))
+
+  // 进本学科链路：引擎选择、提示词、清洗、注音、落缓存全部在模块内完成
+  const outcome = isEnglish
+    ? await runEnglishOcr({ oriented, reqEngine, imageHash })
+    : await runChineseOcr({
+        oriented,
+        reqEngine,
+        envEngine: (getEnv().OCR_ENGINE || "").trim().toLowerCase(),
+        allowPolyAsync,
+        imageHash,
       })
-    } catch {
-      /* 缓存损坏忽略 */
-    }
-  }
+  if (outcome.error) return c.json({ detail: `图片识别失败（诊断：${outcome.error}）` }, 422)
 
-  const ext = (file as File).name?.match(/\.([a-zA-Z0-9]+)$/)?.[1] ? "." + (file as File).name!.match(/\.([a-zA-Z0-9]+)$/)![1] : ".jpg"
-  const fname = `${crypto.randomUUID().replace(/-/g, "")}${ext}`
-  const path = `${IMAGE_DIR}/${fname}`
-  await writeBlob(path, data, "image/jpeg")
-
-  // EXIF 方向校正（WASM）
-  let oriented = path
-  try {
-    oriented = await autoOrient(path)
-  } catch {
-    /* 跳过 */
-  }
-
-  // 图片预分类已移除（原 Python OpenCV classifyImage）。
-  // 豆包多模态 OCR 能直接处理截图/拍照，无需裁剪 UI 残留。
-  const isTable = false
-
-  // 识图引擎选择：
-  // - 前端显式传 engine=paddle/doubao 时，强制走该模型（覆盖环境变量）；
-  // - 否则沿用环境变量：OCR_ENGINE=doubao 跳过 PaddleOCR 直走豆包（平板慢网易超时）；
-  //   缺省/其他值维持 PaddleOCR-VL 优先（版面/表格更准），失败回退豆包。零回归风险。
-  const reqEngine = (c.req.query("engine") || "").trim().toLowerCase()
-  const envEngine = (getEnv().OCR_ENGINE || "").trim().toLowerCase()
-  let usePaddleFirst: boolean
-  if (reqEngine === "paddle") usePaddleFirst = true
-  else if (reqEngine === "doubao") usePaddleFirst = false
-  else usePaddleFirst = envEngine !== "doubao"
-  console.log(`[parse-image] 识图引擎: req=${reqEngine || "(无)"} env=${envEngine || "(无)"} → ${usePaddleFirst ? "PaddleOCR优先" : "豆包优先"}`)
-
-  let text = ""
-  let blocks: any[] = []
-  let arkErr: string | null = null
-  let ocrErr: string | null = null
-  let usedPaddle = false
-  let arkStructured = false
-  let polyToken: string | null = null
-  if (usePaddleFirst) {
-  try {
-    const poT0 = Date.now()
-    const poOpts: PaddleOcrOpts = { timeoutMs: 20_000 }
-    if (mode === "english") {
-      // 英语页选 Paddle 时开启版面/图表/表格识别（用户指定参数；公式识别按需求未启用）
-      poOpts.ocr = { layoutParsing: true, useChartRecognition: true, useTableRecognition: true }
-    }
-    const po = await paddleOcrExtract(oriented, poOpts)
-    if (po.ok && po.blocks.length) {
-      text = po.text
-      blocks = po.blocks
-      usedPaddle = true
-      console.log(`[parse-image] PaddleOCR 第一选项成功, 耗时 ${Date.now() - poT0}ms, blocks=${blocks.length}`)
-      // C 方案：Paddle 不标多音字，用豆包补一次（保住点读/注音正确性）；失败自动降级为词库默认读音。
-      // 英语内容无需中文注音，跳过。
-      // 2026-09-02：poly_async 开启时不再串行等待（原 +3~35s 白等），交给 waitUntil 后台补，
-      // 主请求立刻返回正文；前端凭 poly_token 轮询补丁回填注音。
-      if (mode !== "english" && !polyAsync) {
-        // 显式关闭异步（poly_async=0）时保持旧的串行语义
-        const fpT0 = Date.now()
-        blocks = await fillPolyphones(blocks)
-        console.log(`[parse-image] 补多音字完成, 耗时 ${Date.now() - fpT0}ms`)
-      }
-      // polyAsync 开启时不在此处等待：注音统一移到管线末尾交给 waitUntil，
-      // 这样 Paddle 与豆包两条路径（生产现配 OCR_ENGINE=doubao）都能享受异步注音。
-    } else {
-      console.warn(`[parse-image] PaddleOCR 未产出(${po.ms ?? 0}ms): ${po.error}; 回退豆包`)
-    }
-  } catch (e) {
-    console.warn(`[parse-image] PaddleOCR 异常, 回退豆包: ${(e as Error).message}`)
-  }
-  } else {
-    console.log(`[parse-image] OCR_ENGINE=doubao，跳过 PaddleOCR 直走豆包`)
-  }
-
-  if (!usedPaddle) {
-  // 豆包识图（Ark 优先，失败回退 OCR API 链）+ 结构化排版
-  try {
-    const arkT0 = Date.now()
-    const result = await arkExtractBlocks(oriented, isTable, !polyAsync)
-    arkStructured = result.structured
-    console.log(`[parse-image] Ark 识图+排版完成, 耗时 ${Date.now() - arkT0}ms, 文本长度 ${result.text.length}, structured=${arkStructured}`)
-    text = result.text
-    blocks = result.blocks
-  } catch (e) {
-    arkErr = (e as Error).message
-    console.warn(`[ai-chinese] 豆包识图失败(耗时 ${Date.now() - reqT0}ms): ${arkErr}`)
-    // 回退 OCR API 链（腾讯云 → 百度），失败则保持空文本
+  // 后台任务（语文异步补注音）挂到 waitUntil；挂载失败则不下发 token，避免前端白轮询到超时
+  let polyToken = outcome.polyToken
+  const background = outcome.background ?? []
+  if (background.length) {
     try {
-      const ocrText = await ocrChain(oriented)
-      if (ocrText) {
-        text = dedupeLines(cleanOcrText(ocrText)).trim()
-        console.warn(`[ai-chinese] OCR API 回退成功, 文本长度 ${text.length}`)
-      }
-    } catch (e2) {
-      ocrErr = (e2 as Error).message
-      console.warn(`[ai-chinese] OCR API 回退失败: ${ocrErr}`)
-    }
-  }
-  } // end if (!usedPaddle)
-
-  text = cleanOcrText(text).trim()
-  text = recoverTextFromJson(text).trim()
-  // D 方案：LLM 去噪 + 确定性去噪兜底。改为按需：结构化输出路径（Paddle、豆包合并调用）
-  // 直接跳过 LLM 去噪（两者都是专用文档 OCR 的结构化输出：Paddle 出 markdown、合并调用
-  // 出逐行保真的 JSON 块，前面 cleanOcrText/stripQuestionNoise 确定性清理足够），省一次
-  // 串行 LLM（约 2-5s，最坏 30s 超时）；仅两段式/OCR API 回退链路保留 LLM 去噪
-  // （它们的原始输出噪声概率高）。英语模式一律跳过。失败保留原文，不阻塞主链路。
-  const needLlmDenoise = !usedPaddle && !arkStructured && mode !== "english"
-  text = stripQuestionNoise(needLlmDenoise ? await llmFilterOcrText(text) : text)
-  // 课本扫描清洗：去印刷拼音（系统后续自己注音）+ 去角落页码
-  const stripPinyin = mode !== "english"
-  text = cleanBookScanText(text, { stripPinyin })
-  blocks = cleanBookScanBlocks(blocks, { stripPinyin })
-  console.log(`[parse-image] 识别完成, 总耗时 ${Date.now() - reqT0}ms, 文本长度 ${text.length}, blocks=${blocks.length}`)
-  if (!text) {
-    const diag = `豆包识图:${arkErr || "成功但无文本"}` + (ocrErr ? `；OCR回退:${ocrErr}` : "")
-    return c.json({ detail: `图片识别失败（诊断：${diag}）` }, 422)
-  }
-  const questions = splitQuestions(text)
-  // 页面区域裁剪（Vision 检测 bbox → 裁剪每区小图，供前端附图对照）
-  let crops: any[] = []
-  try {
-    crops = await detectRegions(oriented)
-  } catch (e) {
-    console.warn(`[ai-chinese] 区域裁剪失败（跳过附图）: ${(e as Error).message}`)
-  }
-  const pageBounds = null // 对齐 PY：_ark_extract_blocks 恒返回 None
-  // 异步补多音字：Paddle 与豆包两条路径统一在此挂载 waitUntil（生产现配 OCR_ENGINE=doubao，
-  // 只有挂在这里才真正生效）。主响应不受影响，注音补完由前端轮询补丁接口回填。
-  // （polyAsync 本身已蕴含 mode !== "english"，无需重复判断）
-  if (polyAsync && blocks.length) {
-    polyToken = imgHash
-  }
-  const cachePayload = { text, questions, blocks, page_bounds: pageBounds, crops }
-  await writeCache(cacheKey, cachePayload)
-  // 异步补多音字：挂到 waitUntil，响应不受影响（Workers 保证后台任务继续执行）
-  if (polyToken) {
-    try {
-      c.executionCtx?.waitUntil(runPolyphonesAsync(blocks, polyPatchKey(polyToken), cacheKey, cachePayload))
+      for (const task of background) c.executionCtx?.waitUntil(task)
     } catch (e) {
       console.warn(`[parse-image] waitUntil 挂载失败, 退化为不补注音: ${(e as Error).message}`)
-      polyToken = null
+      polyToken = undefined
     }
   }
-  return c.json({
-    text,
-    questions,
-    blocks,
-    page_bounds: pageBounds,
-    crops,
-    poly_pending: polyToken ? true : undefined,
-    poly_token: polyToken ?? undefined,
-  })
-})
-
-// POST /api/v1/ai-chinese/parse-image-stream — SSE 流式识图（2026-09-10）
-// 目标：让学生以最快速度开始阅读识别出的文字。
-// 策略（2026-09-10 改 Paddle 打头阵）：
-//   ① **Paddle 专用 OCR 优先**：PP-StructureV3 是专用 OCR 模型（非 LLM），实测 ~1.6~3.2s
-//      即出全部文字 + 版面块，比豆包 LLM（5~8s）快约 2 倍、成本更低、识别质量高（清晰文档
-//      置信度≈1.0）。拿到后按行推送 line 事件，学生 ~3s 就能读全文。
-//   ② **豆包兜底**：Paddle 失败/超时（12s）→ 回退豆包**纯文本流式**（首行 1~3s，逐行推）。
-//   ③ 收尾：Paddle 路径自带 blocks；豆包路径再跑一次结构化 JSON 调用补 blocks（版面/对齐/注音）。
-// 引擎选择受 OCR_ENGINE 控制（与非流式 parse-image 一致）：engine=paddle/doubao 显式覆盖；
-//   否则 OCR_ENGINE=doubao 跳过 Paddle，缺省则 Paddle 优先。以便随时一键回退豆包。
-// 事件格式（data: JSON）：
-//   meta{img_hash} → line{text,index}* → done{text,questions,blocks,poly_pending,poly_token} / error{detail}
-router.post("/ai-chinese/parse-image-stream", async (c) => {
-  const user = await resolveCurrentUser(c.req.header("Authorization"))
-  if (!user) return c.json({ detail: "未登录" }, 401)
-  const form = await c.req.formData().catch(() => null)
-  if (!form) return c.json({ detail: "缺少文件" }, 400)
-  const file = form.get("file")
-  if (!file || typeof file === "string") return c.json({ detail: "缺少文件" }, 400)
-  const data = new Uint8Array(await (file as File).arrayBuffer())
-  if (!data.length) return c.json({ detail: "图片为空" }, 422)
-  const noCache = c.req.query("no_cache") === "true"
-  const mode = c.req.query("mode") === "english" ? "english" : "chinese"
-  const polyAsync = mode !== "english" && c.req.query("poly_async") !== "0"
-  const reqT0 = Date.now()
-  const imgHash = createHash("sha256").update(data).digest("hex")
-  // _r4 = 多音字版本号（2026-09-10）：旧缓存可能落进了「(非多音，跳过)」这类脏注音值，
-  // 加后缀让旧缓存失效一次；读取路径另有 sanitizeBlockPolyphones 兜底。
-  // _r3 = 排版/表格版本号（r2 = 段落聚合；r3 = 2026-09-10 表格块修复：HTML 标签不再被去拼音
-  // 删成 <>、正文内嵌 HTML 表格提升为可点读 table 块）。旧缓存命中会绕过新逻辑，故加版本后缀
-  // 让旧结果自然失效一次；识别结果本身不变，之后同图仍照常命中缓存。
-  const cacheKey = `${CACHE_DIR}/parse_${imgHash}${mode === "english" ? "_en" : ""}_r4.json`
-  console.log(`[parse-image-stream] 收到图片 ${data.length} 字节, no_cache=${noCache}, mode=${mode}`)
-
-  // 缓存命中：无流可放（或需要增量吐？）——直接一次性把完整结果发出来，前端秒显示
-  if (!noCache && (await exists(cacheKey))) {
-    try {
-      const cached = await readCache(cacheKey)
-      const stripPinyin = mode !== "english"
-      const cachedText = cleanBookScanText(dedupeLines(cleanOcrText(recoverTextFromJson(String(cached?.text ?? ""))).trim()).trim(), { stripPinyin })
-      const cachedBlocks = sanitizeBlockPolyphones(cleanBookScanBlocks(Array.isArray(cached?.blocks) ? cached.blocks : [], { stripPinyin }))
-      const cachedQs = splitQuestions(cachedText)
-      const hasPoly = cachedBlocks.some((b: any) => b?.polyphones && Object.keys(b.polyphones).length)
-      const polyToken = polyAsync && !hasPoly ? imgHash : null
-      console.log(`[parse-image-stream] 缓存命中, 文本 ${cachedText.length} 字, 耗时 ${Date.now() - reqT0}ms`)
-      return streamSSE(c, async (stream) => {
-        const send = (p: Record<string, unknown>) => stream.writeSSE({ data: JSON.stringify(p) })
-        await send({ type: "meta", img_hash: imgHash, cached: true })
-        for (const ln of cachedText.split("\n")) {
-          if (ln) await send({ type: "line", text: ln })
-        }
-        await send({
-          type: "done",
-          text: cachedText,
-          questions: cachedQs.length ? cachedQs : cachedText ? [cachedText] : [],
-          blocks: cachedBlocks,
-          crops: Array.isArray(cached?.crops) ? cached.crops : [],
-          page_bounds: cached?.page_bounds ?? null,
-          poly_pending: polyToken ? true : undefined,
-          poly_token: polyToken ?? undefined,
-        })
-      })
-    } catch {
-      /* 缓存损坏忽略，走正常识别 */
-    }
-  }
-
-  // 落盘 + 方向校正
-  const ext = (file as File).name?.match(/\.([a-zA-Z0-9]+)$/)?.[1] ? "." + (file as File).name!.match(/\.([a-zA-Z0-9]+)$/)![1] : ".jpg"
-  const fname = `${crypto.randomUUID().replace(/-/g, "")}${ext}`
-  const path = `${IMAGE_DIR}/${fname}`
-  await writeBlob(path, data, "image/jpeg")
-  let oriented = path
-  try {
-    oriented = await autoOrient(path)
-  } catch {
-    /* 跳过 */
-  }
-
-  return streamSSE(c, async (stream) => {
-    const send = (p: Record<string, unknown>) => stream.writeSSE({ data: JSON.stringify(p) })
-    const ark = getArk()
-
-    // 引擎选择（与非流式 parse-image 一致，便于一键回退）：
-    //   engine=paddle/doubao 显式覆盖；否则 OCR_ENGINE=doubao 跳过 Paddle；缺省 Paddle 优先。
-    const reqEngine = (c.req.query("engine") || "").trim().toLowerCase()
-    const envEngine = (getEnv().OCR_ENGINE || "").trim().toLowerCase()
-    const tryPaddleFirst = reqEngine === "paddle" || (reqEngine !== "doubao" && envEngine !== "doubao")
-
-    // 谁先出文字谁赢（paddle=专用 OCR 快 / doubao=流式兜底）。两路**并发**启动：
-    // Paddle 先出文字 → 立即收尾（抢断豆包，不让它把 done 拖到 7s）；否则豆包流式照常兜底。
-    // 用 string 而非字面量联合：winner 在并发闭包内赋值，字面量联合会被 TS 误收窄为 ""。
-    let winner = ""
-    let text = ""
-    let blocks: any[] = []
-    let closed = false // 已决定收尾：放弃的后台任务不得再写入已关闭的 SSE 流
-
-    await send({ type: "meta", img_hash: imgHash })
-
-    // ── 第一路：Paddle 专用 OCR（PP-StructureV3，实测 ~1~3.6s 出全部文字 + 版面块）──
-    let paddleText = ""
-    let paddleBlocks: any[] = []
-    const paddleP: Promise<boolean> = tryPaddleFirst
-      ? (async () => {
-          try {
-            const poT0 = Date.now()
-            const poOpts: PaddleOcrOpts = { timeoutMs: 12_000 }
-            if (mode === "english") {
-              // 英语页开版面/图表/表格（与非流式一致）；公式识别按需未启用
-              poOpts.ocr = { layoutParsing: true, useChartRecognition: true, useTableRecognition: true }
-            }
-            const po = await paddleOcrExtract(oriented, poOpts)
-            if (po.ok && po.blocks.length && po.text.trim() && !winner) {
-              winner = "paddle"
-              paddleText = po.text
-              paddleBlocks = po.blocks
-              for (const ln of paddleText.split("\n")) {
-                const t = ln.trim()
-                if (t && !closed) { try { await send({ type: "line", text: t }) } catch { closed = true } }
-              }
-              console.log(`[parse-image-stream] Paddle 胜出 耗时=${Date.now() - poT0}ms t=${Date.now() - reqT0}ms blocks=${paddleBlocks.length} 文本=${paddleText.length}字`)
-              return true
-            }
-            if (po.ok) console.warn(`[parse-image-stream] Paddle 空产出(${po.ms ?? 0}ms) text.len=${po.text?.length} blocks=${po.blocks?.length}，交由豆包兜底`)
-            else console.warn(`[parse-image-stream] Paddle 未产出(${po.ms ?? 0}ms): ${po.error}，交由豆包兜底`)
-          } catch (e) {
-            console.warn(`[parse-image-stream] Paddle 异常，交由豆包兜底: ${(e as Error).message}`)
-          }
-          return false
-        })()
-      : Promise.resolve(false)
-
-    // ── 第二路：豆包流式纯文本 OCR（并发启动；Paddle 胜出则被抢断）──
-    let streamed = ""
-    let signalDecision: (v: string) => void = () => {}
-    const decisionP = new Promise<string>((r) => { signalDecision = r })
-    let doubaoDone: Promise<void> = Promise.resolve()
-    if (ark.enabled) {
-      doubaoDone = (async () => {
-        const extractor = new IncrementalLineExtractor()
-        let firstLineMs = 0
-        try {
-          // 纯文本 OCR 提示词：模型直接按行输出正文，无需 JSON 包裹，首行最快
-          const iter = ark.chatStream({
-            prompt: DOUBAO_OCR_PROMPT,
-            system_prompt: "你是一个小学课本 OCR 逐行转录器，只输出识别到的文字行。",
-            image_paths: [oriented],
-            max_tokens: 8192,
-            model_override: multimodalModel(),
-            disable_thinking: true,
-            timeout_ms: 90_000,
-          })
-          for await (const delta of iter) {
-            if (winner === "paddle") break // Paddle 已胜出，放弃豆包
-            if (!delta) continue
-            const emit = async (t: string) => {
-              if (winner === "paddle") return
-              if (!winner) {
-                winner = "doubao"
-                signalDecision("doubao")
-              }
-              streamed += (streamed ? "\n" : "") + t
-              if (!closed) { try { await send({ type: "line", text: t }) } catch { closed = true } }
-            }
-            // 纯文本路径：delta 本身就带换行，按行切分增量推送
-            // （若模型误输出 JSON 包裹，IncrementalLineExtractor 也能兜住 —— 双保险）
-            const looksJson = delta.includes('"text"') || delta.trimStart().startsWith("{")
-            if (looksJson) {
-              for (const ln of extractor.push(delta)) {
-                if (!firstLineMs) firstLineMs = Date.now() - reqT0
-                await emit(ln)
-              }
-            } else {
-              for (const ln of delta.split("\n")) {
-                const t = ln.trim()
-                if (!t) continue
-                if (!firstLineMs) firstLineMs = Date.now() - reqT0
-                await emit(t)
-              }
-            }
-          }
-          console.log(`[parse-image-stream] 豆包流式结束 首行=${firstLineMs}ms 总耗时=${Date.now() - reqT0}ms 文本=${streamed.length}字`)
-        } catch (e) {
-          console.warn(`[parse-image-stream] 豆包流式失败(已出${streamed.length}字): ${(e as Error).message}`)
-        }
-        signalDecision("done") // 豆包结束（若已判定则被忽略）
-      })()
-    } else {
-      signalDecision("done")
-    }
-
-    // ── 竞速：Paddle 成功 或 豆包首行，谁先谁赢 ──
-    const decision = ark.enabled
-      ? await Promise.race([paddleP.then((ok) => (ok ? "paddle" : "paddle-fail")), decisionP])
-      : ((await paddleP) ? "paddle" : "paddle-fail")
-    console.log(`[parse-image-stream] 竞速判定=${decision} t=${Date.now() - reqT0}ms`)
-
-    if (decision === "paddle") {
-      text = paddleText
-      blocks = paddleBlocks
-      closed = true // 抢断豆包：立即收尾，不等它跑完
-    } else if (decision === "doubao") {
-      await doubaoDone
-      text = streamed
-    } else {
-      // 豆包未出字（失败/空）或 Paddle 失败：两条路都收尾后再定夺
-      await doubaoDone
-      if (winner === "paddle") {
-        text = paddleText
-        blocks = paddleBlocks
-      } else if (winner === "doubao") {
-        text = streamed
-      } else if (await paddleP) {
-        text = paddleText
-        blocks = paddleBlocks
-      } else {
-        await send({ type: "error", detail: ark.enabled ? "图片识别失败（未识别到文字）" : "免费 AI 服务未配置（缺少 ARK_API_KEY）" })
-        return
-      }
-    }
-
-    // ── 统一收尾：文本清洗 ──
-    text = cleanOcrText(text).trim()
-    text = recoverTextFromJson(text).trim()
-    text = cleanBookScanText(text, { stripPinyin: mode !== "english" })
-    if (!text) {
-      await send({ type: "error", detail: "图片识别失败（未识别到文字）" })
-      return
-    }
-
-    // 结构化 blocks：Paddle 路径自带；豆包路径再跑一次原 JSON 调用（版面/对齐/逐字注音）
-    if (winner === "paddle") {
-      blocks = cleanBookScanBlocks(blocks, { stripPinyin: mode !== "english" })
-    } else {
-      try {
-        const result = await arkExtractBlocks(oriented, false, !polyAsync)
-        if (result.blocks.length) {
-          blocks = cleanBookScanBlocks(result.blocks, { stripPinyin: mode !== "english" })
-        }
-        console.log(`[parse-image-stream] 豆包结构化 blocks=${blocks.length} structured=${result.structured}`)
-      } catch (e) {
-        console.warn(`[parse-image-stream] 结构化补 blocks 失败(退化为纯文本块): ${(e as Error).message}`)
-      }
-    }
-    if (!blocks.length) {
-      // 兜底：纯文本按空行切段（段内首条物理行 indent=1），保证前端仍能把物理行并回段落、
-      // 段落首行空两格，而不是每行都从行首另起。
-      const paras = text
-        .split(/\n{2,}/)
-        .map((p) => p.split("\n").map((s) => s.trim()).filter(Boolean))
-        .filter((rows) => rows.length)
-      blocks = paras.length
-        ? paras.map((rows) => ({
-            type: "body",
-            text: rows.join("\n"),
-            align: "left",
-            lines: rows.map((t, idx) => ({ text: t, indent: idx === 0 ? 1 : 0 })),
-            polyphones: {},
-          }))
-        : [{ type: "body", text, align: "left", lines: text.split("\n").map((t) => ({ text: t, indent: 0 })), polyphones: {} }]
-    }
-    const questions = splitQuestions(text)
-    const polyToken = polyAsync && blocks.length ? imgHash : null
-    const cachePayload = { text, questions, blocks, page_bounds: null, crops: [] }
-    await writeCache(cacheKey, cachePayload).catch(() => {})
-    if (polyToken) {
-      try {
-        c.executionCtx?.waitUntil(runPolyphonesAsync(blocks, polyPatchKey(polyToken), cacheKey, cachePayload))
-      } catch {
-        /* 后台补注音失败：前端拿不到注音，不影响正文阅读 */
-      }
-    }
-    console.log(`[parse-image-stream] 完成 总耗时=${Date.now() - reqT0}ms 文本=${text.length}字 blocks=${blocks.length} engine=${winner}`)
-    await send({
-      type: "done",
-      text,
-      questions: questions.length ? questions : [text],
-      blocks,
-      crops: [],
-      page_bounds: null,
-      poly_pending: polyToken ? true : undefined,
-      poly_token: polyToken ?? undefined,
-    })
-  })
+  return c.json(toParseResponse({ ...outcome, polyToken }))
 })
 
 /** 异步补多音字补丁查询（2026-09-02）：parse-image 返回 poly_token 后，前端轮询此接口拿注音。

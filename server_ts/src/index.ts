@@ -4,6 +4,7 @@ import { serve } from "@hono/node-server"
 import { serveStatic } from "@hono/node-server/serve-static"
 import { dirname, join } from "node:path"
 import { existsSync, readFileSync } from "node:fs"
+import type { Server as HttpServer } from "node:http"
 import { fileURLToPath } from "node:url"
 import { getConfig, STATIC_DIR, DATA_DIR, ROOT } from "./env.js"
 import { sqlite } from "./db/index.js"
@@ -36,6 +37,7 @@ import aiChatRoutes from "./routes/ai_chat.js"
 import ttsRoutes from "./routes/tts.js"
 import soeRoutes from "./routes/soe.js"
 import asrShortRoutes from "./routes/asrShort.js"
+import asrStreamRoutes, { attachAsrStream } from "./routes/asrStream.js"
 import subtitleCaptureRoutes from "./routes/subtitleCapture.js"
 import biliRoutes from "./routes/bili.js"
 import visitsRoutes from "./routes/visits.js"
@@ -326,6 +328,7 @@ app.route("/api/v1", arkImageRoutes)
 app.route("/api/v1", freeLlmRoutes)
 app.route("/api/v1", ttsRoutes)
 app.route("/api/v1", asrShortRoutes)
+app.route("/api/v1", asrStreamRoutes)
 app.route("/api/v1", soeRoutes)
 app.route("/api/v1", subtitleCaptureRoutes)
 app.route("/api/v1", biliRoutes)
@@ -356,6 +359,8 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split(/[\\/]/).p
   const server = serve({ fetch: app.fetch, hostname: host, port }, (info) => {
     console.log(`[aiphonix-ts] listening on http://${info.address}:${info.port}`)
   })
+  // WebSocket 升级（/api/v1/asr/stream）必须挂在底层 http.Server：Hono 不处理 HTTP upgrade
+  attachAsrStream(server as unknown as HttpServer)
 
   // ── 优雅停机：先关 HTTP，再关 SQLite；8 秒兜底强杀（Windows job 托管下 SIGTERM 也可能来）──
   for (const signal of ["SIGINT", "SIGTERM"] as const) {

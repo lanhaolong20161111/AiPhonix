@@ -48,7 +48,12 @@ export function extractJsonArray(text: string): unknown[] {
  * text」，唯独漏了先执行的本函数。
  * 现在改为：text 缺失时由 lines 逐行拼接推导（与 finalizeBlocks 一致）。
  */
-export function extractBlocks(reply: string): Block[] {
+export interface ExtractBlocksOpts {
+  /** 保留行内前导空格（**数学竖式靠空格对齐**，trim 掉列位就散了）。默认 false = 逐行 trim。 */
+  keepLineSpaces?: boolean
+}
+export function extractBlocks(reply: string, opts: ExtractBlocksOpts = {}): Block[] {
+  const keep = !!opts.keepLineSpaces
   try {
     const data = JSON.parse(stripCodeFence(reply || ""))
     if (!data || typeof data !== "object" || Array.isArray(data)) return []
@@ -73,8 +78,9 @@ export function extractBlocks(reply: string): Block[] {
       const lines: BlockLine[] = []
       for (const ln of (obj.lines ?? []) as unknown[]) {
         if (ln && typeof ln === "object") {
-          const lt = String((ln as Record<string, unknown>).text ?? "").trim()
-          if (lt) {
+          const src = String((ln as Record<string, unknown>).text ?? "")
+          const lt = keep ? src.replace(/\s+$/, "") : src.trim()
+          if (lt.trim()) {
             let indent = Number((ln as Record<string, unknown>).indent ?? 0)
             indent = indent < 0 ? 0 : Math.min(indent, 3)
             lines.push({ text: lt, indent })
@@ -82,9 +88,10 @@ export function extractBlocks(reply: string): Block[] {
         }
       }
       // text 字段缺失（合并调用提示词刻意省略）→ 由 lines 逐行拼接推导
-      let text = String(obj.text ?? "").trim()
-      if (!text && lines.length) text = lines.map((l) => l.text).join("\n")
-      if (!text) continue // 既无 text 也无 lines → 空块，丢弃
+      const rawText = String(obj.text ?? "")
+      let text = keep ? rawText.replace(/\s+$/, "") : rawText.trim()
+      if (!text.trim() && lines.length) text = lines.map((l) => l.text).join("\n")
+      if (!text.trim()) continue // 既无 text 也无 lines → 空块，丢弃
       if (!lines.length) lines.push({ text, indent: 0 })
       blocks.push({ type, text, align, lines, polyphones: poly })
     }
@@ -93,6 +100,20 @@ export function extractBlocks(reply: string): Block[] {
     return []
   }
 }
+
+// ── 学科收尾已移出本文件（§7 学科隔离，2026-09-15） ──
+//
+// 原 `finalizeBlocks(raw, { profile: "chinese" | "math", lineCleaner })` 已**删除**。
+// 它用一个枚举开关表达学科差异，正是元规则 3 禁止的形态：调用方漏传 / 传错开关就出事故
+// （历史事故：数学填空方框 □ 被语文清洗器删掉，只因调用方没传 lineCleaner）。
+//
+// 现在三个学科各自持有一份收尾函数，差异**内联**在各自文件里，无法被漏传：
+//   · 语文 → `lib/subject/chinese.ts`  finalizeChineseBlocks（body 首行缩进 + 诗歌居中）
+//   · 英语 → `lib/subject/english.ts`  finalizeEnglishBlocks
+//   · 数学 → `lib/subject/math.ts`     finalizeMathBlocks（保留行首空格、不缩进、mathClean）
+//
+// 三者共用的**无策略内核**（type/align 归一化、indent 夹取、表格归位）见
+// `lib/subject/kernel.ts` —— 那里只放"三学科必须完全一样"的机制，不含任何学科决策。
 
 export function extractHtmlTables(text: string): [string, string[]] {
   const tables: string[] = []
@@ -267,7 +288,8 @@ const ORDERED_PREFIX = /^(?:[（(]?\d+[）).、．]|[①-⑳]|一、|二、|三�
 
 export function markOrderedIndent(blocks: Block[]): void {
   for (const b of blocks) {
-    if (["title", "heading", "note"].includes(b.type)) continue
+    // foot（页脚/页码行）与标题同类：本来就不该被题号规则抬缩进
+    if (["title", "heading", "note", "foot"].includes(b.type)) continue
     for (const l of b.lines) {
       const t = l.text.trim()
       if (!t || !ORDERED_PREFIX.test(t)) continue
@@ -460,6 +482,33 @@ export function splitQuestions(text: string): string[] {
   return [cleaned]
 }
 
+/** 数学专用分题：**忽略空行**，只认【题N】与行首题号。
+ *
+ *  为什么数学不能用 splitQuestions：它的「空行分隔」分支优先级**高于**「行首题号」。
+ *  自从让 Paddle 的段落空行保留下来（为了不压掉版面结构），数学卷子就会从
+ *  「按题号一题一块」变成「按空行切段」—— 题干、填空、选项会被切散。
+ *  数学分题的权威信号是题号，故这里跳过空行分支，行为与加空行之前完全一致。 */
+export function splitProblemsByNumber(text: string): string[] {
+  const cleaned = cleanOcrText(text || "").trim()
+  if (!cleaned) return []
+
+  // 1) 【题N】标记
+  const marked = cleaned.split(/【\s*题\s*\d+\s*】/)
+  if (marked.length > 1) {
+    const out = marked.map((m) => m.trim()).filter(Boolean)
+    if (out.length) return out
+  }
+
+  // 2) 行首题号（1. / 1、/ （1） / 一、）—— 不按空行分（见上）
+  const numbered = cleaned.split(/\n\s*(?=\d+\s*[.、)]|（\d+）|[一二三四五六七八九十]+[、.])/)
+  if (numbered.length > 1) {
+    const out = numbered.map((p) => p.trim()).filter(Boolean)
+    if (out.length) return out
+  }
+
+  return [cleaned]
+}
+
 export function splitSentences(question: string): string[] {
   const parts = question.split(/(?<=[。！？?!])/)
   const out = parts.map((p) => p.trim()).filter(Boolean)
@@ -538,11 +587,17 @@ export function groupParagraphsByLayout(
 }
 
 /**
- * 确定性去噪（不依赖 LLM）：删掉「非题目信息」里两类强信号——括号与下划线。
+ * 确定性去噪（不依赖 LLM）：删掉「非题目信息」里两类强信号——括号与**整行**下划线。
  *
  * - 括号（）/( )：一律删除（含内部内容与空括号「在（ ）里填空」的空位），OCR 常把答案、注释、
  *   小提示或填空横线识别进括号，属“不符合的文本”，按需求全部过滤。
- * - 下划线 _：删除（老师下划线批注 / 填空横线在 OCR 里常被识别成连续下划线）。
+ * - 下划线 _：**只删「整行只有下划线与空白」的批注线/分隔线**；**行内**下划线是**填空位**
+ *   （要填几个字属语义），必须保留。
+ *   ⚠️ 2026-09-15 修正：此前是无条件 `s.replace(/_+/g, "")`，会把行内填空位一起吃掉，
+ *   与三学科主提示词「空白的填空横线按原样输出下划线」（`prompts.ts:10/28/59/101/117`）
+ *   正面冲突；数学本就在留、语文/英语在删，也把学科不一致固化了。
+ *   成因见 `docs/layout-contract.md` §0.5「成因溯源」。
+ *   ⚠️ 数学**不调用**本函数 —— 竖式的整行 `____` 才是「计算横线」，此规则不得反推套用到数学。
  *
  * 纯语义的“非题目信息”（页眉页脚、页码、水印、广告、图标文字）由 LLM 步骤 llmFilterOcrText 处理；
  * 本函数只做稳定、可预测的字符级清理，且保留段落间空行，不影响排版。
@@ -555,8 +610,14 @@ export function stripQuestionNoise(raw: string): string {
     s = s.replace(/[（(]([^（）()]*?)[)）]/g, "")
     if (s === before) break
   }
-  // 删除下划线（连续或单个）
-  s = s.replace(/_+/g, "")
+  // 下划线：只删「整行只有下划线/空白」的批注线、分隔线；**行内**下划线（填空位）原样保留。
+  // 行内容须**至少含 1 个下划线**（ASCII `_` 或全角 `＿`），且不含其它可见字符。
+  // （2026-09-15 修正：此前是无条件删 `_+`，会把行内填空位一起吃掉，
+  //   与三学科主提示词「空白的填空横线按原样输出下划线」正面冲突。）
+  s = s
+    .split("\n")
+    .map((ln) => (/^[ \t\u3000_\uFF3F]*[_＿][ \t\u3000_\uFF3F]*$/.test(ln) ? "" : ln))
+    .join("\n")
   // 仅清理行首尾空白与过多空行，保留段落间的单个空行（不影响排版）
   s = s
     .split("\n")
@@ -570,6 +631,8 @@ export function stripQuestionNoise(raw: string): string {
 
 const PINYIN_TONE_RE = /[A-Za-z]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü][A-Za-z]*/g
 const ASCII_LETTER_RUN_RE = /[A-Za-z]+/g
+/** 单个汉字 —— 用来区分「中文行（含拼音要删）」与「纯英文行（是正文，不能删）」 */
+const HAN_CHAR_RE = /[\u4e00-\u9fff]/
 
 /** 检测字符串里是否含 HTML 标签（表格/行内标签）。
  * ⚠️ HTML 标签名与属性名（table/tr/td/colspan…）都是拉丁字母，去拼音会连它们一起删掉：
@@ -579,14 +642,21 @@ const ASCII_LETTER_RUN_RE = /[A-Za-z]+/g
 const HTML_TAG_RE = /<\/?[a-zA-Z][^>]*>/
 
 /** 去掉印刷在书里的拼音（拉丁字母段，含声调符号），保留中文/标点/数字/空白。
- * 与客户端 stripPinyinKeepDelimiters 同逻辑。系统后续用 polyphones 自己注音，
- * 故识别结果里不应残留印刷拼音。仅对中文模式调用（英语正文本身是拉丁字母，不能去）。
- * 含 HTML 标签的文本原样返回（表格靠标签结构渲染，见 HTML_TAG_RE）。 */
+ * 系统后续用 polyphones 自己注音，故识别结果里不应残留印刷拼音。仅对中文模式调用。
+ * 含 HTML 标签的文本原样返回（表格靠标签结构渲染，见 HTML_TAG_RE）。
+ *
+ * ⚠️ 无调拉丁段的删除**必须限定在含汉字的行内**：中文卷子里夹的英文正文/单词表
+ * （如语文卷里的英语邮件范文）本身没有汉字，删掉只剩一串标点乱码
+ * —— 实测 "It has been a long time since we met." → "    ,  ."。
+ * 教材印刷拼音几乎必带声调（走 PINYIN_TONE_RE），纯无调拼音行极罕见；
+ * 取舍是「宁可漏删无调拼音，也绝不把英文正文删成乱码」。 */
 export function stripPrintedPinyin(s: string): string {
   if (!s) return ""
   if (HTML_TAG_RE.test(s)) return s
+  // ① 带声调 → 确定是印刷拼音，无条件删
   let t = s.replace(PINYIN_TONE_RE, "")
-  t = t.replace(ASCII_LETTER_RUN_RE, "")
+  // ② 无调拉丁段：仅当该行还有汉字时才当拼音删（纯英文行 = 英文正文，保留）
+  if (HAN_CHAR_RE.test(t)) t = t.replace(ASCII_LETTER_RUN_RE, "")
   return t
 }
 

@@ -1,15 +1,13 @@
-/** ai_chinese 各拆分模块共享的目录常量与小工具 — Cloudflare 版（R2 + WASM）
+/** ai_chinese 各拆分模块共享的目录常量与小工具 — Cloudflare 版（R2）
  *
  * 与 server_ts/src/lib/aiChineseContext.ts 的差异：
  * - 目录常量是 R2 key 前缀（"data/..."），不再是本地路径
- * - autoCropWhite 用 @jsquash WASM 解码 + 像素扫描白边（原 sharp extract 语义逐行保留）
+ * - **autoCropWhite 已降级为原样返回**：它原来是「@jsquash WASM 解码 + 像素扫描白边」，
+ *   而 Worker 侧不能用 wasm（CPU 限制，详见 lib/image.ts 文件头），故直接返回原 key
  * - resolveImagePath 变纯字符串归一化（无 fs），后续存在性检查由调用方 await exists()
  * - searchTitle 变 async（D1）
  */
-import { createHash } from "node:crypto"
 import { sqlFirst, sqlAll } from "../db/index.js"
-import { readBlob, writeBlob, exists as keyExists } from "./storage.js"
-import { decodeImage, encodeJpeg } from "./image.js"
 import { readCache, writeCache, parseJsonObj } from "./aiShared.js"
 import { chat as deepseekChat } from "./deepseek.js"
 import { MULTIMODAL_MODEL, multimodalModel } from "./ark.js"
@@ -29,59 +27,9 @@ export const SENTENCE_AUDIO_DIR = "data/ai_chinese_sentence_audio"
 export const UPLOAD_DATA_DIR = "data/uploads"
 
 export async function autoCropWhite(imageKey: string): Promise<string> {
-  // 白边裁剪：检测四周白边并裁剪（失败返回原 key）
-  try {
-    const key = createHash("md5").update(imageKey).digest("hex").slice(0, 16)
-    const out = `${IMAGE_DIR}/crop_${key}.jpg`
-    if (await keyExists(out)) return out
-    const raw = await readBlob(imageKey)
-    if (!raw) return imageKey
-    const { image } = await decodeImage(new Uint8Array(raw))
-    const w = image.width
-    const h = image.height
-    if (w < 100 || h < 100) return imageKey
-    const data = image.data
-    const ch = 4 // ImageData 恒 RGBA
-    const isWhite = (x: number, y: number): boolean => {
-      const i = (y * w + x) * ch
-      return data[i] > 200 && data[i + 1] > 200 && data[i + 2] > 200
-    }
-    const rowWhite = (y: number): boolean => {
-      let cnt = 0
-      let n = 0
-      for (let x = 0; x < w; x += 3) { n++; if (isWhite(x, y)) cnt++ }
-      return n > 0 && cnt / n >= 0.85
-    }
-    let top = 0
-    while (top < h - 2 && rowWhite(top)) top++
-    let bottom = h - 1
-    while (bottom > top + 2 && rowWhite(bottom)) bottom--
-    const colWhite = (x: number): boolean => {
-      let cnt = 0
-      let n = 0
-      for (let y = top; y <= bottom; y += 3) { n++; if (isWhite(x, y)) cnt++ }
-      return n > 0 && cnt / n >= 0.85
-    }
-    let left = 0
-    while (left < w - 2 && colWhite(left)) left++
-    let right = w - 1
-    while (right > left + 2 && colWhite(right)) right--
-    const cw = right + 1 - left
-    const chh = bottom + 1 - top
-    if (cw < w * 0.4 || chh < h * 0.4 || (cw >= w * 0.98 && chh >= h * 0.98)) return imageKey
-    // 裁剪（逐行拷贝像素到新 ImageData）
-    const cropped = new ImageData(cw, chh)
-    for (let y = 0; y < chh; y++) {
-      const srcStart = ((y + top) * w + left) * 4
-      cropped.data.set(data.subarray(srcStart, srcStart + cw * 4), y * cw * 4)
-    }
-    const jpg = await encodeJpeg(cropped, 85)
-    await writeBlob(out, jpg, "image/jpeg")
-    return out
-  } catch (e) {
-    console.warn("[ai-chinese] 白边裁剪失败:", (e as Error).message)
-    return imageKey
-  }
+  // Cloudflare 版：不做白边裁剪（像素解码依赖 wasm，Worker 侧禁用；见 lib/image.ts 文件头）。
+  // 保留函数与签名，调用方（ai_chinese 报告存档）无需改动，行为 = 原样使用原图。
+  return imageKey
 }
 
 export async function chatJson(

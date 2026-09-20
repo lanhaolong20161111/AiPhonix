@@ -1,16 +1,30 @@
-/** 图像处理 — Cloudflare 版：@jsquash(WASM) 替代 sharp，文件读写走 R2
+/** 图像处理 — Cloudflare 版
  *
- * 与 server_ts/src/lib/image.ts 的语义对齐：
- * - autoOrient：EXIF 方向校正 → 输出统一 JPEG（返回新 key，原对象不动）
- * - compressImage / compressImageToFile：等比缩放到最大宽度 + JPEG 压缩
- * - toDataUrl / isAllowedImageExt / safeJoin 不变
+ * ⚠️ 结论（2026-09-15 实测）：**Worker 侧不做任何像素处理**，本模块是纯透传实现。
  *
- * 快路径：JPEG 且无需处理时直接透传原始字节（省 CPU —— Workers 按 CPU 时间计费）。
+ * 历史与踩坑（别再回头踩）：
+ * 1) 这里原用 @jsquash(WASM) 替代 sharp 做解码/EXIF 旋转/缩放/重编码。但 workerd **禁止运行时编译 wasm**，
+ *    @jsquash 默认在运行时取 .wasm 字节再 instantiate → 必抛
+ *    `WebAssembly.instantiate(): Wasm code generation disallowed by embedder`。
+ *    后果：autoOrient / preprocessForVision 静默降级成「不处理」（被各自的 catch 吞掉），
+ *    而 compressImage 曾把异常直接抛给识别主链路 → 前端只看到
+ *    「图片识别失败（诊断：豆包识图: Wasm code generation disallowed by embedder）」。
+ * 2) 按 @jsquash 官方「Usage in Cloudflare Workers」改成**静态 import .wasm**（wrangler CompiledWasm
+ *    在构建期编译成 WebAssembly.Module）+ 显式 `init(module)` 注入后，wasm 确实能跑了
+ *    （staging 日志不再有降级告警）。但随即撞上 Worker 的 CPU 限制：同一张 1200×1700 PNG 时好时坏地
+ *    返回 503 `error code: 1102`（Exceeded CPU Limit），连不带图片的 /auth/register 都偶发 503
+ *    —— 约 1.2MB 的 wasm 把**冷启动/首次调用的 CPU** 顶到超限，属平台硬约束，调不动。
+ * 3) 而这些处理换来的收益几乎为零：客户端上传前已把图压到 1600px/0.85 的 JPEG
+ *    （web/src/lib/imageCompress.ts，JPEG≤800KB 直接原样上传），服务端再压到 1440 属于白付 CPU。
+ *
+ * 所以本模块现在的语义（函数名保留，只为不动调用方）：
+ * - autoOrient：返回原 key；EXIF 方向由**客户端**烘焙进像素（imageCompress.ts 里的 canvas 旋转）
+ * - compressImage：返回原图字节；compressImageToFile：返回原 key（不写副本 —— 避免出现
+ *   「扩展名 .jpg 但字节是 PNG」的副本，下游按扩展名判定 MIME）
+ * - preprocessForVision：返回原图字节（多模态识图直接用原图）
+ * - toDataUrl / keyToDataUrl / isAllowedImageExt / safeJoin / sniffImageKind 不变
  */
-import { decode as decodeJpeg, encode as encodeJpeg } from "@jsquash/jpeg"
-import { decode as decodePng } from "@jsquash/png"
-import resize from "@jsquash/resize"
-import { readBlob, writeBlob, toBase64 } from "./storage.js"
+import { readBlob, toBase64 } from "./storage.js"
 
 // ── EXIF orientation 解析（JPEG APP1/TIFF 0x0112） ──
 
@@ -58,45 +72,7 @@ export function readExifOrientation(buf: Uint8Array): number {
   return 1
 }
 
-// ── 按 EXIF orientation 重排像素（1-8 全覆盖） ──
-
-export function applyOrientation(src: ImageData, orientation: number): ImageData {
-  const o = orientation >= 1 && orientation <= 8 ? orientation : 1
-  if (o === 1) return src
-  const w = src.width
-  const h = src.height
-  const swap = o >= 5
-  const dw = swap ? h : w
-  const dh = swap ? w : h
-  const dst = new ImageData(dw, dh)
-  const sd = src.data
-  const dd = dst.data
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let dx = x
-      let dy = y
-      switch (o) {
-        case 2: dx = w - 1 - x; break
-        case 3: dx = w - 1 - x; dy = h - 1 - y; break
-        case 4: dy = h - 1 - y; break
-        case 5: dx = y; dy = x; break
-        case 6: dx = h - 1 - y; dy = x; break
-        case 7: dx = h - 1 - y; dy = w - 1 - x; break
-        case 8: dx = y; dy = w - 1 - x; break
-        default: break
-      }
-      const si = (y * w + x) * 4
-      const di = (dy * dw + dx) * 4
-      dd[di] = sd[si]
-      dd[di + 1] = sd[si + 1]
-      dd[di + 2] = sd[si + 2]
-      dd[di + 3] = sd[si + 3]
-    }
-  }
-  return dst
-}
-
-// ── 编解码 ──
+// ── 格式嗅探（按魔数，不看扩展名） ──
 
 function sniff(buf: Uint8Array): "jpeg" | "png" | null {
   if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpeg"
@@ -104,94 +80,46 @@ function sniff(buf: Uint8Array): "jpeg" | "png" | null {
   return null
 }
 
-async function decodeAny(buf: Uint8Array): Promise<{ image: ImageData; kind: "jpeg" | "png" }> {
-  const kind = sniff(buf)
-  const ab = buf.slice().buffer
-  if (kind === "jpeg") return { image: await decodeJpeg(ab), kind }
-  if (kind === "png") return { image: await decodePng(ab), kind }
-  throw new Error("不支持的图片格式（仅 jpeg/png 可处理）")
-}
+export { sniff as sniffImageKind }
 
-async function encodeJpegData(image: ImageData, quality: number): Promise<Buffer> {
-  const out = await encodeJpeg(image, { quality })
-  return Buffer.from(out)
-}
+// ── 对外 API（路径参数实为 R2 key） ──
 
-export { decodeAny as decodeImage, encodeJpegData as encodeJpeg, sniff as sniffImageKind }
-
-/** 等比缩放到目标最大宽度内（不放大）。仅 JPEG 输入。 */
-async function shrinkIfNeeded(image: ImageData, maxWidth: number): Promise<ImageData | null> {
-  if (maxWidth <= 0 || image.width <= maxWidth) return null
-  const scale = maxWidth / image.width
-  const dw = Math.max(1, Math.round(image.width * scale))
-  const dh = Math.max(1, Math.round(image.height * scale))
-  return await resize(image, { width: dw, height: dh, fitMethod: "stretch", method: "triangle" })
-}
-
-// ── 对外 API（与 server_ts 语义对齐；路径参数实为 R2 key） ──
-
-/** EXIF 方向校正 → 输出统一 JPEG（原对象不动，返回新 <base>.jpg key）。
- * 快路径：JPEG 且方向=1 时直接返回原 key（不重编码）。 */
+/** 「EXIF 方向校正 → 输出统一 JPEG」的 Cloudflare 版：**原样返回原 key**。
+ *  方向由客户端烘焙（imageCompress.ts）；这里只保留一个告警，便于发现「客户端漏了转正」的图。 */
 export async function autoOrient(imageKey: string): Promise<string> {
   try {
     const raw = await readBlob(imageKey)
     if (!raw) return imageKey
     const buf = new Uint8Array(raw)
-    const kind = sniff(buf)
-    const orientation = kind === "jpeg" ? readExifOrientation(buf) : 1
-    if (kind === "jpeg" && orientation === 1) return imageKey
-    if (!kind) return imageKey
-    const { image } = await decodeAny(buf)
-    const fixed = applyOrientation(image, orientation)
-    const jpg = await encodeJpegData(fixed, 92)
-    const base = imageKey.replace(/\.(png|jpe?g|webp|gif|bmp)$/i, "")
-    const outKey = `${base}.jpg`
-    await writeBlob(outKey, jpg, "image/jpeg")
-    return outKey
+    if (sniff(buf) === "jpeg") {
+      const o = readExifOrientation(buf)
+      if (o !== 1) {
+        console.warn(`[image] 图片带 EXIF 方向 ${o} 且未被客户端烘焙，Worker 不再旋转，按原样送识别: ${imageKey}`)
+      }
+    }
   } catch (e) {
-    console.warn("[image] autoOrient 跳过:", (e as Error).message)
-    return imageKey
+    console.warn("[image] autoOrient 检查失败（忽略）:", (e as Error).message)
   }
+  return imageKey
 }
 
-/** 压缩图片到目标宽度内，输出 JPEG（返回 Buffer）。
- * 快路径：JPEG、方向=1、宽度已达要求 → 原始字节透传。 */
-export async function compressImage(imageKey: string, maxWidth = 1600, quality = 92): Promise<Buffer> {
+/** 读取图片字节（Cloudflare 版不压缩；保留原签名以便调用方无感）。
+ *  降级约定：任何情况下都返回「原图字节」，绝不抛 wasm 之类的底层异常 —— 该异常曾污染识别诊断串。 */
+export async function compressImage(imageKey: string, _maxWidth = 1600, _quality = 92): Promise<Buffer> {
   const raw = await readBlob(imageKey)
   if (!raw) throw new Error(`图片不存在: ${imageKey}`)
-  const buf = new Uint8Array(raw)
-  const kind = sniff(buf)
-  const orientation = kind === "jpeg" ? readExifOrientation(buf) : 1
-
-  // JPEG 快路径：无需旋转也无需缩放 → 透传
-  if (kind === "jpeg" && orientation === 1) {
-    if (maxWidth <= 0) return Buffer.from(buf)
-    try {
-      const { image } = await decodeAny(buf) // 仅读取宽高（此处仍需解码）
-      const shrunk = await shrinkIfNeeded(image, maxWidth)
-      if (!shrunk) return Buffer.from(buf)
-      return await encodeJpegData(shrunk, quality)
-    } catch {
-      return Buffer.from(buf)
-    }
-  }
-
-  const { image } = await decodeAny(buf)
-  const fixed = applyOrientation(image, orientation)
-  const shrunk = await shrinkIfNeeded(fixed, maxWidth)
-  return encodeJpegData(shrunk ?? fixed, quality)
+  return Buffer.from(new Uint8Array(raw))
 }
 
-/** 压缩并写入 R2 指定 key，返回输出 key */
+/** 「压缩并写入 R2」的 Cloudflare 版：**直接返回原 key**（不写副本）。
+ *  不写 `.jpg` 副本很重要：原图是 PNG 时若按 .jpg 名义落盘，下游按扩展名取 MIME 就会 mime 与字节不符。 */
 export async function compressImageToFile(
   imageKey: string,
-  outKey: string,
-  maxWidth = 1600,
-  quality = 92
+  _outKey: string,
+  _maxWidth = 1600,
+  _quality = 92
 ): Promise<string> {
-  const jpg = await compressImage(imageKey, maxWidth, quality)
-  await writeBlob(outKey, jpg, "image/jpeg")
-  return outKey
+  return imageKey
 }
 
 /** 将图片 buffer 转 base64 data URL（供豆包/多模态 API 使用） */
@@ -212,37 +140,14 @@ export function safeJoin(dir: string, name: string): string {
   return `${dir.replace(/\/+$/, "")}/${base}`
 }
 
-/** 多模态识图预处理：长边限制 1440px、JPEG 质量 80（对齐 doubao-seed-2-1-turbo OCR 提速优化）。
- * 与 server_ts/src/lib/image.ts#preprocessForVision 语义一致；Worker 环境用 @jsquash(WASM) 替代 sharp。
- * 不放大；替代原图 base64 上传，砍掉大图的 visual token 量，降低 TTFT。
- *
- * 快路径：Web 客户端已把图压到 1600px/0.85（prepareImageFile，>1.5MB 还会二次压到 1280/0.7），
- * 上传体积恒 ≤1.5MB。这类图再压到 1440 对 visual token 几乎无收益（1600→1440 约 -10% 边长，
- * 平铺 token 数基本不变），却要白白付一次 WASM 解码+重编码（Workers 按 CPU 计费）。
- * 因此 JPEG + 方向已正 + ≤1.5MB 直接透传原始字节，跳过整个 WASM 流程；
- * 只有大图（手机原图直传等）才走解码/缩放/重编码，保住 token 不爆炸。 */
+/** 多模态识图预处理：Cloudflare 版**原样直传**（原「长边 1440 + jpeg80」依赖 wasm，已按文件头所述禁用）。
+ *  上游客户端已把图压到 1600px/0.85，原图直传的 visual token 与压缩后相差无几。 */
 export async function preprocessForVision(imageKey: string): Promise<Buffer> {
   const raw = await readBlob(imageKey)
   if (!raw) throw new Error(`图片不存在: ${imageKey}`)
   const buf = new Uint8Array(raw)
-  const kind = sniff(buf)
-  if (!kind) throw new Error("不支持的图片格式（仅 jpeg/png 可处理）")
-  // 快路径：JPEG + 方向=1 + 体积小（客户端已压缩）→ 透传原始字节，跳过 WASM。
-  if (kind === "jpeg" && readExifOrientation(buf) === 1 && buf.length <= 1_500_000) {
-    return Buffer.from(buf)
-  }
-  const { image } = await decodeAny(buf)
-  const fixed = applyOrientation(image, kind === "jpeg" ? readExifOrientation(buf) : 1)
-  // 长边 > 1440 才缩放（不放大）
-  const longEdge = Math.max(fixed.width, fixed.height)
-  let out = fixed
-  if (longEdge > 1440) {
-    const scale = 1440 / longEdge
-    const dw = Math.max(1, Math.round(fixed.width * scale))
-    const dh = Math.max(1, Math.round(fixed.height * scale))
-    out = await resize(fixed, { width: dw, height: dh, fitMethod: "stretch", method: "triangle" })
-  }
-  return encodeJpegData(out, 80)
+  if (!sniff(buf)) throw new Error("不支持的图片格式（仅 jpeg/png 可处理）")
+  return Buffer.from(buf)
 }
 
 /** R2 图片 key → data URL（多模态识图常用） */

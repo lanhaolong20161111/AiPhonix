@@ -169,7 +169,8 @@ const ORDERED_PREFIX = /^(?:[（(]?\d+[）).、．]|[①-⑳]|一、|二、|三�
 
 export function markOrderedIndent(blocks: Block[]): void {
   for (const b of blocks) {
-    if (["title", "heading", "note"].includes(b.type)) continue
+    // foot（页脚/页码行）与标题同类：本来就不该被题号规则抬缩进
+    if (["title", "heading", "note", "foot"].includes(b.type)) continue
     for (const l of b.lines) {
       const t = l.text.trim()
       if (!t || !ORDERED_PREFIX.test(t)) continue
@@ -296,6 +297,32 @@ export function splitQuestions(text: string): string[] {
   if (parts.length > 1) return parts
 
   // 3) 行首题号
+  const numbered = cleaned.split(/\n\s*(?=\d+\s*[.、)]|（\d+）|[一二三四五六七八九十]+[、.])/)
+  if (numbered.length > 1) {
+    const out = numbered.map((p) => p.trim()).filter(Boolean)
+    if (out.length) return out
+  }
+
+  return [cleaned]
+}
+
+/** 数学专用分题：**忽略空行**，只认【题N】与行首题号。
+ *
+ *  splitQuestions 的「空行分隔」分支优先级高于「行首题号」；数学卷子靠题号分题，
+ *  一旦文本里带上段落空行（为了保住版面结构），就会退化成按空行切段、把题干/选项切散。
+ *  故数学单走这一份，行为与"没有空行"时一致。 */
+export function splitProblemsByNumber(text: string): string[] {
+  const cleaned = cleanOcrText(text || "").trim()
+  if (!cleaned) return []
+
+  // 1) 【题N】标记
+  const marked = cleaned.split(/【\s*题\s*\d+\s*】/)
+  if (marked.length > 1) {
+    const out = marked.map((m) => m.trim()).filter(Boolean)
+    if (out.length) return out
+  }
+
+  // 2) 行首题号（1. / 1、/ （1） / 一、）—— 不按空行分（见上）
   const numbered = cleaned.split(/\n\s*(?=\d+\s*[.、)]|（\d+）|[一二三四五六七八九十]+[、.])/)
   if (numbered.length > 1) {
     const out = numbered.map((p) => p.trim()).filter(Boolean)

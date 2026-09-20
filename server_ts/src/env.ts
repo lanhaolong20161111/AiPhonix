@@ -54,6 +54,12 @@ const baiduTtsSchema = z.object({
   cache_dir: z.string().default("cache/tts"),
 })
 
+/** 百度实时语音识别（/asr/stream 用 app_id + api_key；短语音识别复用 baidu_tts 的 key） */
+const baiduAsrSchema = z.object({
+  app_id: z.string().default(""),
+  api_key: z.string().default(""),
+})
+
 const volcTtsSchema = z.object({
   api_key: z.string().default(""),
   /** seed-audio-1.0（默认，免费额度）| seed-tts-2.0（流式 Tina老师2.0，音色更自然） */
@@ -107,6 +113,7 @@ const configSchema = z.object({
   server: serverSchema.default({}),
   deepseek: deepseekSchema.default({}),
   baidu_tts: baiduTtsSchema.default({}),
+  baidu_asr: baiduAsrSchema.default({}),
   volc_tts: volcTtsSchema.default({}),
   tencent: tencentSchema.default({}),
   llm_prompts: llmPromptsSchema.default({}),
@@ -150,6 +157,8 @@ export function loadConfig(): AppConfig {
   if (process.env.BAIDU_TTS_APP_ID) cfg.baidu_tts.app_id = process.env.BAIDU_TTS_APP_ID
   if (process.env.BAIDU_TTS_API_KEY) cfg.baidu_tts.api_key = process.env.BAIDU_TTS_API_KEY
   if (process.env.BAIDU_TTS_SECRET_KEY) cfg.baidu_tts.secret_key = process.env.BAIDU_TTS_SECRET_KEY
+  if (process.env.BAIDU_ASR_APP_ID) cfg.baidu_asr.app_id = process.env.BAIDU_ASR_APP_ID
+  if (process.env.BAIDU_ASR_API_KEY) cfg.baidu_asr.api_key = process.env.BAIDU_ASR_API_KEY
   if (process.env.VOLC_TTS_API_KEY) cfg.volc_tts.api_key = process.env.VOLC_TTS_API_KEY
   if (process.env.VOLC_TTS_ENGINE) cfg.volc_tts.engine = process.env.VOLC_TTS_ENGINE
   if (process.env.TENCENT_APP_ID) cfg.tencent.app_id = process.env.TENCENT_APP_ID

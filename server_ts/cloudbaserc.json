@@ -1,0 +1,7 @@
+{
+  "envId": "cloudbase-test-d8gna6iyy14e2ba39",
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "cloudrun": {
+    "name": "aiphonix-api"
+  }
+}

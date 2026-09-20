@@ -5,17 +5,24 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { readJson, writeJson, dataPath } from "../lib/jsonfile.js"
+import { readJson, writeJson, dataPath, findFirstExisting } from "../lib/jsonfile.js"
 import { chat } from "../lib/deepseek.js"
 import { parsePinyin } from "../lib/pinyin.js"
 import { ruleCheckSentence, buildCheckPrompt, parseCheckResult, generateWithGuard } from "../lib/sentenceGuard.js"
 
 const router = new Hono()
 
-// server_ts/src/routes → server_py → AiPhonix 根
+// server_ts/src/routes → server_py → AiPhonix 根（dist/routes 同深度，构建后仍成立）
 const HERE = dirname(fileURLToPath(import.meta.url))
 const AI_PHONIX_ROOT = join(HERE, "../../../")
-const WORD_BANK_PATH = join(AI_PHONIX_ROOT, "app", "src", "main", "assets", "chinese_wordbank.json")
+/** 词库 JSON：挂载卷可覆盖 → 本机 dev 原位置 → 前端 public 副本 → 容器镜像内自包含副本 */
+const WORD_BANK_PATH =
+  findFirstExisting([
+    dataPath("chinese_wordbank.json"),
+    join(AI_PHONIX_ROOT, "app", "src", "main", "assets", "chinese_wordbank.json"),
+    join(AI_PHONIX_ROOT, "web", "public", "chinese_wordbank.json"),
+    join(AI_PHONIX_ROOT, "server_ts", "assets", "chinese_wordbank.json"),
+  ]) ?? join(AI_PHONIX_ROOT, "app", "src", "main", "assets", "chinese_wordbank.json")
 const SENTENCE_CACHE_PATH = dataPath("word_sentences.json")
 /** 词语结构规律缓存（独立文件，低频整写安全） */
 const STRUCTURE_CACHE_PATH = dataPath("word_structure.json")
@@ -349,7 +356,8 @@ router.post("/en-dialogue-setup", async (c) => {
   const topic = String(body?.topic ?? "").trim()
   const words = (Array.isArray(body?.words) ? body.words : []).map((x: unknown) => String(x ?? "").trim()).filter(Boolean)
   const sentences = (Array.isArray(body?.sentences) ? body.sentences : []).map((x: unknown) => String(x ?? "").trim()).filter(Boolean)
-  if (!words.length && !sentences.length) return c.json({ detail: "请至少提供一个词或句子" }, 400)
+  // 词、句、主题三者至少给一个：只给主题时按主题自由对话（前端设置页允许「只填场景」）
+  if (!words.length && !sentences.length && !topic) return c.json({ detail: "请至少提供一个词、句子或主题" }, 400)
 
   const DIALOGUE_CACHE_PATH = dataPath(lang === "zh" ? "zh_dialogue.json" : "en_dialogue.json")
   const REJECTS_PATH = dataPath("en_dialogue_rejects.json")

@@ -6,18 +6,15 @@
  * - 闯关状态机 lib/quest_graph.ts 持久化到 quest_sessions 表
  */
 import { Hono } from "hono"
+import type { Context } from "hono"
 import { createHash, randomUUID } from "node:crypto"
 import { writeFile, mkdir } from "node:fs/promises"
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { and, desc, eq } from "drizzle-orm"
 import { resolveCurrentUser } from "../middleware/auth.js"
-import { getArk } from "../lib/ark.js"
-import { autoOrient, compressImageToFile } from "../lib/image.js"
-import { ocrChain } from "../lib/ocr.js"
-import {
-  cleanOcrText, dedupeLines, recoverTextFromJson, splitQuestions, splitSentences,
-} from "../lib/aiTextUtils.js"
+import { autoOrient } from "../lib/image.js"
+import { splitSentences } from "../lib/aiTextUtils.js"
 import { chat } from "../lib/deepseek.js"
 import { readJson, writeJson } from "../lib/jsonfile.js"
 import { DATA_DIR } from "../env.js"
@@ -27,12 +24,11 @@ import * as quest from "../lib/quest_graph.js"
 
 import { stripFence, parseJsonObj, readCache, writeCache, renderAnalyze, makeSentenceAudioPath } from "../lib/aiShared.js"
 
-import { multimodalModel } from "../lib/aiChineseContext.js"
 
-import { MATH_OCR_PROMPT } from "../lib/prompts.js"
 import questRoutes from "./ai_homework_quest.js"
+import { extOf, persistAndOrient, readImageRequest, sha256Hex, type SubjectOcrOutcome } from "../lib/subject/kernel.js"
+import { readMathCachedOutcome, runMathOcr, MATH_IMAGE_DIR } from "../lib/subject/math.js"
 const router = new Hono()
-const IMAGE_DIR = join(DATA_DIR, "ai_homework_images")
 const CACHE_DIR = join(DATA_DIR, "ai_homework_cache")
 const SENTENCE_AUDIO_DIR = join(DATA_DIR, "ai_homework_sentence_audio")
 const sentenceAudioPath = makeSentenceAudioPath(SENTENCE_AUDIO_DIR)
@@ -41,20 +37,12 @@ const MAX_QUESTION_LEN = 2000
 const IMG_MAX_EDGE = 800
 const IMG_QUALITY = 70
 
-// ── 识图提示词 ──
+// ── 识图清洗器（已随学科隔离移出本文件） ──
+//
+// 原 `mathClean` 已移到 `lib/subject/math.ts` —— 数学清洗器是**数学专属策略**
+// （保留 `□` 填空方框、剥 LaTeX 装饰命令），把它放在路由里等于"学科规则住在共用文件"，
+// 正是 §7 要拆掉的形态。路由不再持有一份清洗器副本，也就不可能再和学科模块漂移。
 
-
-function mathClean(s: string): string {
-  let t = s || ""
-  t = t.replace(/[\ufffd\u25af\u2588\u258c\u2580\u2590]/g, "")
-  t = t.replace(/\$+\^?\{?([^$]*?)\}?\$+/g, "$1")
-  t = t.replace(/\$+/g, "")
-  t = t.replace(/\\text\{([^{}]*)\}/g, "$1")
-  t = t.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "$1/$2")
-  t = t.replace(/<sub>([^<]*)<\/sub>/gi, "$1")
-  t = t.replace(/<sup>([^<]*)<\/sup>/gi, "$1")
-  return t
-}
 
 // ── 缓存工具 ──
 
@@ -163,97 +151,39 @@ router.get("/ai-homework/sentence-audio/:hash/exists", async (c) => {
   return c.json({ exists: existsSync(join(SENTENCE_AUDIO_DIR, `${hash}.m4a`)) })
 })
 
-// ── 5. parse-image（已存在，保留并增强） ──
+// ── 5. parse-image（学科隔离后的薄路由） ──
+//
+// 数学的识图链路整体住在 lib/subject/math.ts（数学自己的提示词 + mathClean + 分题 + 缓存），
+// 本文件不再出现任何数学清洗 / 缩进 / 分题规则 —— 只做
+// 「读请求 → 查缓存 → 跑链路 → 拼响应」。
 
 router.post("/ai-homework/parse-image", async (c) => {
   await resolveCurrentUser(c.req.header("Authorization"))
-  const form = await c.req.formData().catch(() => null)
-  if (!form) return c.json({ detail: "缺少文件" }, 400)
-  const file = form.get("file")
-  if (!file || typeof file === "string") return c.json({ detail: "缺少文件" }, 400)
-  const data = Buffer.from(await (file as File).arrayBuffer())
-  if (!data.length) return c.json({ detail: "图片为空" }, 422)
-  const noCache = c.req.query("no_cache") === "true"
+  const r = await readImageRequest(c)
+  if (!r.ok) return c.json({ detail: r.detail }, r.status)
+  const { data, fileName, noCache, reqEngine } = r.req
 
-  const imgHash = createHash("sha256").update(data).digest("hex")
-  const cacheFile = join(CACHE_DIR, `parse_${imgHash}.json`)
-  if (!noCache && existsSync(cacheFile)) {
-    try {
-      const cached = JSON.parse(readFileSync(cacheFile, "utf-8"))
-      const cachedText = cleanOcrText(recoverTextFromJson(String(cached.text ?? ""))).trim()
-      const deduped = dedupeLines(cachedText).trim()
-      const cachedQs = (cached.questions ?? []).map(String).filter(Boolean)
-      return c.json({
-        text: deduped,
-        questions: cachedQs.length ? cachedQs : deduped ? [deduped] : [],
-        blocks: Array.isArray(cached.blocks) ? cached.blocks : [],
-        page_bounds: cached.page_bounds ?? null,
-        crops: Array.isArray(cached.crops) ? cached.crops : [],
-      })
-    } catch {
-      /* 缓存损坏忽略 */
-    }
+  const imageHash = sha256Hex(data)
+  if (!noCache) {
+    const hit = await readMathCachedOutcome(imageHash)
+    if (hit) return respondMathOcr(c, hit)
   }
 
-  const ext = (file as File).name?.match(/\.([a-zA-Z0-9]+)$/)?.[1] ? "." + (file as File).name!.match(/\.([a-zA-Z0-9]+)$/)![1] : ".jpg"
-  const fname = `${randomUUID().replace(/-/g, "")}${ext}`
-  await mkdir(IMAGE_DIR, { recursive: true })
-  const path = join(IMAGE_DIR, fname)
-  await writeFile(path, data)
-  let oriented = path
-  try {
-    oriented = await autoOrient(path)
-  } catch {
-    /* 跳过 */
-  }
-
-  // 图片预分类已移除（原 Python OpenCV classifyImage）。
-  // 豆包多模态 OCR 能直接处理截图/拍照，无需裁剪 UI 残留。
-
-  let text = ""
-  let blocks: unknown[] = []
-  let arkErr: string | null = null
-  let ocrErr: string | null = null
-  try {
-    const compressed = await compressImageToFile(oriented, join(IMAGE_DIR, `${fname.replace(/\.[^.]+$/, "")}.region.jpg`), 2000, 90)
-    const reply = await getArk().chat({
-      prompt: MATH_OCR_PROMPT,
-      image_paths: [compressed],
-      max_tokens: 4096,
-      model_override: multimodalModel(),
-      disable_thinking: true,
-    })
-    const rawText = mathClean(reply || "").trim()
-    text = dedupeLines(rawText).trim()
-  } catch (e) {
-    arkErr = (e as Error).message
-    console.warn(`[ai-homework] 豆包识图失败: ${arkErr}`)
-    // 回退 OCR API 链（腾讯云 → 百度），失败则保持空文本
-    try {
-      const ocrText = await ocrChain(oriented)
-      if (ocrText) {
-        text = dedupeLines(mathClean(ocrText)).trim()
-        console.warn(`[ai-homework] OCR API 回退成功, 文本长度 ${text.length}`)
-      }
-    } catch (e2) {
-      ocrErr = (e2 as Error).message
-      console.warn(`[ai-homework] OCR API 回退失败: ${ocrErr}`)
-    }
-  }
-
-  text = mathClean(text).trim()
-  text = recoverTextFromJson(text).trim()
-  if (!text) {
-    const diag = `豆包识图:${arkErr || "成功但无文本"}` + (ocrErr ? `；OCR回退:${ocrErr}` : "")
-    return c.json({ detail: `图片识别失败（诊断：${diag}）` }, 422)
-  }
-  const questions = splitQuestions(text)
-  const crops: unknown[] = []
-  const cachePayload = { text, questions, blocks, page_bounds: null, crops }
-  await mkdir(CACHE_DIR, { recursive: true })
-  await writeFile(cacheFile, JSON.stringify(cachePayload), "utf-8")
-  return c.json({ text, questions, blocks, page_bounds: null, crops })
+  const { oriented } = await persistAndOrient(data, MATH_IMAGE_DIR, extOf(fileName))
+  return respondMathOcr(c, await runMathOcr({ oriented, imageHash, reqEngine }))
 })
+
+/** 响应拼装：与语文/英语同形状（SubjectOcrOutcome），字段名即前后端契约。 */
+function respondMathOcr(c: Context, o: SubjectOcrOutcome) {
+  if (o.error) return c.json({ detail: `图片识别失败（诊断：${o.error}）` }, 422)
+  return c.json({
+    text: o.text,
+    questions: o.questions,
+    blocks: o.blocks,
+    page_bounds: o.pageBounds,
+    crops: o.crops,
+  })
+}
 
 // ── 6. analyze（关键信息标注 + 数量关系提取） ──
 

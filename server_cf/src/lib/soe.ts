@@ -36,7 +36,46 @@ export class TencentSOEService {
     return ["2", 120]
   }
 
-  evaluate(refText: string, audioBase64: string, engine = "", evalMode = "", scene = ""): Promise<{
+  /** 清理 SOE 参考文本里发音库不认识的字符：
+   * 中文场景保留汉字+安全标点（去拉丁字母/数字/生僻符号）；
+   * 英文场景去掉 CJK 与非常规符号。返回净化后的文本（可能为空）。 */
+  private sanitizeRefText(text: string, isZh: boolean): string {
+    if (isZh) {
+      // 允许保留的中文/半角标点（字符类里直接写引号是合法的，避免写进字符串字面量导致提前收尾）
+      const keep = (c: string): boolean => {
+        const cp = c.codePointAt(0)!
+        if (cp >= 0x4e00 && cp <= 0x9fff) return true
+        if (/\s/.test(c)) return true
+        return /[，。！？、；：（）《》""''…—·,.!?;:()]/.test(c)
+      }
+      const out = [...text].filter(keep).join("")
+      return out.replace(/\s+/g, " ").trim()
+    }
+    return text.replace(/[^A-Za-z0-9\s'.,!?;:()\-]/g, " ").replace(/\s+/g, " ").trim()
+  }
+
+  /** 把中文参考文本转成拼音（text_mode=1 用），非中文字符丢弃。pinyin-pro 不可用时返回 null。 */
+  private async zhToPinyin(text: string): Promise<string | null> {
+    try {
+      const mod: any = await import("pinyin-pro")
+      const fn = mod?.pinyin ?? mod?.default?.pinyin
+      if (typeof fn !== "function") return null
+      const arr = fn(text, { toneType: "num", type: "array", nonZh: "removed" }) as string[]
+      const out = (Array.isArray(arr) ? arr : []).filter(Boolean).join(" ")
+      return out || null
+    } catch {
+      return null
+    }
+  }
+
+  /** 单次评测（已解析 engine / eval_mode / text_mode）。4103 RefTextOOV 等错误以 reject 抛出。 */
+  private assess(
+    refText: string,
+    audioBase64: string,
+    engine: string,
+    evalModeVal: string,
+    textMode: string,
+  ): Promise<{
     engine: string
     eval_mode: string
     pron_accuracy: number
@@ -45,15 +84,6 @@ export class TencentSOEService {
     suggested_score: number
     words: unknown[]
   }> {
-    if (!engine) {
-      if (scene === "pinyin") engine = "16k_zh"
-      else engine = /[\u4e00-\u9fff]/.test(refText) ? "16k_zh" : "16k_en"
-    }
-    const isZh = engine === "16k_zh"
-
-    const [evalModeVal, maxRefLen] = this.resolveEvalMode(scene, evalMode, refText, isZh)
-    if (refText.length > maxRefLen) refText = refText.slice(0, maxRefLen)
-
     const voiceId = randomUUID()
     const ts = String(Math.floor(Date.now() / 1000))
     const params: Record<string, string> = {
@@ -63,7 +93,7 @@ export class TencentSOEService {
       nonce: ts,
       voice_id: voiceId,
       voice_format: "1",
-      text_mode: "0",
+      text_mode: textMode,
       ref_text: refText,
       keyword: "",
       eval_mode: evalModeVal,
@@ -174,6 +204,51 @@ export class TencentSOEService {
       timer.unref?.()
       void connect
     })
+  }
+
+  async evaluate(refText: string, audioBase64: string, engine = "", evalMode = "", scene = ""): Promise<{
+    engine: string
+    eval_mode: string
+    pron_accuracy: number
+    pron_fluency: number
+    pron_completion: number
+    suggested_score: number
+    words: unknown[]
+  }> {
+    if (!engine) {
+      if (scene === "pinyin") engine = "16k_zh"
+      else engine = /[\u4e00-\u9fff]/.test(refText) ? "16k_zh" : "16k_en"
+    }
+    const isZh = engine === "16k_zh"
+
+    const [evalModeVal, maxRefLen] = this.resolveEvalMode(scene, evalMode, refText, isZh)
+    const trimmed = refText.length > maxRefLen ? refText.slice(0, maxRefLen) : refText
+
+    const tryOnce = (text: string, textMode: string) => this.assess(text, audioBase64, engine, evalModeVal, textMode)
+
+    try {
+      return await tryOnce(trimmed, "0")
+    } catch (e) {
+      const msg = (e as Error).message || ""
+      // 非 OOV 类错误（网络/超时/音频问题）直接抛出，不做降级
+      if (!/4103|OOV/i.test(msg)) throw e
+      // 第 1 次重试：去掉发音库不认识的字符（拉丁字母/数字/生僻符号），只留中文+安全标点，仍走文本模式
+      const sanitized = this.sanitizeRefText(trimmed, isZh)
+      if (sanitized && sanitized !== trimmed) {
+        try {
+          return await tryOnce(sanitized, "0")
+        } catch (e2) {
+          if (!/4103|OOV/i.test((e2 as Error).message || "")) throw e2
+        }
+      }
+      // 第 2 次重试：音素模式（text_mode=1），用 pinyin-pro 把中文转拼音后评测
+      if (isZh) {
+        const py = await this.zhToPinyin(sanitized || trimmed)
+        if (py) return await tryOnce(py, "1")
+      }
+      // 所有重试仍失败：给一个友好提示，前端可引导用户跳过此句
+      throw new Error("该句含发音库无法识别的生僻字或符号，暂时无法评分（可跳过此句）")
+    }
   }
 
   private transformResult(result: any, engine: string, evalModeVal: string) {

@@ -5,6 +5,7 @@ import {
   dedupeLines,
   cleanOcrText,
   splitQuestions,
+  splitProblemsByNumber,
   recoverTextFromJson,
 } from "../src/lib/aiTextUtils.js"
 
@@ -44,6 +45,32 @@ describe("splitQuestions", () => {
 
   it("空输入返回空数组", () => {
     assert.deepEqual(splitQuestions(""), [])
+  })
+})
+
+describe("splitProblemsByNumber", () => {
+  it("【题N】标记优先切分", () => {
+    assert.deepEqual(splitProblemsByNumber("【题1】计算 1+1\n【题2】背诵古诗"), ["计算 1+1", "背诵古诗"])
+  })
+
+  it("空行不参与分题（保住段落空行后数学仍按题号一题一块）", () => {
+    const text = "1. 计算下面各题\n\n(1) 12+35=  (2) 4×5=\n\n2. 填空"
+    // 通用拆题按空行切成 3 段 → 题干与小题被切散
+    assert.equal(splitQuestions(text).length, 3)
+    // 数学专用只认题号 → 2 题，小题跟着题干
+    const out = splitProblemsByNumber(text)
+    assert.equal(out.length, 2)
+    assert.match(out[0], /^1\./)
+    assert.match(out[1], /^2\./)
+    assert.match(out[0], /12\+35=/)
+  })
+
+  it("无题号时整段返回（不按空行切）", () => {
+    assert.deepEqual(splitProblemsByNumber("计算下面各题\n\n12+35=\n\n4×5="), ["计算下面各题\n\n12+35=\n\n4×5="])
+  })
+
+  it("空输入返回空数组", () => {
+    assert.deepEqual(splitProblemsByNumber(""), [])
   })
 })
 
