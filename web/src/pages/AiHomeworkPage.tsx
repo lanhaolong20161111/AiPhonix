@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { parseImage, type ParseImageResult, type ParseStage } from "../services/aiImage"
+import { type ParseImageResult, type ParseStage } from "../services/aiImage"
 import { prepareImageFile } from "../lib/imageCompress"
+import { startParseBatch } from "../lib/parseBatch"
 import { AiInputBox } from "../components/AiInputBox"
 import { ParseTimer } from "../components/ParseTimer"
 import { AiChatPanel } from "../components/AiChatPanel"
@@ -12,7 +13,6 @@ import { OcrPickSheet } from "../components/OcrPickSheet"
 import { CoursewarePickerSheet } from "../components/CoursewarePickerSheet"
 import { useParseSessionStore, newSessionId } from "../stores/parseSessionStore"
 import { useAiChat } from "../hooks/useAiChat"
-import { detailFromError } from "../services/auth"
 
 export function AiHomeworkPage() {
   const navigate = useNavigate()
@@ -36,39 +36,39 @@ export function AiHomeworkPage() {
   const onCoursewarePick = (blob: Blob, fileName: string) => {
     setCoursewareOpen(false)
     const file = new File([blob], fileName, { type: blob.type || "image/jpeg" })
-    void handleSubmit({ file, source: "pick" })
+    void submitImages([file])
   }
 
-  const gotoParseResult = (file: File | Blob, previewUrl: string, noCache: boolean, initialQuestion?: string) => {
+  /** 提交一批照片（2026-09-16）：第 1 张前台优先识别、成功即跳结果页；
+   *  其余照片由 parseBatch 在后台依次识别，结果页「第 N 张」标签上能看到进度。
+   *  `omitStructured`：沿用数学整图识别的既有口径（不落 blocks/crops，展示退回题目列表），
+   *  避免本次改动顺带改变数学卷面的渲染方式。 */
+  const submitImages = async (files: (File | Blob)[], initialQuestion?: string) => {
+    if (!files.length) return
     setParsing(true)
     setParseStage("preparing")
     setError("")
-    void (async () => {
-      try {
-        const res = await parseImage(file, "math", noCache, setParseStage)
-        useParseSessionStore.getState().setSession({
-          sessionId: newSessionId(),
-          module: "math",
-          text: res.text ?? "",
-          questions: res.questions?.length ? res.questions : res.text ? [res.text] : [],
-          blocks: [],
-          pageBounds: null,
-          previewUrl,
-          file,
-          initialQuestion,
-        })
-        navigate("/module/ai_parse_result")
-      } catch (err) {
-        setError(`识别失败: ${detailFromError(err)}`)
-      } finally {
-        setParsing(false)
-        setParseStage(null)
+    try {
+      const r = await startParseBatch({
+        files,
+        module: "math",
+        onStage: setParseStage,
+        initialQuestion,
+        omitStructured: true,
+      })
+      if (!r.ok) {
+        setError(r.error ?? "识别失败，请重试")
+        return
       }
-    })()
+      navigate("/module/ai_parse_result")
+    } finally {
+      setParsing(false)
+      setParseStage(null)
+    }
   }
 
   /** 统一提交：仅图片→跳结果页识别（保留逐字点读/标记）；图片+文本→对话多模态；纯文本→对话 */
-  const handleSubmit = async (payload: { file?: File | Blob | null; source?: "paste" | "pick"; text?: string }) => {
+  const handleSubmit = async (payload: { file?: File | Blob | null; files?: (File | Blob)[]; source?: "paste" | "pick"; text?: string }) => {
     setError("")
     const q = payload.text?.trim() ?? ""
     if (payload.file && q) {
@@ -76,15 +76,8 @@ export function AiHomeworkPage() {
       return
     }
     if (payload.file) {
-      // 仅图片 → 跳结果页识别。prepareImageFile 单次完成转正+压缩
-      //（2026-09-02：原 orientImageFile 重编码一次、parseImage 内再压缩一次，双重处理）
-      let prepared: File | Blob = payload.file
-      try {
-        prepared = await prepareImageFile(payload.file, 1600, 0.85)
-      } catch {
-        prepared = payload.file
-      }
-      gotoParseResult(prepared, URL.createObjectURL(prepared), false, undefined)
+      // 仅图片 → 跳结果页识别（多张时第 1 张优先，其余后台依次识别）
+      await submitImages(payload.files?.length ? payload.files : [payload.file])
       return
     }
     if (q) {
@@ -162,7 +155,7 @@ export function AiHomeworkPage() {
         <button className="back-btn" onClick={() => navigate(-1)}>←</button>
         <h1>🧮 AI 数学</h1>
       </header>
-      <p className="module-hint">拍照识别题目或输入文字，点「提问」让 AI 直接解答/讲解。</p>
+      <p className="module-hint">拍照识别题目（可一次选多张，第 1 张先出结果）或输入文字，点「提问」让 AI 直接解答/讲解。</p>
 
       <div className="ai-header-actions">
         <button
@@ -178,7 +171,7 @@ export function AiHomeworkPage() {
 
       {/* 识别分阶段进度：处理图片→上传→AI识别中（替代笼统"处理中"） */}
       {parseStage && (
-        <p style={{ margin: "6px 4px", fontSize: 13, color: "#2563eb", fontWeight: 500 }}>
+        <p className="ai-parse-status">
           <ParseTimer active={parsing || chat.asking} />{" "}
           {parseStage === "preparing"
             ? "🖼️ 正在处理图片（方向纠正/压缩）…"
@@ -189,7 +182,7 @@ export function AiHomeworkPage() {
       )}
 
       {/* 统一输入：文本提问 或 粘贴/选择图片后点「提问」识别；选图后可「🖱️ 自由框选」或「✂️ 切块识别」 */}
-      <AiInputBox onSubmit={handleSubmit} onSlice={openSlice} onFreePick={openFreePick} busy={parsing || chat.asking} buttonLabel="提问" />
+      <AiInputBox onSubmit={handleSubmit} onSlice={openSlice} onFreePick={openFreePick} busy={parsing || chat.asking} buttonLabel="提问" multiple />
 
       {/* 多轮对话记录（含问答定位条） */}
       {chat.turns.length > 0 && <AiChatPanel chat={chat} />}

@@ -4,12 +4,13 @@
  */
 
 import { useEffect, useMemo, useState } from "react"
-import type { ReactElement, ReactNode } from "react"
+import type { MouseEvent as ReactMouseEvent, ReactElement, ReactNode } from "react"
 import type { TextBlock } from "../services/aiImage"
 import type { HighlightMarkItem, PosTagItem, StoryElementItem } from "../services/aichinese"
 import { isSpeakableChar } from "../lib/chars"
 import { tokenizePinyinText, applyToneStr } from "../lib/pinyin"
-import { buildParagraphs, BLANK_RE, splitBlanks } from "../lib/paragraphFlow"
+import { BLANK_RE, splitBlanks } from "../lib/paragraphFlow"
+import { chineseBodyParagraphs } from "../lib/subject/chinese"
 import { PinyinInline } from "./PinyinInline"
 import { getCharPinyinDict } from "../services/wordbank"
 import { useSoeScore } from "../hooks/useSoeScore"
@@ -37,8 +38,15 @@ interface BlockTextProps {
   onSpeakPhrase?: (phrase: string) => void
   /** 隐藏块头朗读喇叭（由外部操作条提供） */
   hideSpeak?: boolean
-  /** 连读高亮范围：从点中的字（start）到句尾（end-1）整段高亮；end-1 那个字额外标出 */
-  range?: { start: number; end: number } | null
+  /** 段落级点击（朗读模式）：父级据此判定「整个块 / 块里的哪一句」并高亮朗读。
+   *  paraKey 是段落在本块内的稳定键（`p0`/`l3`），父级回传 readMark 时按它匹配；
+   *  blockText 是本块**全文** —— 段落模式的朗读单位是整个块，不传它父级只能拿到被点的那一段。 */
+  onParaClick?: (paraKey: string, paraText: string, blockText: string, e: ReactMouseEvent) => void
+  /** 朗读模式选中的单位：paraKey 指明哪一段，text 是高亮子串。
+   *  `whole=true` 表示整块模式 —— 本块内每一段都整段高亮（块文本跨多段，无法用子串匹配）。 */
+  readMark?: { paraKey: string; text: string; whole?: boolean } | null
+  /** 朗读模式是否生效：生效时给正文加可点提示（点正文=选单位朗读，不再逐字点读） */
+  readActive?: boolean
 }
 
 /** 文章要素 kind → CSS 类 */
@@ -113,33 +121,6 @@ function splitLine(
   return segs
 }
 
-/** 定位「连读高亮范围」落在某个段落里的局部下标。
- *
- *  范围坐标 = 块内**可发音字**的序号（由调用方按同样口径算好 start/end）。
- *  之所以不用「字符下标」：body 块会走 buildParagraphs 把物理行并成语义段落，
- *  合并时行间可能补空格、行尾连字符会被去掉，段落文本与原文的下标对不上；
- *  而「按顺序数可发音字」两边完全一致，且对空格/换行/连字符天然免疫。
- *
- *  @param para 段落文本
- *  @param acc  本段之前已经数过的可发音字数
- *  @returns 本段内的局部 {from,to} 与数完本段后的累计值 */
-function paraRange(
-  para: string,
-  acc: number,
-  range: { start: number; end: number } | null | undefined,
-): { from: number; to: number; total: number } {
-  let n = acc
-  let from = -1
-  let to = -1
-  for (let i = 0; i < para.length; i++) {
-    if (!isSpeakableChar(para[i])) continue
-    if (range && n === range.start && from < 0) from = i
-    if (range && n === range.end - 1) to = i + 1
-    n++
-  }
-  return { from, to, total: n }
-}
-
 export function BlockText({
   block,
   speakingChar,
@@ -152,7 +133,9 @@ export function BlockText({
   storyTags,
   onSpeakPhrase,
   hideSpeak,
-  range,
+  onParaClick,
+  readMark,
+  readActive,
 }: BlockTextProps) {
   const globalSpeaking = useGlobalSpeaking()
   const reading = useGlobalReading()
@@ -207,7 +190,7 @@ export function BlockText({
   // 标题/注脚/居中诗歌/右对齐页码以及题目、选项等仍逐行原样渲染（respect indent）。
   const flowParas: string[] | null =
     block.type === "body" && !isTitle && !isNote && !alignCenter && block.align !== "right"
-      ? buildParagraphs(baseLines)
+      ? chineseBodyParagraphs(baseLines)
       : null
 
   // 词性/要素标注词表（渲染用）：词性 cls = pos-n/v/adj；要素 cls = story-*
@@ -227,13 +210,12 @@ export function BlockText({
     lineText: string,
     lineKey: number,
     narrowSpace = false,
-    rangeInfo?: { from: number; to: number } | null,
+    readHl = false,
   ) => {
     // 保留行内空格显示（诗句/空行缩进），但空格不作为可点读的字
     const segs = splitLine(lineText, highlights ?? [])
-    const useRange = rangeInfo && rangeInfo.from >= 0 && rangeInfo.from < rangeInfo.to ? rangeInfo : null
     return (
-      <span key={lineKey} className="block-line">
+      <span key={lineKey} className={`block-line${readHl ? " read-hl" : ""}`}>
         {segs.map((seg, si) => {
           if (seg.type && seg.phrase) {
             return (
@@ -247,33 +229,18 @@ export function BlockText({
               </span>
             )
           }
-          // 本段在高亮范围里的局部下标（前面的段把偏移吃掉）
-          const segFrom = segs.slice(0, si).reduce((n, s) => n + s.text.length, 0)
-          const segRange = useRange
-            ? {
-                from: Math.max(0, useRange.from - segFrom),
-                to: Math.min(seg.text.length, useRange.to - segFrom),
-              }
-            : null
-          return renderAnnotated(
-            seg.text,
-            `${si}`,
-            narrowSpace,
-            segRange && segRange.from < segRange.to ? segRange : null,
-          )
+          return renderAnnotated(seg.text, `${si}`, narrowSpace)
         })}
       </span>
     )
   }
 
   /** 分层标注渲染：先套要素层(story)，其空隙再套词性层(pos)，都未命中则逐字渲染。
-   * 标注段整段包 cls span，但内部逐字仍走 renderChars（点读/拼音/标记不受影响）。
-   * rangeInfo 只传给纯文本段：标注段内部偏移难以对齐，连读高亮跳过标注段（可接受）。 */
+   * 标注段整段包 cls span，但内部逐字仍走 renderChars（点读/拼音/标记不受影响）。 */
   const renderAnnotated = (
     text: string,
     keyPrefix: string,
     narrowSpace = false,
-    rangeInfo?: { from: number; to: number } | null,
   ): ReactNode => {
     const applyLayer = (
       inner: string,
@@ -296,20 +263,18 @@ export function BlockText({
       })
     }
     return applyLayer(text, keyPrefix, storyAnnos, (t, k) =>
-      applyLayer(t, k, posAnnos, (t2, k2) => renderChars(t2, k2, narrowSpace, rangeInfo)),
+      applyLayer(t, k, posAnnos, (t2, k2) => renderChars(t2, k2, narrowSpace)),
     )
   }
 
-  /** 渲染一段普通文本为逐字可点读（含拼音/空格/标点处理），复用给词性着色词段。
-   *  @param rangeInfo 本段落在连读高亮范围内的局部起止（只对纯文本段有意义） */
+  /** 渲染一段普通文本为逐字可点读（含拼音/空格/标点处理），复用给词性着色词段。 */
   const renderChars = (
     text: string,
     keyPrefix: string,
     narrowSpace = false,
-    rangeInfo?: { from: number; to: number } | null,
   ) => {
     /** 单字渲染：空格 / 标点 / 可点读汉字（带拼音条）。 */
-    const oneChar = (ch: string, ci: number, key: string): ReactElement => {
+    const oneChar = (ch: string, key: string): ReactElement => {
       if (ch === " " || ch === "\u3000") {
         return (
           <span key={key} className="block-char-space">
@@ -329,13 +294,10 @@ export function BlockText({
       const isPlaying = speakingChar === ch
       const isReading = reading !== null && reading.text === (block.text || "") && reading.char === ch
       const isMarked = marking && markedChars.has(ch)
-      // 连读高亮：范围内每个字符标 hl-base；范围末字（句尾）额外标 hl-end
-      const inRange = !!rangeInfo && ci >= rangeInfo.from && ci < rangeInfo.to
-      const isRangeEnd = inRange && !!rangeInfo && ci === rangeInfo.to - 1
       const charSpan = (
         <span
           key={key}
-          className={`block-char${isPlaying ? " playing" : ""}${isReading ? " reading" : ""}${isMarked ? " marked" : ""}${inRange ? " hl-base" : ""}${isRangeEnd ? " hl-end" : ""}`}
+          className={`block-char${isPlaying ? " playing" : ""}${isReading ? " reading" : ""}${isMarked ? " marked" : ""}`}
           onClick={() => onCharClick(ch)}
           title="点读自动加生词本"
         >
@@ -362,7 +324,7 @@ export function BlockText({
       }
       const raw = part.text
       if (!BLANK_RE.test(raw)) {
-        return [...raw].map((ch: string, ci: number) => oneChar(ch, ci, `${keyPrefix}-${pi}-${ci}`))
+        return [...raw].map((ch: string, ci: number) => oneChar(ch, `${keyPrefix}-${pi}-${ci}`))
       }
       // 含填空位：`（  ）` 整体渲染成不可断单元（否则会在括号之间断行，
       // 右括号被甩到下一行行首），其余照常逐字渲染。
@@ -377,12 +339,37 @@ export function BlockText({
             </span>,
           )
         } else {
-          chars.forEach((ch, k) => out.push(oneChar(ch, ci + k, `${keyPrefix}-${pi}-${ci + k}`)))
+          chars.forEach((ch, k) => out.push(oneChar(ch, `${keyPrefix}-${pi}-${ci + k}`)))
         }
         ci += chars.length
       }
       return out
     })
+  }
+
+  /** 段落正文渲染：整块模式→整段全高亮；句子模式→只高亮 readMark.text 那段子串。
+   *  按子串切成 前/中/后 三段分别 renderLine —— 各段仍是 inline span，视觉上连成一段。 */
+  const renderParaBody = (body: string, paraKey: string, lineKey: number, narrowSpace: boolean): ReactNode => {
+    // 整块模式：块文本是「多段拼起来」的，body 只是其中一段，子串匹配必然落空 →
+    // 直接整段套 read-hl（每段各自高亮，合起来就是整块被选中）。
+    if (readMark?.whole) return renderLine(body, lineKey, narrowSpace, true)
+    const mk = readMark && readMark.paraKey === paraKey ? readMark.text : ""
+    if (mk) {
+      const idx = body.indexOf(mk)
+      if (idx >= 0) {
+        const before = body.slice(0, idx)
+        const mid = body.slice(idx, idx + mk.length)
+        const after = body.slice(idx + mk.length)
+        return (
+          <>
+            {before && renderLine(before, lineKey * 10 + 1, narrowSpace)}
+            {renderLine(mid, lineKey * 10 + 2, narrowSpace, true)}
+            {after && renderLine(after, lineKey * 10 + 3, narrowSpace)}
+          </>
+        )
+      }
+    }
+    return renderLine(body, lineKey, narrowSpace)
   }
 
   return (
@@ -408,54 +395,55 @@ export function BlockText({
 
       {(!isNote || noteOpen) && (
         <div
-          className={`block-text-body${isTitle ? " block-title" : ""}`}
+          className={`block-text-body${isTitle ? " block-title" : ""}${readActive ? " read-pickable" : ""}`}
           style={
             !isTitle
               ? { textAlign: alignCenter ? "center" : block.align === "right" ? "right" : "left" }
               : undefined
           }
+          // 标题块没有「段落容器」，整块就是这一行：直接把点击挂在这一层，
+          // 否则朗读模式下点标题没反应（正文块的点击挂在各自的 .flow-para / .block-line-row 上）。
+          onClick={
+            isTitle && onParaClick ? (e) => onParaClick("t0", text, block.text, e) : undefined
+          }
         >
           {isTitle ? (
-            <span className="block-title-text">{renderLine(text, 0)}</span>
+            <span className="block-title-text">{renderLine(text, 0, false, !!readMark?.whole)}</span>
           ) : (
             <div className="block-lines">
               {flowParas && flowParas.length > 0
-                ? (() => {
-                    // 逐段推进「可发音字」累计值，把块级 range 映射到每段的局部下标
-                    let acc = 0
-                    return flowParas.map((para, i) => {
-                      // 段落首行缩进用「两个全角空格」实现，**不能**用 CSS text-indent：
-                      // 段落内每个字都是独立的行内盒，text-indent 会把每个行内盒的宽度
-                      // 都撑大 2em（实测 `、` 24px→64px），导致整行字被拆得七零八落。
-                      const body = `\u3000\u3000${para}`
-                      const pr = paraRange(body, acc, range)
-                      acc = pr.total
-                      return (
-                        // 语义段落：整段交给浏览器自动折行
-                        <div key={i} className="block-line-row block-para">
-                          {renderLine(body, i, true, pr.from >= 0 && pr.from < pr.to ? { from: pr.from, to: pr.to } : null)}
-                        </div>
-                      )
-                    })
-                  })()
-                : (() => {
-                    let acc = 0
-                    return baseLines.map((l, i) => {
-                      // 诗句居中：忽略 indent；普通块按 indent 缩进（1≈两汉字 2≈四汉字）
-                      const pad = alignCenter ? 0 : (l.indent || 0) * 2
-                      const pr = paraRange(l.text, acc, range)
-                      acc = pr.total
-                      return (
-                        <div
-                          key={i}
-                          className="block-line-row"
-                          style={{ paddingLeft: pad ? `${pad}em` : undefined }}
-                        >
-                          {renderLine(l.text, i, false, pr.from >= 0 && pr.from < pr.to ? { from: pr.from, to: pr.to } : null)}
-                        </div>
-                      )
-                    })
-                  })()}
+                ? flowParas.map((para, i) => {
+                    // 段落首行缩进用「两个全角空格」实现，**不能**用 CSS text-indent：
+                    // 段落内每个字都是独立的行内盒，text-indent 会把每个行内盒的宽度
+                    // 都撑大 2em（实测 `、` 24px→64px），导致整行字被拆得七零八落。
+                    const body = `\u3000\u3000${para}`
+                    const paraKey = `p${i}`
+                    return (
+                      // 语义段落：整段交给浏览器自动折行
+                      <div
+                        key={i}
+                        className={`block-line-row block-para${onParaClick ? " read-pickable" : ""}`}
+                        onClick={onParaClick ? (e) => onParaClick(paraKey, body, block.text, e) : undefined}
+                      >
+                        {renderParaBody(body, paraKey, i, true)}
+                      </div>
+                    )
+                  })
+                : baseLines.map((l, i) => {
+                    // 诗句居中：忽略 indent；普通块按 indent 缩进（1≈两汉字 2≈四汉字）
+                    const pad = alignCenter ? 0 : (l.indent || 0) * 2
+                    const paraKey = `l${i}`
+                    return (
+                      <div
+                        key={i}
+                        className={`block-line-row${onParaClick ? " read-pickable" : ""}`}
+                        style={{ paddingLeft: pad ? `${pad}em` : undefined }}
+                        onClick={onParaClick ? (e) => onParaClick(paraKey, l.text, block.text, e) : undefined}
+                      >
+                        {renderParaBody(l.text, paraKey, i, false)}
+                      </div>
+                    )
+                  })}
             </div>
           )}
         </div>

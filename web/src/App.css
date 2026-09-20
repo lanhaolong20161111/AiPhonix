@@ -2641,6 +2641,78 @@ button.btn-danger:disabled {
   color: #b71c1c;
 }
 
+/* 未被检测到（漏读）：MatchTag=2 / PronAccuracy<0 → 灰虚线，不显示 -1 分 */
+.soe-word-item.miss {
+  background: #f8fafc;
+  border-style: dashed;
+  border-color: #cbd5e1;
+}
+
+.soe-word-item.miss .soe-word-text {
+  color: #94a3b8;
+}
+
+.soe-word-item.miss .soe-word-score {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.soe-phone-item.miss {
+  background: #f8fafc;
+  border-style: dashed;
+  border-color: #e2e8f0;
+}
+
+.soe-phone-sym.miss {
+  color: #94a3b8;
+}
+
+.soe-phone-score.miss {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* 句子逐词明细：点词展开音素 */
+.soe-word-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ⚠️ 必须显式 width:auto —— 全局 `button { width: 100% }` 会把每个词撑成整行 */
+.soe-word-item.openable {
+  width: auto;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.soe-word-item.openable:hover {
+  border-color: #93c5fd;
+}
+
+.soe-word-item.openable.open {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.soe-word-phones {
+  margin-top: 2px;
+}
+
+.soe-detail-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 8px;
+}
+
+.soe-detail-empty {
+  font-size: 13px;
+  color: #6b7280;
+}
+
 /* ══════════ 横向滑动分页（字母/音素详情） ══════════ */
 
 .swipe-page {
@@ -4853,6 +4925,19 @@ button.btn-mode-off {
   word-break: break-word;
 }
 
+/* 英语逐词点读容器默认是 pre-wrap（保留换行），但放进 .flow-para 后已并回语义段落，
+   换行应交给浏览器自动折行——否则物理行硬断行依旧。这里把段落内的 .tap-char 归位为 normal。 */
+.flow-para .tap-char {
+  white-space: normal;
+}
+
+/* 数学算式/竖式块的行（P0 版面契约 P1）：逐行原样渲染，必须保留行首空格
+   —— 竖式靠空格对齐列，一旦按普通空白折叠，列位就散了。 */
+.math-line {
+  white-space: pre-wrap;
+  text-align: left;
+}
+
 .block-char.playing {
   background: #90caf9;
 }
@@ -5572,6 +5657,242 @@ button.btn-mode-off {
   background: #eff6ff;
   border-color: #2563eb;
   color: #2563eb;
+}
+
+/* 识别结果页 左侧朗读模式栏（段落 / 句子 / 反复朗读）
+   —— 手机版面紧张，按钮刻意做得很小：只有图标 + 2 字标签，宽 38px。
+   先选模式，再点正文任一处：系统按点击偏移判定「哪一段 / 哪一句」并高亮朗读。 */
+.read-rail {
+  position: fixed;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 4px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.read-rail::-webkit-scrollbar {
+  display: none;
+}
+.read-rail-btn {
+  width: 38px;
+  padding: 4px 0 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1.1;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+}
+.read-rail-btn:active {
+  transform: scale(0.94);
+}
+.read-rail-btn:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+/* 选中态（正在生效的朗读模式）：实心蓝，一眼可辨 */
+.read-rail-btn.on {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.read-rail-icon {
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+}
+.read-rail-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+/* 反复朗读的次数步进器（竖排：＋ / 数字 / −） */
+.read-rail-times {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin-top: 1px;
+}
+.read-rail-step {
+  width: 24px;
+  height: 17px;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.read-rail-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.read-rail-step:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+.read-rail-count {
+  min-width: 16px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.read-rail-hint {
+  font-size: 9px;
+  line-height: 1.1;
+  color: #2563eb;
+  text-align: center;
+  white-space: nowrap;
+}
+/* 朗读模式生效时正文可点选：给极弱提示（浅蓝底），不改动排版 */
+.read-pickable {
+  cursor: pointer;
+}
+.read-pickable:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+/* 选中的朗读单位高亮：inline 元素，不破坏中文断行/折行 */
+.read-hl {
+  background: #fde68a;
+  border-radius: 3px;
+  box-shadow: inset 0 -2px 0 #f59e0b;
+}
+/* 窄屏（内容会与左侧固定栏重叠）：给页面左侧留出朗读栏的宽度 */
+@media (max-width: 760px) {
+  .page.aihomework-page.has-read-rail {
+    padding-left: 52px;
+  }
+}
+@media (max-width: 480px) {
+  .read-rail {
+    left: 2px;
+    padding: 4px 3px;
+    gap: 3px;
+    border-radius: 10px;
+  }
+  .read-rail-btn {
+    width: 32px;
+    padding: 3px 0 2px;
+  }
+  .read-rail-icon {
+    font-size: 11px;
+  }
+  .read-rail-label {
+    font-size: 9px;
+  }
+  .read-rail-step {
+    width: 20px;
+    height: 15px;
+    font-size: 11px;
+  }
+  .read-rail-count {
+    font-size: 10px;
+  }
+  .page.aihomework-page.has-read-rail {
+    padding-left: 42px;
+  }
+}
+
+/* ── 句子导航条（固定在页面右侧，SpeechComposePage 文章/古诗模式）── */
+.sentence-nav {
+  position: fixed;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 5px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  max-height: 72vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.sentence-dot {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s, transform 0.12s;
+}
+.sentence-dot.done {
+  background: #22c55e;
+  border-color: #16a34a;
+  color: #fff;
+}
+.sentence-dot.current {
+  box-shadow: 0 0 0 3px #fbbf24;
+  transform: scale(1.12);
+}
+.sentence-dot:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+/* 窄屏：右侧栏会压到正文/喇叭按钮，给页面右侧留出导航条宽度 */
+@media (max-width: 760px) {
+  .page.aihomework-page.has-sentence-nav {
+    padding-right: 38px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .sentence-nav {
+    background: rgba(30, 41, 59, 0.92);
+    border-color: #475569;
+  }
+  .sentence-dot {
+    background: #334155;
+    border-color: #64748b;
+    color: #cbd5e1;
+  }
+  .sentence-dot.done {
+    background: #16a34a;
+    border-color: #22c55e;
+    color: #fff;
+  }
 }
 
 /* 识别结果页 块底部操作条：喇叭/麦克风/提问/高亮 一行图标 */
@@ -6696,6 +7017,19 @@ button.btn-mode-off {
   margin-bottom: 0;
 }
 
+/* 识别分阶段状态条（处理图片→上传→AI识别中）。
+   文字纯黑高对比（遵字体颜色规范），浅蓝底+左边框作状态标识，替代内联蓝色文字。 */
+.ai-parse-status {
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: #eff6ff;
+  border-left: 3px solid #2563eb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+}
+
 /* ── 课件库：网格 + 条目 + 弹层底部操作 ── */
 .ai-pref-row {
   display: flex;
@@ -6927,9 +7261,23 @@ button.btn-mode-off {
 }
 .talk-correct-eval { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
 
+/* 🧗 跟读模式：AI 直接给回答 + 逐词阶梯（本页默认回答方式） */
+.talk-echo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+/* 全局 button{width:100%} 会把标题栏里的切换按钮撑成整行 */
+.talk-echo-head button { width: auto; flex: none; }
+.talk-echo-title { font-weight: 700; font-size: 15px; color: #0f1419; }
+.talk-echo-text { font-size: 19px; font-weight: 700; line-height: 1.6; color: #0f1419; word-break: break-word; }
+.talk-echo .module-hint { margin: 8px 0 6px; }
+.talk-mode-switch { width: auto; flex: none; margin-left: 8px; }
+/* 阶梯自带 .card → 嵌在回答卡里会「卡中卡」，压平边框避免视觉噪音 */
+.talk-echo .echo-ladder { background: #f7f9ff; border: 1px solid #dbe4ff; box-shadow: none; }
+
 /* 跟读阶梯（片段→扩长→整句） */
 .echo-ladder-title { display: flex; justify-content: space-between; align-items: center; font-weight: 700; gap: 8px; margin-bottom: 6px; font-size: 14px; }
 .echo-ladder-line { display: flex; flex-wrap: wrap; gap: 6px; font-size: 17px; font-weight: 700; color: #0f1419; margin: 4px 0 8px; }
+/* 本轮要读的内容（逐词扩长时最关键的一句） */
+.echo-ladder-target { font-size: 13px; color: #374151; margin: 0 0 6px; word-break: break-word; }
+.echo-ladder-target strong { color: #0f1419; font-size: 15px; }
 .echo-chunk { padding: 2px 6px; border-radius: 6px; }
 .echo-chunk.done-chunk { color: #2e7d32; }
 .echo-chunk.active-chunk { background: #fff3cd; border-bottom: 2px solid #f9a825; }
@@ -6957,8 +7305,13 @@ button.btn-mode-off {
   .talk-status.busy { color: #cbd5e1; background: #253341; }
   .app-version { color: #000; }
   .echo-ladder-line { color: #e7e9ea; }
+  .echo-ladder-target { color: #9aa8b8; }
+  .echo-ladder-target strong { color: #e7e9ea; }
   .echo-chunk.active-chunk { background: #4a3a0e; border-bottom-color: #f9a825; }
   .echo-chunk.plain-chunk { color: #9aa8b8; }
+  .talk-echo-title { color: #e7e9ea; }
+  .talk-echo-text { color: #e7e9ea; }
+  .talk-echo .echo-ladder { background: #16202b; border-color: #253341; }
 }
 
 /* ── 流式识图：边识别边显示（2026-09-10） ── */
@@ -7053,4 +7406,345 @@ button.btn-mode-off {
   .parse-live-line.reading { background: #1e3a5f; color: #e7e9ea; }
   .parse-live-caret { background: #7db8ff; }
   .parse-live-finish { background: #2563eb; border-color: #2563eb; color: #fff; }
+}
+
+/* ── 英语识图取词（AI 英语对话页 · 拍照识词模块 + EnVocabPhotoSheet）── */
+.envocab-entry {
+  border: 1.5px dashed #c7d2fe;
+  background: #f5f7ff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.envocab-entry-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #3730a3;
+  margin: 0 0 2px;
+}
+.envocab-entry-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+.envocab-entry-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.envocab-entry-btn {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 92px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #c7d2fe;
+  background: #fff;
+  color: #4338ca;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.envocab-entry-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.envocab-entry-msg {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #16a34a;
+  background: #f0fdf4;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.envocab-entry-msg.warn {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.envocab-disclosure {
+  align-self: flex-start;
+  width: auto;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+  cursor: pointer;
+  text-align: left;
+}
+/* 引擎选择器在别处是全宽按钮（全局 button{width:100%}），这里收窄成小胶囊 */
+.envocab-engine button {
+  width: auto;
+}
+.envocab-switch {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.envocab-switch input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+.envocab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.envocab-sec-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+.envocab-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+.envocab-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* 未选中的词：淡下去 + 删除线（一眼看出「哪些不要」）
+   ⚠️ 全局 `button { width: 100% }` 会把 chip 撑成整行 → 必须显式 width:auto + flex:0 0 auto */
+.envocab-chip {
+  width: auto;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  text-decoration: line-through;
+  cursor: pointer;
+}
+.envocab-chip.on {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  color: #3730a3;
+  text-decoration: none;
+}
+.envocab-sent {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #64748b;
+  cursor: pointer;
+  line-height: 1.45;
+}
+.envocab-sent.on {
+  border-color: #4f46e5;
+  background: #eef2ff;
+  color: #1e293b;
+}
+.envocab-sent input {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+.envocab-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.envocab-foot .btn-secondary {
+  width: auto;
+  flex: 0 0 auto;
+}
+.envocab-foot-hint {
+  flex: 1;
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ══════════════════════════════════════════════════════════
+   英文拼读着色 —— 按发音规律把单词切成色块（lib/phonics.ts）
+   六类：单字母元音 / 长元音 / 组合元音 / 辅音组合 / 不发音字母 / 普通辅音
+   ⚠️ 底色一律用 rgba 半透明：这样朗读黄底（.read-hl）、词性着色（.tap-char-phrase）
+      等既有高亮通道仍能透出来，不会互相盖住。
+   ⚠️ 必须 display:inline：inline-block 会破坏行首禁则把标点甩到行首（本项目老坑）。
+   ══════════════════════════════════════════════════════════ */
+.ph {
+  display: inline;
+  padding: 1px 1.5px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.ph + .ph { margin-left: 1px; }
+
+.ph-vowel-single { background: rgba(226, 74, 66, 0.15); color: #b3261e; }
+.ph-vowel-long   { background: rgba(28, 116, 217, 0.15); color: #0b4f9e; }
+.ph-vowel-team   { background: rgba(228, 140, 12, 0.17); color: #8a4b00; }
+.ph-digraph      { background: rgba(126, 71, 214, 0.15); color: #5b21b6; }
+.ph-silent       { background: rgba(120, 130, 140, 0.15); color: #8b939c; border-bottom: 1px dashed rgba(139, 147, 156, 0.6); }
+.ph-consonant    { background: rgba(15, 20, 25, 0.045); color: inherit; }
+.ph-other        { background: none; padding: 0; }
+
+/* 短语着色（词性/记叙要素）命中处让位：那是用户主动打开的通道，优先级更高 */
+.tap-char-phrase .ph { background: none; padding: 0; margin-left: 0; border-bottom: none; }
+.tap-char-phrase .ph-silent { color: inherit; border-bottom: none; }
+
+/* 拼读色卡图例（设置页 / 开关弹层） */
+.phonics-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 8px 0 4px;
+}
+.phonics-legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.phonics-legend-swatch {
+  flex: 0 0 auto;
+  width: 104px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.phonics-legend-text { flex: 1; color: #475569; }
+.phonics-legend-text b { color: #0f1419; }
+/* 「这是规律、不是 100% 规则」的说明 */
+.phonics-legend-note {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(15, 20, 25, 0.04);
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.phonics-legend-note b { color: #334155; }
+
+
+@media (prefers-color-scheme: dark) {
+  .ph-vowel-single { background: rgba(255, 118, 108, 0.22); color: #ffb4ab; }
+  .ph-vowel-long   { background: rgba(108, 172, 255, 0.22); color: #9ecbff; }
+  .ph-vowel-team   { background: rgba(255, 198, 88, 0.22); color: #ffd479; }
+  .ph-digraph      { background: rgba(186, 140, 255, 0.22); color: #d7b6ff; }
+  .ph-silent       { background: rgba(148, 158, 168, 0.20); color: #9aa4ae; border-bottom-color: rgba(148, 158, 168, 0.5); }
+  .ph-consonant    { background: rgba(255, 255, 255, 0.06); color: inherit; }
+  .phonics-legend-text { color: #b9c2cc; }
+  .phonics-legend-text b { color: #e7e9ea; }
+  .phonics-legend-note { background: rgba(255, 255, 255, 0.06); color: #9fb0bf; }
+  .phonics-legend-note b { color: #cfd8e0; }
+}
+
+/* 拼读着色开关（与 .mnemonic-toggle 同款外观） */
+.phonics-toggle {
+  width: auto;
+  min-height: 36px;
+  padding: 4px 12px;
+  background: #dbeafe;
+  color: #000;
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.phonics-toggle.off {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #000;
+}
+@media (prefers-color-scheme: dark) {
+  .phonics-toggle { background: #14304d; border-color: #2a5c8a; color: #cfe4ff; }
+  .phonics-toggle.off { background: #2a2e33; border-color: #3d434a; color: #c9d1d9; }
+}
+
+/* ── 多张照片切换标签（识别结果页，2026-09-16） ─────────────────────
+   仅"一次选多张"时出现：结果页要在多张识别结果之间切换，
+   标签上直接表达每张的状态，不必点进去才发现"还在识别"。 */
+.page-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.page-tab {
+  flex: 0 0 auto;
+  /* ⚠️ 必须显式 width:auto + flex:0 0 auto：全局 `button { width: 100% }` 会把每个标签
+     撑成整行，于是 3 个标签变成 3 行、只有第 1 个看得见（实测过，与 .envocab-chip 同一个坑）。 */
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 70px;
+  max-width: 40%;
+  padding: 6px 10px;
+  border: 1px solid #d5dbe2;
+  border-radius: 10px;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+.page-tab.on {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+.page-tab-idx { font-size: 13px; font-weight: 600; }
+.page-tab-st { font-size: 11px; opacity: 0.85; }
+.page-tab.st-parsing .page-tab-st { color: #b45309; }
+.page-tab.st-waiting .page-tab-st { color: #94a3b8; }
+.page-tab.st-done .page-tab-st { color: #15803d; }
+.page-tab.st-error { border-color: #f0c3c3; }
+.page-tab.st-error .page-tab-st { color: #b91c1c; }
+/* 当前页还在识别（或失败）时的占位说明 */
+.page-pending {
+  margin: 4px 2px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+}
+.page-pending.st-error { color: #b91c1c; }
+/* 多选照片预览上的张数角标 */
+.ai-paste-count {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #475569;
+}
+@media (prefers-color-scheme: dark) {
+  .page-tab { background: #1c1f23; border-color: #3a4047; color: #b9c2cc; }
+  .page-tab.on { background: #14304d; border-color: #2a5c8a; color: #cfe4ff; }
+  .page-tab.st-waiting .page-tab-st { color: #7c8794; }
+  .page-tab.st-parsing .page-tab-st { color: #e0a44b; }
+  .page-tab.st-done .page-tab-st { color: #6cc48a; }
+  .page-tab.st-error { border-color: #6b3030; }
+  .page-tab.st-error .page-tab-st { color: #ff8f8f; }
+  .page-pending { color: #8ab4f8; }
+  .page-pending.st-error { color: #ff8f8f; }
+  .ai-paste-count { color: #b9c2cc; }
 }

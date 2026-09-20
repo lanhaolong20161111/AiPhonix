@@ -4,9 +4,9 @@
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react"
-import type { ReactNode } from "react"
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
-import { useParseSessionStore } from "../stores/parseSessionStore"
+import { useParseSessionStore, type ParsePageStatus } from "../stores/parseSessionStore"
 import { useQaStore, scopeQa } from "../stores/qaStore"
 import { parseImage } from "../services/aiImage"
 import { rotateBlob90 } from "../lib/imageOrientation"
@@ -14,18 +14,29 @@ import { schedulePolyPatch } from "../lib/polyPatch"
 import { addHistory, updateHistory, makeThumb } from "../lib/aiHistory"
 import { isSpeakableChar } from "../lib/chars"
 import { BlockText } from "../components/BlockText"
-import { BlockRecorder } from "../components/BlockRecorder"
 import { BlockAsk } from "../components/BlockAsk"
 import { BlockHighlight } from "../components/BlockHighlight"
 import { QaHistoryModal } from "../components/QaHistoryModal"
+import { PhonicsWord, PhonicsToggle } from "../components/PhonicsWord"
 import type { HighlightMarkItem, PosTagItem, StoryElementItem } from "../services/aichinese"
 import { useBlockSpeaking } from "../hooks/useBlockSpeaking"
 import { markUnknownChars, recordCharClick, posTags, storyElements } from "../services/aichinese"
 import { askLlm } from "../services/aiAsk"
 import { detailFromError } from "../services/auth"
-import { addWordbook, addWordbookMany } from "../services/wordbook"
+import { addWordbook } from "../services/wordbook"
 import { SpeakableTable } from "../components/SpeakableTable"
-import { splitInlineTables, reflowText, stripMdHeaders } from "../lib/paragraphFlow"
+import { splitInlineTables, stripMdHeaders } from "../lib/paragraphFlow"
+import { sentenceAt, toReadableBlockText } from "../lib/readUnit"
+import {
+  isTableSeg,
+  mathAlignTextAlign,
+  mathDisplaySegments,
+  mathIndentEm,
+  type MathSeg,
+} from "../lib/mathDisplay"
+import { chineseReflow } from "../lib/subject/chinese"
+import { englishReflow } from "../lib/subject/english"
+import { mathReflow } from "../lib/subject/math"
 
 /** 点读即加生词本的文本判定：只收中文汉字（点读单字）或英文单词（点读整词），
  * 不收数字/标点/纯字母串（避免污染词库，如数学题面的数字、拼音注音）。 */
@@ -118,19 +129,32 @@ function EnglishWordTap({
   }, [segs, phrases])
 
   const renderWord = (seg: string, si: number) => {
+    // 填空位（连续下划线）：不是单词 → 不可点读、不逐字渲染，整体当填空位。
+    // （英语识图提示词要求「空白的填空横线按原样输出下划线」，服务端已不再删除行内下划线。）
+    if (/^[_＿]+$/.test(seg)) {
+      return (
+        <span key={si} className="block-blank">
+          {seg}
+        </span>
+      )
+    }
     const word = seg
     const speaking = speakingWord === word
     return (
       <span key={si} className={`tap-char-word${speaking ? " word-speaking" : ""}`}>
-        {[...word].map((ch, ci) => (
-          <span
-            key={ci}
-            className={`tap-char-item${speaking ? " playing" : ""}`}
-            onClick={() => onWordSpeak(word)}
-          >
-            {ch}
-          </span>
-        ))}
+        {/* 逐词点读 + 拼读着色：色块按发音规律切，字盒与点读行为完全不变 */}
+        <PhonicsWord
+          word={word}
+          wrapChar={(ch, ci) => (
+            <span
+              key={ci}
+              className={`tap-char-item${speaking ? " playing" : ""}`}
+              onClick={() => onWordSpeak(word)}
+            >
+              {ch}
+            </span>
+          )}
+        />
       </span>
     )
   }
@@ -199,11 +223,53 @@ function toTableHtml(s: string): string | null {
   return null
 }
 
-/** 句末标点：中文句号/叹号/问号/分号 + 英文 ! ? ; 以及句末英文句点。
- *  英文句点要求后面是空白或结尾，避免把 "3.5" / "Mr." 当句尾。 */
-const SENT_END = /[。！？；!?;]|\.(?=\s|$)/
-/** 中文把句末标点后的右引号/右括号也算作一句的结尾 */
-const isSentenceCloser = (c: string) => "”’」』）)》〉】".includes(c)
+/** 句末标点与右引号规则见 lib/readUnit.ts（那里有单测）。此处只留 DOM 侧的偏移计算。 */
+
+/** 取点击位置在段落元素里的字符偏移（句子模式判「点在哪一句」用）。
+ *
+ *  ⚠️ 不能用 `Range.toString()` 量偏移：中文字符外面包着 <ruby> 拼音（<rt>），
+ *  toString() 会把拼音文本一起数进去，偏移整体偏大 → 句子判错。
+ *  这里用 TreeWalker 逐个文本节点累加长度，**跳过 <rt> 里的拼音**，
+ *  得到的偏移与「段落纯文本」一一对应。 */
+function caretOffsetIn(e: ReactMouseEvent, paraText: string): number {
+  const el = e.currentTarget as HTMLElement | null
+  if (!el) return 0
+  const doc = document as Document & {
+    caretRangeFromPoint?: (x: number, y: number) => Range | null
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null
+  }
+  let node: Node | null = null
+  let off = 0
+  if (typeof doc.caretRangeFromPoint === "function") {
+    const r = doc.caretRangeFromPoint(e.clientX, e.clientY)
+    if (r) {
+      node = r.startContainer
+      off = r.startOffset
+    }
+  } else if (typeof doc.caretPositionFromPoint === "function") {
+    const p = doc.caretPositionFromPoint(e.clientX, e.clientY)
+    if (p) {
+      node = p.offsetNode
+      off = p.offset
+    }
+  }
+  if (!node || !el.contains(node)) return 0
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+  let total = 0
+  let n: Node | null = walker.nextNode()
+  while (n) {
+    const inRt = !!(n.parentElement && n.parentElement.closest("rt"))
+    if (!inRt) {
+      if (n === node) return total + off
+      total += (n.nodeValue ?? "").length
+    } else if (n === node) {
+      // 点在拼音上：按该 ruby 的基准字算（拼音排在基准字之后，返回 total ≈「该字之后」）
+      return total
+    }
+    n = walker.nextNode()
+  }
+  return Math.min(total, paraText.length)
+}
 
 /** 文章要素 kind → CSS 类（与 BlockText 的 STORY_CLS 保持一致） */const STORY_CLS: Record<string, string> = {
   person: "story-person",
@@ -216,22 +282,32 @@ const isSentenceCloser = (c: string) => "”’」』）)》〉】".includes(c)
 }
 
 /** 英语结果内容：表格 → 画成真正的表格方框，且按整词/整格朗读（SpeakableTable word 模式）；
- * 否则 → 逐词点读（EnglishWordTap）。点读整词即自动加入生词本（onWordSpeak 内处理）。 */
+ * 否则 → 逐词点读（EnglishWordTap）。点读整词即自动加入生词本（onWordSpeak 内处理）。
+ * 排版与语文/数学一致：OCR 物理行经 reflowWithBreaks（英语走 englishReflow）并回语义段落，每段 .flow-para 自动折行。 */
 function EnglishResult({
   text,
   speakingWord,
   onWordSpeak,
   posTags,
   storyTags,
+  readMeta,
 }: {
   text: string
   speakingWord: string | null
   onWordSpeak: (word: string) => void
   posTags?: PosTagItem[]
   storyTags?: StoryElementItem[]
+  /** 朗读模式（左侧栏）：开启后点段落 → 父级判定所在句子并高亮朗读。
+   *  词语点读（onWordSpeak）在朗读模式下被父级 guard 掉，让点击落到段落上。 */
+  readMeta?: {
+    blockIdx: number
+    /** 本块全文：段落模式的朗读单位是整个块（整段课文 / 整道题） */
+    blockText: string
+    onParaClick: (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string) => void
+    readMark: { blockIdx: number; paraKey: string; text: string; whole?: boolean } | null
+  }
 }) {
   // 去掉模型偶发写出的 markdown 标题记号（`## Tom's Family`），否则会原样显示 `##`。
-  // 英语路径不经 tidyInlineSpaces/reflowText，需在这里显式清理。
   const clean = useMemo(() => stripMdHeaders(text), [text])
   // 表格课文本期不着色（cell 匹配复杂），仅普通逐词渲染时启用
   // 合并词性 + 要素为短语列表；同一词同时命中时要素优先（story priority=1 > pos=0）
@@ -249,60 +325,159 @@ function EnglishResult({
     }
     return toEnPhrases(items)
   }, [posTags, storyTags])
-  // 内嵌 HTML 表格（Paddle/豆包表格模式把表格混排在正文里）：按 `<table>` 切段 ——
-  // 表格段画成真正的表格方框（整词/整格朗读），其余文本段照常逐词点读。
-  // 直接整段丢给 SpeakableTable 会丢掉表格前后的文字，整段丢给逐词渲染则标签会被显示成尖括号。
-  const segs = useMemo(() => splitInlineTables(clean), [clean])
-  if (segs.some((s) => s.type === "table")) {
-    return (
-      <>
-        {segs.map((s, i) =>
-          s.type === "table" ? (
-            <SpeakableTable
-              key={i}
-              html={s.text}
-              cellTapMode="word"
-              speakingWord={speakingWord}
-              onWordClick={onWordSpeak}
-            />
-          ) : (
+  // 把一段纯文本并回语义段落（englishReflow），每段一个 .flow-para 交浏览器自动折行 ——
+  // 否则英文长段会按图片物理行硬断行，行尾留大片空白、断在不该断的地方。
+  // 断行规则（标题样行独占一段、句末即段落边界）由英语学科模块自己决定，
+  // 不再通过 opts 开关从外部注入 —— 见 web/src/lib/subject/english.ts。
+  /** 朗读高亮切分（与语文/数学同构）：整块模式→本段全高亮（块全文跨多段，子串匹配落空）；
+   *  句子模式→只高亮 readMark.text 那一句。 */
+  const splitRead = (body: string, paraKey: string, renderFn: (s: string) => ReactNode): ReactNode => {
+    const rm = readMeta
+    const mine = !!rm && !!rm.readMark && rm.readMark.blockIdx === rm.blockIdx
+    if (mine && rm!.readMark!.whole) return <span className="read-hl">{renderFn(body)}</span>
+    const mk = mine && rm!.readMark!.paraKey === paraKey ? rm!.readMark!.text : ""
+    if (mk) {
+      const idx = body.indexOf(mk)
+      if (idx >= 0) {
+        const before = body.slice(0, idx)
+        const mid = body.slice(idx, idx + mk.length)
+        const after = body.slice(idx + mk.length)
+        return (
+          <>
+            {before && renderFn(before)}
+            <span className="read-hl">{renderFn(mid)}</span>
+            {after && renderFn(after)}
+          </>
+        )
+      }
+    }
+    return renderFn(body)
+  }
+  const textParas = (segText: string, keyBase: string) =>
+    englishReflow(segText).map((para, pi) => {
+      const paraKey = `${keyBase}-p${pi}`
+      const pickable = !!readMeta
+      return (
+        <div
+          key={`${keyBase}-${pi}`}
+          className={`flow-para${pickable ? " read-pickable" : ""}`}
+          onClick={
+            pickable
+              ? (e) => readMeta!.onParaClick(readMeta!.blockIdx, paraKey, para, e, readMeta!.blockText)
+              : undefined
+          }
+        >
+          {splitRead(para, paraKey, (s) => (
             <EnglishWordTap
-              key={i}
-              text={s.text}
+              text={s}
               speakingWord={speakingWord}
               onWordSpeak={onWordSpeak}
               phrases={phrases}
             />
-          ),
-        )}
-      </>
+          ))}
+        </div>
+      )
+    })
+  // 内嵌 HTML 表格（Paddle/豆包表格模式把表格混排在正文里）：按 `<table>` 切段 ——
+  // 表格段画成真正的表格方框（整词/整格朗读），其余文本段并段后逐词点读。
+  // 直接整段丢给 SpeakableTable 会丢掉表格前后的文字，整段丢给逐词渲染则标签会被显示成尖括号。
+  /** 表格段包一层可点容器：朗读模式下点表格 = 读整块（表格内部不做逐格高亮，整块黄底即可，
+   *  否则表格结构会被高亮切分打散）。 */
+  const wrapTable = (key: string, node: ReactNode): ReactNode => {
+    const rm = readMeta
+    if (!rm) return <div key={key}>{node}</div>
+    const hl = !!rm.readMark && rm.readMark.blockIdx === rm.blockIdx && !!rm.readMark.whole
+    return (
+      <div
+        key={key}
+        className={`read-pickable${hl ? " read-hl" : ""}`}
+        onClick={(e) => rm.onParaClick(rm.blockIdx, key, toReadableBlockText(clean), e, rm.blockText)}
+      >
+        {node}
+      </div>
     )
+  }
+  const segs = useMemo(() => splitInlineTables(clean), [clean])
+  if (segs.some((s) => s.type === "table")) {
+    const nodes: ReactNode[] = []
+    segs.forEach((s, i) => {
+      if (s.type === "table") {
+        nodes.push(
+          wrapTable(
+            `t${i}`,
+            <SpeakableTable
+              html={s.text}
+              cellTapMode="word"
+              speakingWord={speakingWord}
+              onWordClick={onWordSpeak}
+            />,
+          ),
+        )
+      } else {
+        nodes.push(...textParas(s.text, `s${i}`))
+      }
+    })
+    return <>{nodes}</>
   }
   // markdown 管道表兜底（识别文本里没有 HTML 标签、只有 | a | b | 的情形）
   const tbl = toTableHtml(clean)
   if (tbl) {
-    return (
+    return wrapTable(
+      "pt",
       <SpeakableTable
         html={tbl}
         cellTapMode="word"
         speakingWord={speakingWord}
         onWordClick={onWordSpeak}
-      />
+      />,
     )
   }
-  return (
-    <EnglishWordTap
-      text={clean}
-      speakingWord={speakingWord}
-      onWordSpeak={onWordSpeak}
-      phrases={phrases}
-    />
-  )
+  return <>{textParas(clean, "p")}</>
+}
+
+/** 英语展示分段：优先用服务端结构化 blocks（title/heading/body 各自独立 → 版面与原图一致），
+ *  没有 blocks 时才退回扁平 questions / text。
+ *
+ *  为什么需要它：英语页原先把扁平的 `questions` 当展示单元，而 `questions` 来自 `text`，
+ *  段落边界在链路里会被压掉（Paddle 的 text 归一化）→ 整页挤成一段、标题和正文并排。
+ *  blocks 是服务端按版面给出的真结构，用它渲染「一段一块」才名副其实。
+ *
+ *  ⚠️ 渲染循环、posMap 标注项、导航索引必须共用这一份结果，否则 [i] 对不上。
+ *  table 块照常渲染（EnglishResult 内部会画成可点读表格），但**不做词性标注**（HTML 参与标注没意义）。 */
+function enDisplaySegments(
+  blocks: { text?: string; type?: string }[] | undefined,
+  questions: string[],
+  text: string,
+): { text: string; type: string }[] {
+  const fromBlocks = (blocks ?? [])
+    .map((b) => ({ text: String(b?.text ?? "").trim(), type: String(b?.type ?? "body") }))
+    .filter((s) => s.text && s.type !== "image")
+  if (fromBlocks.length) return fromBlocks
+  const qs = (questions ?? []).map((q) => String(q ?? "").trim()).filter(Boolean)
+  if (qs.length) return qs.map((t) => ({ text: t, type: "body" }))
+  const t = (text ?? "").trim()
+  return t ? [{ text: t, type: "body" }] : []
+}
+
+/* 数学展示分段已抽到 `lib/mathDisplay.ts`（2026-09-15）：那里带上了服务端给的 align 与
+   逐行 indent（此前只保留 {text,type}，居中的标题与缩进的选项在前端永远看不见），并补了单测。
+   ⚠️ 渲染循环 / navCount / sectionLabel 仍必须共用同一份结果，索引才对得上。 */
+
+/** 「第 N 张」标签上的状态文案（多图批次，见 lib/parseBatch.ts） */
+const PAGE_TAB_TEXT: Record<ParsePageStatus, string> = {
+  waiting: "排队中",
+  parsing: "识别中…",
+  done: "已识别",
+  error: "失败",
 }
 
 export function AiParseResultPage() {
   const navigate = useNavigate()
   const session = useParseSessionStore((s) => s.session)
+  // 多图批次（2026-09-16）：session 是"当前页"的展开视图，pages 用于画「第 N 张」标签
+  const pages = useParseSessionStore((s) => s.pages)
+  const activePage = useParseSessionStore((s) => s.activePage)
+  const selectPage = useParseSessionStore((s) => s.selectPage)
   const { speakingChar, speakChar, speakBlock } = useBlockSpeaking()
   const module = session?.module ?? ""
   // session 未加载时 module 退化为 ""，归一化给下方 parseImage / setSession（二者类型不含 ""）
@@ -316,9 +491,19 @@ export function AiParseResultPage() {
   const [markedChars, setMarkedChars] = useState<Set<string>>(new Set())
   const [markUploading, setMarkUploading] = useState(false)
 
-  // 连读高亮：开启后点正文某个字 → 高亮「该字到句尾」并朗读该段
-  const [rangeOn, setRangeOn] = useState(false)
-  const [range, setRange] = useState<{ blockIdx: number; start: number; end: number } | null>(null)
+  // ── 朗读模式（页面左侧小按钮）───────────────────────────────
+  // readUnit：段落（=整个块）/ 句子 二选一（互斥）；repeatOn + repeatTimes：反复朗读（默认 1 次）
+  const [readUnit, setReadUnit] = useState<"para" | "sent" | null>(null)
+  const [repeatOn, setRepeatOn] = useState(false)
+  const [repeatTimes, setRepeatTimes] = useState(1)
+  /** 当前高亮的朗读单位。
+   *  - 段落模式（whole=true）：text 是**整个块**的全文，块内每一段整段高亮；
+   *  - 句子模式：text 是点中的那一句，按 blockIdx+paraKey 定位到那一段里做子串高亮。 */
+  const [readMark, setReadMark] = useState<
+    { blockIdx: number; paraKey: string; text: string; whole?: boolean } | null
+  >(null)
+  /** 朗读模式是否生效（任一按钮打开即可）：生效时点正文=选单位朗读，不再逐字点读 */
+  const readActive = readUnit !== null || repeatOn
 
   // 语文各块的高亮（解析后叠加到正文渲染）
   const [hlMap, setHlMap] = useState<Record<number, HighlightMarkItem[]>>({})
@@ -375,6 +560,9 @@ export function AiParseResultPage() {
   const isEnglish = effModule === "english"
   const speakEnglishWord = useCallback(
     async (word: string) => {
+      // 朗读模式生效时不做逐词点读：让点击继续冒泡到 .flow-para，
+      // 由 handleReadClick 判定「哪一段 / 哪一句」再整句朗读（否则两套朗读会打架）。
+      if (readActive) return
       const w = word.trim()
       if (!w) return
       addTappedWordbook(w, "recog_english")
@@ -382,19 +570,8 @@ export function AiParseResultPage() {
       await speakBlock(w)
       setSpeakingWord(null)
     },
-    [speakBlock, addTappedWordbook],
+    [readActive, speakBlock, addTappedWordbook],
   )
-
-  // 整块一键收词：把块内所有汉字去重后批量加入生词本
-  const handleAddBlockWords = useCallback(async (text: string) => {
-    const chars = [...new Set([...text].filter((c) => /[一-鿿]/.test(c)))]
-    if (!chars.length) {
-      showToast("该块没有可收录的汉字")
-      return
-    }
-    const ok = await addWordbookMany(chars, `recog_${module}`)
-    showToast(ok ? `已加入 ${chars.length} 个字到生词本` : "加入生词本失败，请重试")
-  }, [module, showToast])
 
   // ── 自动保存历史：识别结果就绪后自动写入历史（同一 sessionId+runId 只存一次）
   const autoSavedRef = useRef<Set<string>>(new Set())
@@ -471,6 +648,7 @@ export function AiParseResultPage() {
   useEffect(() => {
     if (!session) return
     if (session.turns && session.turns.length > 0) return // 对话回看不识别文本
+    const mySid = session.sessionId // 多图切换守卫：结果回来时若已切到别的照片就丢弃
     const { module: m, questions: qs, blocks: bs } = session
     const lang = m === "english" ? "en" : m === "chinese" ? "zh" : null
     if (!lang) {
@@ -487,9 +665,9 @@ export function AiParseResultPage() {
     }
     const items =
       m === "english"
-        ? qs && qs.length
-          ? qs.map((q, i) => ({ i, text: (q || "").trim() })).filter((x) => x.text)
-          : session.text && session.text.trim() ? [{ i: 0, text: session.text.trim() }] : []
+        ? enDisplaySegments(bs, qs ?? [], session.text ?? "")
+            .map((s, i) => ({ i, text: s.text, type: s.type }))
+            .filter((x) => x.text && x.type !== "table" && x.type !== "image") // 表格/图片不着色
         : bs
           .map((b, i) => ({ i, text: (b.text || "").trim(), type: b.type }))
           .filter((x) => x.text && x.type !== "table" && x.type !== "image") // 表格/图片不着色
@@ -515,6 +693,9 @@ export function AiParseResultPage() {
           sm[r.value.i] = r.value.elements
         }
       }
+      // 标注是异步拉的：回来时用户可能已切到第 2 张照片 —— 那时块下标含义完全不同，
+      // 直接写进去就会串页（第 1 张的"名词"染到第 2 张的别的块）。故按会话 id 丢弃过期结果。
+      if (useParseSessionStore.getState().session?.sessionId !== mySid) return
       annoRef.current = { pos: pm, story: sm }
       setPosMap(pm)
       setStoryMap(sm)
@@ -530,34 +711,57 @@ export function AiParseResultPage() {
   }, [session, runId])
 
   /**
-   * 连读高亮：以 (blockIdx, ch) 为起点算出「这个字 → 句尾」的范围并朗读该段。
-   * 范围坐标用「块内可发音字序号」而非字符下标 —— BlockText 走段落流时会把物理行
-   * 并段、补空格，字符下标对不上；按顺序数可发音字两边一致（见 BlockText.paraRange）。
+   * 朗读模式点击：由渲染层把「点中的是第几块、哪一段、段落原文、事件、整块全文」传进来，
+   * 这里按当前模式判定朗读单位：
+   *  - 段落模式 = **整个块**（语文一块=一段/一题，数学一块=一整道题，英语一块=一段课文）；
+   *    点块内任一处都读整块，不再只读被点中的那一个语义段落。
+   *  - 句子模式 = 用点击偏移定位到那一句。
+   * 高亮它并朗读（反复朗读开启时按 repeatTimes 连读，默认 1 次）。
    * 挂在这里（早于下方 `if (!session)` 提前 return）以满足 hooks 调用顺序恒定。
    */
-  const pickRangeStart = useCallback(
-    async (blockIdx: number, ch: string) => {
-      const blk = session?.blocks?.[blockIdx]
-      if (!blk) return
-      const raw = blk.text
-      const pos = raw.indexOf(ch)
-      if (pos < 0) return
-      // 从该字起找第一个句末标点（含英文句点）
-      const m = SENT_END.exec(raw.slice(pos))
-      let endIdx = m ? pos + m.index + m[0].length : raw.length
-      // 吞掉句末标点后的右引号/右括号（最多两个），让高亮覆盖完整句子
-      for (let k = 0; k < 2 && endIdx < raw.length && isSentenceCloser(raw[endIdx]); k++) endIdx++
-      const segment = raw.slice(pos, endIdx)
-      if (!segment.trim()) return
-      const before = [...raw.slice(0, pos)].filter(isSpeakableChar).length
-      const inSeg = [...segment].filter(isSpeakableChar).length
-      if (inSeg === 0) return
-      setRangeOn(true)
-      setRange({ blockIdx, start: before, end: before + inSeg })
-      void speakBlock(segment)
+  const handleReadClick = useCallback(
+    (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string) => {
+      // 标记模式优先：正在选「不认识的字」时点正文只做标记，不朗读
+      if (marking) return
+      const unit = readUnit ?? "sent" // 只开了「反复朗读」时默认按句子
+      const whole = unit === "para"
+      // 整块文本可能带表格 HTML / OCR 物理换行 → 先清成可读串再读。
+      // 兜底：渲染层没给整块文本时退回被点的这一段（旧行为，至少不会读空）。
+      const seg = whole
+        ? toReadableBlockText(blockText ?? "") || toReadableBlockText(paraText)
+        : sentenceAt(paraText, caretOffsetIn(e, paraText))
+      const t = seg.trim()
+      if (!t) return
+      setReadMark({ blockIdx, paraKey: whole ? "" : paraKey, text: t, whole })
+      const times = repeatOn ? Math.max(1, repeatTimes) : 1
+      void (async () => {
+        for (let i = 0; i < times; i++) await speakBlock(t)
+      })()
     },
-    [session, speakBlock],
+    [readUnit, repeatOn, repeatTimes, speakBlock, marking],
   )
+
+  /**
+   * 多图切换（2026-09-16）：页级 UI 状态必须整体重置。
+   * 高亮 / 标记 / 词性着色 / 回答卡片全部**按块下标索引**，第 2 张的块与第 1 张毫无关系，
+   * 不重置就会出现「切过去还顶着上一张的高亮」。问答记录（qaStore）按 sessionId 隔离，
+   * 不用管；历史保存在订阅里按 sessionId 去重，也不受影响。
+   */
+  const activeSessionId = session?.sessionId ?? ""
+  useEffect(() => {
+    setHlMap({})
+    setReadMark(null)
+    setMarking(false)
+    setMarkedChars(new Set())
+    setPosMap({})
+    setStoryMap({})
+    setInitQa(null)
+    setPreviewCrop(null)
+    setError("")
+    initAskedRef.current = false
+    wordbookAddedRef.current = new Set()
+    sectionRefs.current = []
+  }, [activeSessionId])
 
   if (!session) {
     return (
@@ -578,6 +782,11 @@ export function AiParseResultPage() {
 
   const { text, questions, blocks, previewUrl, file, sessionId, turns, crops } = session
   const isChinese = module === "chinese"
+  // 英语展示分段：结构化 blocks 优先（版面与原图一致），退回扁平文本。
+  // ⚠️ 下面渲染循环 / posMap 标注项 / navCount / sectionLabel 必须共用这一份，索引才对得上。
+  const enSegments = isEnglish ? enDisplaySegments(blocks, questions, text) : []
+  // 数学展示分段：服务端结构化 blocks 优先（P1 起非空），退回扁平 questions/text
+  const mathSegments = !isChinese && !isEnglish ? mathDisplaySegments(blocks, questions, text) : []
 
   /** 逐字可点读渲染（数学/语文的纯文本分支共用）：点字朗读 + 加生词本 + 记录点击。
    * HTML 表格不在这里渲染——由 splitInlineTables 切出后交给可点读表格组件。 */
@@ -602,6 +811,39 @@ export function AiParseResultPage() {
       ),
     )
 
+  /** 朗读高亮切分：把正文字符串按当前 readMark 切成「前 / 中 / 后」，中段包 `.read-hl`。
+   *  中段仍是 inline 元素，视觉上仍是一整段（不能换成块级，否则会断行）。
+   *  · 整块模式（readMark.whole）：readMark.text 是**多段拼起来的块全文**，而 body 只是其中
+   *    一段，子串匹配必然落空 → 这一段整段高亮（块内每段都走这里 = 整块被选中）。
+   *  · 句子模式：mid = 点中的那一句。 */
+  const renderReadSplit = (
+    body: string,
+    blockIdx: number,
+    paraKey: string,
+    renderFn: (s: string) => ReactNode,
+  ): ReactNode => {
+    const rm = readMark
+    const isMine = !!rm && rm.blockIdx === blockIdx
+    if (isMine && rm!.whole) return <span className="read-hl">{renderFn(body)}</span>
+    const mk = isMine && rm!.paraKey === paraKey ? rm!.text : ""
+    if (mk) {
+      const idx = body.indexOf(mk)
+      if (idx >= 0) {
+        const before = body.slice(0, idx)
+        const mid = body.slice(idx, idx + mk.length)
+        const after = body.slice(idx + mk.length)
+        return (
+          <>
+            {before && renderFn(before)}
+            <span className="read-hl">{renderFn(mid)}</span>
+            {after && renderFn(after)}
+          </>
+        )
+      }
+    }
+    return renderFn(body)
+  }
+
   /** 文本段渲染：表格 → 可点读表格；正文 → 按语义段落逐字渲染。
    *
    *  为什么要段落化：OCR 文本是按图片物理行硬折行的，旧实现把 `\n` 渲染成 <br>，
@@ -609,28 +851,111 @@ export function AiParseResultPage() {
    *  「行内还有空间、下一个字另起一行到行首」。现在把物理行并回语义段落，
    *  交给浏览器自动折行。
    *  ⚠️ 段落首行缩进用**两个全角空格**，不要用 CSS text-indent：段落里每个字都是
-   *  独立行内盒，text-indent 会把每个字盒撑宽 2em（实测 `、` 24px→64px）。 */
-  const renderMixedText = (t: string, tag: string) =>
-    splitInlineTables(t).map((seg, si) =>
-      seg.type === "table" ? (
-        <SpeakableTable key={`t${si}`} html={seg.text} speakingChar={speakingChar} onCharClick={handleCharClick} />
-      ) : (
-        reflowText(seg.text).map((para, pi) => (
-          <div key={`x${si}-${pi}`} className="flow-para">
-            {renderTapChars(`\u3000\u3000${para}`, tag)}
+   *  独立行内盒，text-indent 会把每个字盒撑宽 2em（实测 `、` 24px→64px）。
+   *  数学题是带题号的条目（非作文段落），不缩进、左对齐贴合试卷排版惯例。
+   *  断行规则由学科模块决定：语文走 chineseReflow、数学走 mathReflow（算式独占一段），
+   *  通过最后一个参数传入对应学科的 reflow 函数，不再用布尔开关（见 lib/subject/*）。
+   *  blockIdx 供朗读模式回传（段落/句子高亮的匹配键 = blockIdx + paraKey）。 */
+  const renderMixedText = (
+    t: string,
+    tag: string,
+    indent = true,
+    reflowFn: (s: string) => string[] = chineseReflow,
+    blockIdx = -1,
+  ) =>
+    splitInlineTables(t).map((seg, si) => {
+      // 整块朗读命中的是本块（含表格块）时：整块上高亮（表格没法逐字高亮，整块黄底即可）
+      const wholeHit = blockIdx >= 0 && readActive && readMark?.blockIdx === blockIdx && !!readMark.whole
+      const pickable = blockIdx >= 0 && readActive
+      if (seg.type === "table") {
+        return (
+          <div
+            key={`t${si}`}
+            className={`${pickable ? "read-pickable" : ""}${wholeHit ? " read-hl" : ""}`}
+            // 表格块也吃「整块朗读」：点表格读整张表（段落模式），句子模式则退回表内文本首句。
+            onClick={
+              pickable
+                ? (e) => handleReadClick(blockIdx, `t${si}`, toReadableBlockText(seg.text), e, t)
+                : undefined
+            }
+          >
+            <SpeakableTable html={seg.text} speakingChar={speakingChar} onCharClick={handleCharClick} />
           </div>
-        ))
-      ),
-    )
+        )
+      }
+      return reflowFn(seg.text).map((para, pi) => {
+        const paraKey = `p${pi}`
+        const body = indent ? `\u3000\u3000${para}` : para
+        return (
+          <div
+            key={`x${si}-${pi}`}
+            className={`flow-para${readActive ? " read-pickable" : ""}`}
+            // 第 5 参 = 本块全文：段落模式读的是「整个块」，不是被点的这一段
+            onClick={readActive ? (e) => handleReadClick(blockIdx, paraKey, body, e, t) : undefined}
+          >
+            {renderReadSplit(body, blockIdx, paraKey, (s) => renderTapChars(s, tag))}
+          </div>
+        )
+      })
+    })
 
-  // 可定位区块数：语文=文字块数，数学=题目数（每块/题一个方块）
-  const navCount = isChinese ? blocks.length : questions.length
+  /** 数学块渲染：尊重服务端给出的 `align` 与逐行 `indent`（2026-09-15 试卷规格落地）。
+   *
+   *  · `body`（算式/竖式）→ **逐行原样**渲染，行首空格是列位不能动；
+   *    行级 indent 用 `paddingInlineStart` 而不是 `text-indent`：`.math-line` 是块级盒，
+   *    padding 不会像 text-indent 那样把行内每个字盒撑宽（语文那边踩过 24px→64px 的坑）。
+   *  · `table` / 正文内嵌 `<table>` → 交给 renderMixedText，它内部会切成可点读表格。
+   *  · 其余（题干/选项/注/标题/页脚）→ 仍走 reflow 并段（长题干自动折行），
+   *    缩进取**首行** indent 做块级缩进；逻辑行已被并段，无法逐行缩进（选项本就单行）。
+   *  · `align=center/right` 走 textAlign，让居中标题、右对齐说明与原图一致。 */
+  const renderMathSeg = (seg: MathSeg, idx: number) => {
+    if (isTableSeg(seg)) return <>{renderMixedText(seg.text, "recog_math", false, mathReflow, idx)}</>
+    const ta = mathAlignTextAlign(seg.align)
+    const style: React.CSSProperties = ta === "left" ? {} : { textAlign: ta }
+    if (seg.type === "body") {
+      // 算式/竖式块逐行渲染，没有 .flow-para 承载点击 → 点击与高亮都挂在这一层。
+      // 整块朗读命中本块时，每行整行高亮（块文本跨多行，无法用子串匹配）。
+      const hl = readActive && !!readMark && readMark.blockIdx === idx && !!readMark.whole
+      return (
+        <div
+          className={`ai-question-block-text tap-char${readActive ? " read-pickable" : ""}`}
+          style={style}
+          onClick={readActive ? (e) => handleReadClick(idx, "body", seg.text, e, seg.text) : undefined}
+        >
+          {seg.lines.map((l, li) => (
+            <div
+              key={li}
+              className={`math-line${hl ? " read-hl" : ""}`}
+              style={{ paddingInlineStart: `${mathIndentEm(l.indent)}em` }}
+            >
+              {renderTapChars(l.text, "recog_math")}
+            </div>
+          ))}
+        </div>
+      )
+    }
+    const blockPad = mathIndentEm(seg.lines[0]?.indent ?? 0)
+    if (blockPad > 0) style.paddingInlineStart = `${blockPad}em`
+    return (
+      <div className="ai-question-block-text tap-char" style={style}>
+        {renderMixedText(seg.text, "recog_math", false, mathReflow, idx)}
+      </div>
+    )
+  }
+
+  // 可定位区块数：语文=文字块数，数学=题目数，英语=展示分段数（与渲染循环同一份）
+  const navCount = isChinese ? blocks.length : isEnglish ? enSegments.length : mathSegments.length
+  // 是否有可能朗读的正文（决定左侧朗读模式栏是否出现）：没有正文时不显示，避免空占版面
+  const hasReadable =
+    (isChinese && (blocks.length > 0 || questions.length > 0)) ||
+    (isEnglish && enSegments.length > 0) ||
+    (!isChinese && !isEnglish && (mathSegments.length > 0 || questions.length > 0 || !!text.trim()))
   const jumpToSection = (idx: number) => {
     sectionRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
   // 定位方块文案：该块前 5 个字（去掉空白）
   const sectionLabel = (idx: number): string => {
-    const raw = isChinese ? blocks[idx]?.text ?? "" : questions[idx] ?? ""
+    const raw = isChinese ? blocks[idx]?.text ?? "" : isEnglish ? enSegments[idx]?.text ?? "" : mathSegments[idx]?.text ?? ""
     const compact = raw.replace(/\s+/g, "").replace(/\n/g, "")
     return compact.slice(0, 5)
   }
@@ -679,27 +1004,23 @@ export function AiParseResultPage() {
     setError("")
     setMarking(false)
     setMarkedChars(new Set())
-    setRangeOn(false)
-    setRange(null)
+    setReadMark(null)
     setHlMap({})
     setRunId((r) => r + 1)
     // 重新识别 = 新结果，清空当前会话问答（QaStore 中按 scope 隔离）
     useQaStore.getState().removeScope(sessionId)
     try {
-      const res = await parseImage(f, effModule === "english" ? "chinese" : effModule, noCache)
-      useParseSessionStore.getState().setSession({
-        sessionId,
-        module: effModule,
-        text: res.text ?? "",
-        questions: res.questions?.length ? res.questions : res.text ? [res.text] : [],
-        blocks: res.blocks ?? [],
-        pageBounds: res.page_bounds ?? null,
-        previewUrl: url,
-        file: f,
-        crops: res.crops ?? [],
-      })
+      // ⚠️ 这里此前写的是 `effModule === "english" ? "chinese" : effModule`：英语重识别会走语文
+      // 通道（不带 mode=english），服务端按语文提示词识别英文 —— 与输入页首次识别口径不一致。
+      // 2026-09-16 统一为直接传 effModule（parseImage 内部会给英语带上 mode=english）。
+      const res = await parseImage(f, effModule, noCache)
+      const store = useParseSessionStore.getState()
+      // 多图批次里「重新识别 / 旋转」只作用于**当前这一张**：结果写回该页，
+      // 切到别的照片再切回来看到的就是新结果（不再整批作废）。单页时 pages 为空，
+      // setPageResult 自动走"直接更新 session"的分支。
+      store.setPageResult(store.activePage, res, { file: f, previewUrl: url })
       // 重新识别/旋转后同样后台补齐注音并回填（本页是 store 订阅组件，注音就绪自动重渲染）
-      if (effModule === "chinese") schedulePolyPatch(res, "chinese")
+      if (effModule === "chinese") schedulePolyPatch(res, "chinese", store.pages.length ? store.activePage : undefined)
     } catch (err) {
       setError(`识别失败: ${detailFromError(err)}`)
     } finally {
@@ -727,12 +1048,9 @@ export function AiParseResultPage() {
       })
       return
     }
-    // 连读模式：点字 → 高亮「这个字到句尾」并朗读该段（不点读、不加生词本）
-    if (rangeOn) {
-      const bi = blocks.findIndex((b) => b.text.includes(ch))
-      if (bi >= 0) void pickRangeStart(bi, ch)
-      return
-    }
+    // 朗读模式：这里刻意什么都不做（也不 stopPropagation）—— 让点击冒泡到段落容器，
+    // 由 handleReadClick 统一判定「哪一段 / 哪一句」再朗读，避免逐字点读与整句朗读打架。
+    if (readActive) return
     // 点读单字 → 自动加入生词本（仅收汉字；数学题面的数字/字母不收）
     addTappedWordbook(ch, effModule === "math" ? "recog_math" : "recog_chinese")
     const block = blocks.find((b) => b.text.includes(ch))
@@ -762,12 +1080,39 @@ export function AiParseResultPage() {
   }
 
   return (
-    <div className="page aihomework-page">
+    <div className={`page aihomework-page${hasReadable ? " has-read-rail" : ""}`}>
       <header className="module-header">
         <button className="back-btn" onClick={() => navigate(-1)}>←</button>
         <h1>📄 识别结果</h1>
+        {isEnglish && <PhonicsToggle />}
       </header>
-      <p className="module-hint">{isChinese ? "点字听发音 · 整段可评测 · 可标记不认识的字 · 点读自动加生词本" : "点字可听发音 · 识别完自动保存历史回看 · 点读自动加生词本"}</p>
+      <p className="module-hint">
+        {isChinese
+          ? "点字听发音 · 可标记不认识的字 · 点读自动加生词本 · 左侧选朗读模式后点正文可整段/整句朗读"
+          : isEnglish
+            ? "点词听发音 · 点读整词自动加生词本 · 彩色色块 = 发音规律（见首页⚙️设置里的色卡）"
+            : "点字听发音 · 点读自动加生词本 · 左侧选朗读模式后点正文可整段/整句朗读"}
+      </p>
+
+      {/* 多张照片切换标签（仅"一次选多张"时出现）：第 1 张先识别，其余在后台依次识别；
+          标签上直接显示每张的状态（排队中 / 识别中 / 已识别 / 失败），点一下切过去看。 */}
+      {pages.length > 1 && (
+        <div className="page-tabs" role="tablist" aria-label="识别照片切换">
+          {pages.map((p, i) => (
+            <button
+              key={p.id}
+              role="tab"
+              aria-selected={i === activePage}
+              className={`page-tab st-${p.status}${i === activePage ? " on" : ""}`}
+              onClick={() => selectPage(i)}
+              title={p.error || `第 ${i + 1} 张（共 ${pages.length} 张）`}
+            >
+              <span className="page-tab-idx">第 {i + 1} 张</span>
+              <span className="page-tab-st">{PAGE_TAB_TEXT[p.status]}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 页面区域裁剪图（Vision 检测 bbox 切割，点击看大图对照定位） */}
       {crops && crops.length > 0 && (
@@ -801,11 +1146,20 @@ export function AiParseResultPage() {
 
       <div className="card">
         <div className="section-title-row">
-          <h2 className="section-title">📷 {isChinese ? "课文" : "题目"}识别</h2>
+          <h2 className="section-title">📷 {isChinese || isEnglish ? "课文" : "题目"}识别</h2>
           <button className="btn-secondary btn-sm" onClick={() => setShowQa(true)}>
             💬 问答记录{qaCount ? `（${qaCount}）` : ""}
           </button>
         </div>
+        {/* 切到的那张还没识别完（或失败）时的占位说明：多图批次里除了第 1 张，
+            其余都是后台排队识别的，用户点过来经常会看到"识别中"，要说清楚来源。 */}
+        {pages[activePage] && pages[activePage].status !== "done" && (
+          <p className={`page-pending st-${pages[activePage].status}`}>
+            {pages[activePage].status === "error"
+              ? `⚠️ 第 ${activePage + 1} 张识别失败：${pages[activePage].error || "未知原因"}（可点下方「🔄 重新识别」重试）`
+              : `🔍 第 ${activePage + 1} 张正在识别中（多张照片按顺序依次识别，其余排在这张后面）…`}
+          </p>
+        )}
         {file && (
           <div className="ai-upload-row">
             <button className="btn-secondary" onClick={reRecognize} disabled={parsing}>
@@ -821,7 +1175,7 @@ export function AiParseResultPage() {
         {isChinese && blocks.length > 0 && (
           <div className="block-list">
             <div className="block-list-toolbar">
-              <span className="import-meaning">{blocks.length} 个文字块 · 点字听发音 · 末尾🎤评测</span>
+              <span className="import-meaning">{blocks.length} 个文字块 · 点字听发音 · 左侧可整段/整句朗读</span>
               <button
                 className={`btn-secondary btn-sm pos-toggle${posOn ? " pos-on" : ""}`}
                 onClick={() => setPosOn((v) => !v)}
@@ -862,32 +1216,33 @@ export function AiParseResultPage() {
                 {b.type !== "image" && (
                   b.type === "table" ? (
                   <>
-                    <SpeakableTable
-                      html={b.text}
-                      speakingChar={speakingChar}
-                      onCharClick={handleCharClick}
-                    />
-                    {/* 表格块操作条：朗读整表 / 一键收词 / 提问 */}
+                    {/* 表格块也支持整块朗读：表格内部不做逐格高亮（会打散表格结构），整块黄底。 */}
+                    <div
+                      className={`${readActive ? "read-pickable" : ""}${
+                        readActive && readMark?.blockIdx === i && readMark.whole ? " read-hl" : ""
+                      }`}
+                      onClick={
+                        readActive
+                          ? (e) => handleReadClick(i, "table", toReadableBlockText(b.text), e, b.text)
+                          : undefined
+                      }
+                    >
+                      <SpeakableTable
+                        html={b.text}
+                        speakingChar={speakingChar}
+                        onCharClick={handleCharClick}
+                      />
+                    </div>
+                    {/* 表格块操作条：同样只保留「解析高亮」与「跟 AI 对话」。
+                        原「朗读整表 🔊」「整表汉字加入生词本 📥」已按需求移除。 */}
                     <div className="block-ops">
                       {!marking && (
-                        <button
-                          className="block-ops-btn block-ops-speak"
-                          onClick={() => speakBlock(b.text.replace(/<[^>]+>/g, ""))}
-                          title="朗读整表"
-                          aria-label="朗读整表"
-                        >
-                          🔊
-                        </button>
-                      )}
-                      {!marking && (
-                        <button
-                          className="block-ops-btn block-ops-wordbook"
-                          onClick={() => void handleAddBlockWords(b.text)}
-                          title="整表汉字加入生词本"
-                          aria-label="整表汉字加入生词本"
-                        >
-                          📥
-                        </button>
+                        <BlockHighlight
+                          key={`${sessionId}-${runId}-th${i}`}
+                          text={b.text.replace(/<[^>]+>/g, "")}
+                          showInline={false}
+                          onParsed={(marks) => setHlMap((m) => ({ ...m, [i]: marks }))}
+                        />
                       )}
                       {!marking && <BlockAsk text={b.text.replace(/<[^>]+>/g, "")} qaKey={`${sessionId}:block-${i}`} />}
                     </div>
@@ -905,52 +1260,25 @@ export function AiParseResultPage() {
                       onSpeakPhrase={(p) => void speakBlock(p)}
                       onCharClick={handleCharClick}
                       onSpeakBlock={(t) => speakBlock(t)}
-                      range={rangeOn && range?.blockIdx === i ? range : null}
+                      readActive={readActive}
+                      onParaClick={readActive ? (paraKey, paraText, blockText, e) => handleReadClick(i, paraKey, paraText, e, blockText) : undefined}
+                      readMark={readMark && readMark.blockIdx === i ? readMark : null}
                       hideSpeak
                     />
-                    {/* 块底部操作条：喇叭/录音/回放/连读高亮/提问/解析高亮，一行居中图标 */}
+                    {/* 块底部操作条：只保留「解析高亮」（✨）与「跟 AI 对话」（？）。
+                        朗读移到页面左侧的朗读模式栏（段落/句子/反复），此前的
+                        喇叭 🔊 / 录音 🎤 / 连读高亮 🖍️ 已按需求移除（2026-09-15）。 */}
                     <div className="block-ops">
                       {!marking && (
-                        <button
-                          className="block-ops-btn block-ops-speak"
-                          onClick={() => speakBlock(b.text)}
-                          title="朗读整块"
-                          aria-label="朗读整块"
-                        >
-                          🔊
-                        </button>
-                      )}
-                      {!marking && b.text.trim() && b.type !== "title" && b.type !== "heading" && (
-                        <BlockRecorder />
-                      )}
-                      {!marking && (
-                        <button
-                          className={`block-ops-btn${rangeOn ? " range-on" : ""}`}
-                          onClick={() => {
-                            setRangeOn((v) => {
-                              if (v) setRange(null)
-                              return !v
-                            })
-                          }}
-                          title="连读高亮：开启后点正文里的字，高亮并朗读「这个字到句尾」"
-                          aria-label="连读高亮开关"
-                        >
-                          🖍️
-                        </button>
-                      )}
-                      {!marking && <BlockAsk text={b.text} qaKey={`${sessionId}:block-${i}`} />}
-                      {!marking && (
                         <BlockHighlight
-                          key={`${runId}-h${i}`}
+                          key={`${sessionId}-${runId}-h${i}`}
                           text={b.text}
                           showInline={false}
                           onParsed={(marks) => setHlMap((m) => ({ ...m, [i]: marks }))}
                         />
                       )}
+                      {!marking && <BlockAsk text={b.text} qaKey={`${sessionId}:block-${i}`} />}
                     </div>
-                    {!marking && rangeOn && (
-                      <p className="block-mark-hint">点正文里任意一个字：高亮并朗读「这个字到句尾」</p>
-                    )}
                   </>
                   )
                 )}
@@ -966,20 +1294,22 @@ export function AiParseResultPage() {
               <div key={i} ref={(el) => { sectionRefs.current[i] = el }} className="ai-question-item">
                 <div className="article-row">
                   <div className="import-body">
-                    <div className="import-text tap-char">{renderMixedText(q, "recog_chinese")}</div>
+                    <div className="import-text tap-char">{renderMixedText(q, "recog_chinese", true, chineseReflow, i)}</div>
                   </div>
                 </div>
                 <BlockAsk text={q} qaKey={`${sessionId}:q-${i}`} />
-                <BlockHighlight key={`${runId}-qh${i}`} text={q} />
+                <BlockHighlight key={`${sessionId}-${runId}-qh${i}`} text={q} />
               </div>
             ))}
           </div>
         )}
 
-        {!isChinese && questions.length > 0 && (
+        {!isChinese && (isEnglish ? enSegments.length > 0 : questions.length > 0) && (
           <div className="ai-recog-questions">
             <p className="import-meaning">
-              识别到 {questions.length} 道题，一题一个块（点字可听发音）：
+              {isEnglish
+                ? `识别到 ${enSegments.length} 段，一段一块（点词可听发音）：`
+                : `识别到 ${questions.length} 道题，一题一个块（点字可听发音）：`}
               {isEnglish && (
                 <button
                   className={`btn-secondary btn-sm pos-toggle${posOn ? " pos-on" : ""}`}
@@ -1005,48 +1335,37 @@ export function AiParseResultPage() {
                 </button>
               )}
             </p>
-            {questions.map((q, i) => (
+            {(isEnglish ? enSegments : mathSegments).map((seg, i) => (
               <div key={i} ref={(el) => { sectionRefs.current[i] = el }} className="ai-question-block">
                 <div className="ai-question-block-head">
-                  <span className="ai-question-index">📝 第 {i + 1} 题</span>
+                  <span className="ai-question-index">📝 第 {i + 1} {isEnglish ? "段" : "题"}</span>
                 </div>
                 {isEnglish ? (
                   <EnglishResult
-                    text={q}
+                    text={seg.text}
                     speakingWord={speakingWord}
                     onWordSpeak={speakEnglishWord}
                     posTags={posOn ? (posMap[i] ?? []) : []}
                     storyTags={storyOn ? (storyMap[i] ?? []) : []}
+                    readMeta={readActive ? { blockIdx: i, blockText: seg.text, onParaClick: handleReadClick, readMark } : undefined}
                   />
                 ) : (
-                  <div className="ai-question-block-text tap-char">{renderMixedText(q, "recog_math")}</div>
+                  // 走到这里 isEnglish 必为 false，seg 一定来自 mathSegments（带 align/lines）；
+                  // TS 只看到 `enSegments | mathSegments` 的联合类型，故显式收窄。
+                  renderMathSeg(seg as MathSeg, i)
                 )}
+                {/* 块底部只保留「解析高亮」与「跟 AI 对话」；朗读移到左侧朗读模式栏
+                    （2026-09-15 按需求移除喇叭 🔊 与「整块加入生词本」📥）。 */}
                 <div className="block-ops">
-                  <button
-                    className="block-ops-btn block-ops-speak"
-                    onClick={() => speakBlock(q)}
-                    title="朗读整块"
-                    aria-label="朗读整块"
-                  >
-                    🔊
-                  </button>
-                  <button
-                    className="block-ops-btn block-ops-wordbook"
-                    onClick={() => void handleAddBlockWords(q)}
-                    title="整块汉字加入生词本"
-                    aria-label="整块汉字加入生词本"
-                  >
-                    📥
-                  </button>
-                  <BlockAsk text={q} qaKey={`${sessionId}:q-${i}`} />
-                  <BlockHighlight key={`${runId}-qh${i}`} text={q} />
+                  <BlockHighlight key={`${sessionId}-${runId}-qh${i}`} text={seg.text} />
+                  <BlockAsk text={seg.text} qaKey={`${sessionId}:q-${i}`} />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {!isChinese && !questions.length && text.trim() && (
+        {!isChinese && !isEnglish && !questions.length && text.trim() && (
           <div className="ai-question-block">
             {isEnglish && (
               <p className="import-meaning">
@@ -1080,10 +1399,14 @@ export function AiParseResultPage() {
                 storyTags={storyOn ? (storyMap[0] ?? []) : []}
               />
             ) : (
-              <div className="ai-question-block-text tap-char">{renderMixedText(text, "recog_math")}</div>
+              <div className="ai-question-block-text tap-char">
+                {renderMixedText(text, "recog_math", false, mathReflow, 0)}
+              </div>
             )}
-            <BlockAsk text={text} qaKey={`${sessionId}:text`} />
-            <BlockHighlight key={`${runId}-texth`} text={text} />
+            <div className="block-ops">
+              <BlockHighlight key={`${sessionId}-${runId}-texth`} text={text} />
+              <BlockAsk text={text} qaKey={`${sessionId}:text`} />
+            </div>
           </div>
         )}
 
@@ -1099,6 +1422,68 @@ export function AiParseResultPage() {
       </div>
 
       {error && <p className="err">{error}</p>}
+
+      {/* 朗读模式栏（左侧·小按钮）：整块 / 句子 / 反复朗读。
+          先选模式，再点正文任意位置 —— 整块模式读**整个块**的内容（语文一块=一段/一题，
+          数学一块=一整道题），句子模式按点击偏移只读其中一句；
+          高亮后朗读（反复朗读按设定次数连读，默认 1 次）。
+          ⚠️ 版面按手机设计，按钮刻意做得很小（见 App.css .read-rail），不遮挡正文。 */}
+      {hasReadable && (
+        <div className="read-rail" role="group" aria-label="朗读模式">
+          <button
+            className={`read-rail-btn${readUnit === "para" ? " on" : ""}`}
+            onClick={() => setReadUnit((v) => (v === "para" ? null : "para"))}
+            title="整块朗读：点块内任一处，朗读这个块的全部内容（整段课文 / 整道题）"
+            aria-label="整块朗读"
+            aria-pressed={readUnit === "para"}
+          >
+            <span className="read-rail-icon">¶</span>
+            <span className="read-rail-label">整块</span>
+          </button>
+          <button
+            className={`read-rail-btn${readUnit === "sent" ? " on" : ""}`}
+            onClick={() => setReadUnit((v) => (v === "sent" ? null : "sent"))}
+            title="句子朗读：点正文任一处，只读所在的那一句"
+            aria-label="句子朗读"
+            aria-pressed={readUnit === "sent"}
+          >
+            <span className="read-rail-icon">。</span>
+            <span className="read-rail-label">句子</span>
+          </button>
+          <button
+            className={`read-rail-btn${repeatOn ? " on" : ""}`}
+            onClick={() => setRepeatOn((v) => !v)}
+            title="反复朗读：按下方次数重复朗读所选内容"
+            aria-label="反复朗读"
+            aria-pressed={repeatOn}
+          >
+            <span className="read-rail-icon">↻</span>
+            <span className="read-rail-label">反复</span>
+          </button>
+          {repeatOn && (
+            <div className="read-rail-times" aria-label="反复朗读次数">
+              <button
+                className="read-rail-step"
+                onClick={() => setRepeatTimes((n) => Math.max(1, n - 1))}
+                disabled={repeatTimes <= 1}
+                aria-label="减少次数"
+              >
+                −
+              </button>
+              <span className="read-rail-count">{repeatTimes}</span>
+              <button
+                className="read-rail-step"
+                onClick={() => setRepeatTimes((n) => Math.min(9, n + 1))}
+                disabled={repeatTimes >= 9}
+                aria-label="增加次数"
+              >
+                ＋
+              </button>
+            </div>
+          )}
+          {readActive && <span className="read-rail-hint">点正文</span>}
+        </div>
+      )}
 
       {wbToast && (
         <div
@@ -1123,7 +1508,7 @@ export function AiParseResultPage() {
       {showQa && (
         <QaHistoryModal
           scope={sessionId}
-          moduleLabel={isChinese ? "语文" : "数学"}
+          moduleLabel={isChinese ? "语文" : isEnglish ? "英语" : "数学"}
           onClose={() => setShowQa(false)}
         />
       )}

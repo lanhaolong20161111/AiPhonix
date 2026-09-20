@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom"
 import { parseSrt, toSentences, findCurrentSubtitle, isPauseAligned, type SubtitleEntry } from "../lib/srtParser"
 import { useSoeScore } from "../hooks/useSoeScore"
 import { SoeDetail } from "../components/SoeDetail"
+import { PhonicsText } from "../components/PhonicsWord"
 import { pcmToWavBlob } from "../lib/pcmToWav"
 import { api } from "../services/api"
 
@@ -499,7 +500,7 @@ export function VideoPracticePage() {
       <div className={`video-subtitle card${currentSub && !soe.state.recording && !soe.state.evaluating ? " active" : ""}`}>
         {currentSub ? (
           <>
-            <div className="video-subtitle-text">{currentSub.text}</div>
+            <div className="video-subtitle-text"><PhonicsText text={currentSub.text} /></div>
             {/* 方案 B：当前句未录音时显示提示，告知学生「听完一句就点跟读」 */}
             {!soe.state.recording && !soe.state.evaluating && (
               <div className="video-suggest">💡 点「跟读这句」会暂停视频开始录音，读完点「停止并评分」</div>
@@ -680,7 +681,7 @@ export function VideoPracticePage() {
                     <span className="video-sentence-mark">
                       {st === "pass" ? "✅" : st === "fail" ? "❌" : "⬜"}
                     </span>
-                    <span className="video-sentence-text">{i + 1}. {s.text}</span>
+                    <span className="video-sentence-text">{i + 1}. <PhonicsText text={s.text} /></span>
                     {sc != null && <span className="video-sentence-score">{sc}分</span>}
                   </button>
                   <button

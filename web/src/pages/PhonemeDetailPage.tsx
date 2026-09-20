@@ -10,6 +10,7 @@ import { audioManager } from "../lib/audioManager"
 import { API_BASE } from "../services/config"
 import { scheduleSwipeSnap } from "../lib/swipeSnap"
 import { PhonemeChips } from "../components/PhonemeChips"
+import { PhonicsToggle, PhonicsWord } from "../components/PhonicsWord"
 import { useMnemonicVisible } from "../lib/mnemonicPref"
 import { MnemonicToggle } from "../components/MnemonicToggle"
 
@@ -115,6 +116,7 @@ export function PhonemeDetailPage() {
         <button className="back-btn" onClick={() => navigate(-1)}>←</button>
         <h1>{PHONEME_CATEGORY_NAMES[phoneme.category]}</h1>
         <span className="module-level">{current + 1}/{all.length}</span>
+        <PhonicsToggle />
         <MnemonicToggle visible={mnVisible} onToggle={toggleMn} />
       </header>
 
@@ -186,7 +188,7 @@ function PhonemePane({
           <div className="phoneme-word-grid">
             {exampleWords.map((w) => (
               <button key={w.text} className="phoneme-word-btn" onClick={() => onNavigate(`/module/pronounce/${w.text}`)}>
-                <span className="pw-word">{w.text}</span>
+                <span className="pw-word"><PhonicsWord word={w.text} /></span>
                 <PhonemeChips phonemes={w.phonemes} />
               </button>
             ))}
@@ -201,7 +203,7 @@ function PhonemePane({
             {englishWords.map((w) => (
               <button key={w.word} className="english-word-chip" onClick={() => onNavigate(`/module/pronounce/${w.word}`)}>
                 <span>{w.emoji || "🔤"}</span>
-                <b>{w.word}</b>
+                <b><PhonicsWord word={w.word} /></b>
                 <PhonemeChips phonemes={w.phonemes_uk || w.phonemes} />
               </button>
             ))}

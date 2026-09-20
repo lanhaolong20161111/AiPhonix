@@ -11,6 +11,7 @@ import { api } from "../services/api"
 import { audioManager, type ReadingState } from "../lib/audioManager"
 import { stripEmoji, isSpeakableChar } from "../lib/chars"
 import { annotateTts, toBaiduSyllable } from "../lib/ttsPinyin"
+import { staticCharAudioPath, isTtsStaticMiss, markTtsStaticMiss } from "../lib/ttsStatic"
 
 /** 客户端 LRU 音频缓存：同文本+同参数第二次朗读直接播内存 Blob（消除重复合成的延迟感） */
 const TTS_CACHE = new Map<string, Blob>()
@@ -269,10 +270,15 @@ export function useTts() {
 
   /**
    * 单字发音（推荐用于「点一个字/字母/数字朗读」）。
-   * 走 GET /tts/char/:char —— **先查服务端音频库**（人工录音 data/char_audio → TTS 沉淀
-   * data/tts_char），未命中才实时调百度合成并沉淀。任何字/音节只消耗一次百度配额，
-   * 之后全是纯 R2 读（不调百度、不耗 CPU）。这正是「点击单字发音先检查服务器是否
-   * 有记录这个字的音频文件」的语义。
+   *
+   * 两级取音频：
+   *  ① **静态发音库直连**（`/tts-cache/data/tts_char/{字}.mp3`，同源 CDN）——仅当
+   *     「单个汉字 + 未指定 pinyin」时尝试。服务端对该情形的返回就是这个文件，
+   *     走 CDN 可免唤醒容器、出流量单价约为容器的 1/3.8，且浏览器缓存 5 分钟
+   *     （重复点读 transferSize=0）。详见 `lib/ttsStatic.ts`。
+   *  ② **容器端点** `GET /tts/char/:char` —— 带 pinyin 锁读音、静态库未覆盖、
+   *     或静态取失败时走这条。语义不变：先查音频库（人工录音 → TTS 沉淀），
+   *     未命中才实时调百度合成并沉淀；任何字/音节只消耗一次百度配额。
    * 返回 source 供 UI 标记（如命中真人录音时显示「真人录音」）。
    * 端点异常时自动回退到旧 /tts/synthesize，保证不哑火。
    */
@@ -281,32 +287,75 @@ export function useTts() {
       if (!char || ![...char].length || ![...char].every((c) => isSpeakableChar(c))) return { ok: false }
       if (audioManager.speaking) return { ok: false }
       const syl = pinyin ? toBaiduSyllable(pinyin) : ""
-      const q = syl ? `?pinyin=${encodeURIComponent(syl)}` : ""
-      try {
-        const resp = await api<Response>(
-          `/tts/char/${encodeURIComponent(char)}${q}`,
-          { method: "GET", responseType: "response" },
-        )
-        if (resp.ok) {
-          const blob = await resp.blob()
-          if (blob.size === 0) throw new Error("empty audio")
-          const url = URL.createObjectURL(blob)
-          if (audioManager.speaking) {
-            URL.revokeObjectURL(url)
-            return { ok: false }
+      let blob: Blob | null = null
+      let source: CharSpeakResult["source"] | undefined
+
+      // ① 静态发音库直连（同源 CDN）。理由与边界见 lib/ttsStatic.ts：
+      //    服务端在不带 pinyin 时返回的就是这个静态文件，走 CDN 免唤醒容器、
+      //    出流量单价只有容器的约 1/3.8，且浏览器可缓存（5 分钟内重复点读零成本）。
+      if (!syl && !isTtsStaticMiss(char)) {
+        const staticPath = staticCharAudioPath(char)
+        if (staticPath) {
+          // 给静态这一跳一个上限：CDN 偶发卡住时落到容器端点，别冻住播放。
+          // （原容器路径本身没超时，所以这里不是回退，只是多一层保险。）
+          const ac = new AbortController()
+          const timer = setTimeout(() => ac.abort(), 8_000)
+          try {
+            const r = await fetch(staticPath, { signal: ac.signal })
+            if (r.ok) {
+              const b = await r.blob()
+              if (b.size > 0) {
+                blob = b
+                source = "pre-generated"
+              }
+            } else if (r.status === 404) {
+              // 静态库没这个字 → 记下来，之后直接走容器，不再白探
+              markTtsStaticMiss(char)
+            }
+          } catch {
+            /* 静态取失败（超时/离线/被拦）→ 落到容器端点 */
+          } finally {
+            clearTimeout(timer)
           }
-          if (!audioManager.playUrl(url, char)) {
-            URL.revokeObjectURL(url)
-            return { ok: false }
-          }
-          startedRef.current = true
-          const source = (resp.headers.get("X-Tts-Source") as CharSpeakResult["source"]) ?? "synthesized"
-          await audioManager.waitFinish()
-          return { ok: true, source }
         }
-      } catch {
-        /* 端点异常 → 回退合成通道 */
       }
+
+      // ② 容器端点：带拼音锁读音、静态库未覆盖、或静态取失败时走这里
+      if (!blob) {
+        try {
+          const q = syl ? `?pinyin=${encodeURIComponent(syl)}` : ""
+          const resp = await api<Response>(
+            `/tts/char/${encodeURIComponent(char)}${q}`,
+            { method: "GET", responseType: "response" },
+          )
+          if (resp.ok) {
+            const b = await resp.blob()
+            if (b.size > 0) {
+              blob = b
+              source = (resp.headers.get("X-Tts-Source") as CharSpeakResult["source"]) ?? "synthesized"
+            }
+          }
+        } catch {
+          /* 端点异常 → 回退合成通道 */
+        }
+      }
+
+      // ③ 拿到音频 → 播放（静态/端点两条来源共用同一播放路径）
+      if (blob) {
+        const url = URL.createObjectURL(blob)
+        if (audioManager.speaking) {
+          URL.revokeObjectURL(url)
+          return { ok: false }
+        }
+        if (!audioManager.playUrl(url, char)) {
+          URL.revokeObjectURL(url)
+          return { ok: false }
+        }
+        startedRef.current = true
+        await audioManager.waitFinish()
+        return { ok: true, source }
+      }
+
       // 回退：旧合成通道（POST /tts/synthesize）
       const ok = await speak(char, pinyin ? { pinyin } : undefined)
       return { ok, source: ok ? "fallback" : undefined }

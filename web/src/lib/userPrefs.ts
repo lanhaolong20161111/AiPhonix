@@ -18,6 +18,8 @@ export interface UserPrefs {
   voiceByModule?: Record<string, string>
   roleByModule?: Record<string, string>
   mnemonicVisible?: boolean
+  /** 英文单词是否按发音规律着色（默认开，见 lib/phonicsPref） */
+  phonicsColor?: boolean
 }
 
 const LS_KEY = "aiphonix:user:prefs"

@@ -7,6 +7,7 @@ import { useSoeScore } from "../hooks/useSoeScore"
 import { useTts } from "../hooks/useTts"
 import { usePronStyle } from "../hooks/usePronStyle"
 import { SoeDetail } from "../components/SoeDetail"
+import { PhonicsWord } from "../components/PhonicsWord"
 import { audioManager } from "../lib/audioManager"
 import { API_BASE } from "../services/config"
 import type { PronStyle } from "../lib/arpabet"
@@ -116,7 +117,7 @@ export function PronunciationPage() {
 
       <div className="pron-word-card card">
         <div className="pron-word-emoji">{word.emoji || "🔤"}</div>
-        <div className="pron-word-text">{word.text}</div>
+        <div className="pron-word-text"><PhonicsWord word={word.text} /></div>
         <div className="pron-word-ipa">{word.ipa}</div>
 
         <div className="pron-phonemes">

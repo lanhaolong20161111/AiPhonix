@@ -46,8 +46,13 @@ export async function pollPolyphones(token: string, _module = "chinese", maxMs =
 /**
  * 识别结果落地后调用：后台补齐注音并回填到会话 + 本地缓存。
  * 幂等、失败静默（注音缺失只影响点读读音，前端会回退词库默认读音，不报错）。
+ * @param pageIndex 多图批次里的第几张（0 起）。多图时每页各自回填；不传=回填当前活动页。
  */
-export function schedulePolyPatch(res: ParseImageResult, module: "chinese" | "math" | "english" = "chinese"): void {
+export function schedulePolyPatch(
+  res: ParseImageResult,
+  module: "chinese" | "math" | "english" = "chinese",
+  pageIndex?: number,
+): void {
   if (!res) return
   const parts = res.poly_parts?.length
     ? res.poly_parts
@@ -61,8 +66,11 @@ export function schedulePolyPatch(res: ParseImageResult, module: "chinese" | "ma
       if (!p.token) continue
       const poly = await pollPolyphones(p.token, module === "english" ? "english" : "chinese")
       if (!poly || !Object.keys(poly).length) continue
-      // 会话回填（结果页 zustand 订阅 → 自动重渲染）
-      useParseSessionStore.getState().patchPolyphones(poly, p.start, p.end)
+      // 会话回填（结果页 zustand 订阅 → 自动重渲染）。多图批次必须指名页号，
+      // 否则第 2 张的注音会被写进当前正在看的第 1 张。
+      const store = useParseSessionStore.getState()
+      if (pageIndex === undefined) store.patchPolyphones(poly, p.start, p.end)
+      else store.patchPagePolyphones(pageIndex, poly, p.start, p.end)
       // 本地缓存回写：下次同图命中直接带注音，不用再等轮询
       if (p.fingerprint) patchCachedPoly(module, p.fingerprint, poly)
     }

@@ -11,6 +11,7 @@ import { audioManager } from "../lib/audioManager"
 import { API_BASE } from "../services/config"
 import { scheduleSwipeSnap } from "../lib/swipeSnap"
 import { PhonemeChips } from "../components/PhonemeChips"
+import { PhonicsToggle, PhonicsWord } from "../components/PhonicsWord"
 import { useMnemonicVisible } from "../lib/mnemonicPref"
 import { MnemonicToggle } from "../components/MnemonicToggle"
 
@@ -128,6 +129,7 @@ export function LetterDetailPage() {
         <button className="back-btn" onClick={() => navigate(-1)}>←</button>
         <h1>字母 {letter.uppercase}</h1>
         <span className="module-level">{current + 1}/{all.length}</span>
+        <PhonicsToggle />
         <MnemonicToggle visible={mnVisible} onToggle={toggleMn} />
       </header>
 
@@ -225,7 +227,7 @@ function LetterPane({
         <button key={w.text} className="letter-word-row" onClick={() => onNavigate(`/module/pronounce/${w.text}`)}>
           <span className="letter-word-emoji">{w.emoji || "📝"}</span>
           <span className="letter-word-body">
-            <b>{w.text}</b>
+            <b><PhonicsWord word={w.text} /></b>
             <PhonemeChips phonemes={w.phonemes || w.phonemes_uk} />
           </span>
           <span className="letter-word-mic">🎤</span>
@@ -244,7 +246,7 @@ function LetterPane({
                 onClick={() => onNavigate(`/module/pronounce/${w.word}`)}
               >
                 <span>{w.emoji || "🔤"}</span>
-                <b>{w.word}</b>
+                <b><PhonicsWord word={w.word} /></b>
                 <PhonemeChips phonemes={w.phonemes_uk || w.phonemes} />
               </button>
             ))}

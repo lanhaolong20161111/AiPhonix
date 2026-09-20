@@ -4,6 +4,8 @@
  *        + 句子卡（图片/无、TTS+SOE 评测、中文翻译、LLM 生成常用中文场景）。
  * 图片来自 english_image_index（数据库里没有就不显示）。
  * 英文 TTS 由服务端百度 TTS 自动识别英文（lan=en）；SOE 用腾讯英文引擎 16k_en。
+ * 评测明细（`components/SoeDetail`）：单词 → 逐音素得分；句子 → 逐词得分，且可点单词展开该词音素。
+ *   服务端 `SoeResult.words[].phone_infos[]` 在句子模式下**也**有音素数据，无需额外接口。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -24,6 +26,9 @@ import {
 import { useTts } from "../hooks/useTts"
 import { useSoeScore } from "../hooks/useSoeScore"
 import { OcrPickSheet } from "../components/OcrPickSheet"
+import { PhonicsText, PhonicsWord } from "../components/PhonicsWord"
+import { SoeDetail } from "../components/SoeDetail"
+import { withRefCase } from "../lib/soeDisplay"
 import { useAuthStore } from "../stores/authStore"
 
 const splitWords = (s: string): string[] =>
@@ -32,33 +37,54 @@ const splitWords = (s: string): string[] =>
 const splitSentences = (s: string): string[] =>
   s.split(/[;；\n]+/).map((x) => x.trim()).filter(Boolean)
 
-// ── 通用：发音评测按钮（录音 → 停止评分 → 显示分数） ──
-function SoeButton({ refText, scene, engine = "16k_en" }: { refText: string; scene: string; engine?: string }) {
+// ── 通用：发音评测按钮（录音 → 停止评分 → 显示分数 + 明细） ──
+// 单词（scene="word"）→ 逐音素得分；句子（scene="sentence"）→ 逐词得分。
+// 句子总结 < 2 个词时评测引擎仍返回单个词，明细自动落到「音素得分」分支（符合直觉）。
+function SoeButton({
+  refText,
+  scene,
+  engine = "16k_en",
+  expandable = false,
+}: {
+  refText: string
+  scene: string
+  engine?: string
+  /** 句子模式下允许点单词展开音素明细（「每日英语」开启，让孩子看到哪个音没读准） */
+  expandable?: boolean
+}) {
   const soe = useSoeScore(
     useCallback(() => ({ refText, scene, engine }), [refText, scene, engine]),
+  )
+  // 腾讯英文引擎返回的词一律小写（"I"→"i"、"Lily"→"lily"），按参考文本还原原始大小写
+  const detail = useMemo(
+    () => (soe.state.result ? withRefCase(soe.state.result, refText) : null),
+    [soe.state.result, refText],
   )
   const onToggle = useCallback(() => {
     if (soe.state.recording) void soe.stop()
     else void soe.start()
   }, [soe])
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
-      <button
-        className="btn-secondary btn-sm"
-        onClick={onToggle}
-        disabled={soe.state.evaluating}
-        style={{ background: soe.state.recording ? "#fee2e2" : undefined, color: soe.state.recording ? "#dc2626" : undefined }}
-      >
-        {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎤 评测发音"}
-      </button>
-      {soe.state.score != null && (
-        <span style={{ fontSize: 13, color: soe.state.score >= 80 ? "#16a34a" : soe.state.score >= 60 ? "#b8860b" : "#dc2626" }}>
-          得分 {soe.state.score}
-        </span>
-      )}
-      {soe.state.error && (
-        <span style={{ fontSize: 12, color: "#dc2626" }}>{soe.state.error}</span>
-      )}
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+        <button
+          className="btn-secondary btn-sm"
+          onClick={onToggle}
+          disabled={soe.state.evaluating}
+          style={{ background: soe.state.recording ? "#fee2e2" : undefined, color: soe.state.recording ? "#dc2626" : undefined }}
+        >
+          {soe.state.recording ? "⏹ 停止并评分" : soe.state.evaluating ? "评分中…" : "🎤 评测发音"}
+        </button>
+        {soe.state.score != null && (
+          <span style={{ fontSize: 13, color: soe.state.score >= 80 ? "#16a34a" : soe.state.score >= 60 ? "#b8860b" : "#dc2626" }}>
+            得分 {soe.state.score}
+          </span>
+        )}
+        {soe.state.error && (
+          <span style={{ fontSize: 12, color: "#dc2626" }}>{soe.state.error}</span>
+        )}
+      </div>
+      {detail && <SoeDetail result={detail} expandable={expandable} />}
     </div>
   )
 }
@@ -99,7 +125,7 @@ function DailyEnWordCard({ word }: { word: string }) {
           <div className="daily-en-img daily-en-img-empty">🖼️</div>
         )}
         <div className="daily-en-word-main">
-          <b className="daily-en-word">{word}</b>
+          <b className="daily-en-word"><PhonicsWord word={word} /></b>
           {info?.translation && <span className="daily-en-trans">{info.translation}</span>}
           {info?.meaning && <span className="daily-en-meaning">{info.meaning}</span>}
         </div>
@@ -131,13 +157,13 @@ function EnSentenceLine({ en, zh }: { en: string; zh: string }) {
   return (
     <div className="daily-en-example">
       <div className="daily-en-example-line">
-        <span className="daily-en-example-en">{en}</span>
+        <span className="daily-en-example-en"><PhonicsText text={en} /></span>
         <button className="btn-secondary btn-sm" disabled={speaking} onClick={() => void speak(en)} title="听发音">
           🔊
         </button>
       </div>
       {zh && <div className="daily-en-example-zh">{zh}</div>}
-      <SoeButton refText={en} scene="sentence" />
+      <SoeButton refText={en} scene="sentence" expandable />
     </div>
   )
 }
@@ -187,7 +213,7 @@ function DailyEnSentenceCard({ sentence }: { sentence: string }) {
           🔊 发音
         </button>
       </div>
-      <SoeButton refText={sentence} scene="sentence" />
+      <SoeButton refText={sentence} scene="sentence" expandable />
 
       {loading && <p className="module-hint" style={{ marginTop: 8, opacity: 0.7 }}>正在生成翻译/场景…</p>}
 

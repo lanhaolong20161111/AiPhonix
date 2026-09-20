@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTts } from "../hooks/useTts"
+import { PhonicsWord } from "../components/PhonicsWord"
+import { isEnglishWord } from "../lib/phonics"
 import {
   listWordbook, rateWordbook, removeWordbook, reviewQueue,
   type WordbookItem,
@@ -83,7 +85,7 @@ export function WordbookPage() {
                 onClick={() => void speak(current.text, { pinyin: current.pinyin })}
                 title="点击听发音"
               >
-                {current.text}
+                {isEnglishWord(current.text) ? <PhonicsWord word={current.text} /> : current.text}
               </button>
               {current.pinyin && <p className="wordbook-pinyin">{current.pinyin}</p>}
               <div className="wordbook-btns">
@@ -110,7 +112,7 @@ export function WordbookPage() {
                 <div className="history-row">
                   <div className="history-body">
                     <div className="history-text">
-                      {it.text}
+                      {isEnglishWord(it.text) ? <PhonicsWord word={it.text} /> : it.text}
                       {it.pinyin ? `（${it.pinyin}）` : ""}
                     </div>
                     <div className="history-meta">

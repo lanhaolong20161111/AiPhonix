@@ -1,6 +1,9 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { buildParagraphs, reflowText, splitBlanks, splitInlineTables, stripMdHeaders, tidyInlineSpaces } from "./paragraphFlow"
+import { buildParagraphs, splitBlanks, splitInlineTables, stripMdHeaders, tidyInlineSpaces } from "./paragraphFlow"
+import { isMathFormulaLine, mathReflow } from "./subject/math"
+import { chineseReflow } from "./subject/chinese"
+import { englishReflow } from "./subject/english"
 
 test("中文续行直拼成一段（不插空格）", () => {
   const paras = buildParagraphs([
@@ -117,21 +120,21 @@ test("没有闭合标签的残缺表格不切段，原样返回（不丢内容�
   assert.deepEqual(splitInlineTables(broken), [{ type: "text", text: broken }])
 })
 
-// ── reflowText：把「按图片物理行硬折行」的纯文本并回段落 ──
+// ── reflow：把「按图片物理行硬折行」的纯文本并回段落（学科 reflow） ──
 
 test("中文续行并回同一段（不保留物理换行）", () => {
   const raw = "秋天的雨，是一把钥匙。它带着清凉和温柔，\n轻轻地，轻轻地，趁你没留意，把秋天的大门打开了。"
-  assert.deepEqual(reflowText(raw), [
+  assert.deepEqual(chineseReflow(raw), [
     "秋天的雨，是一把钥匙。它带着清凉和温柔，轻轻地，轻轻地，趁你没留意，把秋天的大门打开了。",
   ])
 })
 
 test("空行强制分段", () => {
-  assert.deepEqual(reflowText("第一段话\n\n第二段话"), ["第一段话", "第二段话"])
+  assert.deepEqual(chineseReflow("第一段话\n\n第二段话"), ["第一段话", "第二段话"])
 })
 
 test("有序项各自成段，不被并进上一段", () => {
-  assert.deepEqual(reflowText("1．今天天气很好。\n2．我们去公园。\n① 带上水壶\n② 戴上帽子"), [
+  assert.deepEqual(chineseReflow("1．今天天气很好。\n2．我们去公园。\n① 带上水壶\n② 戴上帽子"), [
     "1．今天天气很好。",
     "2．我们去公园。",
     // 序号与汉字之间的空格按行内噪声清理掉（与其它中文行一致）
@@ -141,14 +144,14 @@ test("有序项各自成段，不被并进上一段", () => {
 })
 
 test("英文续行补空格、行尾连字符合并", () => {
-  assert.deepEqual(reflowText("The quick brown\nfox jumps over\nthe lazy dog."), [
+  assert.deepEqual(chineseReflow("The quick brown\nfox jumps over\nthe lazy dog."), [
     "The quick brown fox jumps over the lazy dog.",
   ])
-  assert.deepEqual(reflowText("inter-\nnational"), ["international"])
+  assert.deepEqual(chineseReflow("inter-\nnational"), ["international"])
 })
 
 test("行内噪声空格照旧清掉，但填空位保留", () => {
-  assert.deepEqual(reflowText("秋天的 雨，是 一把 钥匙。\n（  ）的霞光"), [
+  assert.deepEqual(chineseReflow("秋天的 雨，是 一把 钥匙。\n（  ）的霞光"), [
     "秋天的雨，是一把钥匙。（  ）的霞光",
   ])
 })
@@ -166,6 +169,34 @@ test("切出填空位片段，其余为普通文本", () => {
 
 test("没有填空位时原样返回单片段", () => {
   assert.deepEqual(splitBlanks("秋天的雨"), [{ blank: false, text: "秋天的雨" }])
+})
+
+// 连续下划线（填空横线）也是填空位：服务端自 2026-09-15 起不再删行内下划线，
+// 前端必须把它渲染成不可断、不可点读的填空位，而不是一串可点读的 `_` 字盒。
+test("连续下划线识别为填空位，与前后文本切开", () => {
+  assert.deepEqual(splitBlanks("填一填：____"), [
+    { blank: false, text: "填一填：" },
+    { blank: true, text: "____" },
+  ])
+})
+
+test("单个下划线不是填空位（避免把游离的 _ 当填空）", () => {
+  assert.deepEqual(splitBlanks("a_b"), [{ blank: false, text: "a_b" }])
+})
+
+test("全角下划线 ＿＿ 同样识别为填空位", () => {
+  assert.deepEqual(splitBlanks("答：＿＿＿"), [
+    { blank: false, text: "答：" },
+    { blank: true, text: "＿＿＿" },
+  ])
+})
+
+test("括号填空位与下划线填空位可共存", () => {
+  assert.deepEqual(splitBlanks("（  ）__了"), [
+    { blank: true, text: "（  ）" },
+    { blank: true, text: "__" },
+    { blank: false, text: "了" },
+  ])
 })
 
 // ── markdown 管道表 → 真表格（数学/英语题目路径）──
@@ -221,7 +252,7 @@ test("tidyInlineSpaces 一并清掉标题记号（语文/数学路径同样生�
 // ── 标签项（近义词：/ 反义词：/ 答：）各自成段 ──
 
 test("行首标签项不并进上一段（避免「反义 / 词」词内断行）", () => {
-  assert.deepEqual(reflowText("近义词：镇定—减少—寒冷—危险—\n反义词：美丽—模糊—镇静—凶猛—"), [
+  assert.deepEqual(chineseReflow("近义词：镇定—减少—寒冷—危险—\n反义词：美丽—模糊—镇静—凶猛—"), [
     "近义词：镇定—减少—寒冷—危险—",
     "反义词：美丽—模糊—镇静—凶猛—",
   ])
@@ -229,12 +260,96 @@ test("行首标签项不并进上一段（避免「反义 / 词」词内断行�
 
 test("标签行与其内容行仍并回同一段（标签后换行是折行）", () => {
   // 中文↔西文边界按既定规则补一个空格（joinPieces）
-  assert.deepEqual(reflowText("答：\n3 个"), ["答： 3个"])
+  assert.deepEqual(chineseReflow("答：\n3 个"), ["答： 3个"])
 })
 
 test("行首 1~6 字 + 冒号一律视作标签项（折行偶会误判，接受此取舍：试卷里标签行远比折行冒号常见）", () => {
-  assert.deepEqual(reflowText("他说，这个问题\n很大的：需要仔细想"), [
+  assert.deepEqual(chineseReflow("他说，这个问题\n很大的：需要仔细想"), [
     "他说，这个问题",
     "很大的：需要仔细想",
   ])
+})
+
+// ── 数学算式独占一行（mathReflow）──
+
+test("算式判定：含运算符且不含汉字才算算式", () => {
+  assert.equal(isMathFormulaLine("12+35="), true)
+  assert.equal(isMathFormulaLine("3×4="), true)
+  assert.equal(isMathFormulaLine("x + y = 10"), true)
+  assert.equal(isMathFormulaLine("12 - 35 ="), true)
+  assert.equal(isMathFormulaLine("12+35=（ ）"), true) // 全角括号不算汉字
+  assert.equal(isMathFormulaLine("47"), false) // 纯数字不算（竖式的一行）
+  assert.equal(isMathFormulaLine("计算下面各题。"), false)
+  assert.equal(isMathFormulaLine("第1-3题"), false) // 汉字优先，连字符不误判
+  assert.equal(isMathFormulaLine("2023-2024"), true) // 无汉字 + 数字夹连字符 → 算算式（独立成段无害）
+})
+
+test("数学：算式另起一行，不再跟在题干后面", () => {
+  assert.deepEqual(mathReflow("计算下面各题。\n12+35=\n47"), [
+    "计算下面各题。",
+    "12+35= 47", // 答案行仍并回它所属的算式
+  ])
+})
+
+test("数学：连续多个算式各自成段，不会并成一行", () => {
+  assert.deepEqual(mathReflow("计算下面各题。\n12+35=\n47\n4×5=\n20"), [
+    "计算下面各题。",
+    "12+35= 47",
+    "4×5= 20",
+  ])
+})
+
+test("数学：不传 mathReflow 时行为不变（语文/英语路径零影响）", () => {
+  assert.deepEqual(chineseReflow("计算下面各题。\n12+35=\n47"), ["计算下面各题。 12+35= 47"])
+})
+
+// ── 英语排版：标题不与正文挤一行（englishReflow）──
+
+test("英语：标题独占一段，不和正文挤在一行", () => {
+  assert.deepEqual(
+    englishReflow(
+      "Unit 3 My Family\nThis is my father. He is a doctor.\nThis is my mother. She is a teacher.\nI love my family very much.",
+    ),
+    [
+      "Unit 3 My Family",
+      "This is my father. He is a doctor.",
+      "This is my mother. She is a teacher.",
+      "I love my family very much.",
+    ],
+  )
+})
+
+test("英语：一句一行时各自成段（句末标点即段落边界）", () => {
+  assert.deepEqual(englishReflow("Hello!\nHow are you?\nI am fine."), ["Hello!", "How are you?", "I am fine."])
+})
+
+test("英语：短标题后面紧跟短正文也要分段（标题行后面必须另起段）", () => {
+  assert.deepEqual(englishReflow("Unit 1\nHello!"), ["Unit 1", "Hello!"])
+})
+
+test("英语：正文折行仍然并回同一段（不破坏原有的段落折行）", () => {
+  // 折行行内含句点 → 不是标题 → 并回同一段（英语课本常见：一句话被图片折成两行）
+  assert.deepEqual(englishReflow("My name is Tom. I am\nnine years old. I like\napples and bananas."), [
+    "My name is Tom. I am nine years old. I like apples and bananas.",
+  ])
+  // 首行 30 字符 > 28 → 不算标题
+  assert.deepEqual(englishReflow("The quick brown fox jumps over\nthe lazy dog."), [
+    "The quick brown fox jumps over the lazy dog.",
+  ])
+})
+
+test("英语：标题后的单词表另起一行（`Let's learn` + 小写单词表）", () => {
+  assert.deepEqual(englishReflow("Let's learn\ndoctor    teacher\nfarmer    driver"), [
+    "Let's learn",
+    "doctor teacher farmer driver",
+  ])
+})
+
+test("英语：带标点的短正文不会被误判成标题", () => {
+  // `Tom is a boy` 无标点且短 → 会被判为标题（接受此取舍）；带标点的则不会
+  assert.deepEqual(englishReflow("Tom is a boy.\nHe is nine."), ["Tom is a boy.", "He is nine."])
+})
+
+test("英语：不传选项时行为不变（标题与正文仍会并段 → 旧行为可回归对比）", () => {
+  assert.deepEqual(chineseReflow("Unit 3 My Family\nThis is my father."), ["Unit 3 My Family This is my father."])
 })

@@ -129,7 +129,6 @@ server_py/app.db
 server_py/*.db
 server_py/.mypy_cache/
 server_py/__pycache__/
-server_py/cache/
 server_py/*.log
 server_py/*_start.log
 server_py/_tencent_sdk_temp/
@@ -140,7 +139,6 @@ server_py/static/videos/
 # AiPhonix 后端源码入库加固（2026-09 架构评审 P0-1）
 # 目标：让 server_cf / server_ts / web 源码可安全纳入 git，
 # 而明文密钥与运行时大文件绝不入库（避免 `git add .` 把 config.yaml / 4GB 数据带入历史）。
-# ─────────────────────────────────────────────────────────────
 
 # 明文密钥（shared/config.yaml 含 6 组真实密钥，绝不入库）
 shared/config.yaml
@@ -178,10 +176,8 @@ server_ts/subcap_out.txt
 !server_cf/scripts/
 models/
 
-# ─────────────────────────────────────────────────────────────
 # 仓库整理（2026-09-10）：构建产物 / 备份 / 一次性调试产物不入库
 # 目标：git status 只反映真实源码改动
-# ─────────────────────────────────────────────────────────────
 
 # 部署换源时产生的旧 web 产物备份（根目录与 server_cf 下都有，各 100MB+）
 _web_backups/
@@ -255,18 +251,103 @@ web/_a_*.png
 web/_b_*.png
 web/_c_*.png
 
-# 鎺掔増 e2e 璇婃柇宸ュ叿涓庝骇鐗╋紙鏈湴鍙鐢紝涓嶅叆搴擄級
-web/_e2e_layout.cjs
-web/_reg_token.py
-web/_make_english_img.cjs
-web/_parse_diag.py
-web/_dbg_en.cjs
-web/_layout_*.png
-web/_en_test.png
-web/_dbg_en.png
-web/_math_*.png
-web/_a_*.png
-web/_b_*.png
-web/_c_*.png
 web/_e2e_article.cjs
 web/_layout_article.png
+
+web/_e2e_readmode.cjs
+web/_readmode_*.png
+web/_zh_*.png
+web/_tok.env
+_mk_*.py
+
+web/_e2e_envocab.cjs
+web/_envocab_*.png
+
+web/_en_*.png
+
+# 璇缓鐩綍鎶ゆ爮锛氭棭鍓? `curl -o /c/...` 鎵撳亸浜х敓 server_cf/c/Users/...锛?2026-09-15 宸叉竻鐞嗭級
+/server_cf/c/
+
+# 璺熻妯″紡 e2e锛堟湰鍦板彲澶嶇敤锛屼笉鍏ュ簱锛?
+web/_e2e_echo.cjs
+web/_echo_*.png
+
+# 鎷艰鐫�鑹? e2e锛堟湰鍦板彲澶嶇敤锛屼笉鍏ュ簱锛?
+web/_e2e_phonics.cjs
+web/_phonics_*.png
+
+# EN->ZH read-pair probe + prod artifact check (2026-09-16, local only)
+web/_probe_zhseq.cjs
+web/_probe_zh_read.py
+web/_zhseq_*.png
+web/_zhseq_*.log
+web/_prodchk/
+web/_build.log
+web/_build_out.txt
+web/_zhseq*.png
+
+# 鎷艰瑙勫垯閲忓寲浣撴锛堟湰鍦拌瘎浼帮紝涓嶅叆搴擄級
+web/_phonics_eval.ts
+web/_phonics_eval.txt
+web/_cmudict.json
+web/_common10k.txt
+
+# 鎷艰瑙勫垯浣撴鐨勮緟鍔╄剼鏈紙鏈湴璇勪及锛屼笉鍏ュ簱锛?
+web/_ph_probe.ts
+web/_ph_shape.ts
+web/_ph_bank.ts
+web/_ph_exchk.ts
+web/_phonics_eval2.txt
+web/_phonics_eval3.txt
+web/_phonics_eval4.txt
+web/_phonics_final.txt
+web/_phonics_prod.log
+web/_phonics_prod_new*.png
+web/_phonics_result*.png
+
+# 澶氬浘璇嗗埆 e2e + 涓存椂浜х墿锛堟湰鍦板啋鐑燂紝涓嶅叆搴擄級
+web/_e2e_multiphoto.cjs
+web/_multiphoto*.png
+web/_multiphoto*.log
+web/_tok.env
+
+# 每日英语评测明细 e2e + 截图（本地冒烟，不入库）
+web/_e2e_soe_detail.cjs
+web/_e2e_soe_detail_prod.cjs
+web/_soe_detail.png
+web/_soe_detail_prod.png
+
+# ─── CloudBase 迁移临时产物（?? 含真实密钥与生产数据，绝不入库）───
+/_cloudbase_stage/
+/_d1_export.sql
+/_d1_export.log
+/_r2_inventory.tsv
+/_cf_r2_probe.mjs
+/_tcb_deploy.log
+server_ts/_d1_to_sqlite.cjs
+server_ts/_asr_ws_local.cjs
+server_ts/_baidu_asr_direct.cjs
+
+# CloudRun 容器化：种子目录（含生产 app.db 与真实密钥的 config.yaml 原样来源，绝不入库）
+server_ts/_seed/
+# EnvParam 载荷（真实密钥明文）
+/_cloudbase_envparam.json
+# 一次性工具脚本与部署日志
+/_cb_seedgen.cjs
+/_cfgstruct.cjs
+/_tcb_deploy*.log
+
+# ─── cf 版云托管（cloudbase/）：跑 server_cf 原版源码的 Node 外壳 ───
+# 构建上下文（含 D1 快照与 84MB 发音库，每次由 _ctxgen.cjs 重新装配）
+/cloudbase/_ctx/
+# EnvParam 载荷（真实密钥明文）
+/cloudbase/_envparam.json
+# tsc 产物与本机 node_modules
+/cloudbase/dist/
+/cloudbase/node_modules/
+/cloudbase/_*.log
+# 浏览器探测截图（_browser_probe.cjs / _retry_verify.cjs 的产物）
+/cloudbase/_browser_probe.png
+/cloudbase/_retry_verify.png
+# 空卷仿真临时根（_volume_sim.sh 自建自清，留个兜底）
+/cloudbase/_sim_tmp/

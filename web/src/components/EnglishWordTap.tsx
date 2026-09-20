@@ -6,6 +6,7 @@
 import { useMemo, useState } from "react"
 import { useTts } from "../hooks/useTts"
 import { audioManager } from "../lib/audioManager"
+import { PhonicsWord } from "./PhonicsWord"
 
 interface EnglishWordTapProps {
   text: string
@@ -51,11 +52,15 @@ export function EnglishWordTap({ text, onWordTap, speakOverride, className }: En
             onClick={() => void handleWord(seg)}
             style={{ cursor: "pointer" }}
           >
-            {[...seg].map((ch, ci) => (
-              <span key={ci} className="tap-char-item">
-                {ch}
-              </span>
-            ))}
+            {/* 逐词点读 + 拼读着色：色块按发音规律切，字盒与点读行为完全不变 */}
+            <PhonicsWord
+              word={seg}
+              wrapChar={(ch, ci) => (
+                <span key={ci} className="tap-char-item">
+                  {ch}
+                </span>
+              )}
+            />
           </span>
         ),
       )}

@@ -6,7 +6,9 @@
 
 import { VOICES, useVoice, type VoiceId } from "../lib/aiPrefs"
 import { useMnemonicVisible } from "../lib/mnemonicPref"
+import { usePhonicsColor } from "../lib/phonicsPref"
 import { useTts } from "../hooks/useTts"
+import { PhonicsLegend } from "./PhonicsLegend"
 
 interface SettingsSheetProps {
   open: boolean
@@ -56,6 +58,7 @@ function VoicePicker({
 
 export function SettingsSheet({ open, onClose }: SettingsSheetProps) {
   const [mnemonicVisible, toggleMnemonic] = useMnemonicVisible()
+  const [phonicsColor, togglePhonics] = usePhonicsColor()
 
   if (!open) return null
 
@@ -94,6 +97,26 @@ export function SettingsSheet({ open, onClose }: SettingsSheetProps) {
               </span>
             </div>
           </div>
+
+          <div className="settings-row">
+            <span className="settings-row-label">🎨 彩色拼读</span>
+            <div className="settings-toggle-wrap">
+              <button
+                className={`settings-toggle${phonicsColor ? " on" : ""}`}
+                onClick={togglePhonics}
+                role="switch"
+                aria-checked={phonicsColor}
+              >
+                {phonicsColor ? "开启" : "关闭"}
+              </button>
+              <span className="settings-row-sub">
+                {phonicsColor
+                  ? "英文单词按发音规律分成彩色音块"
+                  : "英文单词按普通黑白显示"}
+              </span>
+            </div>
+          </div>
+          {phonicsColor && <PhonicsLegend />}
         </div>
       </div>
     </div>

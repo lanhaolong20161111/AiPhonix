@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { TapCharText } from "../components/TapCharText"
 import { EchoLadder } from "../components/EchoLadder"
+import { SentenceNavRail } from "../components/SentenceNavRail"
 import { useTts } from "../hooks/useTts"
 import { zhTeachSetup, zhTeachJudge, type TeachScript, type TeachItem } from "../services/zhTeach"
 import { zhPoemSetup, zhPoemSummary, zhPoemSearch, type PoemScript, type PoemLine, type PoemSearchHit } from "../services/zhPoem"
@@ -45,6 +46,8 @@ export function SpeechComposePage() {
   // ── 古诗模式 ──
   const [poem, setPoem] = useState<PoemScript | null>(null)
   const [poemIdx, setPoemIdx] = useState(0)
+  /** 已跟读测评过关（≥70）的诗句下标 → 右侧导航小圆圈亮起 */
+  const [poemEvaluated, setPoemEvaluated] = useState<Set<number>>(new Set())
   const [poemIntroDone, setPoemIntroDone] = useState(false)
   const [charTip, setCharTip] = useState<{ c: string; m: string } | null>(null)
   const [ttsBusy, setTtsBusy] = useState(false) // 任意古诗 TTS 进行中（点击即时反馈 + 防竞态）
@@ -58,6 +61,8 @@ export function SpeechComposePage() {
   const [articleText, setArticleText] = useState("")
   const [article, setArticle] = useState<ArticleLine[] | null>(null)
   const [artIdx, setArtIdx] = useState(0)
+  /** 已跟读测评过关（≥70）的句子下标 → 右侧导航小圆圈亮起 */
+  const [artEvaluated, setArtEvaluated] = useState<Set<number>>(new Set())
   /** 当前句 TTS 领读完成，可以开始跟读测评 */
   const [artReady, setArtReady] = useState(false)
   /** 背诵提示（缩写）生成中 */
@@ -125,6 +130,26 @@ export function SpeechComposePage() {
     setCovered((prev) => {
       const next = new Set(prev)
       if (focus) next.add(focus)
+      return next
+    })
+  }
+
+  /** 标记某句文章已测评过关（右侧导航小圆圈亮起） */
+  const markArtEvaluated = (i: number) => {
+    setArtEvaluated((prev) => {
+      if (prev.has(i)) return prev
+      const next = new Set(prev)
+      next.add(i)
+      return next
+    })
+  }
+
+  /** 标记某句古诗已测评过关（右侧导航小圆圈亮起） */
+  const markPoemEvaluated = (i: number) => {
+    setPoemEvaluated((prev) => {
+      if (prev.has(i)) return prev
+      const next = new Set(prev)
+      next.add(i)
       return next
     })
   }
@@ -217,6 +242,7 @@ export function SpeechComposePage() {
     }
     setPoem(local)
     setPoemIdx(0)
+    setPoemEvaluated(new Set()) // 新古诗：清空测评标记
     setPoemIntroDone(false) // 先听"整篇古诗 + 全诗概括"，听完才进入逐句测评
     setStage("question") // 离开 setup 界面（否则第 320 行 stage==="setup" 恒真，古诗界面永远不渲染）
 
@@ -330,6 +356,7 @@ export function SpeechComposePage() {
     setArticle(lines)
     setArtIdx(0)
     setArtReady(false)
+    setArtEvaluated(new Set()) // 新文章：清空测评标记
     artCongratsRef.current = false
     setStage("question") // 离开 setup 界面
 
@@ -493,11 +520,13 @@ export function SpeechComposePage() {
     setPoem(null)
     setPoemIntroDone(false)
     setPoemIdx(0)
+    setPoemEvaluated(new Set())
     setCharTip(null)
     setArticle(null)
     setArticleText("")
     setArtIdx(0)
     setArtReady(false)
+    setArtEvaluated(new Set())
     setShortsLoading(false)
     artCongratsRef.current = false
     setStage("setup")
@@ -661,12 +690,21 @@ export function SpeechComposePage() {
       )
     }
     return (
-      <div className="page aihomework-page">
+      <div className="page aihomework-page has-sentence-nav">
         <header className="module-header">
           <button className="back-btn" onClick={backToSetup}>←</button>
           <h1>📜 {poem.title}</h1>
           <span style={{ fontSize: 13, color: "#536471" }}>第 {poemIdx + 1}/{poemTotal} 句</span>
         </header>
+
+        {/* 右侧诗句导航：小圆圈对应每句，测评过亮起，点圈跳到那句 */}
+        <SentenceNavRail
+          total={poemTotal}
+          current={poemIdx}
+          evaluated={poemEvaluated}
+          onJump={(i) => void enterPoemVerse(i)}
+          disabled={ttsBlocked}
+        />
         {(poem.dynasty || poem.author) && (
           <p style={{ margin: "2px 4px 0", fontSize: 14, color: "#0a7d43", fontWeight: 600 }}>
             {poem.dynasty}{poem.dynasty && poem.author ? "·" : ""}{poem.author}
@@ -738,7 +776,7 @@ export function SpeechComposePage() {
             autoReadFirst={false}
             source="zh_poem_echo"
             onBusyChange={setEvalBusy}
-            onFinished={() => void enterPoemVerse(poemIdx + 1)}
+            onFinished={() => { markPoemEvaluated(poemIdx); void enterPoemVerse(poemIdx + 1) }}
             // 「跳过」必须接上：不接时按钮点了毫无反应（原来的 bug）
             onSkip={() => void enterPoemVerse(poemIdx + 1)}
           />
@@ -775,12 +813,21 @@ export function SpeechComposePage() {
     }
     const cur = article[artIdx]
     return (
-      <div className="page aihomework-page">
+      <div className="page aihomework-page has-sentence-nav">
         <header className="module-header">
           <button className="back-btn" onClick={backToSetup}>←</button>
           <h1>📖 文章背诵</h1>
           <span style={{ fontSize: 13, color: "#536471" }}>第 {artIdx + 1}/{total} 句</span>
         </header>
+
+        {/* 右侧句子导航：小圆圈对应每句，测评过亮起，点圈跳到那句 */}
+        <SentenceNavRail
+          total={total}
+          current={artIdx}
+          evaluated={artEvaluated}
+          onJump={(i) => void enterArticleSentence(article, i)}
+          disabled={ttsBlocked}
+        />
 
         {/* 全文逐句：当前句高亮，每句下方是 LLM 缩写（背诵框架），右侧喇叭可单独听 */}
         <div className="card" style={{ marginTop: 8, padding: 12 }}>
@@ -844,7 +891,7 @@ export function SpeechComposePage() {
             autoReadFirst={false}
             source="zh_article_echo"
             onBusyChange={setEvalBusy}
-            onFinished={() => void enterArticleSentence(article, artIdx + 1)}
+            onFinished={() => { markArtEvaluated(artIdx); void enterArticleSentence(article, artIdx + 1) }}
             onSkip={() => void enterArticleSentence(article, artIdx + 1)}
           />
         )}

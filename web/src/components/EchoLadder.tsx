@@ -183,10 +183,13 @@ export function EchoLadder({ sentence, chunks, units, engine, source = "echo_lad
   }
 
   const highlight = (idx: number, text: string) => {
-    // 已过关单位打勾；当前关注（最后一段在非 drill 时）高亮
-    if (idx < level - 1) return <span key={idx} className="echo-chunk done-chunk">✔ {text}</span>
+    // 已过关的前缀打勾；**本级新增的单位**高亮；后面还没轮到的单位淡显。
+    // ⚠️ 不能把 level-1 之后的全部标成 active：第 1 级时会把整句都染黄，
+    //    孩子分不清「这一轮只要读第 1 个词」（2026-09-16 修）。
     if (drill) return <span key={idx} className="echo-chunk plain-chunk">{text}</span>
-    return <span key={idx} className="echo-chunk active-chunk">{text}</span>
+    if (idx < level - 1) return <span key={idx} className="echo-chunk done-chunk">✔ {text}</span>
+    if (idx === level - 1) return <span key={idx} className="echo-chunk active-chunk">{text}</span>
+    return <span key={idx} className="echo-chunk plain-chunk">{text}</span>
   }
 
   const unitLabel = wordMode ? "词" : "片段"
@@ -204,7 +207,12 @@ export function EchoLadder({ sentence, chunks, units, engine, source = "echo_lad
           <span className="talk-hint-text">{drill}</span>
         </div>
       ) : (
-        <div className="echo-ladder-line">{steps.map((c, i) => highlight(i, c))}</div>
+        <>
+          <div className="echo-ladder-line">{steps.map((c, i) => highlight(i, c))}</div>
+          {/* 逐词扩长时最要紧的信息：这一轮到底读哪几个词，别让孩子自己数。
+              单级（整句一把过）时不显示，否则和上面的词块行重复。 */}
+          {total > 1 && <div className="echo-ladder-target">本轮读：<strong>{target}</strong></div>}
+        </>
       )}
 
       <div className="echo-ladder-ops">

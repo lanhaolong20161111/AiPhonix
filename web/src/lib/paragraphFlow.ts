@@ -29,7 +29,7 @@ function isHan(ch: string): boolean {
  * 模型（英语模块尤其明显）有时把图片里的小标题写成 markdown：`## Tom's Family`。
  * 直接当正文渲染就会出现刺眼的 `##`。这里只吃掉「# + 空白」形式，
  * `#1`（井号后没空格）不动，避免误伤题号/标签。
- * 放在 tidyInlineSpaces 里 → 语文(BlockText)、数学/语文兜底(reflowText)、
+ * 放在 tidyInlineSpaces 里 → 语文(BlockText)、数学/英语兜底(reflowWithBreaks)、
  * 英语(EnglishResult) 全部路径一次生效。 */
 export function stripMdHeaders(s: string): string {
   return (s ?? "").replace(/^[ \t]*#{1,6}[ \t]+/gm, "")
@@ -57,8 +57,14 @@ export function tidyInlineSpaces(s: string): string {
   return t.trim()
 }
 
-/** 匹配「填空位」：括号里只有空白（如 `（  ）`、`( )`、`（　）`）。 */
-export const BLANK_RE = /[（(][ \t\u3000]*[）)]/
+/** 匹配「填空位」：
+ *  - 括号里只有空白（如 `（  ）`、`( )`、`（　）`）；
+ *  - 连续下划线（`____`，≥2 个，含全角 `＿`）—— 三学科识图提示词都要求
+ *    「空白的填空横线按原样输出下划线」，服务端自 2026-09-15 起不再删除**行内**下划线
+ *    （只删整行批注线），故这里要把 `____` 当填空位渲染。
+ *  ⚠️ 数学**不走**本规则（竖式的整行 `____` 是计算横线，靠空格对齐），
+ *  数学渲染走 `renderMixedText`，不经过 `BLANK_RE`。 */
+export const BLANK_RE = /[（(][ \t\u3000]*[）)]|[_＿]{2,}/
 
 /** 把文本切成「填空位 / 普通文本」两类片段。
  *
@@ -81,7 +87,7 @@ export function splitBlanks(s: string): { blank: boolean; text: string }[] {
 }
 
 /** 拼接同一段落的两片文本：中文直拼 / 西文补空格 / 英文折行连字符合并 */
-function joinPieces(a: string, b: string): string {
+export function joinPieces(a: string, b: string): string {
   if (!a) return b
   if (!b) return a
   if (/[-‐–—]$/.test(a) && /^[A-Za-z]/.test(b)) return a.slice(0, -1) + b
@@ -219,7 +225,12 @@ const ORDERED_PREFIX =
  * 若当成普通续行合并，就会在行首标签中间断行，出现「…危险—反义 / 词：美丽…」。 */
 const LABEL_PREFIX = /^[^\s]{1,6}[：:]/
 
-/** 把「按图片物理行硬折行」的纯文本还原成段落数组。
+// 数学算式行判定、英语标题/句末判定已迁至 web/src/lib/subject/{math,english}.ts（含原注释），
+// 本文件只保留三学科共用的无策略机制，不认识任何学科规则。
+
+/** 无策略内核：把「按图片物理行硬折行」的纯文本还原成段落数组 —— 三学科共用的**机制**，
+ * 不含任何学科策略。断行决策由调用方以两个谓词注入，学科差异因此留在各学科模块里，
+ * 不存在 opts 开关（复刻后端 §7 学科隔离的止血思路：开关型 API 一旦漏传就出事故）。
  *
  * 用于题目/纯文本渲染（英语、数学、语文兜底路径）：这些文本来自 OCR，每一行都是
  * 图片上的一行，直接按 `\n` 渲染（换行符 + white-space:pre-wrap）就会出现
@@ -228,20 +239,41 @@ const LABEL_PREFIX = /^[^\s]{1,6}[：:]/
  *  - 空行 = 强制分段；
  *  - 有序项（1. / ① / 一、）= 各自独立成段；
  *  - 标签项（`近义词：` / `答：` 等，见 LABEL_PREFIX）= 各自独立成段；
- *  - 其余非空行 = 续行，并回上一段（中文直拼，英文补空格）。
- * 调用方负责「段落首行空两格」（用两个全角空格，不要用 text-indent）。 */
-export function reflowText(raw: string): string[] {
+ *  - 其余非空行 = 续行，并回上一段（中文直拼，英文补空格，见 joinPieces）。
+ * 学科特定的断行（数学算式独占一段 / 英语标题与句末断段）由 breakBefore / closesAfter
+ * 两个谓词注入，本函数只负责循环，不认识任何学科。
+ * 调用方负责「段落首行空两格」（用两个全角空格，不要用 text-indent）。
+ *
+ * @param breakBefore 本行是否强制另起一段（入参：本行文本、上一行是否"已收尾"）
+ * @param closesAfter 本行结束后是否算"已收尾"（供下一行判断） */
+export function reflowWithBreaks(
+  raw: string,
+  breakBefore: (line: string, prevCloses: boolean) => boolean,
+  closesAfter: (line: string) => boolean,
+): string[] {
+  const lines = (raw || "").split(/\r?\n/).map((ln) => tidyInlineSpaces(ln))
   const out: string[] = []
   let fresh = true
-  for (const ln of (raw || "").split(/\r?\n/)) {
-    const t = tidyInlineSpaces(ln)
+  // 上一行是否「已收尾」：由 closesAfter 判定（句末标点 / 标题等），本函数不关心含义
+  let prevCloses = false
+  for (const t of lines) {
     if (!t) {
       fresh = true
       continue
     }
-    if (fresh || out.length === 0 || ORDERED_PREFIX.test(t) || LABEL_PREFIX.test(t)) out.push(t)
-    else out[out.length - 1] = joinPieces(out[out.length - 1], t)
+    if (
+      fresh ||
+      out.length === 0 ||
+      breakBefore(t, prevCloses) ||
+      ORDERED_PREFIX.test(t) ||
+      LABEL_PREFIX.test(t)
+    ) {
+      out.push(t)
+    } else {
+      out[out.length - 1] = joinPieces(out[out.length - 1], t)
+    }
     fresh = false
+    prevCloses = closesAfter(t)
   }
   return out
 }

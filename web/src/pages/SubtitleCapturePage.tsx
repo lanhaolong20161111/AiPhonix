@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSoeScore } from "../hooks/useSoeScore"
 import type { SoeWord } from "../lib/soeApi"
+import { PhonicsWord } from "../components/PhonicsWord"
 import { api } from "../services/api"
 
 
@@ -233,7 +234,7 @@ function EvalCard({ r, onTts, onReEvaluate }: EvalCardProps) {
                   color: w.accuracy >= 80 ? "#4ade80" : w.accuracy >= 60 ? "#fbbf24" : "#f87171",
                   background: `${w.accuracy >= 80 ? "rgba(74,222,128,.12)" : w.accuracy >= 60 ? "rgba(251,191,36,.12)" : "rgba(248,113,113,.12)"}`,
                 }}>
-                {w.word}
+                <PhonicsWord word={w.word} />
               </span>
             ))}
           </div>
@@ -1458,7 +1459,7 @@ export function SubtitleCapturePage() {
                       color: w.accuracy >= 80 ? "#4ade80" : w.accuracy >= 60 ? "#fbbf24" : "#f87171",
                       background: `${w.accuracy >= 80 ? "rgba(74,222,128,.12)" : w.accuracy >= 60 ? "rgba(251,191,36,.12)" : "rgba(248,113,113,.12)"}`,
                     }}>
-                    {w.word}
+                    <PhonicsWord word={w.word} />
                   </span>
                 ))}
               </div>
