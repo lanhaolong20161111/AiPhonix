@@ -67,6 +67,13 @@ const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
     ],
   },
   {
+    key: "math",
+    label: "动画学数学",
+    entries: [
+      { to: "/module/math_compound_expr", emoji: "🧮", title: "三年级上综合算式动画", subtitle: "动画演示「找→换→查」合并两个算式 · 何时必须加括号 + 易错警示" },
+    ],
+  },
+  {
     key: "tools",
     label: "学习工具",
     entries: [
