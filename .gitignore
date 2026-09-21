@@ -354,6 +354,11 @@ web/_ce_paren_noneed.mjs
 web/_ce_diag.mjs
 web/_ce_paren/
 web/_ce_paren_noneed/
+web/_ce_smoke_paren.mjs
+web/_ce_smoke_hold.mjs
+web/_ce_prod3/
+web/_ce_tok3.json
+web/_ce_tok3.env
 web/_build_fly.log
 web/_outdir.txt
 web/_outdir.txt
