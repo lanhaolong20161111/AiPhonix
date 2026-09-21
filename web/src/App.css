@@ -7841,9 +7841,10 @@ button.btn-mode-off {
   margin: 0 0 12px;
 }
 
-/* ── 顶部小按钮（口诀 / 易错）── */
+/* ── 顶部小按钮（口诀 / 优先级 / 易错）── */
 .ce-rules-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -8379,3 +8380,246 @@ button.btn-mode-off {
   .ce-merged.ce-success { animation: none; }
   .ce-inject.ce-land { animation: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   「先算谁？」运算优先级小动画（页内可展开，.ce-prec）
+   ★ 版面用**定宽槽位**：数字 38 · 运算符 30 · 间隔 7
+     宽度可预知 ⇒「三块并成一个数」纯靠 CSS 过渡，不必量尺寸、中途不跳版
+   ⚠️ 槽位有 14px 上内边距：运算符「抬起一格」(-9px) 要落在内边距里，
+      否则被 overflow:hidden（横向收缩就靠它）一起裁掉
+   ══════════════════════════════════════════════════════════════ */
+
+.ce-prec {
+  --pr-num: 38px;
+  --pr-op: 30px;
+  --pr-gap: 7px;
+  --pr-h: 38px;
+  padding: 12px 13px;
+}
+
+.pr-head {
+  margin: 0 0 9px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+
+/* ⚠️ 全局 button 为 width:100% ⇒ 此处显式 width:auto */
+.pr-chip {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  border: 1px solid #d5dbe3;
+  font-variant-numeric: tabular-nums;
+}
+
+.pr-chip.on { background: #eff6ff; border-color: #2563eb; color: #1d4ed8; }
+.pr-chip:disabled { opacity: 0.55; }
+
+.pr-label {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #7c3aed;
+}
+
+/* ── 算式行 ── */
+.pr-expr {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62px;
+  padding: 0 2px;
+  font-size: 19px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 槽位：只负责**宽度与右间隔**的过渡；横向裁掉（收缩到 0 时不留残影）
+   ⚠️ 上下各留 12px 内边距 = 运算符「抬起/下沉」±9px 的活动余量。
+      若只留 6px，下沉的那一侧会被 overflow:hidden 裁掉 3px */
+.pr-slot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px 0;
+  margin-right: var(--pr-gap);
+  transition: width 0.54s cubic-bezier(0.4, 0, 0.2, 1), margin-right 0.54s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.pr-slot-num { width: var(--pr-num); }
+.pr-slot-op { width: var(--pr-op); }
+.pr-slot-paren { width: 20px; }
+
+/* 被「吃」掉的三个块：宽度连同右间隔一起收到 0 ⇒ 后面的块自然滑过来 */
+.pr-slot.pr-eaten { width: 0 !important; margin-right: 0 !important; opacity: 0; }
+
+/* 结果块：从 0 宽**长出来**（内层居中 + overflow:hidden ⇒ 数字从中间挤出来） */
+.pr-slot.pr-res { width: 0; margin-right: 0; opacity: 0; }
+.pr-slot.pr-res.pr-grow { width: var(--pr-num); margin-right: var(--pr-gap); opacity: 1; }
+
+/* 内层色块：自身 overflow:hidden 只裁自己的文字，
+   所以「抬起/下沉」用的是它自己的 transform —— 不会被自己裁掉 */
+.pr-tok {
+  width: 100%;
+  height: var(--pr-h);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1.5px solid transparent;
+}
+
+.pr-num { background: #fff; border-color: #cbd5e1; color: #0f172a; }
+
+/* 已经算出来的数：绿底 —— 一路化简下来，能看出哪几段是「算出来的」 */
+.pr-num.pr-done { background: #dcfce7; border-color: #86efac; color: #166534; }
+
+/* 运算符按优先级分色（与全站一致）：乘除=蓝 · 加减=橙 */
+.pr-op { border-color: transparent; }
+
+.pr-md { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+.pr-as { background: #fff7ed; border-color: #fed7aa; color: #ea580c; }
+
+.pr-op {
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s, opacity 0.3s;
+}
+
+.pr-paren { color: #7c3aed; font-weight: 900; background: transparent; }
+
+/* ★ 判级（不同级）：乘除**抬起一格**、加减**下沉一格** —— 把「级别高低」演出来。
+   加号明明在最左边却轮不到它，这一帧就是全篇的重点 */
+.pr-lv2 { transform: translateY(-9px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+.pr-lv1 { transform: translateY(9px); opacity: 0.72; }
+
+/* 选中：琥珀 + 放大 + 光环（与主页面的「当前正在算」同一套语义） */
+.pr-pick {
+  background: #fde68a;
+  border-color: #f59e0b;
+  color: #92400e;
+  transform: scale(1.14);
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.32);
+}
+
+/* 同轮里被比下去的运算符：让位 */
+.pr-wait { opacity: 0.35; }
+
+/* ── 「同级」那一支：从左往右的扫描条 ──
+   放在算式**下方**（占用槽位的下内边距，不压到数字块）：
+   18px 宽的读头 + 朝上的小三角，三角中心与读头中心对齐在 9px 处 */
+.pr-sweeper {
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: #0f172a;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pr-sweeper::after {
+  content: "";
+  position: absolute;
+  left: 3.5px;
+  bottom: 3px;
+  border-left: 5.5px solid transparent;
+  border-right: 5.5px solid transparent;
+  border-bottom: 6px solid #0f172a;
+}
+
+/* ── 讲解 / 结果 / 按钮 ── */
+.pr-hint {
+  margin: 9px 0 0;
+  min-height: 56px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: #1e40af;
+  background: #eff6ff;
+  border-radius: 10px;
+}
+
+.pr-hint-done { background: #dcfce7; color: #166534; }
+
+.pr-answer {
+  margin: 9px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pr-ok {
+  margin-left: 8px;
+  padding: 3px 7px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ce-ok);
+  background: #dcfce7;
+  border-radius: 7px;
+}
+
+.pr-wrong {
+  margin: 8px 0 0;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
+.pr-actions { display: flex; margin-top: 11px; }
+
+.pr-btn {
+  width: auto;
+  flex: 1 1 0;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 11px;
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+}
+
+.pr-btn:disabled { background: #9ca3af; border-color: #9ca3af; }
+
+.pr-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #94a3b8;
+}
+
+.pr-legend {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-slot, .pr-tok, .pr-op { transition: none; }
+}
+

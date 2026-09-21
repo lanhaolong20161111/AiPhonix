@@ -32,6 +32,7 @@ import {
   type StepLine,
   type Token,
 } from "../lib/compoundExpr"
+import { OpPrecedenceDemo } from "../components/OpPrecedenceDemo"
 
 // ────────────────────────────────────────────────────────────
 // 小工具
@@ -287,6 +288,7 @@ export function MathCompoundExprPage() {
   /** 「查」③ 已确认到第几个运算符 */
   const [checkStep, setCheckStep] = useState(0)
   const [showRules, setShowRules] = useState(false)
+  const [showPrec, setShowPrec] = useState(false)
   const [showMistakes, setShowMistakes] = useState(false)
   const [ghost, setGhost] = useState<Ghost | null>(null)
   const [link, setLink] = useState<Link | null>(null)
@@ -689,10 +691,16 @@ export function MathCompoundExprPage() {
         <button className="ce-chip" onClick={() => setShowRules((v) => !v)}>
           {showRules ? "收起口诀" : "📌 找→换→查 口诀"}
         </button>
+        <button className="ce-chip" onClick={() => setShowPrec((v) => !v)}>
+          {showPrec ? "收起优先级" : "🔢 先算谁？优先级"}
+        </button>
         <button className="ce-chip" onClick={() => setShowMistakes((v) => !v)}>
           {showMistakes ? "收起易错" : "⚠️ 易错警示"}
         </button>
       </div>
+
+      {/* 「查」这一步假定孩子已经懂了优先级 —— 这里补一个小动画把假定演出来 */}
+      {showPrec && <OpPrecedenceDemo />}
 
       {showRules && (
         <div className="card ce-rules">
