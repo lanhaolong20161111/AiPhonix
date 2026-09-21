@@ -342,6 +342,14 @@ web/_ce_shots/
 web/_ce_prod/
 web/_ce_tok.json
 web/_ce_tok.env
+web/_ce_fly.mjs
+web/_ce_smoke_fly.mjs
+web/_ce_fly/
+web/_ce_prod2/
+web/_ce_tok2.json
+web/_ce_tok2.env
+web/_build_fly.log
+web/_outdir.txt
 web/_outdir.txt
 web/_build_ce.log
 
