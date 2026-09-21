@@ -348,6 +348,12 @@ web/_ce_fly/
 web/_ce_prod2/
 web/_ce_tok2.json
 web/_ce_tok2.env
+# 「查② 括号飞入」专项抓帧 + 位置比对（含逐帧轨迹采样）
+web/_ce_paren.mjs
+web/_ce_paren_noneed.mjs
+web/_ce_diag.mjs
+web/_ce_paren/
+web/_ce_paren_noneed/
 web/_build_fly.log
 web/_outdir.txt
 web/_outdir.txt

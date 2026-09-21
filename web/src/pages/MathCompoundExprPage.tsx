@@ -10,7 +10,9 @@
  *   ② 换 —— ★ 转移动画：① 的算式变成一块「幽灵」，从得数位置起飞，
  *            沿弧线飞到 ② 里那个数字的位置，原地把它顶掉（原位替换）。
  *            ① 的得数随即变灰（已被取走）
- *   ③ 查 —— 合并式按优先级分色 → 先暴露「不加括号会先算谁」(红) → 括号飞入 → 逐项确认(绿)
+ *   ③ 查 —— 合并式按优先级分色 → 先暴露「不加括号会先算谁」(红) → ★ 括号飞入
+ *            （两个括号从算式外侧飞进来、落到自己该在的位置上、夹紧被抱的那一块）
+ *            → 逐项确认(绿)
  *   易错 —— 错误列式红闪抖动 vs 正确列式绿闪落定
  *
  * 配色约定（全站一致）：乘除 = 蓝（优先）· 加减 = 橙 · 正确 = 绿 · 错误 = 红
@@ -165,8 +167,10 @@ function MergedExpr({
   litIndex,
   /** 高亮语义：'warn' = 「不加括号会被先算的就是它」（提醒）· 'ok' = 「就该先算它」（确认） */
   litKind,
-  /** 括号是否已飞入 */
+  /** 括号是否已落位（真身显形） */
   parensIn,
+  /** 括号已夹紧：被抱住的整块亮紫边（「这一段被括号抱住了」） */
+  hug,
   /** 震动（错误演示） */
   shake,
   /** 成功闪光 */
@@ -176,12 +180,18 @@ function MergedExpr({
   litIndex: number
   litKind: "warn" | "ok" | null
   parensIn: boolean
+  hug?: boolean
   shake?: boolean
   success?: boolean
 }) {
   const cls = ["ce-merged"]
   if (shake) cls.push("ce-shake")
   if (success) cls.push("ce-success")
+  if (hug) cls.push("ce-hug")
+
+  /** 被替换进来的那一块的左右两端（括号要抱住的正是它） */
+  const firstFrom = tokens.findIndex((t) => t.fromFirst)
+  const lastFrom = tokens.reduce((acc, t, i) => (t.fromFirst ? i : acc), -1)
 
   return (
     <div className={cls.join(" ")}>
@@ -191,16 +201,29 @@ function MergedExpr({
         const c = ["ce-tok"]
         if (t.type === "num") c.push("ce-num")
         if (t.type === "op") c.push("ce-op", precClass(t.text))
-        if (t.type === "paren") c.push("ce-paren")
-        if (t.fromFirst) c.push("ce-from-first")
+        if (isParen) c.push("ce-paren", t.text === "(" ? "ce-paren-open" : "ce-paren-close")
+        if (t.fromFirst) {
+          c.push("ce-from-first")
+          c.push(i === firstFrom ? "ce-run-first" : i === lastFrom ? "ce-run-last" : "ce-run-mid")
+        }
         if (i === litIndex) {
           c.push("ce-tok-lit")
           if (litKind === "warn") c.push("ce-tok-warn")
           if (litKind === "ok") c.push("ce-tok-ok")
         }
         if (flipIn) c.push("ce-paren-in")
+        // 供「括号飞入」动画测量：两个括号自身 + 被抱住那块的左右两端
+        const dce = isParen
+          ? t.text === "("
+            ? "par-open"
+            : "par-close"
+          : i === firstFrom
+            ? "wrap-first"
+            : i === lastFrom
+              ? "wrap-last"
+              : undefined
         return (
-          <span key={i} className={c.join(" ")} style={{ animationDelay: `${i * 30}ms` }}>
+          <span key={i} className={c.join(" ")} data-ce={dce} style={{ animationDelay: `${i * 30}ms` }}>
             {t.text}
           </span>
         )
@@ -225,9 +248,11 @@ const T_FIND = 2200 // ① 找
 const T_FLY = 1150 // ② 换：算式幽灵起飞 → 落位（含蓄力）
 const T_LAND = 1250 // ② 换：落位后停留，看清「谁顶掉了谁」
 const T_SUB = T_FIND + T_FLY + T_LAND // ② 换 → ③ 查
-const T_WARN = 1700 // 查：暴露「不加括号会先算谁」
-const T_RECHECK = 1100 // 查：括号飞入 → 停顿
-const T_OP = 700 // 查：每个运算符高亮的间隔
+const T_WARN = 1700 // 查①：暴露「不加括号会先算谁」
+const T_PAREN_FLY = 950 // 查②：括号从算式外侧飞入 → 落位
+const T_PAREN_BOUNCE = 850 // 查②：不需要括号时，括号被「弹回去」消散
+const T_PAREN_HOLD = 900 // 查②：括号夹紧后停留，看清它抱住了哪一块
+const T_OP = 700 // 查③：每个运算符高亮的间隔
 
 /** 飞行中的算式幽灵（视口坐标，position:fixed） */
 interface Ghost {
@@ -255,6 +280,10 @@ export function MathCompoundExprPage() {
   const [subSub, setSubSub] = useState<0 | 1>(0)
   /** 「查」的三小步：0 = 暴露「不加括号会先算谁」· 1 = 括号飞入 · 2 = 按正确顺序逐项确认 */
   const [checkSub, setCheckSub] = useState<0 | 1 | 2>(0)
+  /** 「查」② 括号是否已落位（真身显形；飞行期间由克隆体代替） */
+  const [parensLanded, setParensLanded] = useState(false)
+  /** 「查」② 括号已夹紧：被抱住的那一块亮紫边 */
+  const [hug, setHug] = useState(false)
   /** 「查」③ 已确认到第几个运算符 */
   const [checkStep, setCheckStep] = useState(0)
   const [showRules, setShowRules] = useState(false)
@@ -262,8 +291,16 @@ export function MathCompoundExprPage() {
   const [ghost, setGhost] = useState<Ghost | null>(null)
   const [link, setLink] = useState<Link | null>(null)
   const stageRef = useRef<HTMLDivElement>(null)
+  const resultBoxRef = useRef<HTMLDivElement>(null)
   const ghostRef = useRef<HTMLSpanElement>(null)
+  /** 「查」② 飞行中的括号克隆体（挂 body 上，落位/弹走后移除） */
+  const parenGhostsRef = useRef<HTMLElement[]>([])
   const timerRef = useRef<number[]>([])
+
+  const removeParenGhosts = useCallback(() => {
+    for (const el of parenGhostsRef.current) el.remove()
+    parenGhostsRef.current = []
+  }, [])
 
   const clearTimers = useCallback(() => {
     for (const t of timerRef.current) window.clearTimeout(t)
@@ -277,18 +314,24 @@ export function MathCompoundExprPage() {
 
   const newProblem = useCallback(() => {
     clearTimers()
+    removeParenGhosts()
     setPhase("idle")
     setSubSub(0)
     setCheckSub(0)
+    setParensLanded(false)
+    setHug(false)
     setCheckStep(0)
     setGhost(null)
     setProblem(generateProblem())
-  }, [clearTimers])
+  }, [clearTimers, removeParenGhosts])
 
   useEffect(() => {
     newProblem()
-    return clearTimers
-  }, [newProblem, clearTimers])
+    return () => {
+      clearTimers()
+      removeParenGhosts()
+    }
+  }, [newProblem, clearTimers, removeParenGhosts])
 
   // ── 位置测量：① 的得数（起飞点 / 连线起点）、② 的目标数（落点 / 连线终点）──
   const measure = useCallback(() => {
@@ -309,6 +352,11 @@ export function MathCompoundExprPage() {
   const landed = subSub === 1
   const showCheck = phase === "check"
   const done = phase === "done"
+
+  // ── 各阶段派生状态（提前到这里：play 与「括号飞入」都要用）──
+  const steps = problem?.steps
+  const merged = problem?.merged
+  const needParen = problem?.how.check.needParen ?? false
 
   // ── 「找」「换」阶段：把两个数用斜虚线真正连起来（滚动时随之重算）──
   useEffect(() => {
@@ -357,16 +405,137 @@ export function MathCompoundExprPage() {
     return () => anim.cancel()
   }, [ghost, reduced])
 
+  /**
+   * ★「查」② 括号飞入 ——
+   *  · 需要括号：( 从算式左侧外、( 从右侧外飞进来 → 落到**自己该在的位置**上 →
+   *    真实括号就地显形接管（克隆体与真身逐字一致 ⇒ 落位无跳变）→ 两个括号向内「夹紧」，
+   *    被抱住的那一块亮起紫边 ⇒ 一眼看出「括号抱住了哪一段」
+   *  · 不需要括号：括号飞进来想夹，没夹住、被**弹回去**消散 ⇒ 「它是多余的，别加」
+   */
+  useEffect(() => {
+    if (reduced || !showCheck || checkSub !== 1 || !problem) return
+    const box = resultBoxRef.current
+    if (!box) return
+    removeParenGhosts()
+
+    // 克隆体与真身要逐字一致 ⇒ 字号/行高从 .ce-merged 现取（挂 body 上会失去继承）
+    // ⚠️ 千万别内联 font-weight：.ce-paren 是 900、.ce-merged 是 800，取错就会让括号
+    //    比真身窄一截、落点也就跟着偏（实测偏 7px）。让它由 .ce-paren 自己的类决定。
+    const mp = box.querySelector<HTMLElement>(".ce-merged")
+    const cs = mp ? window.getComputedStyle(mp) : null
+    const base = [
+      "position:fixed",
+      "left:0",
+      "top:0",
+      "margin:0",
+      "z-index:80",
+      "pointer-events:none",
+      "opacity:1",
+      "will-change:transform",
+      `font-size:${cs?.fontSize ?? "24px"}`,
+      `font-family:${cs?.fontFamily ?? "inherit"}`,
+      `line-height:${cs?.lineHeight ?? "normal"}`,
+      `font-variant-numeric:${cs?.fontVariantNumeric ?? "tabular-nums"}`,
+    ].join(";")
+
+    // 被括号抱住的（要抱的）那一块：左右两端
+    const wf = box.querySelector<HTMLElement>('[data-ce="wrap-first"]')
+    const wl = box.querySelector<HTMLElement>('[data-ce="wrap-last"]')
+    const wrap = (() => {
+      if (!wf || !wl) return null
+      const a = wf.getBoundingClientRect()
+      const b = wl.getBoundingClientRect()
+      return { left: a.left, right: b.right, top: Math.min(a.top, b.top), bottom: Math.max(a.bottom, b.bottom) }
+    })()
+
+    const fly = (ch: "(" | ")", dir: -1 | 1, sel: string) => {
+      const real = needParen ? box.querySelector<HTMLElement>(`[data-ce="${sel}"]`) : null
+      const el = real ? (real.cloneNode(true) as HTMLElement) : document.createElement("span")
+      if (real) {
+        // 克隆体只是飞行中的替身：摘掉测量锚点，免得污染 document 上的查询
+        el.removeAttribute("data-ce")
+      } else {
+        el.className = "ce-tok ce-paren"
+        el.textContent = ch
+      }
+      el.style.cssText = base
+      document.body.appendChild(el)
+      parenGhostsRef.current.push(el)
+
+      const r = el.getBoundingClientRect()
+      let left: number, top: number
+      if (real) {
+        // 落点 = 真实括号自己的位置（像素级一致 ⇒ 落位瞬间交接无感）
+        const t = real.getBoundingClientRect()
+        left = t.left
+        top = t.top
+      } else if (wrap) {
+        // 不需括号：朝被替换那块的两侧靠过去（左侧 → 右边贴住块的左沿）
+        left = dir < 0 ? wrap.left - r.width - 2 : wrap.right + 2
+        top = wrap.top + (wrap.bottom - wrap.top - r.height) / 2
+      } else {
+        el.remove()
+        return
+      }
+      el.style.left = `${left}px`
+      el.style.top = `${top}px`
+
+      // 轨迹：从算式两侧**外侧**飞入（略微抬升，别压到「综合算式」标签上）
+      // ⚠️ 所有 keyframe 的 offset 必须**严格递增**，否则 WAAPI 抛
+      //    「Offsets must be monotonically non-decreasing」→ React 渲染期崩溃（整页白屏）
+      const out = dir * 96
+      const enter = [
+        { transform: `translate(${out}px, -14px) scale(2.05) rotate(${dir * 18}deg)`, opacity: 0, offset: 0 },
+        { transform: `translate(${out * 0.6}px, -10px) scale(1.72) rotate(${dir * 11}deg)`, opacity: 1, offset: 0.2 },
+        { transform: `translate(${out * 0.24}px, -4px) scale(1.3) rotate(${dir * 4}deg)`, opacity: 1, offset: 0.48 },
+      ]
+      const dur = needParen ? T_PAREN_FLY : T_PAREN_FLY + T_PAREN_BOUNCE
+      const keys = needParen
+        ? [
+            ...enter,
+            { transform: "translate(0px, -2px) scale(1.08)", opacity: 1, offset: 0.86 },
+            { transform: "translate(0px, 0px) scale(1)", opacity: 1, offset: 1 },
+          ]
+        : [
+            ...enter,
+            { transform: "translate(0px, 0px) scale(1.02)", opacity: 1, offset: 0.56 }, // 到位 —— 想夹住
+            { transform: "translate(0px, 0px) scale(1)", opacity: 1, offset: 0.68 }, // 停一下：夹不住
+            {
+              transform: `translate(${dir * 30}px, -7px) scale(1.18) rotate(${dir * 11}deg)`,
+              opacity: 0.9,
+              offset: 0.82,
+              easing: "cubic-bezier(.34,1.56,.64,1)",
+            },
+            {
+              transform: `translate(${dir * 120}px, 26px) scale(1.62) rotate(${dir * 28}deg)`,
+              opacity: 0,
+              offset: 1,
+            },
+          ]
+      // 兜底：万一 offset 写乱了，排序一次也好过让 WAAPI 抛错把整页带走
+      const safe = [...keys].sort((a, b) => (a.offset ?? 0) - (b.offset ?? 0))
+      el.animate(safe, { duration: dur, easing: "cubic-bezier(.34,.06,.28,1)", fill: "forwards" })
+    }
+
+    // 括号本来就在算式外侧 —— '(' 从左来，')' 从右来
+    fly("(", -1, "par-open")
+    fly(")", 1, "par-close")
+  }, [reduced, showCheck, checkSub, problem, needParen, removeParenGhosts])
+
   const play = useCallback(() => {
     if (!problem) return
     clearTimers()
+    removeParenGhosts()
     setSubSub(0)
     setCheckSub(0)
+    setParensLanded(false)
+    setHug(false)
     setCheckStep(0)
     setGhost(null)
     if (reduced) {
       setSubSub(1)
       setCheckSub(2)
+      setParensLanded(true)
       setPhase("done")
       return
     }
@@ -378,19 +547,32 @@ export function MathCompoundExprPage() {
       setGhost(null)
     }, T_FIND + T_FLY)
     later(() => setPhase("check"), T_SUB)
-    // 「查」：① 先暴露「不加括号会先算谁」→ ② 括号飞入 → ③ 按正确顺序逐项确认
+    // 「查」① 先暴露「不加括号会先算谁」
     later(() => setCheckSub(1), T_SUB + T_WARN)
-    const recheckAt = T_SUB + T_WARN + T_RECHECK
-    later(() => setCheckSub(2), recheckAt)
+    // 「查」② 括号飞入
+    const parenAt = T_SUB + T_WARN + T_PAREN_FLY
+    const recheckAt = T_SUB + T_WARN + T_PAREN_FLY + T_PAREN_HOLD
+    if (needParen) {
+      // 落位：克隆体退场，真实括号就地显形，随即向内夹紧
+      later(() => {
+        setParensLanded(true)
+        setHug(true)
+        removeParenGhosts()
+      }, parenAt)
+    } else {
+      // 想夹但夹不住 ⇒ 被弹回去（克隆体等动画播完再移除）
+      later(removeParenGhosts, T_SUB + T_WARN + T_PAREN_FLY + T_PAREN_BOUNCE)
+    }
+    // 「查」③ 按正确顺序逐项确认（夹紧高亮同步结束，交给逐项高亮接管）
+    later(() => {
+      setCheckSub(2)
+      setHug(false)
+    }, recheckAt)
     const n = Math.max(1, countOps(problem.merged.tokens))
     later(() => setPhase("done"), recheckAt + 400 + T_OP * (n - 1) + 1300)
-  }, [problem, reduced, clearTimers, later])
+  }, [problem, reduced, needParen, clearTimers, later, removeParenGhosts])
 
   // ── 各阶段派生状态 ──
-  const steps = problem?.steps
-  const merged = problem?.merged
-  const needParen = problem?.how.check.needParen ?? false
-
   /** 第二个算式里，被替换的操作数位置（1 = a 位，2 = b 位） */
   const refPos = useMemo<1 | 2 | 0>(() => {
     if (!steps) return 0
@@ -458,8 +640,8 @@ export function MathCompoundExprPage() {
       : "ok" // 本题顺序本来就不变，一路绿色确认
     : null
 
-  // 括号飞入时机：「查」的第 1 小步之后
-  const parensIn = done || (showCheck && checkSub >= 1)
+  // 括号显形时机：「查」② 的飞行**落位**之后（飞行期间由克隆体代替，真身保持隐身）
+  const parensIn = done || (showCheck && parensLanded)
 
   const warnOpText = merged && wrongFirstIdx >= 0 ? merged.tokens[wrongFirstIdx].text : ""
   const step0Text = problem ? bareText(problem.steps[0]) : ""
@@ -481,8 +663,8 @@ export function MathCompoundExprPage() {
         }
         if (checkSub === 1) {
           return needParen
-            ? `顺序既然变了，就必须请出小括号，让 ①「${step0Text}」重新排到前面先算。`
-            : `顺序没变 ⇒ 小括号是多余的，直接写下来就好。`
+            ? `看 —— 两个小括号正从算式两边飞进来，把 ①「${step0Text}」整个抱住。`
+            : `把括号加进去试试 —— 可这里顺序本来就没变，括号抱不住谁，被弹回去了。直接写下来就好。`
         }
         return needParen
           ? `括号一加，第一个被算的换成了 ①「${step0Text}」—— 顺序对上了，答案才一致。`
@@ -597,13 +779,14 @@ export function MathCompoundExprPage() {
 
           {/* ── 合并结果区 ── */}
           {(showCheck || done) && (
-            <div className="ce-result-box">
+            <div className="ce-result-box" ref={resultBoxRef}>
               <p className="ce-result-label">综合算式</p>
               <MergedExpr
                 tokens={problem.merged.tokens}
                 litIndex={litToken}
                 litKind={litKind}
                 parensIn={parensIn}
+                hug={hug}
                 success={done}
               />
               {done && (

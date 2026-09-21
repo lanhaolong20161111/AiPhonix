@@ -8128,8 +8128,25 @@ button.btn-mode-off {
   transition: background 0.25s, color 0.25s, box-shadow 0.25s, transform 0.25s, opacity 0.25s;
 }
 
-/* 来自第一个算式的部分：灰蓝打底，一眼看出「这块是换进来的」 */
-.ce-tok.ce-from-first { background: #e2e8f0; }
+/* 来自第一个算式的部分：**连成一整块**（内部不留 gap，圆角只在外沿）
+   —— 「换进来的那块」要读成一整块；加括号动画也靠它看清「括号抱住了哪一段」 */
+.ce-tok.ce-from-first {
+  background: #e2e8f0;
+  border-radius: 0;
+}
+
+.ce-tok.ce-from-first.ce-run-first {
+  border-radius: 7px 0 0 7px;
+  padding-left: 8px;
+}
+
+.ce-tok.ce-from-first.ce-run-last {
+  border-radius: 0 7px 7px 0;
+  padding-right: 8px;
+}
+
+/* 块内的 token 把 .ce-merged 的 7px gap 收掉 ⇒ 底色连成一条 */
+.ce-tok.ce-from-first:not(.ce-run-first) { margin-left: -7px; }
 
 /* 「查」阶段：当前正在算的 token 高亮放大 */
 .ce-tok.ce-tok-lit {
@@ -8156,22 +8173,44 @@ button.btn-mode-off {
   box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.24);
 }
 
-/* 括号：默认**不可见**（占位不跳版），等「查」第 1 小步飞入时才现身 */
+/* 括号：默认**不可见**（占位不跳版）
+   显形时机 = 「查」② 飞行的**落位**那一刻 —— 飞行期间是挂 body 上的克隆体在动
+   （position:fixed，不参与布局），真身保持占位；落位后真身**就地**显形 ⇒
+   与克隆体最后位置重合，交接看不出接缝 */
 .ce-tok.ce-paren {
   color: #7c3aed;
   font-weight: 900;
   opacity: 0;
 }
 
-/* 括号飞入 */
-.ce-tok.ce-paren.ce-paren-in {
-  opacity: 1;
-  animation: ce-paren-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+/* ⚠️ 括号**不能有 opacity 过渡**：落位瞬间是「克隆体退场 + 真身显形」同一刻完成的，
+   若真身还淡入 0.25s，就会出现「括号闪一下」的空档 */
+.ce-tok.ce-paren.ce-paren-in { opacity: 1; transition: none; }
+
+/* ── ★「查」②：括号落位后向内「夹紧」──
+   从外侧略偏的位置 + 略大一点，压进自己的位置 ⇒ 「抱住了」的手感 */
+.ce-merged.ce-hug .ce-tok.ce-paren-open {
+  animation: ce-clamp-l 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-@keyframes ce-paren-in {
-  0% { opacity: 0; transform: translateY(-18px) scale(0.4) rotate(-25deg); }
-  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+.ce-merged.ce-hug .ce-tok.ce-paren-close {
+  animation: ce-clamp-r 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes ce-clamp-l {
+  0% { transform: translateX(-7px) scale(1.22); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes ce-clamp-r {
+  0% { transform: translateX(7px) scale(1.22); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+/* 「这一段被括号抱住了」：被抱住的那一整块亮紫边 */
+.ce-merged.ce-hug .ce-tok.ce-from-first {
+  background: #ddd6fe;
+  box-shadow: inset 0 0 0 3px #a78bfa, 0 0 0 5px rgba(124, 58, 237, 0.16);
 }
 
 
@@ -8334,7 +8373,8 @@ button.btn-mode-off {
   .ce-num.ce-lit { animation: none; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.35); }
   .ce-link-line { animation: none; }
   .ce-merged.ce-shake, .ce-mistake-expr.ce-shake { animation: none; }
-  .ce-tok.ce-paren.ce-paren-in { animation: none; opacity: 1; }
+  .ce-merged.ce-hug .ce-tok.ce-paren-open,
+  .ce-merged.ce-hug .ce-tok.ce-paren-close { animation: none; }
   .ce-tok.ce-tok-warn { animation: none; }
   .ce-merged.ce-success { animation: none; }
   .ce-inject.ce-land { animation: none; }
