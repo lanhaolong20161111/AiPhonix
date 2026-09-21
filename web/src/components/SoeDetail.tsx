@@ -11,8 +11,10 @@ import { useMemo, useState } from "react"
 import type { SoeResult, SoeWord } from "../lib/soeApi"
 import { arpabetToIpa, pinyinPhoneToDisplay, type PronStyle } from "../lib/arpabet"
 import { formatSoeScore, soeScoreClass } from "../lib/soeDisplay"
-import { phoneTip } from "../lib/phonicsTips"
+import { phoneTip, tipSpeechText } from "../lib/phonicsTips"
 import { usePhoneTips, type TipOverride } from "../hooks/usePhoneTips"
+import { useTts } from "../hooks/useTts"
+import { audioManager } from "../lib/audioManager"
 
 /** 按评测引擎选择音素显示：中文/拼音（16k_zh）→ 拼音部件；英文 → IPA */
 function formatPhone(phone: string, engine: string, style: PronStyle): string {
@@ -40,6 +42,9 @@ function PhoneChips({
   showTips?: boolean
   overrides?: Map<string, TipOverride>
 }) {
+  const { speak } = useTts()
+  const [speakingPhone, setSpeakingPhone] = useState<string | null>(null)
+
   // 只在**得分低但读到了**的音素上给技巧：
   // - miss（漏读 -1/2）：问题是「没读出来」，要领帮不上，改用提示重读（见单词分支）
   // - good/ok：读对了，不需要干扰
@@ -49,6 +54,17 @@ function PhoneChips({
     for (const p of needy) {
       const t = tipText(p.phone, engine, overrides)
       if (t) tipFor.set(p.phone, t)
+    }
+  }
+
+  /** 朗读该条要领：先把音素符号换成「这个音」（否则 TTS 会读成字母名「艾弗」） */
+  const handleSpeakTip = async (phone: string, tip: string) => {
+    audioManager.stop() // 打断其它播放，确保本次点读生效
+    setSpeakingPhone(phone)
+    try {
+      await speak(tipSpeechText(tip, [phone]), {})
+    } finally {
+      setSpeakingPhone(null)
     }
   }
 
@@ -72,10 +88,20 @@ function PhoneChips({
           {phones.map((p, i) => {
             const tip = tipFor.get(p.phone)
             if (!tip) return null
+            const busy = speakingPhone === p.phone
             return (
               <li key={i} className="soe-tip">
                 <span className="soe-tip-sym">{formatPhone(p.phone, engine, style)}</span>
                 <span className="soe-tip-text">{tip}</span>
+                <button
+                  type="button"
+                  className={`soe-tip-speak${busy ? " speaking" : ""}`}
+                  aria-label="朗读这条发音技巧"
+                  title="听一听"
+                  onClick={() => void handleSpeakTip(p.phone, tip)}
+                >
+                  {busy ? "🔊" : "🔈"}
+                </button>
               </li>
             )
           })}

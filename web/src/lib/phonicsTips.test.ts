@@ -2,7 +2,7 @@
 
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { phoneTip, hasLocalTip, localTipText, LOCAL_TIP_COUNT } from "./phonicsTips"
+import { phoneTip, hasLocalTip, localTipText, LOCAL_TIP_COUNT, tipSpeechText, tipNeedsSpeechFix } from "./phonicsTips"
 import { arpabetToIpa } from "./arpabet"
 
 test("小写音素码能查到（智聆返回小写）", () => {
@@ -123,4 +123,71 @@ test("每条要领都不含方括号/引号等易渲染出错的字符", () => {
     const tip = phoneTip(p)!.tip
     assert.ok(!/[<>"]/.test(tip), `${p} 要领含危险字符：${tip}`)
   }
+})
+
+// ══════════════════════════════════════════════════════════════════
+// 朗读文本处理 (tipSpeechText)
+//
+// 实测依据（2026-09-21，百度 TTS + ASR 回灌）：
+//   孤立字母 "f" → 读成字母名「艾弗」（ASR 转出 `F。`）
+//   整词 "friend" → 正常读英文单词
+// ⇒ 音素符号必须替换，整词必须保留。
+// ══════════════════════════════════════════════════════════════════
+
+test("朗读：孤立的音素符号被换成「这个音」", () => {
+  const src = "读friend的f时，上牙轻轻咬下嘴唇再送气哦"
+  const out = tipSpeechText(src, ["f"])
+  assert.ok(!/的f/.test(out), `不该残留「的f」：${out}`)
+  assert.match(out, /读friend的这个音时/)
+})
+
+test("朗读：整词 friend 必须原样保留（它是参考词，读出来是对的）", () => {
+  const out = tipSpeechText("读friend的f时，上牙轻轻咬下嘴唇再送气哦", ["f"])
+  assert.match(out, /friend/)
+})
+
+test("朗读：多个音素各自所在句子的符号都替换", () => {
+  const out = tipSpeechText("读lily的l时舌尖顶上牙床，读lily的ih时嘴要放松", ["l", "ih"])
+  assert.ok(!/的l时/.test(out), `残留了 l：${out}`)
+  assert.ok(!/的ih时/.test(out), `残留了 ih：${out}`)
+  assert.match(out, /读lily的这个音时/)
+})
+
+test("朗读：/f/ 这种带定界符的整块替换", () => {
+  assert.match(tipSpeechText("发/f/的时候上牙咬下唇", ["f"]), /发这个音的时候/)
+  assert.match(tipSpeechText("发[th]的时候舌尖伸出来", ["th"]), /发这个音的时候/)
+})
+
+test("朗读：本地表文案（纯中文）跑一遍不变 —— 幂等", () => {
+  const codes = ["th", "dh", "r", "l", "v", "f", "w", "sh", "iy", "eh", "ay", "er"]
+  for (const c of codes) {
+    const tip = phoneTip(c)!.tip
+    assert.equal(tipSpeechText(tip, [c]), tip, `${c} 的本地文案被改动了：${tip}`)
+    assert.equal(tipNeedsSpeechFix(tip, [c]), false, `${c} 不该被判为需要修正`)
+  }
+})
+
+test("朗读：无音素码的纯中文原样返回", () => {
+  const s = "舌尖轻轻伸到上下牙齿中间，送气"
+  assert.equal(tipSpeechText(s, []), s)
+})
+
+test("朗读：空串安全", () => {
+  assert.equal(tipSpeechText("", ["f"]), "")
+})
+
+test("朗读：不会把「的」重复成「的这个音的音」", () => {
+  const out = tipSpeechText("读friend的f时要注意", ["f"])
+  assert.ok(!/这个音的这个音/.test(out), `出现重复：${out}`)
+})
+
+test("朗读：★ 不能改坏「别读成 s 或 z」这类句子（s/z 是错误读法，替换会失去意义）", () => {
+  // 本地表 th 的文案就是这种：把 s/z 换成「这个音」会让句子变成废话
+  const th = phoneTip("th")!.tip
+  assert.match(th, /别读成 s 或 z/)
+  assert.equal(tipSpeechText(th, ["th"]), th, "本地 th 文案被改坏了")
+  // 同理：r 的「别读成汉语的 r」——末尾那个 r 也不能动
+  const r = phoneTip("r")!.tip
+  assert.match(r, /别读成汉语的 r/)
+  assert.equal(tipSpeechText(r, ["r"]), r, "本地 r 文案被改坏了")
 })

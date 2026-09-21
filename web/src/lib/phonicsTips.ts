@@ -125,3 +125,73 @@ export function localTipText(phone: string, _style?: PronStyle): string | null {
 
 /** 本地表覆盖的音素个数（单测/自检用） */
 export const LOCAL_TIP_COUNT = Object.keys(TIPS).length
+
+// ══════════════════════════════════════════════════════════════════
+// 朗读文本（TTS）
+// ══════════════════════════════════════════════════════════════════
+
+/** 全部 Arpabet 音素码（大写）。用于识别提示文案里「孤立的音素符号」。 */
+const PHONE_CODES = new Set([
+  "AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW",
+  "B","CH","D","DH","F","G","HH","JH","K","L","M","N","NG","P","R","S","SH",
+  "T","TH","V","W","Y","Z","ZH",
+])
+
+/** 音素符号在文案里的替换词。孩子听「这个音」比听字母名有效。 */
+const PHONE_SPOKEN = "这个音"
+
+/**
+ * 把提示文案处理成**适合朗读**的文本。
+ *
+ * ## 为什么必须处理（实测，2026-09-21）
+ *
+ * 百度 TTS 遇到**孤立的字母**会读**字母名**，不是读音素：
+ * - `"f"` → 读成「艾弗」(ef)  ← ASR 回灌验证：`"f"` → `F。`
+ * - `"r"` → 读成「阿尔」
+ *
+ * 而 LLM 生成的文案长这样：`读friend的f时，上牙轻轻咬下嘴唇再送气哦`。
+ * 直接读会让孩子听到「读 friend 的 艾弗 时…」——**把他往错误的方向带**。
+ *
+ * ## 处理规则（★ 刻意保守，只改「确定是音素符号指代」的位置）
+ *
+ * **只替换「的 + 音素符号」这个 LLM 固定句式里的符号**，形状是
+ * `的 f 时` / `的 r 时` / `的 th 时` → `的这个音时`。
+ *
+ * ⚠️ **不能盲目替换所有音素码**——本地表里有 `送气，别读成 s 或 z` 这种句子，
+ * 那里的 `s`/`z` 是**要避免的错误读法**，替换成「这个音」会把句子改坏（踩过）。
+ * 所以只在「的」后面跟音素码、且后面紧跟中文时才动手，其余一律原样保留。
+ *
+ * 另外带定界符的 `/f/`、`[th]` 是明确的音素符号，一并替换。
+ *
+ * ## 幂等性
+ *
+ * 本地表 44 条全是纯中文（如「上牙轻咬下唇，只送气不发声」），跑一遍结果不变，
+ * 所以调用方不必分支处理。
+ *
+ * @param tip 提示文案（本地表或 LLM）
+ * @param phones 本次涉及的音素码，用于判定哪个片段是音素符号（可选；缺省用内置音素码表）
+ */
+export function tipSpeechText(tip: string, phones: string[] = []): string {
+  if (!tip) return ""
+  const known = new Set(phones.map((p) => p.trim().toUpperCase().replace(/[012]$/, "")))
+  const isPhoneLike = (s: string) => {
+    const up = s.toUpperCase()
+    return known.has(up) || PHONE_CODES.has(up)
+  }
+
+  let out = tip
+
+  // ① 带定界符的：/f/ 、[th] 、（f） → 这个音。定界符本身已表明这是音素符号，最安全。
+  out = out.replace(/[/[（(]\s*([A-Za-z]{1,3})\s*[/\]）)]/g, (m, g) => (isPhoneLike(g) ? PHONE_SPOKEN : m))
+
+  // ② LLM 固定句式：`的f时` / `的 r 时` / `的th要` → `的这个音时`。
+  //    只在「的」后紧跟音素码、且音素码后紧跟中文汉字时才替换。
+  out = out.replace(/的\s*([A-Za-z]{1,3})\s*(?=[\u4e00-\u9fff])/g, (m, g) => (isPhoneLike(g) ? `的${PHONE_SPOKEN}` : m))
+
+  return out
+}
+
+/** 该文案处理后是否与原样不同（单测/调试用） */
+export function tipNeedsSpeechFix(tip: string, phones: string[] = []): boolean {
+  return tipSpeechText(tip, phones) !== tip
+}
