@@ -45,12 +45,15 @@ function SoeButton({
   scene,
   engine = "16k_en",
   expandable = false,
+  tips = false,
 }: {
   refText: string
   scene: string
   engine?: string
   /** 句子模式下允许点单词展开音素明细（「每日英语」开启，让孩子看到哪个音没读准） */
   expandable?: boolean
+  /** 低分音素旁给发音要领（本地表打底 + LLM 补充） */
+  tips?: boolean
 }) {
   const soe = useSoeScore(
     useCallback(() => ({ refText, scene, engine }), [refText, scene, engine]),
@@ -84,7 +87,7 @@ function SoeButton({
           <span style={{ fontSize: 12, color: "#dc2626" }}>{soe.state.error}</span>
         )}
       </div>
-      {detail && <SoeDetail result={detail} expandable={expandable} />}
+      {detail && <SoeDetail result={detail} expandable={expandable} tips={tips} tipRefText={refText} />}
     </div>
   )
 }
@@ -136,7 +139,7 @@ function DailyEnWordCard({ word }: { word: string }) {
           🔊 发音
         </button>
       </div>
-      <SoeButton refText={word} scene="word" />
+      <SoeButton refText={word} scene="word" tips />
 
       {loading && <p className="module-hint" style={{ marginTop: 8, opacity: 0.7 }}>正在生成例句…</p>}
 
@@ -163,7 +166,7 @@ function EnSentenceLine({ en, zh }: { en: string; zh: string }) {
         </button>
       </div>
       {zh && <div className="daily-en-example-zh">{zh}</div>}
-      <SoeButton refText={en} scene="sentence" expandable />
+      <SoeButton refText={en} scene="sentence" expandable tips />
     </div>
   )
 }
@@ -213,7 +216,7 @@ function DailyEnSentenceCard({ sentence }: { sentence: string }) {
           🔊 发音
         </button>
       </div>
-      <SoeButton refText={sentence} scene="sentence" expandable />
+      <SoeButton refText={sentence} scene="sentence" expandable tips />
 
       {loading && <p className="module-hint" style={{ marginTop: 8, opacity: 0.7 }}>正在生成翻译/场景…</p>}
 

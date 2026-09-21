@@ -2713,6 +2713,46 @@ button.btn-danger:disabled {
   color: #6b7280;
 }
 
+/* ── 低分音素的发音要领（本地表打底 + LLM 补充） ── */
+/* 低分音素胶囊加一圈暖色描边，把它和「读对的音素」区分开 */
+.soe-phone-item.needy {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
+.soe-tip-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.soe-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 3px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.soe-tip-sym {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: #b45309;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.soe-tip-text {
+  color: #000;
+}
+
 /* ══════════ 横向滑动分页（字母/音素详情） ══════════ */
 
 .swipe-page {

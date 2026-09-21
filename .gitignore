@@ -317,6 +317,12 @@ web/_e2e_soe_detail_prod.cjs
 web/_soe_detail.png
 web/_soe_detail_prod.png
 
+# 低分音素「发音要领」e2e + 截图（本地冒烟，不入库；LLM 走 mock）
+web/_e2e_soe_tips.cjs
+web/_soe_tips.png
+web/_soe_tips_llm.png
+web/_soe_tips_*.png
+
 # ─── CloudBase 迁移临时产物（?? 含真实密钥与生产数据，绝不入库）───
 /_cloudbase_stage/
 /_d1_export.sql
