@@ -4,6 +4,7 @@
  * 3) 句子内容 /daily-en/sentence-info：LLM 翻译 + 常用中文场景（缓存 kind=sentence）
  * 4) 图片查找 /daily-en/image：english_image_index 精确匹配，无则 image:null（前端不显示）
  * 5) 图片文件 /daily-en/file/:filename：R2 english_images 直读
+ * 6) 发音要领 /daily-en/phone-tips：给低分音素补一句贴合该词的「怎么改」提示（缓存 daily_en_content kind=tip）
  *
  * LLM 调用统一走 getArk().chat(..., { model_override: doubao-seed-2-1-turbo-260628, disable_thinking: true })
  * （纯文本、短 JSON 任务快且可靠，避开 deepseek 思维链吞 token 导致空内容；与 ai_chinese.fillPolyphones 一致）。
@@ -16,7 +17,14 @@ import { resolveCurrentUser, requireAuth } from "../middleware/auth.js"
 import { getArk, multimodalModel } from "../lib/ark.js"
 import { dataPath } from "../lib/jsonfile.js"
 import { exists, readBlob } from "../lib/storage.js"
-
+import { parseOut, PhoneTipsResponseSchema } from "../contracts/index.js"
+import {
+  tipCacheKey,
+  normalizeTipRequest,
+  cleanTipResponse,
+  extractJson,
+  type TipItem,
+} from "../lib/phoneTips.js"
 const router = new Hono()
 
 const EN_IMAGE_DIR = dataPath("english_images")
@@ -78,19 +86,7 @@ router.put("/", requireAuth(), async (c) => {
   return c.json({ status: "ok", date, config: values })
 })
 
-// ── LLM JSON 解析工具 ──
-
-function extractJson(raw: string): string {
-  let s = raw.trim()
-  // 去 ```json ... ``` 围栏
-  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i)
-  if (fence) s = fence[1].trim()
-  // 取首个 { 到末尾最后一个 }
-  const a = s.indexOf("{")
-  const b = s.lastIndexOf("}")
-  if (a >= 0 && b > a) s = s.slice(a, b + 1)
-  return s
-}
+// ── LLM JSON 解析工具（实现在 lib/phoneTips.ts，可单测） ──
 
 // ── 2) 单词内容（LLM 造 2 句 + 中文释义） ──
 
@@ -268,5 +264,111 @@ function imgResponse(data: ArrayBuffer | Blob, filename: string): Response {
     headers: { "Content-Type": mime, "Cache-Control": "public, max-age=604800, immutable" },
   })
 }
+
+// ── 6) 发音要领（低分音素的阅读技巧；本地表打底，这里只做 LLM 补充） ──
+// 纯逻辑（缓存键归一化 / 入参清洗 / 出参三道闸门）在 lib/phoneTips.ts，可单测。
+
+/**
+ * POST /api/v1/daily-en/phone-tips
+ * body: { word: string, items: [{ phone: string, score: number }] }
+ *
+ * 前端已经把本地表的要领显示出来了，这里只负责**针对具体单词**补一句更贴合的提示
+ * （例：词是 the 而音素是 th → 提醒「这个 th 要读浊音 /ð/，不是 d」）。
+ * LLM 失败 / 超预算 / 解析不出 → 返回 `tips: []` + `source: "empty"`，
+ * 前端保持本地表文案不变即可，**不报错**。
+ */
+router.post("/phone-tips", async (c) => {
+  const empty = { tips: [] as TipItem[], source: "empty" as const }
+  const body = await c.req.json().catch(() => null)
+  if (!body || typeof body !== "object") {
+    return c.json(parseOut(PhoneTipsResponseSchema, empty, "phone-tips"))
+  }
+
+  const { word, items } = normalizeTipRequest(
+    (body as { word?: unknown }).word,
+    (body as { items?: unknown }).items,
+  )
+  if (!word || items.length === 0) {
+    return c.json(parseOut(PhoneTipsResponseSchema, empty, "phone-tips"))
+  }
+
+  // ① 缓存命中（逐条查；全命中则不调 LLM）
+  const cached = new Map<string, TipItem>()
+  for (const it of items) {
+    const row = await getDb().select().from(dailyEnContent)
+      .where(and(eq(dailyEnContent.kind, "tip"), eq(dailyEnContent.text, tipCacheKey(it.phone, word)))).get()
+    if (!row?.content) continue
+    try {
+      const p = JSON.parse(row.content) as { tip?: unknown; category?: unknown }
+      if (p?.tip) {
+        cached.set(it.phone, { phone: it.phone, tip: String(p.tip), category: String(p.category ?? "other") })
+      }
+    } catch { /* 坏缓存当未命中 */ }
+  }
+  if (cached.size === items.length) {
+    return c.json(parseOut(
+      PhoneTipsResponseSchema,
+      { tips: items.map((it) => cached.get(it.phone)!), source: "cache" },
+      "phone-tips",
+    ))
+  }
+
+  // ② LLM 补未命中的音素
+  const missing = items.filter((it) => !cached.has(it.phone))
+  const system = [
+    "你是面向小学生的儿童英语发音老师。",
+    "给定一个英文单词，以及孩子读这个词时读得不好的音素（附得分，满分 100）。",
+    "为每个音素写一句**中文**提示，告诉孩子这时候嘴巴/舌头该怎么动。",
+    "要求：",
+    "1) 一句话，不超过 30 个汉字，说清一个动作，不用音标术语（别说「齿龈」「不送气」）；",
+    "2) 结合这个单词的实际读音来讲（比如 the 的 th 要浊音，不是 d）；",
+    "3) 语气鼓励，不评价、不批评。",
+    "输出严格 JSON（不要解释、不要代码围栏）：",
+    '{ "tips": [ { "phone": "音素码原样", "tip": "中文提示" }, ... ] }',
+  ].join("\n")
+  const user = JSON.stringify({
+    word,
+    phones: missing.map((it) => ({ phone: it.phone, score: Math.round(it.score) })),
+  })
+
+  let fresh: TipItem[] = []
+  try {
+    const raw = await getArk().chat({
+      prompt: user,
+      system_prompt: system,
+      max_tokens: 700,
+      model_override: multimodalModel(),
+      disable_thinking: true,
+      timeout_ms: 30_000,
+    })
+    if (raw) {
+      fresh = cleanTipResponse(JSON.parse(extractJson(raw)), missing.map((it) => it.phone))
+    }
+  } catch (e) {
+    console.warn(`[daily-en] phone-tips LLM 失败(${word}): ${(e as Error).message}`)
+  }
+
+  // ③ 有结果才落缓存（空结果不缓存，留着重试机会）
+  for (const f of fresh) {
+    const key = tipCacheKey(f.phone, word)
+    const content = JSON.stringify({ tip: f.tip, category: f.category })
+    await getDb().insert(dailyEnContent).values({
+      kind: "tip", text: key, content, createdAt: new Date().toISOString(),
+    }).onConflictDoUpdate({
+      target: [dailyEnContent.kind, dailyEnContent.text],
+      set: { content, createdAt: new Date().toISOString() },
+    }).run()
+  }
+
+  const all: TipItem[] = [
+    ...items.filter((it) => cached.has(it.phone)).map((it) => cached.get(it.phone)!),
+    ...fresh,
+  ]
+  return c.json(parseOut(
+    PhoneTipsResponseSchema,
+    { tips: all, source: fresh.length ? "llm" : (all.length ? "cache" : "empty") },
+    "phone-tips",
+  ))
+})
 
 export default router

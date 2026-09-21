@@ -85,6 +85,17 @@ export const CurrentUserSchema = z.object({
   learning_level: z.string(),
 })
 
+// ── 发音要领（低分音素的阅读技巧） ──
+export const PhoneTipSchema = z.object({
+  phone: z.string(),
+  tip: z.string(),
+  category: z.string(),
+})
+export const PhoneTipsResponseSchema = z.object({
+  tips: z.array(PhoneTipSchema),
+  source: z.enum(["llm", "cache", "empty"]),
+})
+
 // 推导类型（前端直接 import type）
 export type CharPracticeRecord = z.infer<typeof CharPracticeRecordSchema>
 export type PracticeRecordsResponse = z.infer<typeof PracticeRecordsResponseSchema>
@@ -96,6 +107,8 @@ export type CoursewareItem = z.infer<typeof CoursewareItemSchema>
 export type CoursewareListResponse = z.infer<typeof CoursewareListResponseSchema>
 export type LlmBudgetResponse = z.infer<typeof LlmBudgetResponseSchema>
 export type CurrentUser = z.infer<typeof CurrentUserSchema>
+export type PhoneTip = z.infer<typeof PhoneTipSchema>
+export type PhoneTipsResponse = z.infer<typeof PhoneTipsResponseSchema>
 
 /** 出参安全校验：不匹配时放行原样 + 告警（渐进收紧，不做砖头） */
 export function parseOut<T>(schema: z.ZodType<T>, value: unknown, tag: string): T {
