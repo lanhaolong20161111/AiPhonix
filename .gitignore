@@ -333,10 +333,17 @@ web/_asr_roundtrip.sh
 web/_asr_roundtrip.cjs
 web/_tip_tts/
 
-# 「三年级上综合算式动画」视觉验证（本地截图/探针，不入库）
+# 「三年级上综合算式动画」视觉验证 / 生产冒烟（本地脚本与产物，不入库）
 web/_ce_shot.mjs
 web/_ce_probe.mjs
+web/_ce_smoke_prod.mjs
+web/_ce_smoke_needed.mjs
 web/_ce_shots/
+web/_ce_prod/
+web/_ce_tok.json
+web/_ce_tok.env
+web/_outdir.txt
+web/_build_ce.log
 
 # ─── CloudBase 迁移临时产物（?? 含真实密钥与生产数据，绝不入库）───
 /_cloudbase_stage/
