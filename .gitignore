@@ -323,6 +323,16 @@ web/_soe_tips.png
 web/_soe_tips_llm.png
 web/_soe_tips_*.png
 
+# 发音要领「喇叭朗读」e2e + TTS 读法探针（本地冒烟，不入库）
+# _probe_tip_tts.cjs 打生产合成候选读法 -> web/_tip_tts/*.mp3
+# _asr_roundtrip.sh 把合成音频回灌 ASR，客观验证百度 TTS 实际读法
+web/_e2e_soe_tip_speak.cjs
+web/_soe_tip_speak.png
+web/_probe_tip_tts.cjs
+web/_asr_roundtrip.sh
+web/_asr_roundtrip.cjs
+web/_tip_tts/
+
 # ─── CloudBase 迁移临时产物（?? 含真实密钥与生产数据，绝不入库）───
 /_cloudbase_stage/
 /_d1_export.sql
