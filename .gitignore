@@ -398,9 +398,6 @@ server_ts/_seed/
 /cloudbase/_retry_verify.png
 # 空卷仿真临时根（_volume_sim.sh 自建自清，留个兜底）
 /cloudbase/_sim_tmp/
-# local _pr_* frame-capture / verify artifacts (same family as _ce_*)
-web/_pr_check.mjs
-web/_pr_edge.mjs
-web/_pr_w320.mjs
-web/_pr_frames/
-web/_pr_dev.log
+# local _pr_* verification artifacts (same family as _ce_*)
+web/_pr_*
+server_cf/_deploy_pr.log
