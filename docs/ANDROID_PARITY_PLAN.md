@@ -58,7 +58,7 @@
 | 8 | `/module/char_map`（汉字地图） | ✅ CharMapScreen | char-images 全量 + feedback | 中 |
 | 9 | `/module/diary`（成长日记） | ✅ DiaryScreen | 本地存储 + `/llm/chat` | 中 |
 | 10 | `/module/radical_game`（偏旁魔法屋） | ✅ RadicalGameScreen | 静态字族 + `/radical/song|riddles` | 中 |
-| 11 | `/module/speech_compose`（AI 对话学语文） | ❌ SpeechComposeScreen | chat + TTS + 文章分句 | 中 |
+| 11 | `/module/speech_compose`（AI 对话学语文） | ✅ SpeechComposeScreen | chat + TTS + 文章分句 | 中 |
 | 12 | `/module/ai_english_talk`（AI 英语对话） | ❌ AiEnglishTalkScreen | chat（english） | 中 |
 | 13 | `/module/courseware_manager`（课件库） | ✅ CoursewareScreen | 课件上传/管理接口 | 中 |
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
@@ -70,11 +70,12 @@
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C 前半（4 模块）已全部完成（提交 `438d749`）；
-> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **256 用例 / 0 失败**（19 个测试类）。
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + 1 模块）已全部完成（提交 `438d749` / 见下方批次 C 章节）；
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **284 用例 / 0 失败**（22 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
-> 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）。
-> 剩余：**批次 C 后半 4 个模块**（AI 对话学语文、AI 英语对话、综合算式动画、字幕采集）+ 2 项待核对。
+> 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
+> **AI 对话学语文（C 后半第 1 个）**。
+> 剩余：**批次 C 后半 3 个模块**（AI 英语对话、综合算式动画、字幕采集）+ 2 项待核对。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -125,11 +126,33 @@
 - **造句练习的 `wrongChars` 照抄了 web 的古怪行为**：用学生原句的 `wrongs` 去 `includes` 检查 **AI 点评文本**里的每个字（web 如此，Android 保持一致；已在注释里标注）。
 - **`LocalDate.now()` vs 服务端东八区**：web 用 `cstDate()`，Android 用设备本地日期 —— 在 UTC+8 设备（目标用户）上一致，已在注释写明。
 
-### 批次 C 后半（后续会话，两个"一整轮"级的单独立项）
-18. AI 对话学语文（SpeechCompose）
-19. AI 英语对话（AiEnglishTalk）
-20. 综合算式动画（MathCompoundExpr，Compose 重写飞入/转移动画）
-21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）
+### 批次 C 后半（本次会话）
+18. **AI 对话学语文** ✅（详见下方小节）
+19. AI 英语对话（AiEnglishTalk）—— 待做
+20. 综合算式动画（MathCompoundExpr，Compose 重写飞入/转移动画）—— 待做
+21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）—— 待做
+
+#### 18. AI 对话学语文 ✅（`/module/speech_compose`）
+一个页面装三套练习，由「开始学」时的填写内容分流（顺序与 web 一致：文章 → 古诗 → 词语/句子）。
+
+| 模式 | 触发 | 流程 |
+|---|---|---|
+| **词语/句子教学** | 只填主题/词/句 | `POST /llm/zh-teach-setup` 生成逐题剧本 → 一问一答；**6 秒未作答自动逐级给提示（意思 → 例句 → 句型骨架，最多 3 级）** → 文本作答 → `POST /llm/zh-teach-judge`；错则朗读参考回答并可跟读测评 |
+| **古诗** | 填了「要练的古诗」 | 本地 `PoemSplit` **立即**切句 → 开场朗读整篇 + 概括 → 逐句「原文 → 白话」→ 逐句跟读测评；`POST /llm/zh-poem-setup` 后台补逐句白话/逐字释义 |
+| **文章背诵** | 填了「要练的文章」 | 本地 `ArticleSplit.splitSentences` **立即**切句 → 逐句领读 + 跟读测评；`POST /llm/article-recite` 后台补每句背诵缩写 |
+
+- 数据层：`data/zhteach/`（`ZhTeachRepository` / `ZhPoemRepository` / `ZhReciteRepository` + 共用的 `ZhTeachHttp`）。
+- 跟读测评：复用 `AudioRecorder` + `ScoreClient.evaluate(engine = "16k_zh")`，**过关线 70**（对齐 web `EchoLadder` 的 `PASS = 70`，**不是**句子练习页的 80）。
+- 新增公用能力（都在 `app/`）：
+  - `data/zhteach/PoemSplit`：古诗切句（按 `，。！？；：` 断、标点归前句）。
+  - `data/tts/TtsAnnotate.annotateTts`：**多音字注音**（移植 web `lib/ttsPinyin.ts`）—— 产出 `字(xie2)` 形式的 tex 交给 `/tts/synthesize`。实测确认语法，`字(无声调)`/`字(zhòng)`/`{字^拼音}` **都无效**（拼音会被当字面念出来）。古诗朗读因此能读对「石径斜」的 `xie2`。
+  - `BaiduTtsCache.playRemoteAndWait`：**可等待**的远程播放（原 `playRemote` 无完成回调，无法串行「先读字再读义」）。
+
+#### 批次 C 后半 · AI 对话学语文的已知差异（有意为之，非遗漏）
+- **中文音色取值不同**：web 用 `speaker="6221"`、古诗 `"3"`；Android 沿用本项目中文模块的既有约定 `"0"`（老师）/ `"3"`（度逍遥）。
+- **不做「预取下一句音频」**：web 有 `warm()` 只下载不播放；Android 的 TTS 缓存没有该入口，故只在点击时合成（影响首次点击等待感，不影响正确性）。
+- **`polyphoneOnly: true` 分支未实现**：web 的精细模式依赖 `data/polyphoneChars` 多音字表，Android 暂无该表（古诗走的是 `polyphoneOnly: false` 分支，不受影响）。
+- **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
 
 ## 4. 实现约定（每新增模块）
 

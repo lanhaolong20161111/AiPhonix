@@ -59,6 +59,7 @@ fun HomeScreen(
     onOpenRadicalGame: () -> Unit = {},
     onOpenDailyChinese: () -> Unit = {},
     onOpenDailyEnglish: () -> Unit = {},
+    onOpenSpeechCompose: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -283,6 +284,17 @@ fun HomeScreen(
             containerColor = Color(0xFFE3F2FD),
             arrowColor = Color(0xFF1565C0),
             onClick = onOpenDailyEnglish,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // AI 对话学语文（一问一答教学 / 古诗跟读 / 文章背诵，都是 AI 领读 + 跟读测评）
+        ToolCard(
+            emoji = "🤖",
+            title = "AI 对话学语文",
+            subtitle = "一问一答学语文，古诗与文章跟读背诵",
+            containerColor = Color(0xFFF3E5F5),
+            arrowColor = Color(0xFF6A1B9A),
+            onClick = onOpenSpeechCompose,
         )
         Spacer(Modifier.height(20.dp))
 

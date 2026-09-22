@@ -50,6 +50,15 @@ class AppContainer(context: Context) {
         TtsEngine(appContext, pronunciationStyleStore)
     }
 
+    /**
+     * 中文 TTS 缓存（百度）。
+     * 由容器持有并注入给需要的 ViewModel —— ViewModel 不该持有 Context（`AGENTS.md`）。
+     * 内部有全局播放锁（跨 ViewModel 互斥），多个中文朗读模块共用同一实例是安全的。
+     */
+    val ttsCache: com.example.ai.data.tts.BaiduTtsCache by lazy {
+        com.example.ai.data.tts.BaiduTtsCache(appContext)
+    }
+
     // ── 测验 ──
     val quizRepository: QuizRepository by lazy {
         val videoDir = "${appContext.getExternalFilesDir(null)?.absolutePath ?: appContext.filesDir.absolutePath}/videos"

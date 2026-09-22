@@ -10,8 +10,8 @@
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
-- 本轮（批次C前半）为**同一任务继续**：课件库 / 每日语文 / 每日英语 / 造句练习 4 个模块 + 批次B 遗留的「生词本点读自动收录」接线。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、批次C后半第 1 个模块（见下方，哈希待补）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
+- 本轮（批次C后半第 1 个）为**同一任务继续**：**AI 对话学语文**（`/module/speech_compose`，含词语教学 / 古诗 / 文章背诵三套练习）。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -44,6 +44,24 @@
 - **`WordScore.phoneInfos`** + **`PhonemeScore.rawAccuracy`/`matchTag`**（都有默认值 ⇒ 既有调用方零影响）。★ 腾讯 SOE **句子模式也返回 `phone_infos`** ⇒ 句子卡支持点单词展开音素。★ `PhonemeScore.score` 被 `coerceIn(0,100)` 夹过，漏读的 -1 会变 0 ⇒ **分不清「0 分」与「未读」**，故必须保留 `rawAccuracy`。
 - 首页「学习工具」区新增「每日语文 / 每日英语」两张卡。
 
+### 已完成（批次C后半 第 1 个模块｜2026-09-22 续做）
+**AI 对话学语文**（`/module/speech_compose`）—— 一个页面三套练习，由「开始学」时填的内容分流（顺序与 web 一致：**文章 → 古诗 → 词语/句子**）。
+
+| 模式 | 数据/接口 | 流程 |
+|---|---|---|
+| 词语/句子教学 | `POST /llm/zh-teach-setup`（服务端带同参缓存 + 自检重试，失败 **422+detail**）、`POST /llm/zh-teach-judge` | 生成逐题剧本 → 一问一答 → **6 秒未作答自动逐级提示**（意思 → 例句 → 句型骨架，最多 3 级）→ 文本作答判定；**答错先朗读参考回答**，用户点按钮才进跟读测评（对齐 web 两步交互） |
+| 古诗 | `POST /llm/zh-poem-setup`（缓存键含 `v2`）、`/llm/zh-poem-summary`、GET `/llm/zh-poem-search`（**纯数据**，服务器内置诗库） | `PoemSplit` **本地立即切句** → 开场朗读整篇（带全诗拼音锁多音字）+ 概括（**最多等 3s**）→ 逐句「原文 → 白话」→ 逐句测评；讲解/白话后台补上后**原地合并**（按去标点文本匹配，句数一致时按下标兜底） |
+| 文章背诵 | `POST /llm/article-recite` | `ArticleSplit.splitSentences` **本地立即切句** → 逐句领读 + 测评；每句背诵缩写后台生成后用 `mergeShorts` 合并 |
+
+- 数据层 `data/zhteach/`：`ZhTeachRepository` / `ZhPoemRepository` / `ZhReciteRepository` + 共用的 `ZhTeachHttp`（`guard` **必须先重抛 `CancellationException`**，否则页面退出后请求不会被真正取消）。
+- 跟读测评 = web `EchoLadder` 的 Android 等价物（**单级整句**）：复用既有 `AudioRecorder` + `ScoreClient.evaluate(engine = "16k_zh")`，**过关线 70**（★ 对齐 web `EchoLadder.PASS = 70`，**不是** `SentenceReadingViewModel` 的 80）。
+- 新增公用能力（都在 `app/`）：
+  - **`data/zhteach/PoemSplit`** —— 古诗切句（按 `，。！？；：` 断、标点**归前句**、换行丢弃）。
+  - **`data/tts/TtsAnnotate.annotateTts`** —— **多音字注音**，移植 web `lib/ttsPinyin.ts`：产出 `字(xie2)` 形式 tex 交给 `/tts/synthesize`。★ 语法为实测确认：`字(拼音数字调)` **生效**；`字(无声调)`、`字(zhòng)`（声调符号）、`{字^拼音}` **全部无效**（拼音会被当字面念出来）。古诗因此能读对「石径斜」的 `xie2`。
+  - **`BaiduTtsCache.playRemoteAndWait`** —— **可等待**的远程播放。原 `playRemote` 是即发即忘、**无完成回调** ⇒ 无法串行「先读字再读义」（旧做法只能 `delay` 硬猜）。
+  - `AppContainer.ttsCache`（`BaiduTtsCache` 需 `Context` 构造，而 **VM 不该持有 Context** ⇒ 由容器持有并注入；VM 侧参数为 `BaiduTtsCache? = null`，为 null 时**静默降级为不朗读**，单测可用）。
+- 首页「学习工具」区新增「🤖 AI 对话学语文」卡。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -54,10 +72,19 @@
 0c. **写探测/冒烟脚本落 `.mjs` 文件再跑**：bash 内联 `node -e "...中文..."` 会被 shell 吃引号（报 `SyntaxError: missing ) after argument list`，输出里还会出现 `./ _` 这类诡异内容，看着像命令被执行）。落文件 + 命令行传参才可靠。
 0d. **bash 里的 `/tmp` 是 `C:\tmp`**（MSYS 挂载语义），Node **读不到**；临时文件写 `C:/Users/lhl20/AppData/Local/Temp/`。
 0e. **★ JS 的 `\s` ≠ Kotlin 的 `\s`**：JS 含 `\u00A0 \u1680 \u2000-\u200A \u2028 \u2029 \u202F \u205F \u3000 \uFEFF`，Kotlin 默认只认 `[ \t\n\x0B\f\r]`。中文输入法极易打**全角空格 U+3000**、粘贴文本常带 **NBSP / BOM** ⇒ 照抄 `\s` 会**少切一刀**（实测 web `splitText("日\u3000月")` → `["日","月"]`）。且 **Kotlin `trim()` 不认 U+FEFF**（JS 的 `trim()` 认），要 `trim { it.isWhitespace() || it == '\uFEFF' }`。见 `data/dailyzh/DailyTextSplit.kt`。
-0f. **★ 别在 KDoc 注释里写正则**：我写了 `/\n+|(?<=[。；;])\s*/`，其中的 **`*/` 提前结束注释块**，后面全被当顶层声明 ⇒ **30+ 个 `Syntax error: Expecting a top level declaration`**。注释里用中文描述正则。
+0f. **★ 别在 KDoc 注释里写正则或路径通配符**：Kotlin 的块注释**可以嵌套** ⇒ **`/*` 和 `*/` 都会出事**：
+   - 注释里写 `/\n+|(?<=[。；;])\s*/`：其中的 `*/` **提前结束**注释块，后面全被当顶层声明 ⇒ **30+ 个 `Syntax error: Expecting a top level declaration`**。
+   - 注释里写 `` `/llm/*` 系列端点 ``：其中的 **`/*` 开启嵌套注释**，把外层 `*/` 吃掉 ⇒ 错误报在**文件末尾**（`Syntax error: Unclosed comment.`），而且**同包其它文件全部**跟着报 `Unresolved reference`（一个"找不到的 object"看起来像包名写错，极具误导性）。
+   规避：注释里用中文描述正则；路径写 `/llm/` 前缀而**不要**写 `/llm/*`。
 0g. **往已有 composable 加回调参数，别忘了私有子 composable**：课件库入口加在家长设置的「内容管理」段，而那段实际在**私有 `PlanEditor`** 里 ⇒ 只改公开签名会 `Unresolved reference`，必须**同时给 `PlanEditor` 加同名参数并透传**。
 13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
 14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
+15. **★ 项目里有三套中文切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。
+16. **★ 「异步播表扬语 + 立刻进下一步」会被忙碌锁挡掉**：`onEchoPassed()` 里 `enterPoemVerse(i+1)` 的第一步是领读，而领读会判 `ttsBusy` —— 若表扬语是用「异步即发」的方式播的，`ttsBusy` 还是 true ⇒ **下一步静默不朗读**。必须把「播完表扬 → 再进下一步」写成**同一个协程块串行**（web 的 `EchoLadder` 天然如此：播完才回调 `onFinished`）。
+17. **★ `BaiduTtsCache` 是 `class`（需 `Context` 构造），不是 `object`**：`play` / `playRemote` / `playRemoteAndWait` 都是**实例方法**（写成 `BaiduTtsCache.play(...)` 会报 `Unresolved reference 'play'`）；只有 `stopAll()` / `splitForTts()` / `SPEAKER_US` / `SPEAKER_UK` 在 `companion object` 里是静态。VM 里要用就**从 `AppContainer.ttsCache` 注入**（见第 20 条）。
+18. **`PronunciationResult.feedback` 是 `String?`**（`totalScore` 才是 `Int`）⇒ 塞进非空字段要 `.orEmpty()`。
+19. **`/llm/zh-teach-setup` 的失败是 422 + `{detail}`**（服务端 `generateWithGuard` 4 次自检不过），而 `zh-teach-judge` 失败是 500 —— **都要把 `detail` 原样显示给用户**（`ZhTeachHttp` 已统一提取）。
+20. **VM 不该持有 `Context`**（`AGENTS.md`）⇒ 需要 `Context` 的 TTS 由 `AppContainer.ttsCache` 持有、构造注入；VM 侧参数做成 `BaiduTtsCache? = null`，为 null 时**静默降级为不朗读**（其余功能不受影响，单测也不必造 Context）。
 1. **`TtsEngine` 只适合英语**（系统 TTS 用 Locale.US/UK，回退百度 speaker 106/5118）。中文朗读一律用 `BaiduTtsCache.play(text, "0")`。
 2. **`/soe/records` 查询无鉴权**，必须显式传 `user_id`，否则返回**全站**记录。
 3. **`AiHistoryStore` 只存 `AiHistoryTurn`**（data 层），UI 层的 `AiEnglishTurn` 需先转换（`AiHistoryTurn(role, content)`），别直接塞。
@@ -71,8 +98,9 @@
 11. **共享 OkHttp `NetworkModule.httpClient` 的 readTimeout 已是 180s**，LLM 的 40s/90s 调用**直接用共享 client**，不必再 `createHttpClient` 派生。
 12. `scripts/` 在 `.gitignore` 里（「# Temp scripts → scripts/」）⇒ **新写的生成脚本不会被提交**（已跟踪的老脚本仍在库里）。生成物 `.kt` 必须提交，且文档要写清生成脚本路径。
 
-### 剩余（批次C后半 4 模块 + 2 待核对）
-- AI 对话学语文（`/module/speech_compose`）、AI 英语对话（`/module/ai_english_talk`）、**综合算式动画**（`/module/math_compound_expr`，Compose 重写飞入/转移动画，预计一整轮）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
+### 剩余（批次C后半 3 模块 + 2 待核对）
+- AI 英语对话（`/module/ai_english_talk`，web 993 行）、**综合算式动画**（`/module/math_compound_expr`，Compose 重写飞入/转移动画，预计一整轮）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
+  ⚠️ 已确认：剩余模块**都不轻量** —— `SpeechComposePage` 1037 行、`AiEnglishTalkPage` 993 行、`MathCompoundExprPage` 889 行（本轮已消化第一个）。
 - 2 项待核对：家长报告完整度、注册页是否已含在登录页。
 - ⚠️ **字幕采集是「每日语文 / 每日英语设置面板的拍照 OCR 自动填入」的前置依赖** —— 那两个面板的 📷/🖼️ 按钮在 Android 右侧目前是缺的（有意留白，见 `DailyChineseScreen` / `DailyEnglishScreen` 的 KDoc）。
 - ⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。

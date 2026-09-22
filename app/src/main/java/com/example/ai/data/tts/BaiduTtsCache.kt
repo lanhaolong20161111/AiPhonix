@@ -132,6 +132,57 @@ class BaiduTtsCache(
         }
     }
 
+    /**
+     * 播放远程音频并**等待播放结束**（区别于 [playRemote] 的即发即忘）。
+     *
+     * 用途：需要串行的动作，例如古诗的「先读这个字（带拼音锁读）→ 再读这个字的意思」——
+     * 若用 [playRemote] 只能靠固定时长硬猜，字还没读完就叠上释义音。
+     *
+     * 与 [playFile] 同构：注册进全局播放器（[stopAll] 可立即停止），
+     * 正常播完/出错/协程取消三种情况都会释放 MediaPlayer。
+     *
+     * @return true = 正常播完；false = 出错或未开始
+     */
+    suspend fun playRemoteAndWait(url: String, headers: Map<String, String> = emptyMap()): Boolean =
+        suspendCancellableCoroutine { cont ->
+            var done = false
+            // 只允许一次回调：completion/error/异常竞态时不重复 resume
+            fun finish(result: Boolean) {
+                if (done) return
+                done = true
+                if (cont.isActive) cont.resume(result)
+            }
+            val mp = MediaPlayer()
+            activePlayer = mp
+            fun releaseIfCurrent() {
+                if (activePlayer === mp) activePlayer = null
+                runCatching { mp.release() }
+            }
+            cont.invokeOnCancellation {
+                runCatching { if (mp.isPlaying) mp.stop() }
+                releaseIfCurrent()
+            }
+            mp.setOnPreparedListener { it.start() }
+            mp.setOnCompletionListener {
+                releaseIfCurrent()
+                finish(true)
+            }
+            mp.setOnErrorListener { _, what, extra ->
+                Log.w(TAG, "playRemoteAndWait 错误: what=$what extra=$extra")
+                releaseIfCurrent()
+                finish(false)
+                true
+            }
+            try {
+                mp.setDataSource(context, android.net.Uri.parse(url), headers)
+                mp.prepareAsync()
+            } catch (e: Exception) {
+                Log.e(TAG, "playRemoteAndWait 异常: ${e.message}")
+                releaseIfCurrent()
+                finish(false)
+            }
+        }
+
     // ---------- 内部实现 ----------
 
     private suspend fun getOrDownload(text: String, speaker: String): File? {
