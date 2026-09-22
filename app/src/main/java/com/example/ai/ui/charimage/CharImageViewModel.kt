@@ -443,9 +443,13 @@ class CharImageViewModel(
         }
     }
 
-    /** 从服务端拉取英词条目的 ipa/phonemes（char_image_index.json 已含生成结果） */
+    /**
+     * 从服务端拉取英词条目的 ipa/phonemes（char_image_index.json 已含生成结果）。
+     * ⚠️ 查询参数名是 **`type`**，不是 `type_` —— 服务端 `char_images.ts` 只读 `c.req.query("type")`。
+     *    传 `type_` 会被静默忽略（实测：`type=认` → 816 条，`type_=认` → 3028 条全量）。
+     */
     private fun fetchServerPronInfo(): Map<String, WordPronInfo>? = try {
-        val url = "$serverBase/api/v1/char-images?type_=${java.net.URLEncoder.encode("英词", "UTF-8")}&limit=1000"
+        val url = "$serverBase/api/v1/char-images?type=${java.net.URLEncoder.encode("英词", "UTF-8")}&limit=1000"
         val text = client.newCall(
             okhttp3.Request.Builder().url(url).build()
         ).execute().use { resp ->
@@ -490,7 +494,8 @@ class CharImageViewModel(
                     val urlBuilder = StringBuilder("$serverBase/api/v1/char-images?limit=1000")
                     if (filterGrade.isNotEmpty()) urlBuilder.append("&grade=$filterGrade")
                     if (filterSemester.isNotEmpty()) urlBuilder.append("&semester=$filterSemester")
-                    if (filterType.isNotEmpty()) urlBuilder.append("&type_=$filterType")
+                    // ⚠️ 必须是 `type=`（服务端只认这个名）；写成 `type_=` 会被忽略 → 识字/写字/词语表全都显示同一份混合内容
+                    if (filterType.isNotEmpty()) urlBuilder.append("&type=$filterType")
 
                     val url = urlBuilder.toString()
                     Log.d(TAG, "Fetching URL: $url")

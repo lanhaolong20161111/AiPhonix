@@ -104,4 +104,11 @@ import kotlinx.serialization.Serializable
 // 碎碎念（自由表达 → AI 语法纠错 → 正确句子朗读+测评）
 @Serializable data object Murmur : NavKey                                // 碎碎念主页
 
+// ── 批次 B：识字与记录类模块（对齐 web） ──
+@Serializable data object Wordbook : NavKey                             // 生词本（SRS 间隔重复复习 + 词表）
+@Serializable data object MemoryJoy : NavKey                            // 记忆快乐本（当日字词编成文段，按日期分组）
+@Serializable data object CharMap : NavKey                              // 汉字地图（全部字卡铺图，评价过的点亮）
+@Serializable data object Diary : NavKey                                // 成长日记（本地记录 + AI 润色点评）
+@Serializable data object RadicalGame : NavKey                          // 偏旁魔法屋（换偏旁识字：选字/选偏旁/字谜/儿歌）
+
 // 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

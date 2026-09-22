@@ -52,6 +52,11 @@ fun HomeScreen(
     onOpenPinyin: () -> Unit = {},
     onOpenPinyinTable: () -> Unit = {},
     onOpenMurmur: () -> Unit = {},
+    onOpenWordbook: () -> Unit = {},
+    onOpenMemoryJoy: () -> Unit = {},
+    onOpenCharMap: () -> Unit = {},
+    onOpenDiary: () -> Unit = {},
+    onOpenRadicalGame: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -116,7 +121,15 @@ fun HomeScreen(
         }
         Spacer(Modifier.height(20.dp))
 
-        // ── 固定模块入口：拼音练习 ──
+        // ── 固定模块入口（学习工具区） ──
+        Text(
+            "🧰 学习工具",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        )
+
+        // 拼音练习
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -192,6 +205,61 @@ fun HomeScreen(
                 Text("进入 →", fontSize = 14.sp, color = Color(0xFFC2185B), fontWeight = FontWeight.Bold)
             }
         }
+        Spacer(Modifier.height(12.dp))
+
+        // 生词本
+        ToolCard(
+            emoji = "📓",
+            title = "生词本",
+            subtitle = "到期的词每天复习一遍，认对的间隔更长",
+            containerColor = Color(0xFFFFF3E0),
+            arrowColor = Color(0xFFE65100),
+            onClick = onOpenWordbook,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 记忆快乐本
+        ToolCard(
+            emoji = "🌟",
+            title = "记忆快乐本",
+            subtitle = "今日字词编成小故事，按日期收藏",
+            containerColor = Color(0xFFFFF8E1),
+            arrowColor = Color(0xFFF57F17),
+            onClick = onOpenMemoryJoy,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 汉字地图
+        ToolCard(
+            emoji = "🗺️",
+            title = "汉字地图",
+            subtitle = "全部字词铺成地图，学会的点亮",
+            containerColor = Color(0xFFE0F2F1),
+            arrowColor = Color(0xFF00695C),
+            onClick = onOpenCharMap,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 成长日记
+        ToolCard(
+            emoji = "📖",
+            title = "成长日记",
+            subtitle = "每天一句话，AI 老师帮你润色点评",
+            containerColor = Color(0xFFEDE7F6),
+            arrowColor = Color(0xFF4527A0),
+            onClick = onOpenDiary,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 偏旁魔法屋
+        ToolCard(
+            emoji = "🔮",
+            title = "偏旁魔法屋",
+            subtitle = "换偏旁识字：声旁猜读音，形旁猜意思",
+            containerColor = Color(0xFFF3E5F5),
+            arrowColor = Color(0xFF6A1B9A),
+            onClick = onOpenRadicalGame,
+        )
         Spacer(Modifier.height(20.dp))
 
         // ── 主区域：今日任务 ──
@@ -259,6 +327,39 @@ private fun FeatureId.toNavKey(): NavKey? = when (this) {
     FeatureId.AI_PRACTICE -> AiPractice
     FeatureId.IMPORT_CENTER -> ImportCenter
     FeatureId.MY_IMPORTS -> MyImports
+}
+
+/** 固定工具入口卡片（首页「学习工具」区）：图标 + 标题 + 副标题 + 进入箭头 */
+@Composable
+private fun ToolCard(
+    emoji: String,
+    title: String,
+    subtitle: String,
+    containerColor: Color,
+    arrowColor: Color,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(emoji, fontSize = 28.sp)
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    subtitle,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text("进入 →", fontSize = 14.sp, color = arrowColor, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
 /** 空态：家长还没配置任务 */

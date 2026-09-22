@@ -53,11 +53,11 @@
 | 3 | `/module/ai_history`（AI 历史会话） | ❌ AiHistoryScreen | localStorage 历史（web `aiHistory.ts`） | 中 |
 | 4 | `/module/soe_history`（评测历史） | ❌ SoeHistoryScreen | `POST /soe/records` | 中 |
 | 5 | `/module/pinyin-index` + `/module/pinyin/:id`（拼音表） | ❌ PinyinIndexScreen / PinyinDetailScreen | 静态数据 `web/src/data/pinyinTable.ts` 移植 assets + `/pinyin-audio` | 低 |
-| 6 | `/module/wordbook`（生词本） | ❌ WordbookScreen | 词库/生词本接口 | 中 |
-| 7 | `/module/memory_joy`（记忆快乐本） | ❌ MemoryJoyScreen | `/joy/generate` + `/joy?date=` | 中 |
-| 8 | `/module/char_map`（汉字地图） | ❌ CharMapScreen | char-images 数据 | 中 |
-| 9 | `/module/diary`（成长日记） | ❌ DiaryScreen | 日记接口 | 中 |
-| 10 | `/module/radical_game`（偏旁魔法屋） | ❌ RadicalGameScreen | 静态数据 `radicalFamilies.ts` | 中 |
+| 6 | `/module/wordbook`（生词本） | ✅ WordbookScreen | 词库/生词本接口 | 中 |
+| 7 | `/module/memory_joy`（记忆快乐本） | ✅ MemoryJoyScreen | `/joy/list` + `/joy/:id` | 中 |
+| 8 | `/module/char_map`（汉字地图） | ✅ CharMapScreen | char-images 全量 + feedback | 中 |
+| 9 | `/module/diary`（成长日记） | ✅ DiaryScreen | 本地存储 + `/llm/chat` | 中 |
+| 10 | `/module/radical_game`（偏旁魔法屋） | ✅ RadicalGameScreen | 静态字族 + `/radical/song|riddles` | 中 |
 | 11 | `/module/speech_compose`（AI 对话学语文） | ❌ SpeechComposeScreen | chat + TTS + 文章分句 | 中 |
 | 12 | `/module/ai_english_talk`（AI 英语对话） | ❌ AiEnglishTalkScreen | chat（english） | 中 |
 | 13 | `/module/courseware_manager`（课件库） | ❌ CoursewareManagerScreen | 课件上传/管理接口 | 中 |
@@ -69,9 +69,10 @@
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A 已全部完成 5/5，全量 `assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
-> 已完成：拼音表、AI 历史（存储+列表+详情）、AI 英语（识别+对话）、语文/数学识别自动存历史、评测历史。
-> 剩余：批次 B/C 共 12 个模块 + 2 项待核对。
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）已全部完成；`assembleDebug` BUILD SUCCESSFUL；
+> `testDebugUnitTest` **235 用例 / 0 失败**（16 个测试类）。
+> 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）。
+> 剩余：批次 C 共 7 个模块 + 2 项待核对。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -82,12 +83,25 @@
 
 > ⚠️ 评测历史的「点击定位到该字」在 Android 暂未实现（web 跳 char_image/pronounce 带 focus 参数）——当前点击条目为展开明细。
 
-### 批次 B（后续会话）
-6. 生词本（Wordbook）
-7. 记忆快乐本（MemoryJoy）
-8. 汉字地图（CharMap）
-9. 成长日记（Diary）
-10. 偏旁魔法屋（RadicalGame）
+### 批次 B（本次会话）✅ 全部完成
+6. **生词本** ✅：`data/wordbook/WordbookRepository`（`/wordbook/list` · `/wordbook/review` · `/wordbook/rate` · `DELETE /wordbook/{id}`，另备 `add`/`addMany`）+ `ui/wordbook/`（复习/词表双 Tab、大字卡点读、认识/不认识打卡、词表朗读+删除）。朗读：英文走 `TtsEngine`、中文走 `BaiduTtsCache.play(text,"0")`。
+   ⚠️ **Android 端「点读自动收录」尚未接线**（`add`/`addMany` 已就绪但无调用方）⇒ 词库目前只能靠 web 端收集。这是本模块唯一未闭环处。
+7. **记忆快乐本** ✅：`data/joy/JoyRepository`（`/joy/list` + `DELETE /joy/{id}`，均需 JWT）+ `highlightJoyText` 的 Kotlin 移植；`ui/memoryjoy/`（按日期分组、文段逐字点读、当日字词 chip 点读、整段朗读、删除）。逐字发音走**服务端单字音频库** `/tts/char/{字}`（与 web 一致不传 pinyin）。
+8. **汉字地图** ✅：`data/charmap/CharMapRepository`（全量字卡 + 本人 feedback 状态）+ `ui/charmap/`（`LazyVerticalGrid` 按年级铺图、进度条、格子按状态着色 —— 与 web `.charmap-cell.*` **同色**）。点格子进入该字字卡列表。
+9. **成长日记** ✅：`data/diary/DiaryStore`（本地 `filesDir/diary_entries.json`，日期倒序、每天一条、临时文件 rename 原子写）+ `DiaryRepository`（`/llm/chat` mode=chinese，提示词与 web 逐字一致）+ `ui/diary/`（今日输入、润色+点评、时间线、删除确认）。
+10. **偏旁魔法屋** ✅：`data/radical/RadicalFamilies.kt` **由脚本 `scripts/gen_radical_families.mjs` 从 web `radicalFamilies.ts` 自动生成**（34 字族 / 134 字 / 45 偏旁，零转录误差）；`RadicalRepository`（`/radical/song` + `/radical/riddles`）+ `ui/radical/`（select/song/quiz/done 四阶段、三种题型、小豆反应池）。
+
+#### 批次 B 顺手修掉的真实 bug
+- 🔴 **char-images 的类型过滤一直是失效的**：服务端 `char_images.ts` 读的是 **`type`**，而 web `services/charImages.ts` 与 Android `CharImageViewModel` 都在传 **`type_`** ⇒ 参数被静默忽略。生产实测：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）。后果是「识字表 / 写字表 / 词语表」三个列表显示的是同一份混合内容。
+  - Android 侧已修（`CharImageViewModel` 两处 `type_=` → `type=`）。
+  - ⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", ...)` 要改成 `qs.set("type", ...)`），需单独一次 web 构建+部署。
+- 📌 **web `CharMapPage` 的 `TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产数据实际是 **认/写/词/英词/英句**（3028 条实测分布：认 816 / 写 748 / 词 729 / 英词 533 / 英句 202）⇒ web 上「认」「写」两个类型会原样显示、`字/句` 两个映射是死条目。Android 已按真实词表建标签，并**直接复用同一词表**（`type` 值可原样透传给 `CharImageList.type_`）。
+
+#### 已知与 web 的差异（有意为之，非遗漏）
+- **汉字地图的状态取「最新」**：服务端 feedback 唯一键是 `(user, char, grade, semester, type)`，一个字跨年级/类型会存多行。web 是「倒序遍历后写覆盖」= 取**最旧**那条（笔误）；Android 按意图取**最新**。
+- **汉字地图点击不定位到该字**：web 跳转带 `focus=字`，Android `CharImageList` 无 focus 参数（与批次 A 评测历史同一限制）。
+- **生词本朗读不锁多音字读音**：web `speak(text,{pinyin})` 会锁读音；Android 走 `BaiduTtsCache`。偏旁魔法屋的单字读音**已锁**（走 `/tts/char/{字}?pinyin=xxx`）。
+- **AI 字谜加载态**：web 在谜面到达前页面是空白，Android 显示「AI 老师正在出字谜…」。
 
 ### 批次 C（后续会话）
 11. AI 对话学语文（SpeechCompose）

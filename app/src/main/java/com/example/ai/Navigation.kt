@@ -101,6 +101,11 @@ import com.example.ai.ui.aienglish.AiEnglishViewModel
 import com.example.ai.ui.aihistory.AiHistoryScreen
 import com.example.ai.ui.aihistory.AiHistoryDetailScreen
 import com.example.ai.ui.soehistory.SoeHistoryScreen
+import com.example.ai.ui.wordbook.WordbookScreen
+import com.example.ai.ui.memoryjoy.MemoryJoyScreen
+import com.example.ai.ui.charmap.CharMapScreen
+import com.example.ai.ui.diary.DiaryScreen
+import com.example.ai.ui.radical.RadicalGameScreen
 import android.widget.Toast
 
 @Composable
@@ -162,6 +167,11 @@ fun MainNavigation(container: AppContainer) {
             onOpenPinyin = { backStack.add(PinyinExercise) },
             onOpenPinyinTable = { backStack.add(PinyinIndex) },
             onOpenMurmur = { backStack.add(Murmur) },
+            onOpenWordbook = { backStack.add(Wordbook) },
+            onOpenMemoryJoy = { backStack.add(MemoryJoy) },
+            onOpenCharMap = { backStack.add(CharMap) },
+            onOpenDiary = { backStack.add(Diary) },
+            onOpenRadicalGame = { backStack.add(RadicalGame) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -184,6 +194,45 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<SoeHistory> {
           SoeHistoryScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+
+        // ── 批次 B：识字与记录类模块 ──
+        entry<Wordbook> {
+          WordbookScreen(
+            onBack = { backStack.removeLastOrNull() },
+            container = container,
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<MemoryJoy> {
+          MemoryJoyScreen(
+            onBack = { backStack.removeLastOrNull() },
+            onOpenDaily = { backStack.add(DailyPractice) },
+            onOpenRecognition = { backStack.add(Recognition) },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<CharMap> {
+          CharMapScreen(
+            onBack = { backStack.removeLastOrNull() },
+            // char-images 的 type 取值（认/写/词/英词/英句）与 CharImageList.type_ 同词表，直接透传
+            onOpenCell = { grade, semester, type, _ ->
+              backStack.add(CharImageList(grade = grade, semester = semester, type_ = type))
+            },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<Diary> {
+          DiaryScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<RadicalGame> {
+          RadicalGameScreen(
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )

@@ -5,12 +5,13 @@
 
 ---
 
-## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A 完成）
+## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + 批次B 完成）
 
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）。两次均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
+- 本轮（批次B）为**同一任务继续**：从「生词本」起补 5 个模块，遵循同一套「Repository + ViewModel + Screen」骨架。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -20,16 +21,42 @@
 | **AI 历史** | `data/aihistory/AiHistoryStore`：本地 JSON（`filesDir/ai_history.json`），**chinese/math/english 三桶**，每桶上限 50，新条目头插，缩略图 base64（`makeThumb`，≤240px JPEG60），临时文件 rename 原子写。列表页 + 详情页（只读回看，点行朗读）。AI 语文/数学识别成功后自动存快照；AI 英语会话自动存对话摘要（首条 add、后续 update）。三个页面都有「🗂 历史」入口。**对齐 web 的 `ai_phonix_web_ai_history`（3 桶×50）**。 |
 | **评测历史** | `data/soerecord/SoeRecordRepository`（查询/单删/批删）；`ui/soehistory/`（全选+批量删除、展开明细）。⚠️ 查询接口 **不校验 token**，靠 body 里的 `user_id` 过滤，必须带 `TokenManager.userId`；limit 服务端上限 200。明细保留了 `units` 的**词→音素嵌套**（`ScoreClient.parseJsonResponse` 会把音素打平，历史明细需要分组，故本仓库自己解析）。入口：我的账户 → 语音评测记录 → 查看全部明细。 |
 
+### 已完成（批次B 5/5｜2026-09-22 续做）
+| 模块 | 关键实现 |
+|---|---|
+| **生词本** | `data/wordbook/WordbookRepository`（`/wordbook` 列表 + `/wordbook/review` 队列 + `rate/remove/add`，失败返回 **null** 以区分「空列表」）+ `ui/wordbook/`（复习/列表两个 Tab）。`isEnglish` 用 `^[A-Za-z][A-Za-z'\u2019-]*$` 对齐 web `phonics.ts`；英文走 `TtsEngine`、中文走 `BaiduTtsCache.play(text,"0")`。`rate()` **本地先出队再静默重拉**，避免等网络；`refreshSilently()` 不动 `loading`（防列表闪一下）。 |
+| **记忆快乐本** | `data/joy/JoyRepository`（`/joy` 列表 + `entries` 数组、字段是**驼峰** `createdAt`）+ `ui/memoryjoy/`。`highlightJoyText()` **逐行移植** web `services/joy.ts`：targets 顺序 `words` 在前 `chars` 在后，比较用 **strict `<`** ⇒ 同位置**词胜出**。逐字点读走 `charAudioUrl(ch)` + `ttsAuthHeaders()` + `playRemote`；`playRemote` 无完成回调 ⇒ `delay(1800)` 兜底清高亮。私有 `JoyEssay` 用 `FlowRow`（标点不可点，`\n` → 满宽 Spacer 强制换行）。 |
+| **汉字地图** | `data/charmap/CharMapRepository`（`/char-images/list?limit=100000` + `feedback?user_id=`）+ `ui/charmap/`。`LazyVerticalGrid(Adaptive(44.dp))`，表头 `item(span = { GridItemSpan(maxLineSpan) })`，格子 key **`"${g.key}#$idx#${cell.char}"`**（防跨年级同字冲突）。配色与 web `.charmap-cell.*` 同色（Lit `DCFCE7/15803D`、Unsure `FEF3C7/B45309`、Wrong `FEE2E2/B91C1C`、None `F8FAFC/CBD5E1`）。 |
+| **成长日记** | `data/diary/DiaryStore`（本地 `filesDir/diary_entries.json`，临时文件 rename 原子写）+ `DiaryRepository`（`/llm/chat` `mode=chinese`，提示词与 web **逐字一致**）+ `ui/diary/`。单 `LazyColumn` 承载「今日输入卡 + 时间线」**避免嵌套滚动冲突**；`AlertDialog` 替代 web 的 `confirm()`。`DiaryStore` 需 Context ⇒ 由 `AppContainer` 注入 VM，**别在 VM 内 new**。 |
+| **偏旁魔法屋** | `data/radical/RadicalFamilies.kt` **由脚本 `scripts/gen_radical_families.mjs` 从 web `radicalFamilies.ts` 生成**（34 字族 / 134 字 / 45 偏旁；交叉校验：Kotlin `RadicalItem(` 计数 135 = TS `{ char: ` 计数 134 + 声明 1）；`RadicalRepository`（`/radical/song` + `/radical/riddles`，网络失败返回 **null**）+ `ui/radical/`（SELECT/SONG/QUIZ/DONE 四阶段、题型 A×5 选字填空 + 题型 B×3 选偏旁、小豆反应池三组）。**修掉 web 一个边界**：`questions` 为空时 web 的 `next()` 会直接跳 DONE，Android 改为 `getOrNull` + 提示重试。 |
+
+### 批次B 顺手修掉的真实 bug（生产影响，重要）
+- **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
+- **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
+
 ### 关键坑（避免重走）
+0. **★ 写工具函数前先 `grep -rn "fun xxx"`**：本项目同一逻辑常有 2–3 份实现。本轮我新写的 `util/PinyinText.kt`（`normalizePinyin` + `TONE_CHAR_MAP`）其实 `data/chinesepractice/PinyinPart.kt` **早已有同名同逻辑**，`data/userimport/ImportProcessor.kt` 还有第三份；最终删掉我的重复份、改 `import ...chinesepractice.normalizePinyin` 复用。**构建警告会暴露这类死代码**（`Warning: 'normalizePinyin' is never used`）—— 别只顾着消警告，先想「是不是已有实现」。
+0b. **★ 单测期望值必须取自「另一个真实实现」**：Android 的 `toBaiduSyllable` / `highlightJoyText` 的单测期望值，是用 `npx tsx` 跑 **web 真实实现**（`web/src/lib/ttsPinyin.ts`、`web/src/services/joy.ts`）逐项打印出来的，**不要自己推导**（否则等于自己实现自己验）。详见 `app/src/test/.../data/tts/BaiduSyllableTest.kt`、`data/joy/JoyHighlightTest.kt`（各 7 用例，全绿）。
+0c. **写探测/冒烟脚本落 `.mjs` 文件再跑**：bash 内联 `node -e "...中文..."` 会被 shell 吃引号（报 `SyntaxError: missing ) after argument list`，输出里还会出现 `./ _` 这类诡异内容，看着像命令被执行）。落文件 + 命令行传参才可靠。
+0d. **bash 里的 `/tmp` 是 `C:\tmp`**（MSYS 挂载语义），Node **读不到**；临时文件写 `C:/Users/lhl20/AppData/Local/Temp/`。
 1. **`TtsEngine` 只适合英语**（系统 TTS 用 Locale.US/UK，回退百度 speaker 106/5118）。中文朗读一律用 `BaiduTtsCache.play(text, "0")`。
 2. **`/soe/records` 查询无鉴权**，必须显式传 `user_id`，否则返回**全站**记录。
 3. **`AiHistoryStore` 只存 `AiHistoryTurn`**（data 层），UI 层的 `AiEnglishTurn` 需先转换（`AiHistoryTurn(role, content)`），别直接塞。
 4. 拼音表数据**不要手改** `PinyinTableData.kt`；改数据请改 web 的 `pinyinTable.ts` 后重新生成。
-5. 生成脚本用 Node 时注意：TS 有类型标注（`export const X: PinyinItem[] = [`），按 `=` 后再找 `[` 做括号匹配，别匹配到 `PinyinItem[]` 的空括号。
+5. 生成脚本用 Node 时注意：TS 有类型标注（`export const X: PinyinItem[] = [`），按 `=` 后再找 `[` 做括号匹配，别匹配到 `PinyinItem[]` 的空括号（**偏旁字族脚本同样踩这个坑**）。
+6. **`char-images` 的 query 参数名是 `type`（不是 `type_`）**，传 `type_` 会被服务端**静默忽略**并返回全量（详见「批次B 顺手修掉的真实 bug」）。**web 侧还带着这个 bug**。
+7. **`/char-images/feedback` 的唯一键含 (grade, semester, type)**：同一个字跨年级/类型存**多行**，服务端按 `timestamp` **倒序**返回 ⇒ **首次见到即为最新**。Android 按意图取最新；web 是「倒序遍历后写覆盖」= 取**最旧**（笔误）。这是**有意保留的差异**，别去「对齐」web。
+8. **单字音频 `/tts/char/:char?synthesize=1&pinyin=hao3`** 需鉴权（`requireAuth()`），且 `pinyin` 必须是**数字调**格式（服务端 `SYLLABLE_RE = /^[a-z]{1,6}[1-5]$/`）。百度 TTS 对「字（无声调）」会把拼音字母当字面内容念出来 ⇒ 拿不到声调时 `toBaiduSyllable` **返回 `""` 宁可不注音**，绝不返回 `"zhong"` 这种半成品（偏旁字族里 3/117 个轻声字如 `ma`/`ba`/`men` 就属此类）。
+9. **`BaiduTtsCache.stopAll()` 兼作「停止」与「释放 activePlayer」**：`playRemote` 前调一次即可实现「新读音打断旧读音」；但它**没有完成回调**，需要清 UI 高亮时得自己 `delay(≈1800)` 兜底。
+10. **Compose `items(count, key)` 的 key 必须全局唯一**：汉字地图有多年级重复字 ⇒ 用 `"${g.key}#$idx#${cell.char}"`。
+11. **共享 OkHttp `NetworkModule.httpClient` 的 readTimeout 已是 180s**，LLM 的 40s/90s 调用**直接用共享 client**，不必再 `createHttpClient` 派生。
+12. `scripts/` 在 `.gitignore` 里（「# Temp scripts → scripts/」）⇒ **新写的生成脚本不会被提交**（已跟踪的老脚本仍在库里）。生成物 `.kt` 必须提交，且文档要写清生成脚本路径。
 
-### 剩余（批次B/C，共 12 模块 + 2 待核对）
-生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；AI 对话学语文、AI 英语对话、课件库、每日语文、每日英语、综合算式动画、字幕采集（C）；家长报告核对、注册页核对。
-其中**综合算式动画**（Compose 重写动画）与**字幕采集**（视频帧框选+OCR）难度最高。
+### 剩余（批次C，共 7 模块 + 2 待核对）
+AI 对话学语文、AI 英语对话、课件库、每日语文、每日英语、综合算式动画、字幕采集（C）；家长报告完整度核对、注册页是否已含在登录页核对。
+其中**综合算式动画**（Compose 重写飞入/转移动画，预计一整轮）与**字幕采集**（视频帧框选 + 区域 OCR，预计一整轮）难度最高。
+另有遗留：Android 端生词本「点读自动收录」尚未接线（`WordbookRepository.add/addMany` 已实现但无调用方）。
+⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。
 
 ---
 
