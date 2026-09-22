@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.data.aichinese.AiChineseRepository
 import com.example.ai.data.audio.AudioRecorder
+import com.example.ai.data.audio.PhonicsColorStore
 import com.example.ai.data.auth.TokenManager
 import com.example.ai.data.dailyen.DailyEnConfig
 import com.example.ai.data.dailyen.DailyEnRepository
@@ -21,6 +22,7 @@ import com.example.ai.data.ocr.OcrPickState
 import com.example.ai.data.ocr.OcrPlatform
 import com.example.ai.data.speech.ScoreClient
 import com.example.ai.data.tts.TtsEngine
+import com.example.ai.data.phonics.tipSpeechText
 import com.example.ai.di.NetworkModule
 import com.example.ai.ui.ocr.OcrPickSession
 import com.example.ai.util.SoeDisplay
@@ -77,6 +79,8 @@ data class DailyEnglishUiState(
     val sentenceCards: Map<String, SentenceCardState> = emptyMap(),
     /** 正在朗读的文本（英文走 TtsEngine，全局唯一，朗读期间按钮置灰） */
     val speakingText: String? = null,
+    /** 正在朗读的发音要领文案（低分音素提示旁的 🔈；用于切换图标与禁用） */
+    val speakingTip: String? = null,
     /** 正在录音的文本（null = 没在录音） */
     val soeRecordingText: String? = null,
     /** 正在评分的文本（null = 没在评分） */
@@ -117,10 +121,12 @@ data class DailyEnglishUiState(
  * `useEffect` 一一对应；LLM 失败只是没内容，卡片仍可朗读与评测（web 的 `catch { 容错 }`）。
  *
  * ⚠️ 与 web 的有意差异：
- * - web 用 `PhonicsWord`/`PhonicsText` 给单词上色（音形对应）；Android 尚无 phonics 规则库，
- *   单词按纯文本渲染。
- * - web 的「发音要领」（本地 `lib/phonicsTips.ts` + LLM `/daily-en/phone-tips` 补充）未移植：
- *   本地要领表在 Android 不存在，只调 LLM 补不出「本地表打底」的效果。评测明细照常显示。
+ * - 拼读着色（音形对应）已移植：`data/phonics/PhonicsSegmenter.kt` + `PhonicsExceptions.kt`
+ *   是 web `lib/phonics.ts` 的逐位移植；页面用 `ui/common/PhonicsText.kt` 渲染，`PhonicsColorStore`
+ *   为全局开关（对齐 web `phonicsPref`，默认开）。
+ * - 「发音要领」本地表已移植：`data/phonics/PhonemeTips.kt`（44 条，对齐 web `lib/phonicsTips.ts`）。
+ *   Android 暂不含 LLM `/daily-en/phone-tips` 补充（只本地表打底，与 web 的「本地优先、LLM 补充」一致），
+ *   评测明细里对 low/bad 类音素展示本地要领 + 🔈 朗读（文案经 `tipSpeechText` 清洗）。
  *
  * 拍照 OCR 见 [ocr] / [startOcr] / [confirmOcr]（对齐 web `pickFor` / `onOcrFile` / `confirmOcr`）：
  * - ★ 与「每日语文」不同，这里是**单图**（web `e.target.files?.[0]`），没有多图队列；
@@ -135,6 +141,7 @@ class DailyEnglishViewModel(
     private val store: DailyEnStore,
     private val repository: DailyEnRepository = DailyEnRepository(),
     private val ttsEngine: TtsEngine? = null,
+    private val phonicsColorStore: PhonicsColorStore,
     private val audioRecorder: AudioRecorder = AudioRecorder(),
     private val scoreClient: ScoreClient = ScoreClient(NetworkModule.httpClient),
     ocrRepository: AiChineseRepository? = null,
@@ -144,6 +151,12 @@ class DailyEnglishViewModel(
 
     private val _uiState = MutableStateFlow(DailyEnglishUiState())
     val uiState: StateFlow<DailyEnglishUiState> = _uiState.asStateFlow()
+
+    /** 拼读着色全局开关（对齐 web `phonicsPref`；默认开） */
+    val phonicsColor: StateFlow<Boolean> = phonicsColorStore.enabled
+
+    /** 切换拼读着色开关 */
+    fun togglePhonicsColor() = phonicsColorStore.toggle()
 
     private var evalJob: Job? = null
 
@@ -311,6 +324,22 @@ class DailyEnglishViewModel(
                 engine.speak(text)
             } finally {
                 _uiState.value = _uiState.value.copy(speakingText = null)
+            }
+        }
+    }
+
+    // ── 发音要领朗读（低分音素提示旁的 🔈；文案先经 tipSpeechText 清洗，避免 TTS 把孤立字母读成字母名） ──
+
+    /** 朗读一条发音要领（只朗读、不改 UI 文案）。[phone] 用于把音素符号清洗成「这个音」。 */
+    fun speakPhonemeTip(tip: String, phone: String) {
+        if (tip.isBlank()) return
+        val engine = ttsEngine ?: return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(speakingTip = tip)
+            try {
+                engine.speak(tipSpeechText(tip, listOf(phone)))
+            } finally {
+                _uiState.value = _uiState.value.copy(speakingTip = null)
             }
         }
     }

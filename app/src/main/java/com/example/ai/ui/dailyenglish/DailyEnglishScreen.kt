@@ -60,6 +60,10 @@ import com.example.ai.ui.ocr.OcrIconChip as IconChip
 import com.example.ai.ui.ocr.OcrOkBg as OkBg
 import com.example.ai.ui.ocr.OcrOkGreen as OkGreen
 import com.example.ai.ui.ocr.OcrPickSheet
+import com.example.ai.data.phonics.localTipText
+import com.example.ai.ui.common.PhonicsText
+import com.example.ai.ui.common.PhonicsTipSymColor
+import com.example.ai.ui.common.PhonicsToggle
 import com.example.ai.util.SoeDisplay
 import java.io.File
 
@@ -80,8 +84,9 @@ private val ImageBg = Color(0xFFF1F5F9)
  * 单词卡（图 / 发音 / 评测 / 中文释义 / LLM 造 2 例句各带发音评测与翻译）
  * + 句子卡（图 / 发音 / 评测 / 中文翻译 / 常用中文场景）。
  *
- * ⚠️ 见 [DailyEnglishViewModel] 的 KDoc：phonics 着色、发音要领（phone-tips）两项**未移植**；
- * 设置面板的**拍照/相册 OCR 自动填入已移植**（单图，对齐 web 的 `pickFile`）。
+ * ⚠️ 拼读着色 + 发音要领已移植（见 [DailyEnglishViewModel] KDoc）：单词/例句/句子用
+ * `PhonicsText` 上色，顶栏 `PhonicsToggle` 控制全局开关；评测明细对 low/bad 类音素展示
+ * 本地要领 + 🔈 朗读。设置面板的**拍照/相册 OCR 自动填入已移植**（单图，对齐 web 的 `pickFile`）。
  *
  * 评测结果按**被测文本**存在 `soeOutcomes` 里（单词卡查 `words[i]`，例句行查例句英文），
  * 与 web 每张卡/每行各自持有 `useSoeScore` 一份 state 的效果等价。
@@ -94,6 +99,7 @@ fun DailyEnglishScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val phonicsOn by viewModel.phonicsColor.collectAsStateWithLifecycle()
 
     // OCR 平台（相机临时文件 / 读 URI 字节）。页面内自建一份：只包了个 applicationContext，无状态。
     val ocrPlatform = remember(context) { OcrPlatform(context.applicationContext) }
@@ -160,6 +166,8 @@ fun DailyEnglishScreen(
             )
             Text("🏆 每日英语", style = MaterialTheme.typography.titleLarge, color = Black)
             Spacer(Modifier.weight(1f))
+            PhonicsToggle(phonicsOn, viewModel::togglePhonicsColor)
+            Spacer(Modifier.width(8.dp))
             Text(
                 "⚙️",
                 fontSize = 22.sp,
@@ -205,11 +213,14 @@ fun DailyEnglishScreen(
                 WordCard(
                     word = word,
                     cardState = state.wordCards[word],
+                    phonicsOn = phonicsOn,
                     speakingText = state.speakingText,
                     recordingText = state.soeRecordingText,
                     evaluatingText = state.soeEvaluatingText,
                     outcomes = state.soeOutcomes,
                     errors = state.soeErrors,
+                    viewModel = viewModel,
+                    speakingTip = state.speakingTip,
                     onSpeak = viewModel::speak,
                     onStartSoe = viewModel::startSoe,
                     onStopSoe = viewModel::stopSoe,
@@ -219,11 +230,14 @@ fun DailyEnglishScreen(
                 SentenceCard(
                     sentence = sentence,
                     cardState = state.sentenceCards[sentence],
+                    phonicsOn = phonicsOn,
                     speakingText = state.speakingText,
                     recordingText = state.soeRecordingText,
                     evaluatingText = state.soeEvaluatingText,
                     outcome = state.soeOutcomes[sentence],
                     error = state.soeErrors[sentence],
+                    viewModel = viewModel,
+                    speakingTip = state.speakingTip,
                     onSpeak = viewModel::speak,
                     onStartSoe = { viewModel.startSoe(it, sentenceMode = true) },
                     onStopSoe = viewModel::stopSoe,
@@ -239,11 +253,14 @@ fun DailyEnglishScreen(
 private fun WordCard(
     word: String,
     cardState: WordCardState?,
+    phonicsOn: Boolean,
     speakingText: String?,
     recordingText: String?,
     evaluatingText: String?,
     outcomes: Map<String, SoeOutcome>,
     errors: Map<String, String>,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
     onSpeak: (String) -> Unit,
     onStartSoe: (String, Boolean) -> Unit,
     onStopSoe: () -> Unit,
@@ -258,7 +275,13 @@ private fun WordCard(
                 CardImage(url = cardState?.imageUrl, size = 76.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(word, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Black)
+                    PhonicsText(
+                        word,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Black,
+                        enabled = phonicsOn,
+                    )
                     val translation = cardState?.translation.orEmpty()
                     if (translation.isNotBlank()) {
                         Text(translation, fontSize = 14.sp, color = Black)
@@ -280,6 +303,8 @@ private fun WordCard(
                 outcome = outcomes[word],
                 error = errors[word],
                 sentenceMode = false,
+                viewModel = viewModel,
+                speakingTip = speakingTip,
                 onStartSoe = onStartSoe,
                 onStopSoe = onStopSoe,
             )
@@ -292,12 +317,15 @@ private fun WordCard(
             for (example in cardState?.examples.orEmpty()) {
                 ExampleLine(
                     example = example,
+                    phonicsOn = phonicsOn,
                     speakingText = speakingText,
                     recordingText = recordingText,
                     evaluatingText = evaluatingText,
                     // 例句是独立的被测文本 → 用它自己的 key 取结果（不是单词的）
                     outcome = outcomes[example.en],
                     error = errors[example.en],
+                    viewModel = viewModel,
+                    speakingTip = speakingTip,
                     onSpeak = onSpeak,
                     onStartSoe = onStartSoe,
                     onStopSoe = onStopSoe,
@@ -311,18 +339,27 @@ private fun WordCard(
 @Composable
 private fun ExampleLine(
     example: EnSentencePair,
+    phonicsOn: Boolean,
     speakingText: String?,
     recordingText: String?,
     evaluatingText: String?,
     outcome: SoeOutcome?,
     error: String?,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
     onSpeak: (String) -> Unit,
     onStartSoe: (String, Boolean) -> Unit,
     onStopSoe: () -> Unit,
 ) {
     Spacer(Modifier.height(10.dp))
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(example.en, fontSize = 15.sp, color = Black, modifier = Modifier.weight(1f))
+        PhonicsText(
+            example.en,
+            fontSize = 15.sp,
+            color = Black,
+            enabled = phonicsOn,
+            modifier = Modifier.weight(1f),
+        )
         Spacer(Modifier.width(8.dp))
         SmallSpeakButton(text = example.en, speakingText = speakingText, onSpeak = onSpeak)
     }
@@ -336,6 +373,8 @@ private fun ExampleLine(
         outcome = outcome,
         error = error,
         sentenceMode = true,
+        viewModel = viewModel,
+        speakingTip = speakingTip,
         onStartSoe = onStartSoe,
         onStopSoe = onStopSoe,
     )
@@ -347,11 +386,14 @@ private fun ExampleLine(
 private fun SentenceCard(
     sentence: String,
     cardState: SentenceCardState?,
+    phonicsOn: Boolean,
     speakingText: String?,
     recordingText: String?,
     evaluatingText: String?,
     outcome: SoeOutcome?,
     error: String?,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
     onSpeak: (String) -> Unit,
     onStartSoe: (String) -> Unit,
     onStopSoe: () -> Unit,
@@ -365,11 +407,12 @@ private fun SentenceCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CardImage(url = cardState?.imageUrl, size = 76.dp)
                 Spacer(Modifier.width(12.dp))
-                Text(
+                PhonicsText(
                     sentence,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = Black,
+                    enabled = phonicsOn,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -383,6 +426,8 @@ private fun SentenceCard(
                 outcome = outcome,
                 error = error,
                 sentenceMode = true,
+                viewModel = viewModel,
+                speakingTip = speakingTip,
                 onStartSoe = { t, _ -> onStartSoe(t) },
                 onStopSoe = onStopSoe,
             )
@@ -464,6 +509,8 @@ private fun SoePanel(
     outcome: SoeOutcome?,
     error: String?,
     sentenceMode: Boolean,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
     onStartSoe: (String, Boolean) -> Unit,
     onStopSoe: () -> Unit,
 ) {
@@ -506,7 +553,12 @@ private fun SoePanel(
     }
 
     if (outcome != null) {
-        SoeDetailView(outcome = outcome, sentenceMode = sentenceMode)
+        SoeDetailView(
+            outcome = outcome,
+            sentenceMode = sentenceMode,
+            viewModel = viewModel,
+            speakingTip = speakingTip,
+        )
     }
 }
 
@@ -518,7 +570,12 @@ private fun SoePanel(
  * 与 web 一致：拿不到明细就什么都不渲染（不糊一个空框）。
  */
 @Composable
-private fun SoeDetailView(outcome: SoeOutcome, sentenceMode: Boolean) {
+private fun SoeDetailView(
+    outcome: SoeOutcome,
+    sentenceMode: Boolean,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
+) {
     val words = outcome.wordScores
     if (words.isEmpty()) return
 
@@ -534,7 +591,7 @@ private fun SoeDetailView(outcome: SoeOutcome, sentenceMode: Boolean) {
             return
         }
         DetailTitle("音素得分")
-        PhoneChips(phones)
+        PhoneChips(phones, viewModel = viewModel, speakingTip = speakingTip)
         Text(
             "词：${w.word} · 单词分 ${SoeDisplay.formatScore(w.pronAccuracy, w.matchTag)}",
             fontSize = 12.sp,
@@ -571,7 +628,7 @@ private fun SoeDetailView(outcome: SoeOutcome, sentenceMode: Boolean) {
                 Text(if (open) "  ▴" else "  ▾", fontSize = 12.sp, color = HintGray)
             }
         }
-        if (open) PhoneChips(w.phoneInfos)
+        if (open) PhoneChips(w.phoneInfos, viewModel = viewModel, speakingTip = speakingTip)
     }
 }
 
@@ -581,28 +638,86 @@ private fun DetailTitle(text: String) {
     Text(text, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Black)
 }
 
-/** 音素胶囊列表（web `PhoneChips` 的非 tips 版：符号 + 分数，漏读标红） */
+/**
+ * 音素胶囊列表（web `PhoneChips` 的等价物）：符号 + 分数，漏读标红；
+ * 下方对 **bad 类（低分但非漏读）** 音素展示本地发音要领（[localTipText]）+ 🔈 朗读，
+ * 与 web `SoeDetail` 一致（miss 类不提示，避免「没读到」还凑字面要领）。
+ */
 @Composable
-private fun PhoneChips(phones: List<PhonemeScore>) {
-    Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-        for (p in phones) {
-            val miss = SoeDisplay.isMissing(p.rawAccuracy, p.matchTag)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (miss) Color(0xFFFBE9E7) else ChipBg)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            ) {
-                Text(p.phoneme, fontSize = 14.sp, color = if (miss) BadRed else ChipText)
-                Text(
-                    SoeDisplay.formatScore(p.rawAccuracy, p.matchTag),
-                    fontSize = 11.sp,
-                    color = scoreColor(p.rawAccuracy, p.matchTag),
-                )
+private fun PhoneChips(
+    phones: List<PhonemeScore>,
+    viewModel: DailyEnglishViewModel,
+    speakingTip: String?,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            for (p in phones) {
+                val miss = SoeDisplay.isMissing(p.rawAccuracy, p.matchTag)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (miss) Color(0xFFFBE9E7) else ChipBg)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text(p.phoneme, fontSize = 14.sp, color = if (miss) BadRed else ChipText)
+                    Text(
+                        SoeDisplay.formatScore(p.rawAccuracy, p.matchTag),
+                        fontSize = 11.sp,
+                        color = scoreColor(p.rawAccuracy, p.matchTag),
+                    )
+                }
             }
         }
+        // 低分音素的本地发音要领（只对 bad 类，miss 不提示）
+        for (p in phones) {
+            val tip = localTipText(p.phoneme) ?: continue
+            if (SoeDisplay.scoreClass(p.rawAccuracy, p.matchTag) != SoeDisplay.ScoreClass.BAD) continue
+            PhonemeTipRow(
+                phone = p.phoneme,
+                tip = tip,
+                speaking = speakingTip == tip,
+                onSpeak = { viewModel.speakPhonemeTip(tip, p.phoneme) },
+            )
+        }
+    }
+}
+
+/** 单条发音要领：音素符号小标签 + 中文要领 + 🔈 朗读（朗读中切 🔊） */
+@Composable
+private fun PhonemeTipRow(phone: String, tip: String, speaking: Boolean, onSpeak: () -> Unit) {
+    Spacer(Modifier.height(4.dp))
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFFFFF7ED))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Text(
+            phone,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = PhonicsTipSymColor,
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFFFFE8CC))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(tip, fontSize = 12.sp, color = Black, modifier = Modifier.weight(1f))
+        Spacer(Modifier.width(4.dp))
+        Text(
+            if (speaking) "🔊" else "🔈",
+            fontSize = 14.sp,
+            color = if (speaking) PlayingBlue else Black,
+            modifier = Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .clickable { onSpeak() }
+                .padding(4.dp),
+        )
     }
 }
 

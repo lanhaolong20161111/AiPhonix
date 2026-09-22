@@ -122,7 +122,7 @@
 17. **首页「学习工具」区** ✅ 新增「🏆 每日语文」「🏆 每日英语」两张卡（`onOpenDailyChinese` / `onOpenDailyEnglish`）。
 
 #### 批次 C 前半的已知差异（有意为之，非遗漏）
-- **每日英语缺 2 项 web 能力**：① phonics 音形着色（Android 无 phonics 规则库）；② 「发音要领」（web 是本地 `lib/phonicsTips.ts` 打底 + LLM `/daily-en/phone-tips` 补充，Android 没有本地表，只调 LLM 补不出该效果）。
+- ~~**每日英语缺 2 项 web 能力**~~ **已在本轮补齐**：phonics 音形着色 + 发音要领（见下方「批次 C 收官后补齐」小节）。
 - **设置面板「拍照 OCR 自动填入」已完成**：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）均已移植 `OcrPickSheet` 系；前置依赖「字幕采集」区域裁剪早已具备。
 - **造句练习的 `wrongChars` 照抄了 web 的古怪行为**：用学生原句的 `wrongs` 去 `includes` 检查 **AI 点评文本**里的每个字（web 如此，Android 保持一致；已在注释里标注）。
 - **`LocalDate.now()` vs 服务端东八区**：web 用 `cstDate()`，Android 用设备本地日期 —— 在 UTC+8 设备（目标用户）上一致，已在注释写明。
@@ -312,9 +312,21 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 - `suggested_score` 是数据库 `real` ⇒ 显示加 `util/jsNumber`（复刻 JS `String(number)`，否则 `85f` 会打成 `"85.0"`，与 web 的 `85` 不一致）。
 - **与 web 的唯一显示差异**：三路数据全失败时显示「⚠️ 统计数据加载失败（断网）」，而 web 会显示一片 0（避免家长误以为孩子这周没练）。
 
+### 批次 C 收官后补齐：每日英语 phonics 着色 + 发音要领（本轮）
+
+把 web `DailyEnglishPage` 的「音形着色 + 低分音素发音要领」三件套逐位移植到 Android：
+
+- **规则引擎** `data/phonics/PhonicsSegmenter.kt`：逐位移植 web `lib/phonics.ts`（确定性规则，带 4000 条 LRU 式缓存）。七类 `PhonicType`（VOWEL_SINGLE/LONG/TEAM、DIGRAPH、SILENT、CONSONANT、OTHER，只 consonant/other 可合并）。关键口径：**块数优先于标签**、例外词表优先于规则、magic-e 先占位后定色（防 `house`/`please`/`choose` 顺序 bug）、组合按长度降序（`tch`>`ch`）、词尾长元音族、`-tion` 软音、屈折 e（`wanted` 的 e 是真元音）、成音节 l（`-le`）、不发音字母族（kn/wr/sign/lamb/-alk/gu-/-que）。
+- **例外词表** `data/phonics/PhonicsExceptions.kt`：66 条与 web 逐字一致。⚠️ 码表**大小写敏感**：`v`=vowel-single、`V`=vowel-long（`who` 的 `o` 是 `v` 即 single——探针实证过，别按语义猜）。
+- **发音要领** `data/phonics/PhonemeTips.kt`：44 条本地表 + `phoneTip` 归一化查找（大写 + 去尾重音数字 `ah0`→`AH`、逗号 r 合并 `ih,r`→`IHR`；`ah0` 命中 **VOWEL** 类的 `AH`，不是 `AH0` 的 OTHER）+ `tipSpeechText` 两处正则清洗（定界符 `/f/`/`[th]`、句式 `的f时` → "这个音"，防百度 TTS 把孤立字母读成字母名）。
+- **全局开关** `data/audio/PhonicsColorStore.kt`：SharedPreferences + StateFlow（默认开），模板照 `PronunciationStyleStore`；`AppContainer` 注入。
+- **UI** `ui/common/PhonicsText.kt`：`PhonicsText`（七类配色对齐 web `App.css` 浅色主题，SILENT 加虚线下划线）+ `PhonicsToggle`。`DailyEnglishScreen` 接线：单词卡/例句/句子三处文本着色、顶栏开关、`PhoneChips` 对 **bad 类（非 miss）**音素渲染本地要领 + 🔈 朗读（`ViewModel.speakPhonemeTip`，状态 `speakingTip` 切 🔊/🔈）。
+- **单测** 13 例全绿（Segmenter 8 + Tips 5），期望值全部来自跑 web 真实现的探针（`tsx` 跑 `segmentPhonics`/`phoneTip`/`tipSpeechText`，探针用毕即删）。
+- ★ **JVM 正则移植陷阱**（连踩三轮才定位）：`java.util.regex` **支持嵌套字符类**——类内未转义的 `[` 会被当成「嵌套类」开启、一路吞到下一个 `]`，把中间的分组全部吃掉，报错位置（`Unmatched closing ')'`）极具误导性（JS 不支持嵌套类，`[` 在类内是字面量）⇒ 移植 JS 正则时类内 `[` 必须转义 `\[`；且 JVM 对 `]` 作类成员的解析与 JS 不同 ⇒ 定界符集合改用「选择分支」`(?:/|\\|]|）|\))`。教训：**JS 正则逐字照抄到 Kotlin 必挂，逐构造在 JVM 实测后再落码**。
+
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
-- **每日英语缺 2 项**：phonics 音形着色（无本地规则库）、「发音要领」（无本地 `phonicsTips.ts` 表）。
+- ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。
 - **AI 英语对话缺流式 ASR 相关 3 项**：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板。
 - **「拍照 OCR 自动填入」已全部落地**：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）、AI 英语对话（整页识词抽句）三处设置面板均已移植，对应 `OcrPickSheet` / `EnVocabPhotoSheet` 系 + `EnVocabExtract` 抽词规则。AI 对话学语文（web 本就无 OCR）是**唯一**不做的一处，不是 parity gap。
 - 结构差异（有意）：AI 识别结果页输入+结果同屏；汉字地图状态取「最新」（web 取最旧是笔误）；生词本朗读不锁多音字；评测历史/汉字地图点击不定位到具体字。

@@ -3,6 +3,7 @@ package com.example.ai
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.ai.data.audio.IpaAudioPlayer
+import com.example.ai.data.audio.PhonicsColorStore
 import com.example.ai.data.audio.PronunciationStyleStore
 import com.example.ai.data.articlereading.ArticleReadingStore
 import com.example.ai.data.chinesepractice.WordInfoRepository
@@ -92,6 +93,11 @@ class AppContainer(context: Context) {
     // ── 音素发音风格（美式/英式，持久化） ──
     val pronunciationStyleStore: PronunciationStyleStore by lazy {
         PronunciationStyleStore(appContext)
+    }
+
+    // ── 拼读着色开关（全局偏好，持久化；对齐 web `phonicsPref`） ──
+    val phonicsColorStore: PhonicsColorStore by lazy {
+        PhonicsColorStore(appContext)
     }
 
     // ── 音素发音播放器（跟随发音风格） ──

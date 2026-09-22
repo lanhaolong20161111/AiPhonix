@@ -303,6 +303,7 @@ fun MainNavigation(container: AppContainer) {
                 store = container.dailyEnStore,
                 repository = DailyEnRepository(),
                 ttsEngine = container.ttsEngine,
+                phonicsColorStore = container.phonicsColorStore,
                 // 拍照 OCR：仓储 + 图片处理 + 识别模型偏好（三者都可空，缺失时 OCR 静默降级）
                 ocrRepository = container.aiChineseRepository,
                 ocrPlatform = container.ocrPlatform,
