@@ -1,7 +1,35 @@
 # AiPhonix 项目记忆（通用交接文档）
 
-> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-09-14）。
+> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-09-22）。
 > 整合自 `AGENTS.md`、历史 `memory-export-*.md` / `SESSION_HANDOFF_*.md` 及最近会话的进展。
+
+---
+
+## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A 完成）
+
+### 背景
+- Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
+- 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）。两次均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
+
+### 已完成（批次A 5/5）
+| 模块 | 关键实现 |
+|---|---|
+| **拼音表** | `ui/pinyintable/`（索引+详情，横向滑动）；数据 `data/pinyin/PinyinTableData.kt` **由脚本从 `web/src/data/pinyinTable.ts` 自动生成**（449 行，23声母/26韵母/16整体认读 + 助记字），别再手工转录。音频走 `/api/v1/pinyin-audio`（复用 `PinyinAudioPlayer`），例字走**中文百度 TTS**（speaker `"0"`，不是 `TtsEngine`——`TtsEngine` 是英式/美式英语专用）。首页新增固定入口卡片。 |
+| **AI 英语** | `ui/aienglish/`；识别走 `AiChineseRepository.parseImage(mode="english")`（英语专用提示词，不删字母）；文本对话走**新增** `data/aichat/AiChatRepository`（`POST /ai-chat/ask` + `GET /ai-chat/session` 断点续聊）；点英文单词 → `TtsEngine`（英语），块内含汉字 → 百度中文 TTS。入口在 AI 陪练页新增的「英语」卡片。 |
+| **AI 历史** | `data/aihistory/AiHistoryStore`：本地 JSON（`filesDir/ai_history.json`），**chinese/math/english 三桶**，每桶上限 50，新条目头插，缩略图 base64（`makeThumb`，≤240px JPEG60），临时文件 rename 原子写。列表页 + 详情页（只读回看，点行朗读）。AI 语文/数学识别成功后自动存快照；AI 英语会话自动存对话摘要（首条 add、后续 update）。三个页面都有「🗂 历史」入口。**对齐 web 的 `ai_phonix_web_ai_history`（3 桶×50）**。 |
+| **评测历史** | `data/soerecord/SoeRecordRepository`（查询/单删/批删）；`ui/soehistory/`（全选+批量删除、展开明细）。⚠️ 查询接口 **不校验 token**，靠 body 里的 `user_id` 过滤，必须带 `TokenManager.userId`；limit 服务端上限 200。明细保留了 `units` 的**词→音素嵌套**（`ScoreClient.parseJsonResponse` 会把音素打平，历史明细需要分组，故本仓库自己解析）。入口：我的账户 → 语音评测记录 → 查看全部明细。 |
+
+### 关键坑（避免重走）
+1. **`TtsEngine` 只适合英语**（系统 TTS 用 Locale.US/UK，回退百度 speaker 106/5118）。中文朗读一律用 `BaiduTtsCache.play(text, "0")`。
+2. **`/soe/records` 查询无鉴权**，必须显式传 `user_id`，否则返回**全站**记录。
+3. **`AiHistoryStore` 只存 `AiHistoryTurn`**（data 层），UI 层的 `AiEnglishTurn` 需先转换（`AiHistoryTurn(role, content)`），别直接塞。
+4. 拼音表数据**不要手改** `PinyinTableData.kt`；改数据请改 web 的 `pinyinTable.ts` 后重新生成。
+5. 生成脚本用 Node 时注意：TS 有类型标注（`export const X: PinyinItem[] = [`），按 `=` 后再找 `[` 做括号匹配，别匹配到 `PinyinItem[]` 的空括号。
+
+### 剩余（批次B/C，共 12 模块 + 2 待核对）
+生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；AI 对话学语文、AI 英语对话、课件库、每日语文、每日英语、综合算式动画、字幕采集（C）；家长报告核对、注册页核对。
+其中**综合算式动画**（Compose 重写动画）与**字幕采集**（视频帧框选+OCR）难度最高。
 
 ---
 
