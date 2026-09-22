@@ -194,7 +194,7 @@
 - 删除按钮 Android 适配：web 把 ✕ 放框外（`right:-10`），Compose 超出父边界收不到手势 ⇒ 就地贴框内右上角并左移让开 `ne` 把手。
 
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
-- **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
+- ✅ **`type` vs `type_` 参数名不一致 ⇒ 过滤曾被静默忽略（已全链路闭环，2026-09-22 复核）**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`。生产实测：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**。Android 侧已修（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）；**web 侧也已生效**——`web/src/services/charImages.ts` 实际一直是 `qs.set("type", params.type_)`（自 `64c6899` 入库起即如此，此前「web 侧未修」是过时记录），且修复已随 `index-PBqBgbjv.js` 构建上线（线上 charImages chunk 与本地 dist 字节一致、生产 entry 哈希相同）。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
 
 ### 关键坑（避免重走）
@@ -240,7 +240,7 @@
 3. **`AiHistoryStore` 只存 `AiHistoryTurn`**（data 层），UI 层的 `AiEnglishTurn` 需先转换（`AiHistoryTurn(role, content)`），别直接塞。
 4. 拼音表数据**不要手改** `PinyinTableData.kt`；改数据请改 web 的 `pinyinTable.ts` 后重新生成。
 5. 生成脚本用 Node 时注意：TS 有类型标注（`export const X: PinyinItem[] = [`），按 `=` 后再找 `[` 做括号匹配，别匹配到 `PinyinItem[]` 的空括号（**偏旁字族脚本同样踩这个坑**）。
-6. **`char-images` 的 query 参数名是 `type`（不是 `type_`）**，传 `type_` 会被服务端**静默忽略**并返回全量（详见「批次B 顺手修掉的真实 bug」）。**web 侧还带着这个 bug**。
+6. **`char-images` 的 query 参数名是 `type`（不是 `type_`）**，传 `type_` 会被服务端**静默忽略**并返回全量（详见「批次B 顺手修掉的真实 bug」）。web/Android 两端均已用 `type` 且已上线。
 7. **`/char-images/feedback` 的唯一键含 (grade, semester, type)**：同一个字跨年级/类型存**多行**，服务端按 `timestamp` **倒序**返回 ⇒ **首次见到即为最新**。Android 按意图取最新；web 是「倒序遍历后写覆盖」= 取**最旧**（笔误）。这是**有意保留的差异**，别去「对齐」web。
 8. **单字音频 `/tts/char/:char?synthesize=1&pinyin=hao3`** 需鉴权（`requireAuth()`），且 `pinyin` 必须是**数字调**格式（服务端 `SYLLABLE_RE = /^[a-z]{1,6}[1-5]$/`）。百度 TTS 对「字（无声调）」会把拼音字母当字面内容念出来 ⇒ 拿不到声调时 `toBaiduSyllable` **返回 `""` 宁可不注音**，绝不返回 `"zhong"` 这种半成品（偏旁字族里 3/117 个轻声字如 `ma`/`ba`/`men` 就属此类）。
 9. **`BaiduTtsCache.stopAll()` 兼作「停止」与「释放 activePlayer」**：`playRemote` 前调一次即可实现「新读音打断旧读音」；但它**没有完成回调**，需要清 UI 高亮时得自己 `delay(≈1800)` 兜底。

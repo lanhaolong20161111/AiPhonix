@@ -97,9 +97,8 @@
 10. **偏旁魔法屋** ✅：`data/radical/RadicalFamilies.kt` **由脚本 `scripts/gen_radical_families.mjs` 从 web `radicalFamilies.ts` 自动生成**（34 字族 / 134 字 / 45 偏旁，零转录误差）；`RadicalRepository`（`/radical/song` + `/radical/riddles`）+ `ui/radical/`（select/song/quiz/done 四阶段、三种题型、小豆反应池）。
 
 #### 批次 B 顺手修掉的真实 bug
-- 🔴 **char-images 的类型过滤一直是失效的**：服务端 `char_images.ts` 读的是 **`type`**，而 web `services/charImages.ts` 与 Android `CharImageViewModel` 都在传 **`type_`** ⇒ 参数被静默忽略。生产实测：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）。后果是「识字表 / 写字表 / 词语表」三个列表显示的是同一份混合内容。
-  - Android 侧已修（`CharImageViewModel` 两处 `type_=` → `type=`）。
-  - ⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", ...)` 要改成 `qs.set("type", ...)`），需单独一次 web 构建+部署。
+- 🔴 **char-images 的类型过滤曾是失效的**：服务端 `char_images.ts` 读的是 **`type`**，而 web `services/charImages.ts` 与 Android `CharImageViewModel` 都在传 **`type_`** ⇒ 参数被静默忽略。生产实测：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）。后果是「识字表 / 写字表 / 词语表」三个列表显示的是同一份混合内容。
+  - ✅ **两端均已修复且已上线**（2026-09-22 复核：Android `CharImageViewModel` 两处 `type_=` → `type=`；web 源码自入库起即为 `qs.set("type", params.type_)`，修复已随 `index-PBqBgbjv.js` 构建上线——线上 charImages chunk 与本地 dist 字节一致、生产 entry 哈希相同，线上 API 实测 `type=认`→816 / `type=词`→729 / `type_=`→3028 全量）。
 - 📌 **web `CharMapPage` 的 `TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产数据实际是 **认/写/词/英词/英句**（3028 条实测分布：认 816 / 写 748 / 词 729 / 英词 533 / 英句 202）⇒ web 上「认」「写」两个类型会原样显示、`字/句` 两个映射是死条目。Android 已按真实词表建标签，并**直接复用同一词表**（`type` 值可原样透传给 `CharImageList.type_`）。
 
 #### 已知与 web 的差异（有意为之，非遗漏）
@@ -335,7 +334,7 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 
 ### 非 app 范围（web 侧待修）
 
-- `web/src/services/charImages.ts` 的 `qs.set("type_", …)` → `qs.set("type", …)`：服务端读的是 `type` ⇒ 现在**静默返回全量 3028 条**（应为 816/748/729/533/202）。需**单独一次 web 构建 + 部署**。
+- ~~`web/src/services/charImages.ts` 的 `qs.set("type_", …)` → `qs.set("type", …)`~~ **已闭环（2026-09-22）**：web 源码实际一直是 `qs.set("type", params.type_)`（自 `64c6899` 入库起），修复已随 `index-PBqBgbjv.js` 上线；线上 API 复测 `type=认`→816 / `type_=认`→3028，前端请求走的是正确参数。此前「web 侧未修」的记录是过时结论。
 
 ## 4. 实现约定（每新增模块）
 
