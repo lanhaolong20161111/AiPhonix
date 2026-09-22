@@ -100,6 +100,7 @@ import com.example.ai.ui.aienglish.AiEnglishScreen
 import com.example.ai.ui.aienglish.AiEnglishViewModel
 import com.example.ai.ui.aihistory.AiHistoryScreen
 import com.example.ai.ui.aihistory.AiHistoryDetailScreen
+import com.example.ai.ui.soehistory.SoeHistoryScreen
 import android.widget.Toast
 
 @Composable
@@ -178,6 +179,13 @@ fun MainNavigation(container: AppContainer) {
             onOpenList = { backStack.add(it) },
             onOpenFeedbackList = { status -> backStack.add(FeedbackList(status)) },
             onOpenParent = { backStack.add(ParentSettings) },
+            onOpenSoeHistory = { backStack.add(SoeHistory) },
+          )
+        }
+        entry<SoeHistory> {
+          SoeHistoryScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
         }
         entry<FeedbackList> { route ->

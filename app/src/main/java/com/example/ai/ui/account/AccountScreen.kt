@@ -180,6 +180,7 @@ fun AccountScreen(
     onOpenList: (CharImageList) -> Unit,
     onOpenFeedbackList: (String) -> Unit,
     onOpenParent: () -> Unit = {},
+    onOpenSoeHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val viewModel: AccountViewModel = androidx.lifecycle.viewmodel.compose.viewModel {
@@ -340,6 +341,18 @@ fun AccountScreen(
                             HorizontalDivider()
                             state.evalRecords.forEach { it.EvalRow() }
                         }
+                        // 查看全部明细（含音素/总分，可删除）
+                        Text(
+                            "查看全部评测明细（含音素）→",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable(onClick = onOpenSoeHistory)
+                                .padding(vertical = 8.dp),
+                        )
                     }
                 }
 

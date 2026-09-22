@@ -69,16 +69,18 @@
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A 完成 4/5，全量 `assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
-> 已完成：拼音表、AI 历史（存储+列表+详情）、AI 英语（识别+对话）、语文/数学识别自动存历史 + 历史入口。
-> 剩余：评测历史 + 批次 B/C 共 13 个模块。
+> **进度（2026-09-22）**：批次 A 已全部完成 5/5，全量 `assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
+> 已完成：拼音表、AI 历史（存储+列表+详情）、AI 英语（识别+对话）、语文/数学识别自动存历史、评测历史。
+> 剩余：批次 B/C 共 12 个模块 + 2 项待核对。
 
-### 批次 A（本次会话）
+### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
 2. **AI 英语** ✅：`AiEnglishScreen` + `AiEnglishViewModel`；`AiChineseRepository.parseImage(mode="english")` 走英语专用提示词通道；新增 `data/aichat/AiChatRepository`（`POST /ai-chat/ask` + `GET /ai-chat/session` 断点续聊）；点英文单词经系统 TTS 发音；AI 陪练页新增「英语」入口卡片。
 3. **AI 历史** ✅：`data/aihistory/AiHistoryStore`（本地 JSON，chinese/math/english 三桶×50 上限，缩略图 base64）+ `AiHistoryScreen`（模块切换/日期/摘要/删除）+ `AiHistoryDetailScreen`（只读回看 + 点行朗读）；AI 语文/数学识别后自动存快照，AI 英语会话自动存对话摘要；三个页面均有「🗂 历史」入口。
-4. **评测历史** ⏳ 未开始：`SoeHistoryScreen` + ViewModel（`POST /soe/records` 拉取，列表 + 明细总分/每字/每音素 + 颜色规则）。
+4. **评测历史** ✅：`data/soerecord/SoeRecordRepository`（`POST /soe/records` 查询 + `DELETE /soe/records/{id}` + `POST /soe/records/batch-delete`）+ `SoeHistoryScreen`（全选/批量删除/单条删除、展开明细：总分 + 单字/单词→每音素、句子→每字，颜色 ≥80 绿 / 60-79 黄 / <60 红，英文音素 ARPAbet→IPA）；入口在「我的账户 → 语音评测记录 → 查看全部评测明细」。
 5. 首页固定「学习工具」区 ✅ 部分（已加拼音表；其余随各模块落地补）。
+
+> ⚠️ 评测历史的「点击定位到该字」在 Android 暂未实现（web 跳 char_image/pronounce 带 focus 参数）——当前点击条目为展开明细。
 
 ### 批次 B（后续会话）
 6. 生词本（Wordbook）

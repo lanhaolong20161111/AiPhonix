@@ -61,6 +61,7 @@ import kotlinx.serialization.Serializable
 // 账户详情页（错题本/掌握情况/待确认/退出登录）
 @Serializable data object Account : NavKey                            // 我的账户
 @Serializable data class FeedbackList(val status: String) : NavKey    // 反馈详情列表（错题本/掌握/待确认）
+@Serializable data object SoeHistory : NavKey                          // 评测历史（发音评测明细，对齐 web SoeHistoryPage）
 
 // 家长设置（PIN 保护：家长动态决定学生首页的页面集合/今日任务）
 @Serializable data object ParentSettings : NavKey                     // 家长设置
