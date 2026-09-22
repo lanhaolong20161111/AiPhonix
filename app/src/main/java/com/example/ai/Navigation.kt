@@ -106,6 +106,16 @@ import com.example.ai.ui.memoryjoy.MemoryJoyScreen
 import com.example.ai.ui.charmap.CharMapScreen
 import com.example.ai.ui.diary.DiaryScreen
 import com.example.ai.ui.radical.RadicalGameScreen
+import com.example.ai.ui.courseware.CoursewareScreen
+import com.example.ai.ui.dailychinese.DailyChineseScreen
+import com.example.ai.ui.dailychinese.DailyChineseViewModel
+import com.example.ai.ui.dailyenglish.DailyEnglishScreen
+import com.example.ai.ui.dailyenglish.DailyEnglishViewModel
+import com.example.ai.ui.sentencecompose.SentenceComposeScreen
+import com.example.ai.ui.sentencecompose.SentenceComposeViewModel
+import com.example.ai.data.dailyzh.DailyZhRepository
+import com.example.ai.data.dailyzh.DailyZhSync
+import com.example.ai.data.dailyen.DailyEnRepository
 import android.widget.Toast
 
 @Composable
@@ -172,6 +182,8 @@ fun MainNavigation(container: AppContainer) {
             onOpenCharMap = { backStack.add(CharMap) },
             onOpenDiary = { backStack.add(Diary) },
             onOpenRadicalGame = { backStack.add(RadicalGame) },
+            onOpenDailyChinese = { backStack.add(DailyChinese) },
+            onOpenDailyEnglish = { backStack.add(DailyEnglish) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -237,6 +249,51 @@ fun MainNavigation(container: AppContainer) {
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
         }
+        entry<Courseware> {
+          CoursewareScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<DailyChinese> {
+          DailyChineseScreen(
+            viewModel = viewModel {
+              DailyChineseViewModel(
+                store = container.dailyZhStore,
+                wordBankRepository = container.wordBankRepository,
+              )
+            },
+            onBack = { backStack.removeLastOrNull() },
+            onOpenRecognition = { backStack.add(Recognition) },
+            onOpenWordPractice = { backStack.add(WordPractice) },
+            onOpenSentenceCompose = { backStack.add(SentenceCompose) },
+            onOpenOralWriting = { backStack.add(OralWriting) },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<DailyEnglish> {
+          DailyEnglishScreen(
+            viewModel = viewModel {
+              DailyEnglishViewModel(
+                store = container.dailyEnStore,
+                repository = DailyEnRepository(),
+                ttsEngine = container.ttsEngine,
+              )
+            },
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<SentenceCompose> {
+          SentenceComposeScreen(
+            viewModel = viewModel {
+              SentenceComposeViewModel(dailyZhSync = DailyZhSync(container.dailyZhStore))
+            },
+            onBack = { backStack.removeLastOrNull() },
+            onOpenDailyChinese = { backStack.add(DailyChinese) },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
         entry<FeedbackList> { route ->
           FeedbackListScreen(
             status = route.status,
@@ -258,6 +315,7 @@ fun MainNavigation(container: AppContainer) {
             onBack = { backStack.removeLastOrNull() },
             onOpenImport = { backStack.add(ImportCenter) },
             onOpenMyImports = { backStack.add(MyImports) },
+            onOpenCourseware = { backStack.add(Courseware) },
           )
         }
         entry<DailyPractice> {

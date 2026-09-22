@@ -25,6 +25,7 @@ data class AiChatAskResult(
     val speakText: String = "",     // 建议朗读的文本（tts_url 字段，实为文本）
     val wordInfo: String = "",      // 查词结果
     val correction: String = "",    // 改错后的完整句子（无则空）
+    val wrongs: List<String> = emptyList(), // 原句里被判错的片段（造句练习/碎碎念高亮用）
     val judge: Int? = null,         // 判卷 1/0（仅小豆模式）
 )
 
@@ -73,12 +74,20 @@ class AiChatRepository(
         if (json.has("detail") && json.optString("reply", "").isEmpty()) {
             throw java.io.IOException(json.optString("detail", "AI 调用失败"))
         }
+        val corrObj = json.optJSONObject("correction")
         AiChatAskResult(
             reply = json.optString("reply", ""),
             sessionId = json.optString("session_id", sessionId),
             speakText = json.optString("tts_url", ""),
             wordInfo = json.optString("word_info", ""),
-            correction = json.optJSONObject("correction")?.optString("corrected", "") ?: "",
+            correction = corrObj?.optString("corrected", "") ?: "",
+            wrongs = buildList {
+                val arr = corrObj?.optJSONArray("wrongs") ?: org.json.JSONArray()
+                for (i in 0 until arr.length()) {
+                    val s = arr.optString(i, "")
+                    if (s.isNotBlank()) add(s)
+                }
+            },
             judge = if (json.has("judge")) json.optInt("judge") else null,
         )
     }

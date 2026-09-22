@@ -162,20 +162,19 @@ class ScoreClient(
                     val wordText = w["word"]?.jsonPrimitive?.content ?: ""
                     val wordAcc = (w["accuracy"]?.jsonPrimitive?.doubleOrNull ?: 0.0).toFloat()
                     val matchTag = w["match_tag"]?.jsonPrimitive?.intOrNull ?: 0
-                    wordScores.add(WordScore(
-                        word = wordText,
-                        pronAccuracy = wordAcc.coerceIn(0f, 100f),
-                        matchTag = matchTag,
-                    ))
 
+                    // 逐词音素：句子模式下腾讯**也**返回 phone_infos（对齐 web SoeWord.phone_infos），
+                    // 既入全局扁平表（既有调用方读它），也挂到该词上（「每日英语」点词展开用）。
+                    val wordPhones = mutableListOf<PhonemeScore>()
                     val phones = w["phone_infos"]?.jsonArray
                     if (phones != null) {
                         for (pElem in phones) {
                             val p = pElem.jsonObject
                             val phoneName = p["phone"]?.jsonPrimitive?.content ?: ""
                             val phoneIpa = arpabetToIpa(phoneName)
-                            val phoneScore = (p["accuracy"]?.jsonPrimitive?.doubleOrNull ?: 0.0).toInt().coerceIn(0, 100)
-                            phonemeScores.add(PhonemeScore(
+                            val rawAcc = p["accuracy"]?.jsonPrimitive?.doubleOrNull ?: 0.0
+                            val phoneScore = rawAcc.toInt().coerceIn(0, 100)
+                            wordPhones.add(PhonemeScore(
                                 phoneme = phoneIpa,
                                 score = phoneScore,
                                 level = when {
@@ -183,9 +182,18 @@ class ScoreClient(
                                     phoneScore >= 60 -> ScoreLevel.OKAY
                                     else -> ScoreLevel.NEEDS_WORK
                                 },
+                                rawAccuracy = rawAcc.toFloat(),
+                                matchTag = p["match_tag"]?.jsonPrimitive?.intOrNull ?: 0,
                             ))
                         }
                     }
+                    phonemeScores.addAll(wordPhones)
+                    wordScores.add(WordScore(
+                        word = wordText,
+                        pronAccuracy = wordAcc.coerceIn(0f, 100f),
+                        matchTag = matchTag,
+                        phoneInfos = wordPhones,
+                    ))
                 }
             }
 

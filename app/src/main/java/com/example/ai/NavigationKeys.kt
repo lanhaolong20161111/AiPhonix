@@ -111,4 +111,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object Diary : NavKey                                // 成长日记（本地记录 + AI 润色点评）
 @Serializable data object RadicalGame : NavKey                          // 偏旁魔法屋（换偏旁识字：选字/选偏旁/字谜/儿歌）
 
+// ── 批次 C：家长端与每日一练（对齐 web） ──
+@Serializable data object Courseware : NavKey                           // 课件库（语/数/英课件图片上传与管理，家长端）
+@Serializable data object DailyChinese : NavKey                         // 每日语文（家长设今日字词句/作文主题，4 个练习入口）
+@Serializable data object DailyEnglish : NavKey                         // 每日英语（家长设今日单词/句子，单词卡+句子卡）
+@Serializable data object SentenceCompose : NavKey                      // 造句练习（给词造句，AI 老师批改）
+
 // 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

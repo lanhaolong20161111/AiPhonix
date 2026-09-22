@@ -200,7 +200,7 @@ fun AiEnglishScreen(
             Text("已识别 ${state.blocks.size} 块（点单词听发音）", fontSize = 13.sp, color = Black)
             Spacer(Modifier.height(6.dp))
             state.blocks.forEach { block ->
-                EnglishBlockCard(block = block, onSpeakWord = viewModel::speak)
+                EnglishBlockCard(block = block, onSpeakWord = viewModel::speakTappedWord)
             }
         }
 

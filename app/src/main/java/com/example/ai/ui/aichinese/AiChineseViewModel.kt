@@ -22,6 +22,9 @@ import com.example.ai.data.aichinese.QuestSessionSummary
 import com.example.ai.data.aichinese.QuestStepData
 import com.example.ai.data.aichinese.SolutionStep
 import com.example.ai.data.tts.BaiduTtsCache
+import com.example.ai.data.wordbook.WordbookAutoCollector
+import com.example.ai.data.wordbook.WordbookRepository
+import com.example.ai.data.wordbook.WordbookSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -115,10 +118,16 @@ data class AiChineseUiState(
 class AiChineseViewModel(
     private val repository: AiChineseRepository = AiChineseRepository(),
     private val historyStore: AiHistoryStore? = null,
+    private val wordbookRepository: WordbookRepository = WordbookRepository(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChineseUiState())
     val uiState: StateFlow<AiChineseUiState> = _uiState.asStateFlow()
+
+    /** 点读自动收录（对齐 web：点单字即加入生词本，本页会话内去重）。懒建，避免构造期访问 viewModelScope。 */
+    private val wordbookCollector: WordbookAutoCollector by lazy {
+        WordbookAutoCollector(wordbookRepository) { block -> viewModelScope.launch { block() } }
+    }
 
     private var ttsCache: BaiduTtsCache? = null
 
@@ -459,9 +468,12 @@ class AiChineseViewModel(
 
     /** 逐字点读：单字朗读，多音字用识别出的正确拼音注音（百度 TTS 支持 {字^拼音} 语法强制读音）。
      *  每次点击都记入认读画像：多音字这里用原字计（speak 收到的 ttsText 长度>1 不会重复计），
-     *  普通字由 speak 内的单字判断计一次，避免重复。 */
+     *  普通字由 speak 内的单字判断计一次，避免重复。
+     *  同时**自动加入生词本**（对齐 web AiParseResultPage 的点读收录：只收汉字，`recog_chinese` 口径；
+     *  web 的数学页在 Android 是独立的「AI 作业」流程，故此处不带 recog_math）。 */
     fun speakChar(ch: String, polyphones: Map<String, String>) {
         if (ch.isBlank()) return
+        wordbookCollector.collect(ch, WordbookSource.RECOG_CHINESE)
         val pinyin = polyphones[ch]?.takeIf { it.isNotBlank() }
         // 多音字带拼音注音；普通字原样（整句合成时百度会按上下文消歧）
         val ttsText = if (pinyin != null) "{$ch^$pinyin}" else ch

@@ -41,6 +41,32 @@ class WordBankRepository(
             .filter { entry -> requiredTags.all { tag -> tag in entry.tags } }
     }
 
+    /**
+     * 手打列表在词库中的**命中数量**（对齐 web `getCharCountByTexts` / `getWordCountByTexts`）——
+     * 「每日语文」用它提示家长"今日这些字词有多少真能练到"。
+     *
+     * ⚠️ 两点与 web 对齐的细节：
+     * - 「能不能认」= 标签含 **「识字」或「识写」**（web `isRecogChar`）。**不含「写字」**：
+     *   资产里 `写字` 721 个里有一部分不是 `识字/识写`，按 web 口径这些不算可认字。
+     * - web 传空列表时返回**全部**（用于别的调用方）；本方法只服务计数，空列表直接返回 0
+     *   （调用方 `DailyChinesePage` 在列表为空时本来就不显示"命中数"）。
+     */
+    fun countCharsByTexts(texts: List<String>): Int {
+        val set = texts.toSet()
+        if (set.isEmpty()) return 0
+        return queryChars().count { it.text in set && isRecogChar(it) }
+    }
+
+    /** 词语命中数；口径同 [countCharsByTexts]（词语要求带「词语」标签） */
+    fun countWordsByTexts(texts: List<String>): Int {
+        val set = texts.toSet()
+        if (set.isEmpty()) return 0
+        return queryWords("词语").count { it.text in set }
+    }
+
+    private fun isRecogChar(e: WordBankEntry): Boolean =
+        "识字" in e.tags || "识写" in e.tags
+
     /** 根据年级/学期/类型查询（内置 + 用户导入） */
     fun queryByGrade(
         grade: String? = null,

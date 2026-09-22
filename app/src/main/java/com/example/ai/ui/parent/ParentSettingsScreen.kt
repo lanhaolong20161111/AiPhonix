@@ -36,6 +36,7 @@ fun ParentSettingsScreen(
     onBack: () -> Unit,
     onOpenImport: () -> Unit = {},
     onOpenMyImports: () -> Unit = {},
+    onOpenCourseware: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var pinStep by remember { mutableStateOf(if (store.hasPin()) PinStep.Verify else PinStep.Setup) }
@@ -66,6 +67,7 @@ fun ParentSettingsScreen(
                     onBack = onBack,
                     onOpenImport = onOpenImport,
                     onOpenMyImports = onOpenMyImports,
+                    onOpenCourseware = onOpenCourseware,
                 )
             }
         }
@@ -172,6 +174,7 @@ private fun PlanEditor(
     onBack: () -> Unit,
     onOpenImport: () -> Unit = {},
     onOpenMyImports: () -> Unit = {},
+    onOpenCourseware: () -> Unit = {},
 ) {
     val plan by store.plan.collectAsState()
     // 草稿：从当前计划初始化（保留完成状态；未创建任务则为空）
@@ -308,6 +311,27 @@ private fun PlanEditor(
                     Column(Modifier.weight(1f)) {
                         Text("我的导入", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Text("查看 / 删除已导入内容", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("›", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+
+        // 课件库（固定入口）—— 对齐 web `/module/courseware_manager`
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenCourseware),
+                colors = CardDefaults.outlinedCardColors(),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("📚", fontSize = 26.sp)
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("课件库", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("上传 / 管理语数英课件图片", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text("›", fontSize = 24.sp, color = MaterialTheme.colorScheme.primary)
                 }

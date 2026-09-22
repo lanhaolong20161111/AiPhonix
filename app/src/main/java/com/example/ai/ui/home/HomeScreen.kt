@@ -57,6 +57,8 @@ fun HomeScreen(
     onOpenCharMap: () -> Unit = {},
     onOpenDiary: () -> Unit = {},
     onOpenRadicalGame: () -> Unit = {},
+    onOpenDailyChinese: () -> Unit = {},
+    onOpenDailyEnglish: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -259,6 +261,28 @@ fun HomeScreen(
             containerColor = Color(0xFFF3E5F5),
             arrowColor = Color(0xFF6A1B9A),
             onClick = onOpenRadicalGame,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 每日语文（家长设今日字词句/作文主题，孩子从 4 个入口练）
+        ToolCard(
+            emoji = "🏆",
+            title = "每日语文",
+            subtitle = "家长设今日字词句，孩子逐项练",
+            containerColor = Color(0xFFE8F5E9),
+            arrowColor = Color(0xFF2E7D32),
+            onClick = onOpenDailyChinese,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 每日英语（家长设今日单词/句子，单词卡+句子卡带发音评测）
+        ToolCard(
+            emoji = "🏆",
+            title = "每日英语",
+            subtitle = "今日单词与句子，跟读评测",
+            containerColor = Color(0xFFE3F2FD),
+            arrowColor = Color(0xFF1565C0),
+            onClick = onOpenDailyEnglish,
         )
         Spacer(Modifier.height(20.dp))
 

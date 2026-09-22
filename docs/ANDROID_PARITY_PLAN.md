@@ -31,7 +31,7 @@
 | `CharImageRecognition` / `CharImageGradeSelection` / `CharImageList` | `/module/char_image` + practice | ✅ 已有 |
 | `VocabularyPractice` / `SentencePractice` | `/module/char_image/practice?type=英词/英句` | ✅ 已有 |
 | `OralWriting` / OralWritingScreen | `/module/oral_writing` | ✅ 已有 |
-| `DailyPractice` / DailyPracticeScreen | `/module/daily_practice` | ✅ 已有（web 新增 daily_chinese / daily_english 子页，Android 待对齐） |
+| `DailyPractice` / DailyPracticeScreen | `/module/daily_practice` | ✅ 已有（web 的 `daily_chinese` / `daily_english` 子页已由 `DailyChinese` / `DailyEnglish` 对齐） |
 | `ImportCenter` / `MyImports` / `MyLearning` / `QuizPractice` / `SentenceReading` / `ArticleList` / `ArticleReading` / `ArticleQuiz` | web 已删除「我的学习」系 | ✅ Android 保留（web 曾移除，不回退 Android） |
 | `AiPractice` / `AiPracticeChat` / AiPracticeScreen | `/module/ai_practice` + chat | ✅ 已有 |
 | `AiHomework` / AiHomeworkScreen | `/module/ai_homework` | ✅ 已有 |
@@ -60,19 +60,21 @@
 | 10 | `/module/radical_game`（偏旁魔法屋） | ✅ RadicalGameScreen | 静态字族 + `/radical/song|riddles` | 中 |
 | 11 | `/module/speech_compose`（AI 对话学语文） | ❌ SpeechComposeScreen | chat + TTS + 文章分句 | 中 |
 | 12 | `/module/ai_english_talk`（AI 英语对话） | ❌ AiEnglishTalkScreen | chat（english） | 中 |
-| 13 | `/module/courseware_manager`（课件库） | ❌ CoursewareManagerScreen | 课件上传/管理接口 | 中 |
-| 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ❌ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
+| 13 | `/module/courseware_manager`（课件库） | ✅ CoursewareScreen | 课件上传/管理接口 | 中 |
+| 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
 | 15 | `/module/math_compound_expr`（综合算式动画） | ❌ MathCompoundExprScreen | 纯前端动画（Compose 重写） | 高 |
 | 16 | `/module/subtitle_capture`（字幕采集） | ❌ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 MediaStore + BitmapRegionDecoder） | 高 |
 | 17 | `/module/parent_report`（家长报告） | ⚠️ ReportScreen 需核对 | training/progress + 报告 | 中 |
 | 18 | `/register`（注册页） | ⚠️ 核对 LoginScreen 是否含注册 | auth | 低 |
+| 19 | `/module/sentence_practice`（造句练习） | ✅ SentenceComposeScreen | `AiChatRepository.ask("chinese")` + 每日语文句型 | 中 |
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）已全部完成；`assembleDebug` BUILD SUCCESSFUL；
-> `testDebugUnitTest` **235 用例 / 0 失败**（16 个测试类）。
-> 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）。
-> 剩余：批次 C 共 7 个模块 + 2 项待核对。
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C 前半（4 模块）已全部完成；
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **256 用例 / 0 失败**（19 个测试类）。
+> 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
+> 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）。
+> 剩余：**批次 C 后半 4 个模块**（AI 对话学语文、AI 英语对话、综合算式动画、字幕采集）+ 2 项待核对。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -85,7 +87,8 @@
 
 ### 批次 B（本次会话）✅ 全部完成
 6. **生词本** ✅：`data/wordbook/WordbookRepository`（`/wordbook/list` · `/wordbook/review` · `/wordbook/rate` · `DELETE /wordbook/{id}`，另备 `add`/`addMany`）+ `ui/wordbook/`（复习/词表双 Tab、大字卡点读、认识/不认识打卡、词表朗读+删除）。朗读：英文走 `TtsEngine`、中文走 `BaiduTtsCache.play(text,"0")`。
-   ⚠️ **Android 端「点读自动收录」尚未接线**（`add`/`addMany` 已就绪但无调用方）⇒ 词库目前只能靠 web 端收集。这是本模块唯一未闭环处。
+   ✅ **「点读自动收录」已接线（批次 C 前半补齐）**：`WordbookAutoCollector`（`data/wordbook/WordbookAutoCollect.kt`）—— `isWordbookWorthy` 移植自 web `isWordbookWorthy`（纯 CJK 块 / 纯英文词才算），去重键 `${source}:${text}`（对齐 web `useRef<Set>`，**必须去重**：服务端 `add`/`add-many` 是 `onConflictDoUpdate` 会 `times + 1`）。
+   已接：`AiChineseViewModel.speakChar`（`recog_chinese`）、`AiEnglishViewModel.speakTappedWord`（`recog_english`，**独立于 `speak`** —— 否则整段气泡也会被收进去）。
 7. **记忆快乐本** ✅：`data/joy/JoyRepository`（`/joy/list` + `DELETE /joy/{id}`，均需 JWT）+ `highlightJoyText` 的 Kotlin 移植；`ui/memoryjoy/`（按日期分组、文段逐字点读、当日字词 chip 点读、整段朗读、删除）。逐字发音走**服务端单字音频库** `/tts/char/{字}`（与 web 一致不传 pinyin）。
 8. **汉字地图** ✅：`data/charmap/CharMapRepository`（全量字卡 + 本人 feedback 状态）+ `ui/charmap/`（`LazyVerticalGrid` 按年级铺图、进度条、格子按状态着色 —— 与 web `.charmap-cell.*` **同色**）。点格子进入该字字卡列表。
 9. **成长日记** ✅：`data/diary/DiaryStore`（本地 `filesDir/diary_entries.json`，日期倒序、每天一条、临时文件 rename 原子写）+ `DiaryRepository`（`/llm/chat` mode=chinese，提示词与 web 逐字一致）+ `ui/diary/`（今日输入、润色+点评、时间线、删除确认）。
@@ -103,14 +106,30 @@
 - **生词本朗读不锁多音字读音**：web `speak(text,{pinyin})` 会锁读音；Android 走 `BaiduTtsCache`。偏旁魔法屋的单字读音**已锁**（走 `/tts/char/{字}?pinyin=xxx`）。
 - **AI 字谜加载态**：web 在谜面到达前页面是空白，Android 显示「AI 老师正在出字谜…」。
 
-### 批次 C（后续会话）
-11. AI 对话学语文（SpeechCompose）
-12. AI 英语对话（AiEnglishTalk）
-13. 课件库（CoursewareManager）
-14. 每日语文/每日英语（DailyChinese/DailyEnglish）
-15. 综合算式动画（MathCompoundExpr）
-16. 字幕采集（SubtitleCapture）
-17. 家长报告核对/对齐（ParentReport）
+### 批次 C 前半（本次会话）✅ 全部完成
+11. **课件库** ✅：`data/courseware/CoursewareRepository`（`GET /courseware?module=&limit=&offset=` · `POST /courseware/upload`(multipart) · `DELETE /courseware/{id}`，图片直链 `/courseware/file/:name` **不鉴权**，直接交 Coil）+ `data/courseware/PickedImage`（Screen 读字节、把纯数据交 VM —— VM 不持有 `Context`）+ `ui/courseware/`（三科目 `FilterChip`、`LazyVerticalGrid` 双列、多选图 `GetMultipleContents`、`AlertDialog` 替代 web `confirm()`）。
+   上传**串行**逐张（与 web `for (const f of files)` 一致），任一张失败即中断并把服务端 `detail`（如「图片超过 20MB 限制」）显示出来；等值判断：本地先按 `MAX_FILE_MB = 20` 拦一次。
+12. **每日语文** ✅：`data/dailyzh/`（`DailyZhStore` 本地镜像 + `DailyZhRepository` + `DailyTextSplit` 三套切分口径 + `DailyZhSync`）+ `ui/dailychinese/`（4 个练习入口 + ⚙️ 设置面板 4 个字段，摘要行与 web `todaySummary` **逐字一致**，含「词库命中 M」）。
+   词库命中用 `WordBankRepository.countCharsByTexts` / `countWordsByTexts`（**新增**）；「能不能认」= 识字**或**识写（对齐 web `isRecogChar`，**不含「写字」**）。
+13. **每日英语** ✅：`data/dailyen/`（`DailyEnStore` + `DailyEnRepository`：`/daily-en`(`GET`/`PUT`) · `/daily-en/word-info` · `/daily-en/sentence-info` · `/daily-en/image` · `/daily-en/file/:filename`）+ `ui/dailyenglish/`（单词卡：图/释义/例句；句子卡：图/翻译/常用场景；两卡都有 🔊 发音 + 🎤 评测）。切分直接复用 `DailyTextSplit.words` / `.sentences`（与 web `splitWords`/`splitSentences` 逐字同口径）。
+14. **造句练习** ✅：`ui/sentencecompose/`（选句页 → 练习页；三级回退取词：今日句型随机 → 生词本 `reviewQueue()` 随机 → 内置 `FALLBACK_WORDS`，与 web 逐字一致）+ `AiChatRepository.AiChatAskResult` 增加 `wrongs`（非破坏性：`correction.wrongs` 数组，既有调用方零影响）。
+15. **生词本自动收录接线** ✅（批次 B 遗留）见上面第 6 条。
+16. **批 C 前半顺手补的公共能力**（都在 `app/`）：
+    - `util/SoeDisplay.kt`：移植 web `lib/soeDisplay.ts`（`isMissing` / `formatScore` / `scoreClass` / `restoreWordCase`）——**漏读是 `MatchTag=2` 或负分，不是 0 分**，直接渲染会出现「-1 分」。附 5 条单测（期望值全部来自跑 web 真实现的探针）。
+    - `WordScore` 增加 `phoneInfos`、`PhonemeScore` 增加 `rawAccuracy` / `matchTag`（都有默认值 ⇒ 既有调用方零影响）。腾讯 SOE **句子模式也返回 `phone_infos`** ⇒ 句子卡支持点单词展开音素（对齐 web `SoeDetail` 的 `expandable`）。
+17. **首页「学习工具」区** ✅ 新增「🏆 每日语文」「🏆 每日英语」两张卡（`onOpenDailyChinese` / `onOpenDailyEnglish`）。
+
+#### 批次 C 前半的已知差异（有意为之，非遗漏）
+- **每日英语缺 3 项 web 能力**：① phonics 音形着色（Android 无 phonics 规则库）；② 「发音要领」（web 是本地 `lib/phonicsTips.ts` 打底 + LLM `/daily-en/phone-tips` 补充，Android 没有本地表，只调 LLM 补不出该效果）；③ 设置面板的拍照 OCR 自动填入（区域 OCR 随「字幕采集」一起做）。
+- **每日语文 / 每日英语的设置面板都只有手动输入**（同上，OCR 是前置依赖）。
+- **造句练习的 `wrongChars` 照抄了 web 的古怪行为**：用学生原句的 `wrongs` 去 `includes` 检查 **AI 点评文本**里的每个字（web 如此，Android 保持一致；已在注释里标注）。
+- **`LocalDate.now()` vs 服务端东八区**：web 用 `cstDate()`，Android 用设备本地日期 —— 在 UTC+8 设备（目标用户）上一致，已在注释写明。
+
+### 批次 C 后半（后续会话，两个"一整轮"级的单独立项）
+18. AI 对话学语文（SpeechCompose）
+19. AI 英语对话（AiEnglishTalk）
+20. 综合算式动画（MathCompoundExpr，Compose 重写飞入/转移动画）
+21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）
 
 ## 4. 实现约定（每新增模块）
 

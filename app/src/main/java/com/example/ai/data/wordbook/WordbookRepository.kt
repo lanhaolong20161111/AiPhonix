@@ -104,7 +104,7 @@ class WordbookRepository(
 
     /**
      * 单条加入生词本（幂等：同账号同 text 已存在则 times+1 并补 pinyin）。
-     * ⚠️ Android 端「点读自动收录」尚未接线，此方法供后续接入使用。
+     * 调用方是 [WordbookAutoCollector]（点读自动收录）；直接调用时请自行去重。
      */
     suspend fun add(text: String, pinyin: String = "", source: String = "app"): Boolean =
         withContext(Dispatchers.IO) {
@@ -125,7 +125,8 @@ class WordbookRepository(
 
     /**
      * 批量加入（整块收词）——一次请求多个字，比逐字循环快得多。
-     * ⚠️ 同 add()：Android 端尚未接线。
+     * ⚠️ 服务端 `add-many` 只写 text（不带 pinyin）；Android 端目前**无调用方**
+     * （web 的「整块加入生词本」入口在 Android 尚未移植）。
      */
     suspend fun addMany(texts: List<String>, source: String = "app_batch"): Boolean =
         withContext(Dispatchers.IO) {

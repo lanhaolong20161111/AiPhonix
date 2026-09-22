@@ -10,6 +10,9 @@ import com.example.ai.data.aihistory.AiHistoryItem
 import com.example.ai.data.aihistory.AiHistoryStore
 import com.example.ai.data.tts.BaiduTtsCache
 import com.example.ai.data.tts.TtsEngine
+import com.example.ai.data.wordbook.WordbookAutoCollector
+import com.example.ai.data.wordbook.WordbookRepository
+import com.example.ai.data.wordbook.WordbookSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,10 +56,16 @@ class AiEnglishViewModel(
     private val chatRepository: AiChatRepository = AiChatRepository(),
     private val historyStore: AiHistoryStore? = null, // Navigation 注入（可空便于预览）
     private val ttsEngine: TtsEngine? = null,
+    private val wordbookRepository: WordbookRepository = WordbookRepository(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiEnglishUiState())
     val uiState: StateFlow<AiEnglishUiState> = _uiState.asStateFlow()
+
+    /** 点读自动收录（对齐 web：点整词即加入生词本，本页会话内去重）。 */
+    private val wordbookCollector: WordbookAutoCollector by lazy {
+        WordbookAutoCollector(wordbookRepository) { block -> viewModelScope.launch { block() } }
+    }
 
     private var ttsCache: BaiduTtsCache? = null
     private var lastImageBytes: ByteArray? = null
@@ -269,6 +278,15 @@ class AiEnglishViewModel(
     }
 
     /** 朗读 AI 建议的朗读文本（speak 字段） */
+    /** 逐词点读（`EnglishBlockCard` 点击单词）：自动加入生词本 + 朗读。
+     *  与 [speak] 分开是必要的——[speakTurn] 会复用 [speak]，若把收录塞进 [speak] 会把整段气泡也收进去。 */
+    fun speakTappedWord(word: String) {
+        val w = word.trim()
+        if (w.isEmpty()) return
+        wordbookCollector.collect(w, WordbookSource.RECOG_ENGLISH)
+        speak(w)
+    }
+
     fun speakTurn(turn: AiEnglishTurn) {
         val target = turn.speakText.ifBlank { turn.content }
         speak(target)

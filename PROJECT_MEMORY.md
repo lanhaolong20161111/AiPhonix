@@ -5,13 +5,13 @@
 
 ---
 
-## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + 批次B 完成）
+## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + B + C前半 完成）
 
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
-- 本轮（批次B）为**同一任务继续**：从「生词本」起补 5 个模块，遵循同一套「Repository + ViewModel + Screen」骨架。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK 35MB）。
+- 本轮（批次C前半）为**同一任务继续**：课件库 / 每日语文 / 每日英语 / 造句练习 4 个模块 + 批次B 遗留的「生词本点读自动收录」接线。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -30,6 +30,20 @@
 | **成长日记** | `data/diary/DiaryStore`（本地 `filesDir/diary_entries.json`，临时文件 rename 原子写）+ `DiaryRepository`（`/llm/chat` `mode=chinese`，提示词与 web **逐字一致**）+ `ui/diary/`。单 `LazyColumn` 承载「今日输入卡 + 时间线」**避免嵌套滚动冲突**；`AlertDialog` 替代 web 的 `confirm()`。`DiaryStore` 需 Context ⇒ 由 `AppContainer` 注入 VM，**别在 VM 内 new**。 |
 | **偏旁魔法屋** | `data/radical/RadicalFamilies.kt` **由脚本 `scripts/gen_radical_families.mjs` 从 web `radicalFamilies.ts` 生成**（34 字族 / 134 字 / 45 偏旁；交叉校验：Kotlin `RadicalItem(` 计数 135 = TS `{ char: ` 计数 134 + 声明 1）；`RadicalRepository`（`/radical/song` + `/radical/riddles`，网络失败返回 **null**）+ `ui/radical/`（SELECT/SONG/QUIZ/DONE 四阶段、题型 A×5 选字填空 + 题型 B×3 选偏旁、小豆反应池三组）。**修掉 web 一个边界**：`questions` 为空时 web 的 `next()` 会直接跳 DONE，Android 改为 `getOrNull` + 提示重试。 |
 
+### 已完成（批次C前半 4 模块 + 1 接线｜2026-09-22 续做）
+| 模块 | 关键实现 |
+|---|---|
+| **课件库** | `data/courseware/`（`CoursewareRepository` + `PickedImage`）+ `ui/courseware/`。**VM 不持有 `Context`**（`AGENTS.md`）⇒ 由 Screen 用 `ContentResolver` 读字节成 `PickedImage`（**显式实现 `equals/hashCode`**，否则 `ByteArray` 退化成引用比较）再交 VM。上传**串行**逐张（对齐 web `for (const f of files)`），失败 message 取服务端 `detail`（如「图片超过 20MB 限制」）。图片直链**不鉴权**直接给 Coil。入口在家长设置 →「内容管理」（⚠️ 该段实际在**私有** `PlanEditor` 里，加参数要**同时给 `PlanEditor` 加同名参数并透传**，否则 `Unresolved reference`）。 |
+| **每日语文** | `data/dailyzh/`（`DailyZhStore` 本地镜像 / `DailyZhRepository` / `DailyTextSplit` / `DailyZhSync`）+ `ui/dailychinese/`。★ `DailyTextSplit` 是**跨页共享**的：`chars`/`words` = `[,，、;\s]+`、`sentences` = `[;；\n]+`、`todaySentences` = 换行或「句号/分号后的空白」（**零宽**，标点留在上段尾）—— 三套口径**不要合并**。★ `\s` 的 JS/Kotlin 差异见坑 0e。摘要行与 web `todaySummary` **逐字一致**。 |
+| **每日英语** | `data/dailyen/`（`DailyEnStore` + `DailyEnRepository`）+ `ui/dailyenglish/`。★ `/daily-en` 在 **`server_ts` 缺失**，一律以 **`server_cf/src/routes/daily_en.ts`** 为准。`/word-info`、`/sentence-info`、`/image`、`/file/:filename` 都**不鉴权**（web 注释：「不是敏感数据，未登录也能看」）。`/image` 命中不了专表会**回退看图识字图库**（type=英词/英句），返回**文件名**。评测 `eval_mode` 用 `"0"`(词)/`"1"`(句) —— 与服务端 `resolveEvalMode()` 的 `scene="word"/"sentence"` 映射**逐位相同**；★ **千万别省成 `""`（自动判定）**：英文自动判定下句子上限只有 **30 字符**，长句会被截断（`scene`/`eval_mode` 才是 120）。 |
+| **造句练习** | `ui/sentencecompose/`（选句页 → 练习页）。三级回退取词：今日句型随机 → 生词本 `reviewQueue()` 随机 → 内置 `FALLBACK_WORDS`（与 web 逐字一致）。`AiChatRepository.AiChatAskResult` **非破坏性**加了 `wrongs`（`correction.wrongs`）。 |
+| **生词本自动收录**（B 遗留） | `data/wordbook/WordbookAutoCollect.kt`：`isWordbookWorthy` 移植自 web（纯 CJK 块 / 纯英文词），去重键 `${source}:${text}`。★ **服务端 `add`/`add-many` 是 `onConflictDoUpdate`（`times + 1`）⇒ 收录侧必须去重**，否则 SRS 被污染。★ 构造**注入 `launch` 而非持有 `viewModelScope`**（否则不可单测）；`by lazy` 建 collector（避免构造期访问 `viewModelScope`）。★ `speakTappedWord` **独立于 `speak`**（否则整段气泡也被收进去）。 |
+
+#### 批次C前半补齐的公共能力（都在 `app/`）
+- **`util/SoeDisplay.kt`** = web `src/lib/soeDisplay.ts` 的移植：`isMissing` / `formatScore` / `scoreClass` / `restoreWordCase`。★ 腾讯 SOE 的**漏读是 `MatchTag=2` 或负分，不是 0 分**（直接渲染会出现「-1 分」）；英文引擎返回的词**一律小写**（`I`→`i`），要按参考文本**顺序双指针**还原大小写。附 `SoeDisplayTest`（5 用例，期望值来自跑 web 真实现的探针）。
+- **`WordScore.phoneInfos`** + **`PhonemeScore.rawAccuracy`/`matchTag`**（都有默认值 ⇒ 既有调用方零影响）。★ 腾讯 SOE **句子模式也返回 `phone_infos`** ⇒ 句子卡支持点单词展开音素。★ `PhonemeScore.score` 被 `coerceIn(0,100)` 夹过，漏读的 -1 会变 0 ⇒ **分不清「0 分」与「未读」**，故必须保留 `rawAccuracy`。
+- 首页「学习工具」区新增「每日语文 / 每日英语」两张卡。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -39,6 +53,11 @@
 0b. **★ 单测期望值必须取自「另一个真实实现」**：Android 的 `toBaiduSyllable` / `highlightJoyText` 的单测期望值，是用 `npx tsx` 跑 **web 真实实现**（`web/src/lib/ttsPinyin.ts`、`web/src/services/joy.ts`）逐项打印出来的，**不要自己推导**（否则等于自己实现自己验）。详见 `app/src/test/.../data/tts/BaiduSyllableTest.kt`、`data/joy/JoyHighlightTest.kt`（各 7 用例，全绿）。
 0c. **写探测/冒烟脚本落 `.mjs` 文件再跑**：bash 内联 `node -e "...中文..."` 会被 shell 吃引号（报 `SyntaxError: missing ) after argument list`，输出里还会出现 `./ _` 这类诡异内容，看着像命令被执行）。落文件 + 命令行传参才可靠。
 0d. **bash 里的 `/tmp` 是 `C:\tmp`**（MSYS 挂载语义），Node **读不到**；临时文件写 `C:/Users/lhl20/AppData/Local/Temp/`。
+0e. **★ JS 的 `\s` ≠ Kotlin 的 `\s`**：JS 含 `\u00A0 \u1680 \u2000-\u200A \u2028 \u2029 \u202F \u205F \u3000 \uFEFF`，Kotlin 默认只认 `[ \t\n\x0B\f\r]`。中文输入法极易打**全角空格 U+3000**、粘贴文本常带 **NBSP / BOM** ⇒ 照抄 `\s` 会**少切一刀**（实测 web `splitText("日\u3000月")` → `["日","月"]`）。且 **Kotlin `trim()` 不认 U+FEFF**（JS 的 `trim()` 认），要 `trim { it.isWhitespace() || it == '\uFEFF' }`。见 `data/dailyzh/DailyTextSplit.kt`。
+0f. **★ 别在 KDoc 注释里写正则**：我写了 `/\n+|(?<=[。；;])\s*/`，其中的 **`*/` 提前结束注释块**，后面全被当顶层声明 ⇒ **30+ 个 `Syntax error: Expecting a top level declaration`**。注释里用中文描述正则。
+0g. **往已有 composable 加回调参数，别忘了私有子 composable**：课件库入口加在家长设置的「内容管理」段，而那段实际在**私有 `PlanEditor`** 里 ⇒ 只改公开签名会 `Unresolved reference`，必须**同时给 `PlanEditor` 加同名参数并透传**。
+13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
+14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
 1. **`TtsEngine` 只适合英语**（系统 TTS 用 Locale.US/UK，回退百度 speaker 106/5118）。中文朗读一律用 `BaiduTtsCache.play(text, "0")`。
 2. **`/soe/records` 查询无鉴权**，必须显式传 `user_id`，否则返回**全站**记录。
 3. **`AiHistoryStore` 只存 `AiHistoryTurn`**（data 层），UI 层的 `AiEnglishTurn` 需先转换（`AiHistoryTurn(role, content)`），别直接塞。
@@ -52,11 +71,11 @@
 11. **共享 OkHttp `NetworkModule.httpClient` 的 readTimeout 已是 180s**，LLM 的 40s/90s 调用**直接用共享 client**，不必再 `createHttpClient` 派生。
 12. `scripts/` 在 `.gitignore` 里（「# Temp scripts → scripts/」）⇒ **新写的生成脚本不会被提交**（已跟踪的老脚本仍在库里）。生成物 `.kt` 必须提交，且文档要写清生成脚本路径。
 
-### 剩余（批次C，共 7 模块 + 2 待核对）
-AI 对话学语文、AI 英语对话、课件库、每日语文、每日英语、综合算式动画、字幕采集（C）；家长报告完整度核对、注册页是否已含在登录页核对。
-其中**综合算式动画**（Compose 重写飞入/转移动画，预计一整轮）与**字幕采集**（视频帧框选 + 区域 OCR，预计一整轮）难度最高。
-另有遗留：Android 端生词本「点读自动收录」尚未接线（`WordbookRepository.add/addMany` 已实现但无调用方）。
-⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。
+### 剩余（批次C后半 4 模块 + 2 待核对）
+- AI 对话学语文（`/module/speech_compose`）、AI 英语对话（`/module/ai_english_talk`）、**综合算式动画**（`/module/math_compound_expr`，Compose 重写飞入/转移动画，预计一整轮）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
+- 2 项待核对：家长报告完整度、注册页是否已含在登录页。
+- ⚠️ **字幕采集是「每日语文 / 每日英语设置面板的拍照 OCR 自动填入」的前置依赖** —— 那两个面板的 📷/🖼️ 按钮在 Android 右侧目前是缺的（有意留白，见 `DailyChineseScreen` / `DailyEnglishScreen` 的 KDoc）。
+- ⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。
 
 ---
 

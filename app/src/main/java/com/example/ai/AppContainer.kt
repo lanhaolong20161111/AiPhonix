@@ -111,4 +111,14 @@ class AppContainer(context: Context) {
     val aiHistoryStore: com.example.ai.data.aihistory.AiHistoryStore by lazy {
         com.example.ai.data.aihistory.AiHistoryStore(appContext)
     }
+
+    // ── 每日一练·语文配置（本地镜像；每日语文页与造句练习页共用，保证两页读到同一份） ──
+    val dailyZhStore: com.example.ai.data.dailyzh.DailyZhStore by lazy {
+        com.example.ai.data.dailyzh.DailyZhStore(appContext)
+    }
+
+    // ── 每日一练·英语配置（本地镜像；仅每日英语页用） ──
+    val dailyEnStore: com.example.ai.data.dailyen.DailyEnStore by lazy {
+        com.example.ai.data.dailyen.DailyEnStore(appContext)
+    }
 }
