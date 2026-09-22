@@ -1,5 +1,8 @@
 package com.example.ai.ui.dailyenglish
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,7 +49,19 @@ import coil.compose.AsyncImage
 import com.example.ai.data.dailyen.EnSentencePair
 import com.example.ai.data.model.PhonemeScore
 import com.example.ai.data.model.WordScore
+import com.example.ai.data.ocr.OcrPlatform
+import com.example.ai.ui.ocr.OcrAlbumBg as AlbumBg
+import com.example.ai.ui.ocr.OcrAlbumFg as AlbumFg
+import com.example.ai.ui.ocr.OcrCameraBg as CameraBg
+import com.example.ai.ui.ocr.OcrCameraFg as CameraFg
+import com.example.ai.ui.ocr.OcrErrBg as ErrBg
+import com.example.ai.ui.ocr.OcrErrRed as ErrRed
+import com.example.ai.ui.ocr.OcrIconChip as IconChip
+import com.example.ai.ui.ocr.OcrOkBg as OkBg
+import com.example.ai.ui.ocr.OcrOkGreen as OkGreen
+import com.example.ai.ui.ocr.OcrPickSheet
 import com.example.ai.util.SoeDisplay
+import java.io.File
 
 // ── 语义色（项目约定：绿=好 / 红=差 / 蓝=进行中；正文一律纯黑） ──
 private val Black = Color(0xFF000000)
@@ -63,8 +80,8 @@ private val ImageBg = Color(0xFFF1F5F9)
  * 单词卡（图 / 发音 / 评测 / 中文释义 / LLM 造 2 例句各带发音评测与翻译）
  * + 句子卡（图 / 发音 / 评测 / 中文翻译 / 常用中文场景）。
  *
- * ⚠️ 见 [DailyEnglishViewModel] 的 KDoc：phonics 着色、发音要领（phone-tips）、拍照 OCR
- * 三项**未移植**，其余逐项对齐。
+ * ⚠️ 见 [DailyEnglishViewModel] 的 KDoc：phonics 着色、发音要领（phone-tips）两项**未移植**；
+ * 设置面板的**拍照/相册 OCR 自动填入已移植**（单图，对齐 web 的 `pickFile`）。
  *
  * 评测结果按**被测文本**存在 `soeOutcomes` 里（单词卡查 `words[i]`，例句行查例句英文），
  * 与 web 每张卡/每行各自持有 `useSoeScore` 一份 state 的效果等价。
@@ -76,6 +93,61 @@ fun DailyEnglishScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // OCR 平台（相机临时文件 / 读 URI 字节）。页面内自建一份：只包了个 applicationContext，无状态。
+    val ocrPlatform = remember(context) { OcrPlatform(context.applicationContext) }
+
+    var pendingCameraFile by remember { mutableStateOf<File?>(null) }
+    var pendingField by remember { mutableStateOf<DailyEnField?>(null) }
+
+    // ⚠️ 两个 launcher 必须先声明：Kotlin 的局部函数不能前向引用后面才声明的局部变量
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val file = pendingCameraFile
+        val field = pendingField
+        pendingCameraFile = null
+        pendingField = null
+        if (!ok || file == null) {
+            file?.delete()
+            return@rememberLauncherForActivityResult
+        }
+        field?.let { viewModel.startOcr(it, listOf(Uri.fromFile(file))) }
+    }
+
+    // 相册：★ 与每日语文不同 —— web 这里是**不带 multiple** 的 input，
+    // 所以用 GetContent（单图）而不是 GetMultipleContents。
+    val albumLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        val field = pendingField
+        pendingField = null
+        if (uri == null) return@rememberLauncherForActivityResult
+        field?.let { viewModel.startOcr(it, listOf(uri)) }
+    }
+
+    fun startCamera(field: DailyEnField) {
+        pendingField = field
+        pendingCameraFile?.delete()
+        val file = ocrPlatform.newCameraFile()
+        pendingCameraFile = file
+        runCatching { ocrPlatform.cameraUri(file) }.onSuccess { cameraLauncher.launch(it) }
+    }
+
+    // 面板关闭后清理相机临时文件
+    LaunchedEffect(state.ocr.open) {
+        if (!state.ocr.open) {
+            pendingCameraFile?.delete()
+            pendingCameraFile = null
+        }
+    }
+
+    // 框选面板：整屏替代（与项目既有设置面板一致，避免弹层层级问题）
+    if (state.ocr.open) {
+        OcrPickSheet(
+            state = state.ocr,
+            session = viewModel.ocr,
+            modifier = modifier.fillMaxSize(),
+        )
+        return
+    }
 
     Column(modifier = modifier.fillMaxSize().padding(20.dp)) {
         // 顶栏
@@ -98,7 +170,15 @@ fun DailyEnglishScreen(
         Spacer(Modifier.height(4.dp))
 
         if (state.settingsOpen) {
-            SettingsPanel(state = state, viewModel = viewModel)
+            SettingsPanel(
+                state = state,
+                viewModel = viewModel,
+                onPickCamera = { f -> startCamera(f) },
+                onPickAlbum = { f ->
+                    pendingField = f
+                    albumLauncher.launch("image/*")
+                },
+            )
             return@Column
         }
 
@@ -540,6 +620,8 @@ private fun scoreColor(accuracy: Float, matchTag: Int): Color =
 private fun SettingsPanel(
     state: DailyEnglishUiState,
     viewModel: DailyEnglishViewModel,
+    onPickCamera: (DailyEnField) -> Unit,
+    onPickAlbum: (DailyEnField) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -558,20 +640,40 @@ private fun SettingsPanel(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
         ) {
+            // OCR 导入结果横幅（web `ocrMsg`；❌ 红底绿底按前缀区分）
+            if (state.ocrMsg.isNotBlank()) {
+                val isErr = state.ocrMsg.startsWith("❌")
+                Text(
+                    state.ocrMsg,
+                    fontSize = 12.sp,
+                    color = if (isErr) ErrRed else OkGreen,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (isErr) ErrBg else OkBg)
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                )
+            }
+
             DraftField(
                 label = "🔤 今天练的单词",
                 hint = "用逗号/空格分隔，如：apple, cat, dog, red",
                 value = state.draft.words,
                 onChange = { viewModel.onDraftChange(DailyEnField.WORDS, it) },
+                onCamera = { onPickCamera(DailyEnField.WORDS) },
+                onAlbum = { onPickAlbum(DailyEnField.WORDS) },
             )
             DraftField(
                 label = "✏️ 今天练的句子",
                 hint = "用分号/换行分隔，如：I like apples.; She is a student.",
                 value = state.draft.sentences,
                 onChange = { viewModel.onDraftChange(DailyEnField.SENTENCES, it) },
+                onCamera = { onPickCamera(DailyEnField.SENTENCES) },
+                onAlbum = { onPickAlbum(DailyEnField.SENTENCES) },
             )
             Text(
-                "💡 拍照识别填入暂未移植，请手动输入；单词与句子都会自动联网生成中文释义/翻译与例句。",
+                "💡 支持拍照/相册识别自动填入（一次一张，识别结果直接替换该字段）；" +
+                    "单词与句子都会自动联网生成中文释义/翻译与例句。",
                 fontSize = 12.sp,
                 color = HintGray,
             )
@@ -599,9 +701,20 @@ private fun DraftField(
     hint: String,
     value: String,
     onChange: (String) -> Unit,
+    onCamera: (() -> Unit)? = null,
+    onAlbum: (() -> Unit)? = null,
 ) {
     Column(Modifier.fillMaxWidth()) {
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Black)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Black, modifier = Modifier.weight(1f))
+            if (onCamera != null) {
+                IconChip(text = "📷", bg = CameraBg, fg = CameraFg, enabled = true, onClick = onCamera)
+                Spacer(Modifier.width(4.dp))
+            }
+            if (onAlbum != null) {
+                IconChip(text = "🖼️", bg = AlbumBg, fg = AlbumFg, enabled = true, onClick = onAlbum)
+            }
+        }
         Spacer(Modifier.height(4.dp))
         OutlinedTextField(
             value = value,

@@ -122,8 +122,8 @@
 17. **首页「学习工具」区** ✅ 新增「🏆 每日语文」「🏆 每日英语」两张卡（`onOpenDailyChinese` / `onOpenDailyEnglish`）。
 
 #### 批次 C 前半的已知差异（有意为之，非遗漏）
-- **每日英语缺 3 项 web 能力**：① phonics 音形着色（Android 无 phonics 规则库）；② 「发音要领」（web 是本地 `lib/phonicsTips.ts` 打底 + LLM `/daily-en/phone-tips` 补充，Android 没有本地表，只调 LLM 补不出该效果）；③ 设置面板的拍照 OCR 自动填入（区域 OCR 随「字幕采集」一起做）。
-- **每日语文 / 每日英语的设置面板都只有手动输入**（同上，OCR 是前置依赖）。
+- **每日英语缺 2 项 web 能力**：① phonics 音形着色（Android 无 phonics 规则库）；② 「发音要领」（web 是本地 `lib/phonicsTips.ts` 打底 + LLM `/daily-en/phone-tips` 补充，Android 没有本地表，只调 LLM 补不出该效果）。
+- **设置面板「拍照 OCR 自动填入」已完成**：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）均已移植 `OcrPickSheet` 系；前置依赖「字幕采集」区域裁剪早已具备。
 - **造句练习的 `wrongChars` 照抄了 web 的古怪行为**：用学生原句的 `wrongs` 去 `includes` 检查 **AI 点评文本**里的每个字（web 如此，Android 保持一致；已在注释里标注）。
 - **`LocalDate.now()` vs 服务端东八区**：web 用 `cstDate()`，Android 用设备本地日期 —— 在 UTC+8 设备（目标用户）上一致，已在注释写明。
 
@@ -154,7 +154,7 @@
 - **中文音色取值不同**：web 用 `speaker="6221"`、古诗 `"3"`；Android 沿用本项目中文模块的既有约定 `"0"`（老师）/ `"3"`（度逍遥）。
 - **不做「预取下一句音频」**：web 有 `warm()` 只下载不播放；Android 的 TTS 缓存没有该入口，故只在点击时合成（影响首次点击等待感，不影响正确性）。
 - **`polyphoneOnly: true` 分支未实现**：web 的精细模式依赖 `data/polyphoneChars` 多音字表，Android 暂无该表（古诗走的是 `polyphoneOnly: false` 分支，不受影响）。
-- **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
+- **设置面板无拍照 OCR（与 web 一致，非 parity gap）**：web 端 `SpeechComposePage` 原本**就没有**拍照 OCR，所以 Android 也不做；这与「每日语文/每日英语/AI 英语对话」三处的 OCR（web 有、Android 已移植）是两回事，别误当成遗漏去补。
 
 #### 19. AI 英语对话 ✅（`/module/ai_english_talk`）
 
@@ -179,7 +179,9 @@
 - **「自己说」降级为「录一段 → 识别 → 判定」**：web 用 WebSocket 流式 ASR（`/asr/stream`）做实时逐词上屏，Android 无该通道 ⇒ 录音结束才拿到整段文本。
 - **放弃 3 项依赖流式 ASR 的能力**：① 逐词实时提示；② **6 秒静音自动挂阶梯**；③ 提示记录面板。
 - **不做「未作答自动给提示」的三级 hint**（同上一项，依赖流式 ASR 的静音检测）。
-- **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
+- **「📷 拍照识词」已完成**：设置面板顶部的「拍照识词（推荐）」入口卡 → 整页 OCR（`/ai-chinese/parse-image` + `mode=english`）→ `EnVocabExtract` 抽词句（纯函数 + 单测）→ 勾选导入「练习单词 / 练习句子」。对齐 web `EnVocabPhotoSheet`。
+
+  ⚠️ 与 web 的有意差异：识别阶段只有「处理图片 / 识别中」两档，`UPLOADING` 这一档在 Android 不可达（`parseImage` 一次 await 到底，无中间回调）；文案保持一致。
 - **`EN_WORD_RE` 照抄 web 的三处反直觉行为**：连字符 `-` **不在**字符类内（`well-known` 切成 `well` + `known`）；数字切开（`world4u` → `world` + `u`）；非 ASCII 字母切开（`café` → `caf`）—— 与 `WordbookAutoCollector` 的英文词正则**不同**，不可互换。
 
 #### 20. 综合算式动画 ✅（`/module/math_compound_expr`）
@@ -312,9 +314,9 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
-- **每日英语缺 3 项**：phonics 音形着色（无本地规则库）、「发音要领」（无本地 `phonicsTips.ts` 表）、设置面板拍照 OCR 自动填入。
+- **每日英语缺 2 项**：phonics 音形着色（无本地规则库）、「发音要领」（无本地 `phonicsTips.ts` 表）。
 - **AI 英语对话缺流式 ASR 相关 3 项**：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板。
-- ★ **4 处设置面板的「拍照 OCR 自动填入」前置依赖已解除**：区域 OCR 所需的取帧+区域裁剪能力随「字幕采集」已具备 ⇒ **现在可以做**（原本推迟的原因正是它）。
+- **「拍照 OCR 自动填入」已全部落地**：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）、AI 英语对话（整页识词抽句）三处设置面板均已移植，对应 `OcrPickSheet` / `EnVocabPhotoSheet` 系 + `EnVocabExtract` 抽词规则。AI 对话学语文（web 本就无 OCR）是**唯一**不做的一处，不是 parity gap。
 - 结构差异（有意）：AI 识别结果页输入+结果同屏；汉字地图状态取「最新」（web 取最旧是笔误）；生词本朗读不锁多音字；评测历史/汉字地图点击不定位到具体字。
 - B站内嵌预览两端都不能采集（web 是 iframe、Android 是 WebView，都拿不到帧）。
 

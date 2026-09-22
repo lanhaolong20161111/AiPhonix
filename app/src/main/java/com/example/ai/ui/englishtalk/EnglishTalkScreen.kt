@@ -1,5 +1,9 @@
 package com.example.ai.ui.englishtalk
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,19 +28,27 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ai.data.ocr.OcrPlatform
 import com.example.ai.data.tts.BaiduTtsCache
 import com.example.ai.ui.common.EnglishWordTapText
 import com.example.ai.ui.echo.EchoLadder
+import com.example.ai.ui.ocr.EnVocabEntryCard
+import com.example.ai.ui.ocr.EnVocabPhotoSheet
 import com.example.ai.util.englishOnly
+import java.io.File
 
 /**
  * AI 英语对话陪练页（对齐 web `pages/AiEnglishTalkPage.tsx`）。
@@ -57,10 +69,38 @@ fun EnglishTalkScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // 本地持一份 OcrPlatform 仅用于「相机临时文件」（与每日语文同套路；VM 另有自己的引用只读字节）
+    val ocrPlatform = remember(context) { OcrPlatform(context.applicationContext) }
+    var pendingCameraFile by remember { mutableStateOf<File?>(null) }
 
     // 离开页面立刻停止朗读（并释放全局播放锁）
     DisposableEffect(Unit) {
-        onDispose { BaiduTtsCache.stopAll() }
+        onDispose {
+            pendingCameraFile?.delete()
+            BaiduTtsCache.stopAll()
+        }
+    }
+
+    // 相机：拍完直接打开识词弹层
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val file = pendingCameraFile
+        pendingCameraFile = null
+        if (!ok || file == null) {
+            file?.delete()
+            return@rememberLauncherForActivityResult
+        }
+        viewModel.startPhotoVocab(Uri.fromFile(file))
+    }
+    // 相册：单张（整页识别，与 web 一致）
+    val albumLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) viewModel.startPhotoVocab(uri)
+    }
+
+    // 「📷 拍照识词」弹层：整屏替代（与设置面板同套路，避开弹层层级问题）
+    if (state.photo.open) {
+        EnVocabPhotoSheet(state = state.photo, session = viewModel.photo, modifier = Modifier.fillMaxSize())
+        return
     }
 
     Column(
@@ -76,7 +116,20 @@ fun EnglishTalkScreen(
         )
         Column(Modifier.padding(horizontal = 12.dp).padding(bottom = 24.dp)) {
             if (!state.started) {
-                SetupSection(state = state, viewModel = viewModel)
+                SetupSection(
+                    state = state,
+                    viewModel = viewModel,
+                    onCamera = {
+                        // 建临时文件（FileProvider 要求），失败不打开相机
+                        pendingCameraFile?.delete()
+                        val file = ocrPlatform.newCameraFile()
+                        pendingCameraFile = file
+                        runCatching { ocrPlatform.cameraUri(file) }
+                            .onSuccess { uri -> cameraLauncher.launch(uri) }
+                            .onFailure { pendingCameraFile = null }
+                    },
+                    onAlbum = { albumLauncher.launch("image/*") },
+                )
             } else {
                 TalkSection(state = state, viewModel = viewModel)
             }
@@ -115,8 +168,23 @@ private fun TopBar(title: String, turnLabel: String, onBack: () -> Unit) {
 // ══════════════════════════════════════════════════════════════
 
 @Composable
-private fun SetupSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewModel) {
+private fun SetupSection(
+    state: EnglishTalkUiState,
+    viewModel: EnglishTalkViewModel,
+    onCamera: () -> Unit,
+    onAlbum: () -> Unit,
+) {
     Card {
+        // 「📷 拍照识词」入口卡（对齐 web 置顶的 EnVocabPhotoSheet 入口）
+        EnVocabEntryCard(
+            preparing = state.preparingPhoto,
+            msg = state.vocabMsg,
+            warn = state.vocabWarn,
+            onCamera = onCamera,
+            onAlbum = onAlbum,
+        )
+        Spacer(Modifier.height(12.dp))
+
         Text(
             "也可以直接手写练习词句（场景可不填，AI 会自己挑合适的）。",
             fontSize = 13.sp,

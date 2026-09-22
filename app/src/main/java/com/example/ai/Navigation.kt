@@ -282,6 +282,10 @@ fun MainNavigation(container: AppContainer) {
               DailyChineseViewModel(
                 store = container.dailyZhStore,
                 wordBankRepository = container.wordBankRepository,
+                // 拍照 OCR：仓储 + 图片处理 + 识别模型偏好（三者都可空，缺失时 OCR 静默降级）
+                ocrRepository = container.aiChineseRepository,
+                ocrPlatform = container.ocrPlatform,
+                ocrEngineStore = container.ocrEngineStore,
               )
             },
             onBack = { backStack.removeLastOrNull() },
@@ -299,6 +303,10 @@ fun MainNavigation(container: AppContainer) {
                 store = container.dailyEnStore,
                 repository = DailyEnRepository(),
                 ttsEngine = container.ttsEngine,
+                // 拍照 OCR：仓储 + 图片处理 + 识别模型偏好（三者都可空，缺失时 OCR 静默降级）
+                ocrRepository = container.aiChineseRepository,
+                ocrPlatform = container.ocrPlatform,
+                ocrEngineStore = container.ocrEngineStore,
               )
             },
             onBack = { backStack.removeLastOrNull() },
@@ -324,7 +332,14 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<AiEnglishTalk> {
           EnglishTalkScreen(
-            viewModel = viewModel { EnglishTalkViewModel(ttsCache = container.ttsCache) },
+            viewModel = viewModel {
+                EnglishTalkViewModel(
+                    ttsCache = container.ttsCache,
+                    ocrRepository = container.aiChineseRepository,
+                    ocrPlatform = container.ocrPlatform,
+                    ocrEngineStore = container.ocrEngineStore,
+                )
+            },
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )

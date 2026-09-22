@@ -1,20 +1,26 @@
 package com.example.ai.ui.englishtalk
 
+import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ai.data.aichinese.AiChineseRepository
 import com.example.ai.data.asr.AsrRepository
 import com.example.ai.data.audio.AudioRecorder
 import com.example.ai.data.dailyen.DailyEnRepository
 import com.example.ai.data.englishtalk.DialogueLine
 import com.example.ai.data.englishtalk.DialogueScript
 import com.example.ai.data.englishtalk.EnglishTalkRepository
+import com.example.ai.data.ocr.OcrEngineStore
+import com.example.ai.data.ocr.OcrPlatform
 import com.example.ai.data.speech.ScoreClient
 import com.example.ai.data.tts.BaiduTtsCache
 import com.example.ai.di.NetworkModule
 import com.example.ai.ui.echo.EchoLadderState
 import com.example.ai.ui.echo.LadderView
+import com.example.ai.ui.ocr.EnVocabPhotoSession
+import com.example.ai.ui.ocr.EnVocabPhotoState
 import com.example.ai.util.ENGINE_EN
 import com.example.ai.util.evalModeForScene
 import com.example.ai.util.englishOnly
@@ -72,11 +78,12 @@ private enum class LadderRole { ECHO_TARGET, CORRECT_FIX }
  * 朗读口径：**中英连读**（[speakPair]）——英文读完紧接着读这句的中文翻译，
  * 翻译与英文朗读**并发**取，故总等待 ≈ max(英文时长, 翻译时长) + 中文时长。
  *
- * ⚠️ 与 web 的三处**有意差异**（详见 `docs/ANDROID_PARITY_PLAN.md`）：
+ * ⚠️ 与 web 的两处**有意差异**（详见 `docs/ANDROID_PARITY_PLAN.md`）：
  * - 自由模式**没有 WebSocket 流式 ASR**（Android 侧没有流式通道）⇒ 无实时中间文本、
  *   无「停顿 2s 逐词提示」、无「6 秒静音自动挂阶梯」；改为「录完一次 → 识别 → 判定」。
  * - 因此「提示记录」面板不存在（它只由逐词提示产生）。
- * - 「📷 拍照识词」需要整页 OCR，属「字幕采集」范畴，暂缺（与每日语文/英语同一处缺口）。
+ * - 「📷 拍照识词」**已实现**（整页 OCR → 抽词句 → 勾选导入，见 `EnVocabPhotoSession` / `EnVocabPhotoSheet`），
+ *   与 web 的 `EnVocabPhotoSheet` 对齐；抽词规则在 `data/envocab/EnVocabExtract.kt`（纯函数 + 单测）。
  */
 class EnglishTalkViewModel(
     private val talkRepository: EnglishTalkRepository = EnglishTalkRepository(),
@@ -92,12 +99,41 @@ class EnglishTalkViewModel(
      * 而全局播放锁是**静态共享**的，用同一个实例才能保证「英文→中文」严格串行不叠音。
      */
     private val ttsCache: BaiduTtsCache? = null,
+    /** 拍照识词用的仓储（网页侧是同一个 `ai-chinese/parse-image` + `mode=english`） */
+    ocrRepository: AiChineseRepository? = null,
+    /** 唯一持 `Context` 的依赖（读 URI 字节 / EXIF 转正 / 压缩），为 null 时拍照识词静默降级 */
+    ocrPlatform: OcrPlatform? = null,
+    ocrEngineStore: OcrEngineStore? = null,
 ) : ViewModel() {
 
     private val scoreClient = ScoreClient(NetworkModule.httpClient)
 
     private val _uiState = MutableStateFlow(EnglishTalkUiState())
     val uiState: StateFlow<EnglishTalkUiState> = _uiState.asStateFlow()
+
+    /**
+     * 「📷 拍照识词」会话（对齐 web `EnVocabPhotoSheet`）。
+     *
+     * ★ 与每日语文/英语的「框选」不同：这里是**整页识别**（不拖框），打开就跑，
+     * 抽词句后用勾选的方式导入。抽词规则在 `data/envocab/EnVocabExtract.kt`。
+     */
+    val photo: EnVocabPhotoSession = EnVocabPhotoSession(
+        repository = ocrRepository ?: AiChineseRepository(),
+        platform = ocrPlatform,
+        engineStore = ocrEngineStore,
+        scope = viewModelScope,
+        onDone = ::onVocabDone,
+    )
+
+    /** 唯一持 Context 的依赖（`OcrPlatform` 只包了 applicationContext，无状态） */
+    private val ocrPlatformRef: OcrPlatform? = ocrPlatform
+
+    init {
+        // 弹层状态转发进本页 state（与每日语文/英语同一套做法）
+        viewModelScope.launch {
+            photo.state.collect { s -> setState { it.copy(photo = s) } }
+        }
+    }
 
     private var speakJob: Job? = null
     /** 每轮「领读 → 挂阶梯」的串行链（换轮/切模式时取消） */
@@ -131,6 +167,60 @@ class EnglishTalkViewModel(
     fun setWordsText(v: String) = setState { it.copy(wordsText = v) }
 
     fun setSentencesText(v: String) = setState { it.copy(sentencesText = v) }
+
+    // ══════════════════════════════════════════════════════════════
+    // 📷 拍照识词（对齐 web `onPickPhoto` / `onVocabDone`）
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * 选图/拍照 → 读字节 → 打开识词弹层（弹层里做转正 + 压缩 + 整页识别）。
+     *
+     * ⚠️ 与 web 的时序差异（有意）：web 在**打开弹层前**就把图转正压缩了（`prepareImageFile`），
+     * 所以 `preparingPhoto` 期间设置页还在、弹层还没出现；Android 把这步放进弹层
+     * （弹层显示「🖼️ 正在处理图片…」）。这里 `preparingPhoto` 只覆盖「读 URI 字节」这一小段，
+     * 作用仍是**防连点**。
+     */
+    fun startPhotoVocab(uri: Uri) {
+        val platform = ocrPlatformRef ?: return
+        if (_uiState.value.preparingPhoto) return
+        setState { it.copy(preparingPhoto = true, vocabMsg = "") }
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) { platform.readBytes(uri) }
+            setState { it.copy(preparingPhoto = false) }
+            if (bytes == null) {
+                setState { it.copy(vocabWarn = true, vocabMsg = "读取图片失败：请换一张更清晰的照片试试") }
+                return@launch
+            }
+            photo.start(bytes)
+        }
+    }
+
+    fun closePhotoVocab() = photo.close()
+
+    /**
+     * 识词弹层点「✓ 用这些词句出题」：回填输入框（用户可再改），**不自动开始**
+     * （对齐 web `onVocabDone`）。
+     *
+     * ⚠️ 只有非空的一侧才覆盖输入框（`if (words.length)`）—— 否则「只勾了句子」会把用户
+     * 手写的单词全清掉。
+     */
+    private fun onVocabDone(words: List<String>, sentences: List<String>) {
+        photo.close()
+        val empty = words.isEmpty() && sentences.isEmpty()
+        setState {
+            it.copy(
+                wordsText = if (words.isNotEmpty()) words.joinToString(", ") else it.wordsText,
+                sentencesText = if (sentences.isNotEmpty()) sentences.joinToString("\n") else it.sentencesText,
+                vocabWarn = empty,
+                vocabMsg = if (empty) {
+                    "没抽到单词或句子，请换一张更清晰的照片。"
+                } else {
+                    "✅ 已填入 ${words.size} 个单词、${sentences.size} 个句子（可修改），" +
+                        "点下方「✨ 开始对话」让 AI 出题"
+                },
+            )
+        }
+    }
 
     /** 绿色「✨ 开始对话」：解析输入 → 生成剧情 → 开第一轮 */
     fun startScript() {
@@ -788,6 +878,7 @@ class EnglishTalkViewModel(
     override fun onCleared() {
         turnJob?.cancel()
         cancelAllJobs()
+        photo.release()
         audioRecorder.stop()
         BaiduTtsCache.stopAll()
         super.onCleared()
@@ -832,6 +923,15 @@ data class EnglishTalkUiState(
     val sentencesText: String = "",
     val settingUp: Boolean = false,
     val setupError: String = "",
+    // ── 📷 拍照识词 ──
+    /** 识词弹层状态（转发自 [EnglishTalkViewModel.photo]；`open=true` 时整屏替代设置页） */
+    val photo: EnVocabPhotoState = EnVocabPhotoState(),
+    /** 正在读图（防连点；web `preparingPhoto`） */
+    val preparingPhoto: Boolean = false,
+    /** 识图结果提示（web `vocabMsg`：成功绿 / 失败黄） */
+    val vocabMsg: String = "",
+    /** 上面的提示用黄底（web `vocabWarn`） */
+    val vocabWarn: Boolean = false,
     // ── 剧情 ──
     val title: String = "",
     val turn: Int = 0,

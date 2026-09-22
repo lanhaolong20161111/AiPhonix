@@ -138,4 +138,17 @@ class AppContainer(context: Context) {
     val subtitleCaptureStore: com.example.ai.data.subtitlecapture.SubtitleCaptureStore by lazy {
         com.example.ai.data.subtitlecapture.SubtitleCaptureStore(appContext)
     }
+
+    // ── 拍照 OCR 框选（每日语文/每日英语/AI 英语对话共用的「拍→框→识别→导入」） ──
+    // OcrPlatform 是这条链上唯一持 Context 的类（读 URI 字节 / 相机临时文件 / 生成规范图与裁剪），
+    // 与 ttsCache 同套路：容器持有后构造注入，ViewModel 自身仍不持 Context。
+    val ocrPlatform: com.example.ai.data.ocr.OcrPlatform by lazy {
+        com.example.ai.data.ocr.OcrPlatform(appContext)
+    }
+    val ocrEngineStore: com.example.ai.data.ocr.OcrEngineStore by lazy {
+        com.example.ai.data.ocr.OcrEngineStore(appContext)
+    }
+    val aiChineseRepository: com.example.ai.data.aichinese.AiChineseRepository by lazy {
+        com.example.ai.data.aichinese.AiChineseRepository()
+    }
 }

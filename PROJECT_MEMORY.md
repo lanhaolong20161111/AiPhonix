@@ -12,7 +12,8 @@
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
 - 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`c0663cf` + `381585c`（**批次C后半③** 综合算式动画）、`1670771`（**批次C后半④** 字幕采集）、`9850006`（收官核对文档）、本轮（**收官补齐** 家长周报）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）；单测 **28 类 / 374 例 / 0 失败**。
 - ✅ **21/21 个 web 模块全部移植完成**（差距表 #1–#19 全绿；#2 为有意的结构差异）。完整收官结论见 `docs/ANDROID_PARITY_PLAN.md` **§3.5**。
-- **仍剩余（都不是「漏移植」）**：① 4 处设置面板的「拍照 OCR 自动填入」（每日语文/英语、AI 对话学语文、AI 英语对话）—— 前置依赖「字幕采集」已完成，**现在可做**；② 每日英语的 phonics 音形着色与「发音要领」（缺本地规则表）；③ AI 英语对话的流式 ASR 三项（逐词实时上屏 / 6 秒静音挂阶梯 / 提示记录面板）；④ web 侧待修 `charImages.ts` 的 `type_` → `type`；⑤ 用户实机验证。
+- **仍剩余（都不是「漏移植」）**：① 每日英语的 phonics 音形着色与「发音要领」（缺本地规则表）；② AI 英语对话的流式 ASR 三项（逐词实时上屏 / 6 秒静音挂阶梯 / 提示记录面板）；③ web 侧待修 `charImages.ts` 的 `type_` → `type`；④ 用户实机验证。
+- ★ **「拍照 OCR 自动填入」已全部落地**（详见下方「拍照 OCR 自动填入」小节）：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）、AI 英语对话（整页识词抽句 → 勾选导入）三处设置面板均已移植，对应 `OcrPickSheet` / `EnVocabPhotoSheet` 系 + `EnVocabExtract` 抽词规则。**唯一不做的是 AI 对话学语文**——web `SpeechComposePage` 本就没有 OCR，不是 parity gap。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -162,6 +163,32 @@
 - ★ `toLocaleString("zh-CN")` 的等价物是 `SimpleDateFormat("yyyy/M/d HH:mm:ss", Locale.CHINA)`（月/日**不补零**、时/分/秒补零）。
 - 唯一显示差异（有意）：三路全失败时显示「⚠️ 统计数据加载失败（断网）」，web 则显示一片 0（避免家长误以为孩子这周没练）。
 - 单测 **21 例（新增 1 类）`ParentReportLogicTest`**，期望值来自 web 原逻辑的 node 探针（含空集场景）。
+
+### 拍照 OCR 自动填入（设置面板自动填入｜2026-09-22 收官后新增）
+
+三处设置面板移植 web 的「拍照 OCR 自动填入」：每日语文（**多图框选 + 拼音清洗**）、每日英语（**单图整页**）、AI 英语对话（**整页识词抽句 → 勾选导入**）。AI 对话学语文**故意不做**（web `SpeechComposePage` 本就无 OCR）。
+
+**架构要点（AGENTS.md 分层）**：
+- `OcrPlatform` 是**唯一持 `Context`** 的类（读 URI 字节 / EXIF 转正 / 缩图 / 裁剪）；VM 侧 `ocrPlatform` / `ocrRepository` / `ocrEngineStore` 全**可空**，为 null 时**静默降级**（单测不传）。
+- 识别统一走 `AiChineseRepository.parseImage(bytes, mode, engine, forceRefresh)`（`/api/v1/ai-chinese/parse-image`）；整页识词用 `mode="english"`。缓存键把 `mode`+`engine` 算进 sha256。
+- ★ **规范图统一坐标系**：`OcrPlatform.canonicalize()` 生成一张「EXIF 转正 + 自动裁白边 + 最长边 ≤1600 + JPEG 85」的图，**显示、文字行检测（吸附）、裁剪三件套全部基于同一张** ⇒ 坐标天然自洽，位图只解码一次（否则「检测用原图归一化坐标、显示用转正位图」会整页偏移）。
+- `OcrPickSession` / `EnVocabPhotoSession` 是**可复用会话状态机**（三处面板共用），业务侧的「导入到哪个字段 / 多图队列 / 落盘同步」留在各自 VM。
+
+**文件清单（都在 `app/`）**：
+- `util/StripPinyin.kt`（`stripPinyin` / `stripPinyinKeepDelimiters`）+ 3 单测。
+- `data/ocr/`：`OcrModels.kt`（枚举/状态）、`OcrBoxLogic.kt`（框选几何纯函数，**18 单测**）、`OcrEngineStore.kt`（引擎 SharedPreferences，key 沿用 web `aiphonix_ocr_engine`）、`OcrPlatform.kt`（唯一持 Context）。
+- `ui/ocr/`：`OcrPickSession.kt` + `OcrPickSheet.kt`（框选）、`EnVocabPhotoSession.kt` + `EnVocabPhotoSheet.kt`（整页识词）、`OcrImportButtons.kt`（共享件：`OcrEnginePicker` / `OcrSmallButton` / `OcrIconChip` / `clickableNoRipple`）。
+- `data/envocab/EnVocabExtract.kt`（整页文本抽词句纯函数，**单测全绿**）。
+- VM：`DailyChineseViewModel` / `DailyEnglishViewModel` / `EnglishTalkViewModel`；Screen：`DailyChineseScreen` / `DailyEnglishScreen` / `EnglishTalkScreen`；`Navigation.kt` 三处补 `ocrRepository`/`ocrPlatform`/`ocrEngineStore`。
+
+**★ 移植时钉死的 web 反直觉行为（单测已锁，别"顺手修好"）**：
+- **两套不同的尺寸门槛**：画新框 `w > 8 && h > 8`（**严格**大于）；调整已有框 `w >= 8 && h >= 8`（**大于等于**）；吸附门槛又是第三套 `w > 2 && h > 2`。
+- **吸附** `intersectRatio > 0.35`（**严格**）才吸附，且按文字行顺序**首个胜出**（不是取最大）。命中把手 = 半径 18 的圆；命中框内用 `pad=6` 窄带排除；遍历**从后往前**。
+- ★ web `DailyChinesePage.joinOcrTexts` 有**真 bug**：源码写成 `t.split(/\\s+/)` 与 `join("\\n")` 是**字面双反斜杠**（`od -c` 核实字节是 `\ \s`、`\ \n`），多图导入词/句会插入字面 `\n`。**Android 按意图实现**（真 JS 空白集切分 + 真换行）。
+- `EnVocabExtract` 的 `object` 初始化顺序陷阱：`STOP_WORDS` 用到 `WS` 正则常量 ⇒ **`WS` 等正则常量必须声明在 `STOP_WORDS` 之前**，否则运行期 NPE（首版就栽在这）。
+- **`clickableNoRipple` 必须是包级 `internal`**：同包多个文件各写 `private fun Modifier.clickableNoRipple` 会与包级版**重名冲突**（`Conflicting overloads`）。抽到 `OcrImportButtons.kt` 包级一处即可。
+- ★ 相机走 `ActivityResultContracts.TakePicture` + `OcrPlatform.newCameraFile()`（FileProvider 要求的 `cache/import_photos/ocr_photo_<ts>.jpg`）；相册每日语文走 `GetMultipleContents("image/*")`（可多选）、每日英语/AI 英语对话走 `GetContent("image/*")`（单张）。
+- 删除按钮 Android 适配：web 把 ✕ 放框外（`right:-10`），Compose 超出父边界收不到手势 ⇒ 就地贴框内右上角并左移让开 `ne` 把手。
 
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。

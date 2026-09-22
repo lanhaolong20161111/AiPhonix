@@ -187,6 +187,20 @@ data class ParseImageResult(
     val pageBounds: FloatArray? = null, // [left, top, right, bottom] 0~1000 相对坐标；null=无（页面占满）
 )
 
+/**
+ * `/ai-chinese/detect-blocks` 返回的一行文本（**归一化坐标 0~1**，相对原图宽高）。
+ *
+ * 这是 OCR 框选的面板里「绿框吸附」用的参照：不返回像素坐标，由调用方按预览尺寸换算，
+ * 这样面板缩放/换尺寸都不用重新请求。
+ */
+data class DetectTextBlock(
+    val nx: Float = 0f,
+    val ny: Float = 0f,
+    val nw: Float = 0f,
+    val nh: Float = 0f,
+    val text: String = "",
+)
+
 // ── 认读画像：字被点击发音次数 ──
 
 /** 单个字 + 点击次数 */
@@ -298,9 +312,18 @@ class AiChineseRepository(
     /** 拍照识题：图片字节 → 题目列表（服务端 Ark 多模态优先，自动回退 OCR；多题逐题返回）
      *  同一张图片（字节一致）内存缓存直接返回，不再走网络。
      *  @param forceRefresh true = 跳过内存缓存和服务端缓存，强制重新识别（结果覆盖缓存）。
-     *  @param mode 识别学科模式（如 "english"：服务端跳过多音字/中文去噪，用英语专用提示词）。 */
-    suspend fun parseImage(bytes: ByteArray, fileName: String = "photo.jpg", forceRefresh: Boolean = false, mode: String = ""): ParseImageResult = withContext(Dispatchers.IO) {
-        val key = sha256(bytes + mode.toByteArray(Charsets.UTF_8))
+     *  @param mode 识别学科模式（如 "english"：服务端跳过多音字/中文去噪，用英语专用提示词）。
+     *  @param engine 识别模型（web `ocrEngineStore` 的 wire 值：auto / doubao / paddle）。
+     *        空串或 "auto" = 不传，走服务端默认（与 web `parseImage` 一致）。 */
+    suspend fun parseImage(
+        bytes: ByteArray,
+        fileName: String = "photo.jpg",
+        forceRefresh: Boolean = false,
+        mode: String = "",
+        engine: String = "",
+    ): ParseImageResult = withContext(Dispatchers.IO) {
+        // 缓存键要把 mode/engine 一起算进去：同图换模型是两次不同的识别
+        val key = sha256(bytes + mode.toByteArray(Charsets.UTF_8) + engine.toByteArray(Charsets.UTF_8))
         if (!forceRefresh) {
             parseImageCache[key]?.let { return@withContext it }
         }
@@ -310,6 +333,7 @@ class AiChineseRepository(
         val params = buildList {
             if (forceRefresh) add("no_cache=true")
             if (mode.isNotBlank()) add("mode=$mode")
+            if (engine.isNotBlank()) add("engine=$engine")
         }
         val query = if (params.isEmpty()) "" else "?" + params.joinToString("&")
         val url = "$serverBase/api/v1/ai-chinese/parse-image$query"
@@ -378,6 +402,41 @@ class AiChineseRepository(
             if (parseImageCache.size > 30) parseImageCache.remove(parseImageCache.keys.first())
         }
     }
+
+    /**
+     * 文本行检测（`POST /api/v1/ai-chinese/detect-blocks`），给 OCR 框选的「绿框吸附」用。
+     *
+     * 服务端用 PP-OCRv6 检测每行文本，返回**归一化坐标** 0~1 + 该行识别文本。
+     * 识别失败返回 **null**（与「检测到 0 行」返回空列表**分开**：前者保持自由框选即可，
+     * 后者才提示「未检测到文字行」）；不抛异常，避免把框选面板卡住。
+     */
+    suspend fun detectTextBlocks(bytes: ByteArray, fileName: String = "blocks.jpg"): List<DetectTextBlock>? =
+        withContext(Dispatchers.IO) {
+            val body = MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("file", fileName, bytes.toRequestBody("image/jpeg".toMediaType()))
+                .build()
+            val request = Request.Builder()
+                .url("$serverBase/api/v1/ai-chinese/detect-blocks")
+                .post(body)
+                .auth()
+                .build()
+            val json = executeJson(request) ?: return@withContext null
+            val arr = json.optJSONArray("blocks") ?: return@withContext emptyList()
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val o = arr.optJSONObject(i) ?: continue
+                    add(
+                        DetectTextBlock(
+                            nx = o.optDouble("nx", 0.0).toFloat(),
+                            ny = o.optDouble("ny", 0.0).toFloat(),
+                            nw = o.optDouble("nw", 0.0).toFloat(),
+                            nh = o.optDouble("nh", 0.0).toFloat(),
+                            text = o.optString("text", "").trim(),
+                        ),
+                    )
+                }
+            }
+        }
 
     /** 题目 → 句子切分 + 关键信息标注 + 数量关系（线段图）
      *  同一道题（文本一致）内存缓存直接返回，不再走网络。

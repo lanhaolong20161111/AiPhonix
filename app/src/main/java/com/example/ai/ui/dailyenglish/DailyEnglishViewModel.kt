@@ -1,9 +1,11 @@
 package com.example.ai.ui.dailyenglish
 
+import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ai.data.aichinese.AiChineseRepository
 import com.example.ai.data.audio.AudioRecorder
 import com.example.ai.data.auth.TokenManager
 import com.example.ai.data.dailyen.DailyEnConfig
@@ -13,9 +15,14 @@ import com.example.ai.data.dailyen.EnSentencePair
 import com.example.ai.data.dailyzh.DailyTextSplit
 import com.example.ai.data.model.PhonemeScore
 import com.example.ai.data.model.WordScore
+import com.example.ai.data.ocr.OcrEngineStore
+import com.example.ai.data.ocr.OcrModule
+import com.example.ai.data.ocr.OcrPickState
+import com.example.ai.data.ocr.OcrPlatform
 import com.example.ai.data.speech.ScoreClient
 import com.example.ai.data.tts.TtsEngine
 import com.example.ai.di.NetworkModule
+import com.example.ai.ui.ocr.OcrPickSession
 import com.example.ai.util.SoeDisplay
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +85,10 @@ data class DailyEnglishUiState(
     val soeOutcomes: Map<String, SoeOutcome> = emptyMap(),
     /** text → 错误信息（录音太短 / 评分失败） */
     val soeErrors: Map<String, String> = emptyMap(),
+    /** 拍照框选面板状态（转发自 [DailyEnglishViewModel.ocr]） */
+    val ocr: OcrPickState = OcrPickState(),
+    /** OCR 导入结果提示（web `ocrMsg`；前缀 ❌ 为错误、✅ 为成功） */
+    val ocrMsg: String = "",
 ) {
     val words: List<String> get() = DailyTextSplit.words(cfg.words)
     val sentences: List<String> get() = DailyTextSplit.sentences(cfg.sentences)
@@ -110,7 +121,15 @@ data class DailyEnglishUiState(
  *   单词按纯文本渲染。
  * - web 的「发音要领」（本地 `lib/phonicsTips.ts` + LLM `/daily-en/phone-tips` 补充）未移植：
  *   本地要领表在 Android 不存在，只调 LLM 补不出「本地表打底」的效果。评测明细照常显示。
- * - web 设置面板支持拍照/相册 OCR 自动填入；Android 目前只有手动输入（区域 OCR 随「字幕采集」一起做）。
+ *
+ * 拍照 OCR 见 [ocr] / [startOcr] / [confirmOcr]（对齐 web `pickFor` / `onOcrFile` / `confirmOcr`）：
+ * - ★ 与「每日语文」不同，这里是**单图**（web `e.target.files?.[0]`），没有多图队列；
+ * - ★ 导入是**整字段替换**（`{...draft, [field]: text}`），不是追加；
+ * - ★ **不去拼音**（web `stripPinyin={false}`）—— 目标内容本来就是英文；
+ * - 导入后直接落盘 + 尝试同步，**设置面板保持打开**（web 里 `pickFile` 置空后面板还在）。
+ *
+ * ⚠️ [ocrPlatform] 是唯一持 `Context` 的依赖（容器持有、构造注入），ViewModel 自身不持
+ * `Context`；单元测试传 null 时 OCR 静默降级为不可用。
  */
 class DailyEnglishViewModel(
     private val store: DailyEnStore,
@@ -118,6 +137,9 @@ class DailyEnglishViewModel(
     private val ttsEngine: TtsEngine? = null,
     private val audioRecorder: AudioRecorder = AudioRecorder(),
     private val scoreClient: ScoreClient = ScoreClient(NetworkModule.httpClient),
+    ocrRepository: AiChineseRepository? = null,
+    ocrPlatform: OcrPlatform? = null,
+    ocrEngineStore: OcrEngineStore? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DailyEnglishUiState())
@@ -125,12 +147,38 @@ class DailyEnglishViewModel(
 
     private var evalJob: Job? = null
 
+    /** 拍照框选会话（与「每日语文」共用同一套可复用状态机） */
+    val ocr: OcrPickSession = OcrPickSession(
+        repository = ocrRepository ?: AiChineseRepository(),
+        platform = ocrPlatform,
+        engineStore = ocrEngineStore,
+        scope = viewModelScope,
+        onImport = ::confirmOcr,
+    )
+
+    /** 唯一持 Context 的依赖；单测不传时为 null ⇒ [startOcr] 静默返回 */
+    private val ocrPlatformRef: OcrPlatform? = ocrPlatform
+
+    /** 当前这张图要导入到哪个字段（web `ocrTargetRef`） */
+    private var ocrField: DailyEnField? = null
+
     init {
         // ① 本地镜像先上屏（web：useState 初值就是 readLocalMirror()）
         val local = store.read()
         _uiState.value = _uiState.value.copy(cfg = local, draft = local)
         ensureCards()
         loadRemote()
+        // 框选面板状态转发进本页 state（面板本身不持有业务状态）
+        viewModelScope.launch {
+            ocr.state.collect { s -> _uiState.value = _uiState.value.copy(ocr = s) }
+        }
+    }
+
+    override fun onCleared() {
+        ocr.release()
+        // 页面被销毁时若仍在录音，必须显式停止，否则麦克风被占（对齐 web 卸载时 destroy recorder）
+        audioRecorder.stop()
+        super.onCleared()
     }
 
     // ── 配置同步 ──
@@ -331,10 +379,80 @@ class DailyEnglishViewModel(
         if (_uiState.value.soeRecordingText != null) audioRecorder.stop()
     }
 
-    override fun onCleared() {
-        // 页面被销毁时若仍在录音，必须显式停止，否则麦克风被占（对齐 web 卸载时 destroy recorder）
-        audioRecorder.stop()
-        super.onCleared()
+    // ───────────────────────── 拍照 OCR 导入（web `pickFor` / `onOcrFile` / `confirmOcr`） ─────────────────────────
+
+    /** 清掉上一次的导入提示（web `setOcrMsg("")`） */
+    fun clearOcrMsg() {
+        _uiState.value = _uiState.value.copy(ocrMsg = "")
+    }
+
+    /**
+     * 开始一次 OCR（**单图**，与 web 的 `e.target.files?.[0]` 一致）。
+     *
+     * 注意：web 的相册入口**没有** `multiple`，所以每次只处理一张；界面上的 📷/🖼️
+     * 都只传一个 uri。
+     */
+    fun startOcr(field: DailyEnField, uris: List<Uri>) {
+        val uri = uris.firstOrNull() ?: return
+        val platform = ocrPlatformRef ?: return
+        ocrField = field
+        _uiState.value = _uiState.value.copy(ocrMsg = "")
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) { platform.readBytes(uri) }
+            if (bytes == null) {
+                _uiState.value = _uiState.value.copy(ocrMsg = "❌ 图片读取失败，请换一张更清晰的照片试试")
+                ocrField = null
+                return@launch
+            }
+            ocr.start(
+                bytes = bytes,
+                // web 标题逐字一致（不带"第 n/m 张"后缀：这里是单图）
+                title = "📷 识别要导入的内容",
+                module = OcrModule.CHINESE,
+                // ★ 不去拼音：目标内容本来就是英文（web `stripPinyin={false}`）
+                stripPinyin = false,
+                spaceChars = false,
+            )
+        }
+    }
+
+    /** 关闭框选面板（放弃本次导入） */
+    fun closeOcr() {
+        ocrField = null
+        ocr.close()
+    }
+
+    /** 框选面板点「✓ 导入」：**整字段替换**（web `{...draft, [field]: text}`），然后落盘 + 同步 */
+    private fun confirmOcr(text: String) {
+        val field = ocrField
+        ocrField = null
+        ocr.close()
+        if (field == null) return
+        val next = _uiState.value.draft.withField(field, text).copy(updatedAt = Instant.now().toString())
+        _uiState.value = _uiState.value.copy(draft = next, cfg = next, prefillHint = false)
+        store.write(next)
+        ensureCards()
+        persistAfterOcr(next, text.length)
+    }
+
+    /** 导入后自动落盘 + 尝试同步（web 失败也不阻断，只是文案不同） */
+    private fun persistAfterOcr(next: DailyEnConfig, charCount: Int) {
+        if (TokenManager.accessToken.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                ocrMsg = "✅ 已导入并保存到本机（登录后可跨设备同步）",
+            )
+            return
+        }
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { runCatching { repository.save(next) }.getOrDefault(false) }
+            val msg = if (ok) {
+                // ★ web 用的是「字符」不是「字」（英文内容按字符数更贴切）
+                "✅ 已导入并保存（$charCount 字符，跨设备同步）"
+            } else {
+                "✅ 已导入并保存到本机（联网同步失败，可在设置里点「保存」重试）"
+            }
+            _uiState.value = _uiState.value.copy(ocrMsg = msg)
+        }
     }
 
     companion object {
@@ -346,4 +464,10 @@ class DailyEnglishViewModel(
         /** 最短有效录音（0.4 秒 PCM 16kHz 16bit ≈ 12800 字节；web `PcmRecorder` 同阈值） */
         private const val MIN_AUDIO_BYTES = 12800
     }
+}
+
+/** 写某字段的文本（照片 OCR 导入用：整字段替换） */
+private fun DailyEnConfig.withField(field: DailyEnField, value: String): DailyEnConfig = when (field) {
+    DailyEnField.WORDS -> copy(words = value)
+    DailyEnField.SENTENCES -> copy(sentences = value)
 }
