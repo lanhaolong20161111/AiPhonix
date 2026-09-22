@@ -106,4 +106,9 @@ class AppContainer(context: Context) {
     val trainingPlanSync: TrainingPlanSync by lazy {
         TrainingPlanSync(httpClient, trainingPlanStore)
     }
+
+    // ── AI 历史（本地三桶存储：chinese/math/english，对齐 web aiHistory） ──
+    val aiHistoryStore: com.example.ai.data.aihistory.AiHistoryStore by lazy {
+        com.example.ai.data.aihistory.AiHistoryStore(appContext)
+    }
 }

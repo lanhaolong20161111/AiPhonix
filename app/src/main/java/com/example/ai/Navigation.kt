@@ -1,4 +1,4 @@
-﻿package com.example.ai
+package com.example.ai
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -86,6 +86,8 @@ import com.example.ai.ui.aichinese.AiChineseScreen
 import com.example.ai.ui.aichinese.AiChineseViewModel
 import com.example.ai.ui.pinyin.PinyinScreen
 import com.example.ai.ui.pinyin.PinyinViewModel
+import com.example.ai.ui.pinyintable.PinyinIndexScreen
+import com.example.ai.ui.pinyintable.PinyinDetailScreen
 import com.example.ai.ui.aihomework.AiHomeworkScreen
 import com.example.ai.ui.aihomework.AiHomeworkViewModel
 import com.example.ai.ui.aipractice.AiPracticeChatScreen
@@ -94,6 +96,10 @@ import com.example.ai.ui.aipractice.AiPracticeScreen
 import com.example.ai.ui.aipractice.AiPracticeViewModel
 import com.example.ai.ui.murmur.MurmurScreen
 import com.example.ai.ui.murmur.MurmurViewModel
+import com.example.ai.ui.aienglish.AiEnglishScreen
+import com.example.ai.ui.aienglish.AiEnglishViewModel
+import com.example.ai.ui.aihistory.AiHistoryScreen
+import com.example.ai.ui.aihistory.AiHistoryDetailScreen
 import android.widget.Toast
 
 @Composable
@@ -153,6 +159,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenAccount = { backStack.add(Account) },
             onOpenParent = { backStack.add(ParentSettings) },
             onOpenPinyin = { backStack.add(PinyinExercise) },
+            onOpenPinyinTable = { backStack.add(PinyinIndex) },
             onOpenMurmur = { backStack.add(Murmur) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
@@ -235,12 +242,62 @@ fun MainNavigation(container: AppContainer) {
             onOpenChat = { sessionId, content -> backStack.add(AiPracticeChat(sessionId, content)) },
             onOpenHomework = { backStack.add(AiHomework) },
             onOpenChinese = { backStack.add(AiChinese) },
+            onOpenEnglish = { backStack.add(AiEnglish()) },
           )
         }
         entry<AiChinese> {
           AiChineseScreen(
-            viewModel = viewModel { AiChineseViewModel(repository = AiChineseRepository()) },
+            viewModel = viewModel {
+              AiChineseViewModel(
+                repository = AiChineseRepository(),
+                historyStore = container.aiHistoryStore,
+              )
+            },
             onBack = { backStack.removeLastOrNull() },
+            onOpenHistory = { backStack.add(AiHistory) },
+          )
+        }
+        entry<AiEnglish> { route ->
+          AiEnglishScreen(
+            viewModel = viewModel {
+              AiEnglishViewModel(
+                parseRepository = AiChineseRepository(),
+                chatRepository = com.example.ai.data.aichat.AiChatRepository(),
+                historyStore = container.aiHistoryStore,
+                ttsEngine = container.ttsEngine,
+              ).also { if (route.resumeSessionId.isNotBlank()) it.resumeSession(route.resumeSessionId) }
+            },
+            onBack = { backStack.removeLastOrNull() },
+            onOpenHistory = { backStack.add(AiHistory) },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<AiHistory> {
+          AiHistoryScreen(
+            store = container.aiHistoryStore,
+            onBack = { backStack.removeLastOrNull() },
+            onOpenItem = { item ->
+              if (item.sessionId.isNotBlank()) {
+                // 会话型 → 回到对应模块续聊（目前仅英语有会话）
+                when (item.module) {
+                  "english" -> backStack.add(AiEnglish(resumeSessionId = item.sessionId))
+                  "chinese" -> backStack.add(AiChinese)
+                  else -> backStack.add(AiHomework)
+                }
+              } else {
+                backStack.add(AiHistoryDetail(module = item.module, id = item.id))
+              }
+            },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<AiHistoryDetail> { route ->
+          AiHistoryDetailScreen(
+            module = route.module,
+            itemId = route.id,
+            container = container,
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
         }
         entry<PinyinExercise> {
@@ -249,11 +306,31 @@ fun MainNavigation(container: AppContainer) {
             onBack = { backStack.removeLastOrNull() },
           )
         }
+        entry<PinyinIndex> {
+          PinyinIndexScreen(
+            onOpenDetail = { id -> backStack.add(PinyinDetail(id)) },
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<PinyinDetail> { route ->
+          PinyinDetailScreen(
+            initialId = route.id,
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
         entry<AiHomework> {
           AiHomeworkScreen(
-            viewModel = viewModel { AiHomeworkViewModel(repository = AiHomeworkRepository()) },
+            viewModel = viewModel {
+              AiHomeworkViewModel(
+                repository = AiHomeworkRepository(),
+                historyStore = container.aiHistoryStore,
+              )
+            },
             onBack = { backStack.removeLastOrNull() },
             onOpenCharStats = { backStack.add(AiHomeworkCharStats) },
+            onOpenHistory = { backStack.add(AiHistory) },
           )
         }
         entry<AiHomeworkCharStats> {

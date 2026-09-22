@@ -81,8 +81,24 @@ import kotlinx.serialization.Serializable
 ) : NavKey                                                             // 题目练习页（分句朗读/提示/讲思路）
 @Serializable data object AiHomeworkCharStats : NavKey                 // 认读画像（字被点击发音次数）
 
+// AI 英语（拍照/相册识别英语课文 mode=english + 文本多轮对话；对齐 web AiEnglishPage）
+@Serializable data class AiEnglish(
+    val resumeSessionId: String = "", // 非空 = 从历史恢复会话续聊
+) : NavKey
+
+// AI 历史会话（chinese/math/english 三桶本地存储；对齐 web AiHistoryPage）
+@Serializable data object AiHistory : NavKey                            // AI 历史列表
+@Serializable data class AiHistoryDetail(
+    val module: String,
+    val id: String,
+) : NavKey                                                             // 历史详情（识别快照只读回看）
+
 // 拼音练习（SOE 拼音评测：看拼音读，≥70 过关）
 @Serializable data object PinyinExercise : NavKey                       // 拼音练习主页
+
+// 拼音表（声母/韵母/整体认读音节 索引 + 详情，点读发声）
+@Serializable data object PinyinIndex : NavKey                          // 拼音表索引
+@Serializable data class PinyinDetail(val id: String) : NavKey          // 拼音详情（横向滑动）
 
 // 碎碎念（自由表达 → AI 语法纠错 → 正确句子朗读+测评）
 @Serializable data object Murmur : NavKey                                // 碎碎念主页

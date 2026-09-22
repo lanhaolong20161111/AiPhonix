@@ -15,6 +15,8 @@ import com.example.ai.data.aihomework.QuestReport
 import com.example.ai.data.aihomework.QuestSessionSummary
 import com.example.ai.data.aihomework.QuestStepData
 import com.example.ai.data.aihomework.SolutionStep
+import com.example.ai.data.aihistory.AiHistoryItem
+import com.example.ai.data.aihistory.AiHistoryStore
 import com.example.ai.data.tts.BaiduTtsCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -81,6 +83,7 @@ data class AiHomeworkUiState(
 /** AI 作业主页：识题（拍照/相册/手动输入）→ 解析关键信息 → 保存并进入练习 */
 class AiHomeworkViewModel(
     private val repository: AiHomeworkRepository = AiHomeworkRepository(),
+    private val historyStore: AiHistoryStore? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiHomeworkUiState())
@@ -331,6 +334,26 @@ class AiHomeworkViewModel(
                     analyzeResult = null,
                     imageBytes = bytes,
                 )
+            }
+            // 自动存历史（识别快照，math 桶；对齐 web 结果页自动保存）
+            historyStore?.let { store ->
+                val snapshotText = result.text.takeIf { it.isNotBlank() }
+                    ?: questions.firstOrNull()
+                    ?: ""
+                if (snapshotText.isNotBlank()) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        try {
+                            store.add(
+                                AiHistoryItem(
+                                    module = "math",
+                                    text = snapshotText,
+                                    questions = questions,
+                                    thumb = store.makeThumb(bytes),
+                                )
+                            )
+                        } catch (_: Exception) { }
+                    }
+                }
             }
         }
     }

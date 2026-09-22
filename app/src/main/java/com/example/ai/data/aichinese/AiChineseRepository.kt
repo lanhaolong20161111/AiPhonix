@@ -297,20 +297,22 @@ class AiChineseRepository(
 
     /** 拍照识题：图片字节 → 题目列表（服务端 Ark 多模态优先，自动回退 OCR；多题逐题返回）
      *  同一张图片（字节一致）内存缓存直接返回，不再走网络。
-     *  @param forceRefresh true = 跳过内存缓存和服务端缓存，强制重新识别（结果覆盖缓存）。 */
-    suspend fun parseImage(bytes: ByteArray, fileName: String = "photo.jpg", forceRefresh: Boolean = false): ParseImageResult = withContext(Dispatchers.IO) {
-        val key = sha256(bytes)
+     *  @param forceRefresh true = 跳过内存缓存和服务端缓存，强制重新识别（结果覆盖缓存）。
+     *  @param mode 识别学科模式（如 "english"：服务端跳过多音字/中文去噪，用英语专用提示词）。 */
+    suspend fun parseImage(bytes: ByteArray, fileName: String = "photo.jpg", forceRefresh: Boolean = false, mode: String = ""): ParseImageResult = withContext(Dispatchers.IO) {
+        val key = sha256(bytes + mode.toByteArray(Charsets.UTF_8))
         if (!forceRefresh) {
             parseImageCache[key]?.let { return@withContext it }
         }
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("file", fileName, bytes.toRequestBody("image/jpeg".toMediaType()))
             .build()
-        val url = if (forceRefresh) {
-            "$serverBase/api/v1/ai-chinese/parse-image?no_cache=true"
-        } else {
-            "$serverBase/api/v1/ai-chinese/parse-image"
+        val params = buildList {
+            if (forceRefresh) add("no_cache=true")
+            if (mode.isNotBlank()) add("mode=$mode")
         }
+        val query = if (params.isEmpty()) "" else "?" + params.joinToString("&")
+        val url = "$serverBase/api/v1/ai-chinese/parse-image$query"
         val request = Request.Builder()
             .url(url)
             .post(body)

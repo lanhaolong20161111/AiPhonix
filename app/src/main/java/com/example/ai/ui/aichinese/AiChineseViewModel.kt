@@ -10,6 +10,8 @@ import com.example.ai.data.speech.ScoreClient
 import com.example.ai.di.NetworkModule
 import com.example.ai.data.aichinese.AiChineseRepository
 import com.example.ai.data.aichinese.AnalyzeResult
+import com.example.ai.data.aihistory.AiHistoryItem
+import com.example.ai.data.aihistory.AiHistoryStore
 import com.example.ai.data.aichinese.ChineseHighlightResult
 import com.example.ai.data.aichinese.QuestionItem
 import com.example.ai.data.aichinese.TextAskResult
@@ -112,6 +114,7 @@ data class AiChineseUiState(
 /** AI 作业主页：识题（拍照/相册/手动输入）→ 解析关键信息 → 保存并进入练习 */
 class AiChineseViewModel(
     private val repository: AiChineseRepository = AiChineseRepository(),
+    private val historyStore: AiHistoryStore? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChineseUiState())
@@ -529,6 +532,22 @@ class AiChineseViewModel(
             loadChineseHighlight(fullText)
             analyze() // 识别后自动解析（句子切分 + 关键信息标注），无需再点"解析题目"
             loadPolyphones(fullText) // 识别后标注多音字（独立端点，可靠），供 TTS 逐字点读注音
+            // 自动存历史（识别快照，chinese 桶；对齐 web 结果页自动保存）
+            historyStore?.let { store ->
+                viewModelScope.launch(Dispatchers.IO) {
+                    try {
+                        store.add(
+                            AiHistoryItem(
+                                module = "chinese",
+                                text = fullText,
+                                questions = questions,
+                                blocks = result.blocks,
+                                thumb = store.makeThumb(bytes),
+                            )
+                        )
+                    } catch (_: Exception) { }
+                }
+            }
         }
     }
 

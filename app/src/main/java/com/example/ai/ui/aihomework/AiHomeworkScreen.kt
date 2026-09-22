@@ -75,6 +75,7 @@ fun AiHomeworkScreen(
     viewModel: AiHomeworkViewModel,
     onBack: () -> Unit,
     onOpenCharStats: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -176,6 +177,9 @@ fun AiHomeworkScreen(
             }
             TextButton(onClick = onOpenCharStats) {
                 Text("📖 认读画像", style = MaterialTheme.typography.bodySmall)
+            }
+            TextButton(onClick = onOpenHistory) {
+                Text("🗂 历史", style = MaterialTheme.typography.bodySmall)
             }
         }
         Spacer(Modifier.height(4.dp))

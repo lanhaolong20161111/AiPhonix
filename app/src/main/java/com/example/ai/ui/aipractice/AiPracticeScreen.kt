@@ -42,6 +42,7 @@ fun AiPracticeScreen(
     onOpenChat: (sessionId: Int, content: String) -> Unit,
     onOpenHomework: () -> Unit,
     onOpenChinese: () -> Unit,
+    onOpenEnglish: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -109,6 +110,31 @@ fun AiPracticeScreen(
                         Text("语文", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF000000))
                         Text(
                             "拍照识别 → 解析 → 闯关引导（同数学模块）",
+                            fontSize = 12.sp,
+                            color = Color(0xFF000000),
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+
+            // 英语入口（与语文同构，走 mode=english 识别通道）
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenEnglish),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+            ) {
+                Row(
+                    Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("📚", fontSize = 26.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text("英语", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF000000))
+                        Text(
+                            "拍照识别英语课文，或输入问题直接问 AI",
                             fontSize = 12.sp,
                             color = Color(0xFF000000),
                         )

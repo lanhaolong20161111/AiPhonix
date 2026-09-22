@@ -50,6 +50,7 @@ fun HomeScreen(
     onOpenAccount: () -> Unit,
     onOpenParent: () -> Unit,
     onOpenPinyin: () -> Unit = {},
+    onOpenPinyinTable: () -> Unit = {},
     onOpenMurmur: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
@@ -137,6 +138,32 @@ fun HomeScreen(
                     )
                 }
                 Text("进入 →", fontSize = 14.sp, color = Color(0xFF1565C0), fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+
+        // ── 固定模块入口：拼音表 ──
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenPinyinTable() },
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("📖", fontSize = 28.sp)
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("拼音表", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "声母 · 韵母 · 整体认读音节 · 点读发声",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text("进入 →", fontSize = 14.sp, color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)
             }
         }
         Spacer(Modifier.height(12.dp))
