@@ -64,18 +64,19 @@
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
 | 15 | `/module/math_compound_expr`（综合算式动画） | ✅ MathCompoundExprScreen | **纯前端动画 + 本地规则引擎（零后端）** | 高 |
 | 16 | `/module/subtitle_capture`（字幕采集） | ✅ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 `MediaMetadataRetriever` + `Bitmap.createBitmap` 裁剪） | 高 |
-| 17 | `/module/parent_report`（**家长周报**） | ❌ **真缺口**（详见下方「剩余缺口」） | `/soe/records`(limit 500) + `/char-images/feedback` 的 **`stats`** + `/wordbook/list` —— 前两者 Android 仓储已有，但 `CharMapRepository.feedbackStatus` **只取了 items、丢掉了 `stats`** | 中 |
+| 17 | `/module/parent_report`（**家长周报**） | ✅ ParentReportScreen（入口在评测历史页，对齐 web） | `/soe/records`(200) + `/char-images/feedback` 的 **`stats`** + `/wordbook/list` | 中 |
 | 18 | `/register`（注册页） | ✅ LoginScreen 已含注册（登录/注册 `FilterChip` 切换 + 注册额外字段 + `viewModel.register()`） | auth | 低（已结案） |
 | 19 | `/module/sentence_practice`（造句练习） | ✅ SentenceComposeScreen | `AiChatRepository.ask("chinese")` + 每日语文句型 | 中 |
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（前半 4 + 后半 4）已全部完成（提交 `438d749` / `e418127` / `10b58fa` / `d491cf5` / `c0663cf` + `381585c` / `1670771`）；
-> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **353 用例 / 0 失败**（27 个测试类）。
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（前半 4 + 后半 4）+ 家长周报（收官补齐）已全部完成
+> （提交 `438d749` / `e418127` / `10b58fa` / `d491cf5` / `c0663cf` + `381585c` / `1670771` / `9850006` / 本轮）。
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **374 用例 / 0 失败**（28 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
-> **AI 对话学语文、AI 英语对话、综合算式动画、字幕采集（C 后半 4 个）**。
-> ✅ **批次 A/B/C 全部完成 ⇒ 已移植 20/21 个 web 模块。收官核对结论见下方 §3.5**。
+> **AI 对话学语文、AI 英语对话、综合算式动画、字幕采集（C 后半 4 个）**；**家长周报**。
+> ✅ **21/21 个 web 模块全部移植完成**，收官核对结论见下方 §3.5。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -130,7 +131,8 @@
 18. **AI 对话学语文** ✅（详见下方小节）
 19. **AI 英语对话** ✅（详见下方小节）
 20. **综合算式动画** ✅（详见下方小节）
-21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）✅（详见下方小节）
+> 21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）✅（详见下方小节）
+> 22. 家长周报（ParentReport，`/module/parent_report`）✅（收官补齐，详见 **§3.5**）
 
 #### 18. AI 对话学语文 ✅（`/module/speech_compose`）
 一个页面装三套练习，由「开始学」时的填写内容分流（顺序与 web 一致：文章 → 古诗 → 词语/句子）。
@@ -272,9 +274,9 @@
 
 ## 3.5 移植现状结论（2026-09-22 收官核对）
 
-**已移植 20 / 21 个 web 模块**：差距表 #1–#16、#18、#19 全部 ✅。#2 是结构差异（Android 输入+结果同屏，能力已覆盖）。
+**已移植 21 / 21 个 web 模块 —— 全部完成** ✅。差距表 #1–#19 全部 ✅；#2 是结构差异（Android 输入+结果同屏，能力已覆盖）。
 
-### ❌ 唯一的真缺口：家长周报（`/module/parent_report`）
+### ✅ 家长周报（`/module/parent_report`）—— 已补齐（原本是唯一真缺口）
 
 web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报**（打印友好）：
 
@@ -287,9 +289,26 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 | 页脚 | 生成时间 + AiPhonix |
 
 - 本周平均分 = 近 7 天里 `suggested_score > 0` 的记录求平均（四舍五入）；逐日平均分同法，无分为 `null`。
-- 数据源 3 个，**Android 都有对应仓储**：`/soe/records`(`limit 500`) → `SoeRecordRepository.fetchRecords()` ✅ ／ `/wordbook/list` → `WordbookRepository.list()` ✅ ／
-  `/char-images/feedback`(`limit 100000`) 需要响应体里的 **`stats: {correct, wrong, unsure, unmarked}`** —— ⚠️ Android `CharMapRepository.feedbackStatus()` **只取 `items`、把 `stats` 丢了** ⇒ 要**新增**一个 `feedbackStats(userId)`（非破坏性）。
-- ★ **不要改 `ReportScreen`**：它是 `entry<Report>` 里本 App 自己的「学习报告」（读 `/api/v1/practice/stats`），与 web 家长周报**不是同一功能** ⇒ 应当作新模块加 `ParentReportScreen` + 新 NavKey。
+- 数据源 3 个，**Android 都有对应仓储**：`/soe/records` → `SoeRecordRepository.fetchRecords(200)` ／ `/wordbook/list` → `WordbookRepository.list()` ／
+  `/char-images/feedback`(`limit 100000`) 的 **`stats: {correct, wrong, unsure, unmarked}`** —— 原先 `CharMapRepository.feedbackStatus()` **只取 `items`、把 `stats` 丢了**，已**新增** `feedbackWithStats(userId)`（非破坏性，`feedbackStatus` 改为委托它，两处共用同一次请求）。
+- ★ **没动 `ReportScreen`**：它是 `entry<Report>` 里本 App 自己的「学习报告」（读 `/api/v1/practice/stats`），与 web 家长周报**不是同一功能**；家长周报按**新模块**落地为 `ParentReportScreen` + 新 NavKey `ParentReport`，入口放在**评测历史页**（与 web `SoeHistoryPage` 的「📈 家长周报」按钮位置一致）。
+
+**实现（`data/parentreport/` + `ui/parentreport/`）**
+
+| 文件 | 职责 |
+|---|---|
+| `ParentReportLogic.kt` | **纯函数引擎**：`days7` / `weekCount` / `weekAvg` / `weakWords`（可 JVM 单测） |
+| `ParentReportRepository.kt` | 只做**聚合**：`supervisorScope` + 三路 `async` 并发；部分失败降级为空、三路全失败才置 `failed` |
+| `ui/parentreport/ParentReportViewModel.kt` | UDF；全部派生量（`maxCount` / `weekAvgText` / `generatedAt`）在此算好 |
+| `ui/parentreport/ParentReportScreen.kt` | 2×2 统计卡 / 7 天柱状图 / 识字状态 / 需多练的词 / 页脚；配色逐条取 web `App.css` 的 `.report-*` |
+
+- **单测 21 例（新增 1 类）`ParentReportLogicTest`**：期望值来自把 web 原逻辑复制到 node 跑的探针（`TZ=Asia/Shanghai`，含空集场景）。
+- ★ **两条 web 行为必须保留**（看着像 bug，实为口径）：
+  1. **日期 key 用设备本地时区，记录侧却拿 `created_at` 前 10 字符（UTC 日期）比** ⇒ 在 UTC+8 上，本地 00:00–08:00 产生的记录会归到**前一天**那一列（已用单测钉死：本地 22 日 00:10 的记录落在 21 日列）。
+  2. **「需多练」的 30 天 cutoff 是 `toISOString()` 的 UTC 日期**，与 ① 的本地 key **不同源**（已测：`08-23T00:00Z` 入选、`08-22T23:59Z` 出局）。
+- `weakWords` 三条细节：`ref_text` 去空白用 **JS 空白集**（`util/removeJsWhitespace`，含全角空格/NBSP/BOM）再截前 8 字；同组取**最低分**；同分按**首次出现顺序**（`LinkedHashMap` + 稳定 `sortedBy`）。
+- `suggested_score` 是数据库 `real` ⇒ 显示加 `util/jsNumber`（复刻 JS `String(number)`，否则 `85f` 会打成 `"85.0"`，与 web 的 `85` 不一致）。
+- **与 web 的唯一显示差异**：三路数据全失败时显示「⚠️ 统计数据加载失败（断网）」，而 web 会显示一片 0（避免家长误以为孩子这周没练）。
 
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 

@@ -5,13 +5,14 @@
 
 ---
 
-## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + B + C 全部完成 ✅）
+## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（**21/21 全部完成 ✅**）
 
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`c0663cf` + `381585c`（**批次C后半③** 综合算式动画）、本轮（**批次C后半④** 字幕采集）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）；单测 **27 类 / 353 例 / 0 失败**。
-- ✅ **批次 A/B/C 全部完成**。剩余只有 2 项**待核对**：家长报告完整度（`ReportScreen` vs web `/module/parent_report`）、注册页是否已含在 `LoginScreen`。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`c0663cf` + `381585c`（**批次C后半③** 综合算式动画）、`1670771`（**批次C后半④** 字幕采集）、`9850006`（收官核对文档）、本轮（**收官补齐** 家长周报）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）；单测 **28 类 / 374 例 / 0 失败**。
+- ✅ **21/21 个 web 模块全部移植完成**（差距表 #1–#19 全绿；#2 为有意的结构差异）。完整收官结论见 `docs/ANDROID_PARITY_PLAN.md` **§3.5**。
+- **仍剩余（都不是「漏移植」）**：① 4 处设置面板的「拍照 OCR 自动填入」（每日语文/英语、AI 对话学语文、AI 英语对话）—— 前置依赖「字幕采集」已完成，**现在可做**；② 每日英语的 phonics 音形着色与「发音要领」（缺本地规则表）；③ AI 英语对话的流式 ASR 三项（逐词实时上屏 / 6 秒静音挂阶梯 / 提示记录面板）；④ web 侧待修 `charImages.ts` 的 `type_` → `type`；⑤ 用户实机验证。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -146,6 +147,22 @@
 - **B站内嵌预览不能采集**：与 web 一致。
 - **未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「构建通过 + 逻辑单测绿」，取帧裁剪位置 / 旋转视频 / SAF 授权由实机验证补。
 
+### 已完成（收官补齐｜2026-09-22）—— **21/21 全部移植完成 ✅**
+**家长周报**（`/module/parent_report`）—— 近 7 天评测趋势 + 识字状态 + 需多练的词，给家长看。
+
+- 分层：`data/parentreport/`（`ParentReportLogic` 纯函数引擎 + `ParentReportRepository` 只做聚合）+ `ui/parentreport/`（ViewModel + Screen）。
+- ★ **入口在评测历史页**（对齐 web `SoeHistoryPage` 里那个「📈 家长周报」按钮），**不在首页**。
+- ★ **别和 `ReportScreen` 混**：那是本 App 自己的「学习报告」（读 `/api/v1/practice/stats` + `/api/v1/practice/history`），与 web 家长周报**不是同一功能**（数据源完全不同）。新模块 = `ParentReportScreen` + NavKey `ParentReport`，原 `ReportScreen` **未改动**。
+- ★ 三源：`/soe/records` + `/char-images/feedback` 的 **`stats`** + `/wordbook/list`。web 传 `limit:500` 但服务端 `Math.min(limit, 200)` 会夹到 200 ⇒ Android 直接要 200，**取到的数据与 web 完全一致**（非能力缩水）。★ 给 `CharMapRepository` 补了 `feedbackWithStats(userId)` —— 原 `feedbackStatus` **只取 items、把 `stats` 丢了**；现在 `feedbackStatus` 委托它，两者共用同一次请求。
+- ★ **两条 web 口径必须保留**（看着像 bug，实为口径，已用单测钉死）：
+  ① **日期 key 用设备本地时区，记录侧却比 `created_at` 前 10 字符（= UTC 日期）** ⇒ UTC+8 上本地 **00:00–08:00** 产生的记录会归到**前一天**那一列（实测：本地 22 日 00:10 的记录落在 21 日列）。
+  ② 「需多练」的 30 天 cutoff 取自 `toISOString()`（**恒为 UTC**），与 ① 的本地 key **不同源**（`08-23T00:00Z` 入选、`08-22T23:59Z` 出局）。
+- ★ `weakWords` 三段：`ref_text` **去空白必须用 JS 空白集**（`util/removeJsWhitespace`，含 U+3000 / NBSP / BOM）→ 截前 8 字做 key → 同组取**最低分** → 筛 `< 80` → **升序**取 8；同分按**首次出现顺序**（`LinkedHashMap` + 稳定 `sortedBy`）。
+- ★ 新增公共件（都在 `util/EnText.kt`）：`removeJsWhitespace()`、`jsNumber()`。★ `suggested_score` 是数据库 **`real`（带小数）** ⇒ **显示必须过 `jsNumber`**（复刻 JS `String(number)`），否则 Kotlin `Float.toString()` 会把 `85f` 打成 `"85.0"`，而 web 是 `85`。
+- ★ `toLocaleString("zh-CN")` 的等价物是 `SimpleDateFormat("yyyy/M/d HH:mm:ss", Locale.CHINA)`（月/日**不补零**、时/分/秒补零）。
+- 唯一显示差异（有意）：三路全失败时显示「⚠️ 统计数据加载失败（断网）」，web 则显示一片 0（避免家长误以为孩子这周没练）。
+- 单测 **21 例（新增 1 类）`ParentReportLogicTest`**，期望值来自 web 原逻辑的 node 探针（含空集场景）。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -175,6 +192,11 @@
 0r. **★ Compose 两个低频 import/作用域陷阱**：① `Modifier.offset` 要**显式** `import androidx.compose.foundation.layout.offset`（`padding` 在 `unit` 包且常用所以不缺，`offset` 不在）；② `Modifier.align` **只在 `BoxScope` 里可用** ⇒ 需要 `align` 的私有 composable 要写成 **`private fun BoxScope.XXX()`**，写成普通 `Modifier` 扩展会报 `Unresolved reference 'align'`。
 0s. **★ `pointerInput` 的 key 绝不能带「每帧变化的值」**：`pointerInput(rect)` 会在拖拽过程中因 `rect` 更新而**重启手势检测器**，表现为「拖一下就断」。按键一律用固定字符串（`"new-box"` / `"move-box"` / 手柄名 / `mark.ts`）；需要读可变值就用 `rememberUpdatedState`。另：**Compose 里超出父边界的子元素收不到手势** ⇒ web 那套「圆点负偏移压住框线」的八向手柄不能照搬，要就地贴边放到框内。
 0t. **★ SAF 影片 URI 必须 `takePersistableUriPermission`**：`OpenDocument` 默认只给「当次」授权、**不持久化** ⇒ 重启后 URI 失效、播放器**静默播不出来**（不报错，最难查）。拿到 URI 后立刻 `contentResolver.takePersistableUriPermission(uri, FLAG_GRANT_READ_URI_PERMISSION)`（web 对应物是 IndexedDB 存 Blob，无此问题）。
+0u. **★ 跨端「日期 / 数字」的隐蔽差异（家长周报集中踩，全是静默错数）**：
+   - **web 同一页面里可能并存两套日期口径**：`getFullYear/getMonth/getDate` 拼出的 key 是**本地**日期，而 `created_at` 前 10 字符是 **UTC** 日期；`toISOString()` 又**恒为 UTC**。移植时**不要统一**，照抄并用单测钉住（实测：UTC+8 上本地 00:00–08:00 的记录会归到前一天列）。
+   - **`JS toLocaleString("zh-CN")` = `2026/9/22 16:46:44`**（月/日**不补零**、时/分/秒补零）⇒ Kotlin 用 `SimpleDateFormat("yyyy/M/d HH:mm:ss", Locale.CHINA)`，不是 `"yyyy/MM/dd"`。
+   - **数字→字符串**：Kotlin `Float.toString()` 把 `85f` 打成 `"85.0"`，JS 是 `"85"` ⇒ 用 `util/jsNumber()`。数据库里的 `real` 列（如 `suggested_score`）真会带小数，两端显示必须过它。
+   - **`\s` 一律用 `util/removeJsWhitespace()` / `splitJsWhitespace()`**（见 0e），别用 Kotlin 的 `\s`。
 13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
 14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
 15. **★ 项目里有「四套」切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）；④ **`web/src/lib/readUnit.ts`**（**识别页**用，按**段落**切、认英文句点、有缩略语表 `mr/dr/st/…` 与「单字母 + `.`」跳过；Android 未移植）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。

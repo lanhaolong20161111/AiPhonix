@@ -125,4 +125,7 @@ import kotlinx.serialization.Serializable
 // ── 视频 ──
 @Serializable data object SubtitleCapture : NavKey                      // 字幕采集（框选影片字幕区 → 截屏存盘带时间戳 + 识图翻译纠错）
 
+// ── 家长 ──
+@Serializable data object ParentReport : NavKey                        // 家长周报（近 7 天评测趋势 + 识字状态 + 需多练的词）
+
 // 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

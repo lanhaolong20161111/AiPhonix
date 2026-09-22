@@ -63,6 +63,7 @@ private fun scoreColors(score: Float): Pair<Color, Color> = when {
 fun SoeHistoryScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenParentReport: () -> Unit = {},
     viewModel: SoeHistoryViewModel = viewModel { SoeHistoryViewModel() },
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -84,6 +85,16 @@ fun SoeHistoryScreen(
             fontSize = 13.sp,
             color = Black,
         )
+        Spacer(Modifier.height(10.dp))
+
+        // 家长周报入口（web SoeHistoryPage 也是把入口放在这一页，不在首页）
+        Button(
+            onClick = onOpenParentReport,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFF6FF)),
+        ) {
+            Text("📈 家长周报", color = Black, fontSize = 14.sp)
+        }
         Spacer(Modifier.height(10.dp))
 
         // 工具栏：全选 + 已选 + 批量删除

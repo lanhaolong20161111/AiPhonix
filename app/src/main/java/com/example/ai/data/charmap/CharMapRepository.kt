@@ -33,6 +33,16 @@ enum class LearnStatus {
     }
 }
 
+/**
+ * 服务端 `/char-images/feedback` 响应体里的 `stats`（在 `items` 之外单独给）。
+ * ⚠️ 早期实现只取用 `items`，把 `stats` 丢掉了；家长周报要用，故补上。 */
+data class FeedbackStats(
+    val correct: Int = 0,
+    val wrong: Int = 0,
+    val unsure: Int = 0,
+    val unmarked: Int = 0,
+)
+
 /** 一个年级分组（grade + semester 已拼成 "一年级上"） */
 data class CharMapGroup(
     val key: String,
@@ -87,26 +97,41 @@ class CharMapRepository(
      *    web `CharMapPage` 是「后写覆盖」= 取最旧一条，属笔误；Android 按意图取最新。
      * 失败返回 null。
      */
-    suspend fun feedbackStatus(userId: Int): Map<String, LearnStatus>? = withContext(Dispatchers.IO) {
-        if (userId <= 0) return@withContext emptyMap()
-        val request = Request.Builder()
-            .url("$serverBase/api/v1/char-images/feedback?user_id=$userId&limit=100000")
-            .get()
-            .auth()
-            .build()
-        val json = executeJson(request) ?: return@withContext null
-        val out = LinkedHashMap<String, LearnStatus>()
-        val arr = json.optJSONArray("items") ?: JSONArray()
-        for (i in 0 until arr.length()) {
-            val o = arr.optJSONObject(i) ?: continue
-            val char = o.optString("char", "")
-            val statusRaw = o.optString("learning_status", "")
-            if (char.isBlank() || statusRaw.isBlank() || statusRaw == "null") continue
-            // 首次见到（=最新）即定，不再被更旧的记录覆盖
-            if (!out.containsKey(char)) out[char] = LearnStatus.from(statusRaw)
+    suspend fun feedbackStatus(userId: Int): Map<String, LearnStatus>? =
+        feedbackWithStats(userId)?.first
+
+    /**
+     * 一次性取回「状态映射 + 统计」—— 家长周报要 `stats`，而 [feedbackStatus] 只给映射。
+     * 两者共用同一次请求（避免同一端点打两遍）。失败返回 null；`userId <= 0` 视为「空」。
+     */
+    suspend fun feedbackWithStats(userId: Int): Pair<Map<String, LearnStatus>, FeedbackStats>? =
+        withContext(Dispatchers.IO) {
+            if (userId <= 0) return@withContext emptyMap<String, LearnStatus>() to FeedbackStats()
+            val request = Request.Builder()
+                .url("$serverBase/api/v1/char-images/feedback?user_id=$userId&limit=100000")
+                .get()
+                .auth()
+                .build()
+            val json = executeJson(request) ?: return@withContext null
+            val out = LinkedHashMap<String, LearnStatus>()
+            val arr = json.optJSONArray("items") ?: JSONArray()
+            for (i in 0 until arr.length()) {
+                val o = arr.optJSONObject(i) ?: continue
+                val char = o.optString("char", "")
+                val statusRaw = o.optString("learning_status", "")
+                if (char.isBlank() || statusRaw.isBlank() || statusRaw == "null") continue
+                // 首次见到（=最新）即定，不再被更旧的记录覆盖
+                if (!out.containsKey(char)) out[char] = LearnStatus.from(statusRaw)
+            }
+            val s = json.optJSONObject("stats")
+            val stats = FeedbackStats(
+                correct = s?.optInt("correct", 0) ?: 0,
+                wrong = s?.optInt("wrong", 0) ?: 0,
+                unsure = s?.optInt("unsure", 0) ?: 0,
+                unmarked = s?.optInt("unmarked", 0) ?: 0,
+            )
+            out to stats
         }
-        out
-    }
 
     /** 字卡图片 URL（地图不展示图片，保留给后续「点开看字卡」用） */
     fun imageUrl(filename: String, width: Int = 640): String =

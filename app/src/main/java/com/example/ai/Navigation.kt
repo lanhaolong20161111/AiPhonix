@@ -101,6 +101,7 @@ import com.example.ai.ui.aienglish.AiEnglishViewModel
 import com.example.ai.ui.aihistory.AiHistoryScreen
 import com.example.ai.ui.aihistory.AiHistoryDetailScreen
 import com.example.ai.ui.soehistory.SoeHistoryScreen
+import com.example.ai.ui.parentreport.ParentReportScreen
 import com.example.ai.ui.wordbook.WordbookScreen
 import com.example.ai.ui.memoryjoy.MemoryJoyScreen
 import com.example.ai.ui.charmap.CharMapScreen
@@ -218,7 +219,16 @@ fun MainNavigation(container: AppContainer) {
         entry<SoeHistory> {
           SoeHistoryScreen(
             onBack = { backStack.removeLastOrNull() },
+            // 家长周报入口在评测历史页（与 web SoeHistoryPage 的「📈 家长周报」按钮一致）
+            onOpenParentReport = { backStack.add(ParentReport) },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<ParentReport> {
+          // 整页是垂直滚动列表，内边距由 Screen 自己管，这里只给安全区
+          ParentReportScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
           )
         }
 

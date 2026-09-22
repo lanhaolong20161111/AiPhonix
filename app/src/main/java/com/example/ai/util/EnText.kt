@@ -28,6 +28,25 @@ private val JS_WS = Regex("[\\s\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202
 fun splitJsWhitespace(s: String): List<String> = JS_WS.split(s).filter { it.isNotEmpty() }
 
 /**
+ * 删掉所有 JS `\s` 语义的空白字符 —— 等价于 JS 的 `s.replace(/\s+/g, "")`。
+ * 与 [splitJsWhitespace] 共用同一字符集（同样的 U+3000 / U+00A0 / U+FEFF 陷阱）。
+ */
+fun removeJsWhitespace(s: String): String = JS_WS.replace(s, "")
+
+/**
+ * 复刻 JS 的 `String(number)` —— 整数不带小数点，小数保留原样。
+ *
+ * ⚠️ Kotlin `Float.toString()` 会把整数值打成 `"85.0"`，而 JS 是 `"85"`；
+ * 分数来自数据库 `real` 列（可能带小数），直接 `toString()` 会与 web 显示不一致。
+ */
+fun jsNumber(v: Float): String {
+    if (v.isNaN()) return "NaN"
+    val truncated = v.toInt()
+    if (v == truncated.toFloat()) return truncated.toString()
+    return v.toString().trimEnd('0').trimEnd('.')
+}
+
+/**
  * 英语单词切分（丢标点）—— 对齐 web 的全局正则「一个或多个字母，后接零或多组（撇号 + 字母）」。
  * （⚠️ 此处刻意**不写出字面量**：那种正则的结尾是星号加斜杠，写在 KDoc 里会被当成注释结束符。）
  *
