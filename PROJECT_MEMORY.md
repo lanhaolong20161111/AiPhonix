@@ -10,8 +10,8 @@
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
-- 本轮（批次C后半第 1 个）为**同一任务继续**：**AI 对话学语文**（`/module/speech_compose`，含词语教学 / 古诗 / 文章背诵三套练习）。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`<待补>`（**批次C后半②** AI 英语对话）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
+- 本轮（批次C后半第 2 个）为**同一任务继续**：**AI 英语对话**（`/module/ai_english_talk`，AI 给台词与回答 → 逐词跟读阶梯；也可自己说 → 录音识别判定）。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -62,6 +62,31 @@
   - `AppContainer.ttsCache`（`BaiduTtsCache` 需 `Context` 构造，而 **VM 不该持有 Context** ⇒ 由容器持有并注入；VM 侧参数为 `BaiduTtsCache? = null`，为 null 时**静默降级为不朗读**，单测可用）。
 - 首页「学习工具」区新增「🤖 AI 对话学语文」卡。
 
+### 已完成（批次C后半 第 2 个模块｜2026-09-22 续做）
+**AI 英语对话**（`/module/ai_english_talk`）—— 设置「主题 + 练习单词 + 练习句子」→ `POST /llm/en-dialogue-setup` 生成多轮英文剧本（每轮含 AI 台词、该说的回答、意群切分）→ 逐轮练习。
+
+| 回答模式 | 数据/接口 | 流程 |
+|---|---|---|
+| **跟读**（默认） | `POST /llm/en-dialogue-setup`（**不传 `lang`** ⇒ 默认 en；三者至少给一个否则 **400+detail**；同参缓存落 `en_dialogue.json`；`generateWithGuard` 最多 3 次；全失败 **422+detail**） | AI 领读整句回答 → **逐词扩长阶梯**（第 1 遍读第 1 个词、第 2 遍读前 2 个词……）→ 每级 ≥70 分进下一级 → 整句读完进下一轮 |
+| **自己说** | `POST /asr/short`（body `{lang:"en", audio: base64(PCM 16k/16bit/mono)}`，**无鉴权**）+ `POST /llm/en-answer-judge`（`{target, said}`，失败 **500+detail**） | 录音 → 识别 → 判定 → 通过给表扬；不通过给正确句 + 可展开**意群阶梯**（片段 → 扩长 → 整句）跟读修复 |
+
+- 数据层：`data/englishtalk/EnglishTalkRepository`、`data/asr/AsrRepository`；翻译复用 `data/dailyen/DailyEnRepository`（`/daily-en/sentence-info` · `/word-info`）。
+- **`data/zhteach/ZhTeachHttp.kt` 提升为 `data/llm/LlmHttp.kt`**（`/llm/` 前缀通用 HTTP 层：Auth / 对象解析 / 错误抽取 / 取消透传），三个语文仓储同步改名 `ZhTeachHttp` → `LlmHttp`。
+- 新增公用能力（都在 `app/`，后续模块可复用）：
+  - **`ui/echo/EchoLadderState`（纯状态机）+ `ui/echo/EchoLadder`（纯展示组件）** —— 移植 web `EchoLadder` 的逐词/意群阶梯。★ 语义细节：`PASS = 70`（**恰好 70 不算失败**）；第 2 级起连错 2 次**降级**到失败单位做「小步」，小步过关**回原级**（不升级、不清 level）；`level == 1` **永不降级**；`failingChunk` 用 `steps.find`（**从头扫**）⇒ 常返回第 1 个单位；`accuracy` 缺失按 `0`。附 13 条单测。
+  - **`util/EnText.kt`** —— `splitEnWords` / `englishOnly` / `normEnWord` / `fallbackChunks` / `soeScene` / `evalModeForScene` / `parsePracticeWords` / `parsePracticeSentences` / `jsTrim`。附 16 条单测。
+  - **`ui/common/EnglishWordTapText`** —— 英文文本逐词可点读（点词查词信息朗读 + 高亮 `0xFF90CAF9`）。未移植 web `PhonicsWord` 的音形着色（见已知差异）。
+- 服务端 `lib/baiduTts.ts` 对英文文本**自动换音色**（`4193` 度泽言·自然英文）⇒ 前端**不必**区分语言，中英统一走注入的 `AppContainer.ttsCache`；「先英文后中文」严格串行（`play` 全局互斥）。
+- 首页「学习工具」区新增「🗣 AI 英语对话」卡（青绿 `E0F2F1` / `00695C`）。
+
+#### 批次C后半② AI 英语对话的已知差异（有意为之，非遗漏）
+- **「自己说」降级为「录一段 → `/asr/short` → 判定」**：web 用 WebSocket 流式 ASR（`/asr/stream`）做实时逐词上屏，Android 无该通道 ⇒ 录音结束才拿到整段文本。
+- **放弃 3 项依赖流式 ASR 的能力**：① 逐词实时提示；② **6 秒静音自动挂阶梯**；③ 提示记录面板。另外「未作答自动给提示」的三级 hint 也依赖静音检测，未实现。
+- **`EN_WORD_RE` 照抄 web 三处反直觉行为**：连字符 **不在**字符类内（`well-known` → `well` + `known`）；数字切开（`world4u` → `world` + `u`）；非 ASCII 字母切开（`café` → `caf`、`résumé` → `r` + `sum`）。⚠️ 与 `WordbookAutoCollector` 的英文词正则（允许连字符、整串匹配）**不同，不可互换**。`normEnWord` 则只留 ASCII（`It’s` → `its`）。
+- **设置面板无拍照 OCR**：前置依赖「字幕采集」。
+- **`englishOnly` 判据是「首个汉字下标 `> 0`」**（不是 `>= 0`）：纯中文原样返回；`englishOnly("  你好") == ""`。
+- **`soeScene` 必须传对**：`word→"0"(≤30)` / `sentence→"1"(≤120)` / `paragraph→"2"(≤120)` / `pinyin→"8"`。省成自动判定时英文句子 `maxRefLen` 只有 **30 字符**（长句被静默截断）。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -75,11 +100,14 @@
 0f. **★ 别在 KDoc 注释里写正则或路径通配符**：Kotlin 的块注释**可以嵌套** ⇒ **`/*` 和 `*/` 都会出事**：
    - 注释里写 `/\n+|(?<=[。；;])\s*/`：其中的 `*/` **提前结束**注释块，后面全被当顶层声明 ⇒ **30+ 个 `Syntax error: Expecting a top level declaration`**。
    - 注释里写 `` `/llm/*` 系列端点 ``：其中的 **`/*` 开启嵌套注释**，把外层 `*/` 吃掉 ⇒ 错误报在**文件末尾**（`Syntax error: Unclosed comment.`），而且**同包其它文件全部**跟着报 `Unresolved reference`（一个"找不到的 object"看起来像包名写错，极具误导性）。
+   - ★ 本轮又踩镜像面：注释里写 web 的正则字面量 `` `/[A-Za-z]+(?:['’][A-Za-z]+)*/g` `` —— 末尾 **`*/g` 里的 `*/` 提前结束**注释块，`g` 后的反引号变成顶层声明 ⇒ **30+ 条 `Syntax error: Expecting a top level declaration`**（报在文件末尾附近，同样误导）。自查：`grep -n "\*/g|[A-Za-z0-9_\)\]]\*/"` 扫全仓。
    规避：注释里用中文描述正则；路径写 `/llm/` 前缀而**不要**写 `/llm/*`。
 0g. **往已有 composable 加回调参数，别忘了私有子 composable**：课件库入口加在家长设置的「内容管理」段，而那段实际在**私有 `PlanEditor`** 里 ⇒ 只改公开签名会 `Unresolved reference`，必须**同时给 `PlanEditor` 加同名参数并透传**。
+0h. **★ 同名的「英文词正则」在本项目有两份、行为不同，别互换**：`util/EnText.splitEnWords`（移植 web `AiEnglishTalkPage`，**连字符不在字符类内** ⇒ `well-known` 切成两词；数字与非 ASCII 字母也会切开）vs `data/wordbook/WordbookAutoCollector`（**允许连字符**、整串匹配）。移植时**照抄来源那一份**，不要"顺手统一"。
+0i. **★ `/asr/short` 的 422 不是错误**：`raw.length < 1600`（音频太短）或百度无识别结果都返回 **422** ⇒ 语义等于「没听到话」，应归一成 `Result.success("")`，与「请求失败（网络/500）」分开处理。另：该端点**无鉴权**。
 13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
 14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
-15. **★ 项目里有三套中文切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。
+15. **★ 项目里有「四套」切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）；④ **`web/src/lib/readUnit.ts`**（**识别页**用，按**段落**切、认英文句点、有缩略语表 `mr/dr/st/…` 与「单字母 + `.`」跳过；Android 未移植）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。
 16. **★ 「异步播表扬语 + 立刻进下一步」会被忙碌锁挡掉**：`onEchoPassed()` 里 `enterPoemVerse(i+1)` 的第一步是领读，而领读会判 `ttsBusy` —— 若表扬语是用「异步即发」的方式播的，`ttsBusy` 还是 true ⇒ **下一步静默不朗读**。必须把「播完表扬 → 再进下一步」写成**同一个协程块串行**（web 的 `EchoLadder` 天然如此：播完才回调 `onFinished`）。
 17. **★ `BaiduTtsCache` 是 `class`（需 `Context` 构造），不是 `object`**：`play` / `playRemote` / `playRemoteAndWait` 都是**实例方法**（写成 `BaiduTtsCache.play(...)` 会报 `Unresolved reference 'play'`）；只有 `stopAll()` / `splitForTts()` / `SPEAKER_US` / `SPEAKER_UK` 在 `companion object` 里是静态。VM 里要用就**从 `AppContainer.ttsCache` 注入**（见第 20 条）。
 18. **`PronunciationResult.feedback` 是 `String?`**（`totalScore` 才是 `Int`）⇒ 塞进非空字段要 `.orEmpty()`。
@@ -94,13 +122,15 @@
 7. **`/char-images/feedback` 的唯一键含 (grade, semester, type)**：同一个字跨年级/类型存**多行**，服务端按 `timestamp` **倒序**返回 ⇒ **首次见到即为最新**。Android 按意图取最新；web 是「倒序遍历后写覆盖」= 取**最旧**（笔误）。这是**有意保留的差异**，别去「对齐」web。
 8. **单字音频 `/tts/char/:char?synthesize=1&pinyin=hao3`** 需鉴权（`requireAuth()`），且 `pinyin` 必须是**数字调**格式（服务端 `SYLLABLE_RE = /^[a-z]{1,6}[1-5]$/`）。百度 TTS 对「字（无声调）」会把拼音字母当字面内容念出来 ⇒ 拿不到声调时 `toBaiduSyllable` **返回 `""` 宁可不注音**，绝不返回 `"zhong"` 这种半成品（偏旁字族里 3/117 个轻声字如 `ma`/`ba`/`men` 就属此类）。
 9. **`BaiduTtsCache.stopAll()` 兼作「停止」与「释放 activePlayer」**：`playRemote` 前调一次即可实现「新读音打断旧读音」；但它**没有完成回调**，需要清 UI 高亮时得自己 `delay(≈1800)` 兜底。
+9b. **★ `BaiduTtsCache` 曾有一个「全 App 朗读永久静默」的全局 bug（本轮已修）**：`playLock` 是 `companion object` 里的**静态** `AtomicBoolean`；`play()` 开头 `if (!playLock.compareAndSet(false, true)) return false`（**拒绝而非排队**），`finally { playLock.set(false) }`。但 `MediaPlayer.stop()` / `release()` **不会触发** `onCompletion` / `onError` ⇒ `stopAll()` 期间挂起的 `suspendCancellableCoroutine` **永不返回** ⇒ `finally` 永不执行 ⇒ 锁永久为 true ⇒ **之后所有朗读全部静默返回 false**。修复：新增 `@Volatile private var activeFinish: (() -> Unit)?`，`playFile` / `playRemoteAndWait` 挂起时注册 `finish(false)`，`stopAll()` 主动调用它解开挂起，并用 `clearActive(mp)` 统一清理。★ 另修 `playRemote` **直接覆盖 `activePlayer`（不先 `stopAll`）** ⇒ 被覆盖的 `MediaPlayer` 既不停也不释放（漏音 + 泄漏），已改为**先 `stopAll()` 再 new`。
+9c. **★ 新加一条 suspend 等待前，先确认「谁负责唤醒它」**：上面那个 bug 的成因就是「等一个只由 `MediaPlayer` 回调唤醒的 `suspendCancellableCoroutine`，而 `stopAll()` 会把 `MediaPlayer` 直接掐掉」。凡是「注册回调 + 挂起等待」的写法，都要**同时**保证「异常/中断路径也会唤醒」。
 10. **Compose `items(count, key)` 的 key 必须全局唯一**：汉字地图有多年级重复字 ⇒ 用 `"${g.key}#$idx#${cell.char}"`。
 11. **共享 OkHttp `NetworkModule.httpClient` 的 readTimeout 已是 180s**，LLM 的 40s/90s 调用**直接用共享 client**，不必再 `createHttpClient` 派生。
 12. `scripts/` 在 `.gitignore` 里（「# Temp scripts → scripts/」）⇒ **新写的生成脚本不会被提交**（已跟踪的老脚本仍在库里）。生成物 `.kt` 必须提交，且文档要写清生成脚本路径。
 
-### 剩余（批次C后半 3 模块 + 2 待核对）
-- AI 英语对话（`/module/ai_english_talk`，web 993 行）、**综合算式动画**（`/module/math_compound_expr`，Compose 重写飞入/转移动画，预计一整轮）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
-  ⚠️ 已确认：剩余模块**都不轻量** —— `SpeechComposePage` 1037 行、`AiEnglishTalkPage` 993 行、`MathCompoundExprPage` 889 行（本轮已消化第一个）。
+### 剩余（批次C后半 2 模块 + 2 待核对）
+- **综合算式动画**（`/module/math_compound_expr`，web 889 行，Compose 重写飞入/位移动画，预计一整轮；规格见 skill `aiphonix-math-anim-page`）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
+  ⚠️ 已确认：剩余模块**都不轻量** —— `MathCompoundExprPage` 889 行、`SubtitleCapture` 视频帧框选（本轮已消化 `SpeechComposePage` 1037 行、`AiEnglishTalkPage` 993 行）。
 - 2 项待核对：家长报告完整度、注册页是否已含在登录页。
 - ⚠️ **字幕采集是「每日语文 / 每日英语设置面板的拍照 OCR 自动填入」的前置依赖** —— 那两个面板的 📷/🖼️ 按钮在 Android 右侧目前是缺的（有意留白，见 `DailyChineseScreen` / `DailyEnglishScreen` 的 KDoc）。
 - ⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。

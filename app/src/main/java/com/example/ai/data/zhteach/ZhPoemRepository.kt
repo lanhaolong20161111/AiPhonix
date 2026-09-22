@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 import java.net.URLEncoder
+import com.example.ai.data.llm.LlmHttp
 
 /** 古诗里单个字的释义 */
 data class PoemChar(
@@ -68,19 +69,19 @@ class ZhPoemRepository(
 
     /** 生成古诗讲解（概括 + 逐句原文/白话 + 逐字释义） */
     suspend fun setup(poem: String): Result<PoemScript> = withContext(Dispatchers.IO) {
-        ZhTeachHttp.guard {
+        LlmHttp.guard {
             val body = JSONObject().apply { put("poem", poem) }
-            val json = ZhTeachHttp.postJson(client, "$serverBase/api/v1/llm/zh-poem-setup", body)
+            val json = LlmHttp.postJson(client, "$serverBase/api/v1/llm/zh-poem-setup", body)
             PoemScript(
                 title = json.optString("title", ""),
                 summary = json.optString("summary", ""),
                 fallback = json.optBoolean("fallback", false),
-                lines = ZhTeachHttp.objectList(json.optJSONArray("lines")) { o ->
+                lines = LlmHttp.objectList(json.optJSONArray("lines")) { o ->
                     PoemLine(
                         verse = o.optString("verse", ""),
                         meaning = o.optString("meaning", ""),
                         pinyin = o.optString("pinyin", ""),
-                        chars = ZhTeachHttp.objectList(o.optJSONArray("chars")) { pc ->
+                        chars = LlmHttp.objectList(o.optJSONArray("chars")) { pc ->
                             PoemChar(
                                 c = pc.optString("c", ""),
                                 m = pc.optString("m", ""),
@@ -95,9 +96,9 @@ class ZhPoemRepository(
 
     /** 快速概括（题目 + 整体概括 + 全诗逐字拼音） */
     suspend fun summary(poem: String): Result<PoemSummary> = withContext(Dispatchers.IO) {
-        ZhTeachHttp.guard {
+        LlmHttp.guard {
             val body = JSONObject().apply { put("poem", poem) }
-            val json = ZhTeachHttp.postJson(client, "$serverBase/api/v1/llm/zh-poem-summary", body)
+            val json = LlmHttp.postJson(client, "$serverBase/api/v1/llm/zh-poem-summary", body)
             PoemSummary(
                 title = json.optString("title", ""),
                 summary = json.optString("summary", ""),
@@ -110,10 +111,10 @@ class ZhPoemRepository(
     suspend fun search(q: String): Result<List<PoemSearchHit>> = withContext(Dispatchers.IO) {
         val query = q.trim()
         if (query.isEmpty()) return@withContext Result.success(emptyList())
-        ZhTeachHttp.guard {
+        LlmHttp.guard {
             val url = "$serverBase/api/v1/llm/zh-poem-search?q=${URLEncoder.encode(query, "UTF-8")}"
-            val json = ZhTeachHttp.getJson(client, url)
-            ZhTeachHttp.objectList(json.optJSONArray("poems")) { o ->
+            val json = LlmHttp.getJson(client, url)
+            LlmHttp.objectList(json.optJSONArray("poems")) { o ->
                 PoemSearchHit(
                     title = o.optString("title", ""),
                     dynasty = o.optString("dynasty", ""),

@@ -117,5 +117,6 @@ import kotlinx.serialization.Serializable
 @Serializable data object DailyEnglish : NavKey                         // 每日英语（家长设今日单词/句子，单词卡+句子卡）
 @Serializable data object SentenceCompose : NavKey                      // 造句练习（给词造句，AI 老师批改）
 @Serializable data object SpeechCompose : NavKey                        // AI 对话学语文（一问一答 / 古诗 / 文章背诵跟读）
+@Serializable data object AiEnglishTalk : NavKey                        // AI 英语对话（AI 给台词+回答 → 跟读阶梯 / 自己说 → ASR 判定）
 
 // 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

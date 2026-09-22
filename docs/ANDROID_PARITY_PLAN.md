@@ -59,7 +59,7 @@
 | 9 | `/module/diary`（成长日记） | ✅ DiaryScreen | 本地存储 + `/llm/chat` | 中 |
 | 10 | `/module/radical_game`（偏旁魔法屋） | ✅ RadicalGameScreen | 静态字族 + `/radical/song|riddles` | 中 |
 | 11 | `/module/speech_compose`（AI 对话学语文） | ✅ SpeechComposeScreen | chat + TTS + 文章分句 | 中 |
-| 12 | `/module/ai_english_talk`（AI 英语对话） | ❌ AiEnglishTalkScreen | chat（english） | 中 |
+| 12 | `/module/ai_english_talk`（AI 英语对话） | ✅ EnglishTalkScreen | chat + TTS + 跟读阶梯 + ASR 判定 | 中 |
 | 13 | `/module/courseware_manager`（课件库） | ✅ CoursewareScreen | 课件上传/管理接口 | 中 |
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
 | 15 | `/module/math_compound_expr`（综合算式动画） | ❌ MathCompoundExprScreen | 纯前端动画（Compose 重写） | 高 |
@@ -71,11 +71,11 @@
 ## 3. 实施批次（每批可独立构建验证）
 
 > **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + 1 模块）已全部完成（提交 `438d749` / `10b58fa`）；
-> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **284 用例 / 0 失败**（22 个测试类）。
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **313 用例 / 0 失败**（24 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
-> **AI 对话学语文（C 后半第 1 个）**。
-> 剩余：**批次 C 后半 3 个模块**（AI 英语对话、综合算式动画、字幕采集）+ 2 项待核对。
+> **AI 对话学语文、AI 英语对话（C 后半前 2 个）**。
+> 剩余：**批次 C 后半 2 个模块**（综合算式动画、字幕采集）+ 2 项待核对。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -128,7 +128,7 @@
 
 ### 批次 C 后半（本次会话）
 18. **AI 对话学语文** ✅（详见下方小节）
-19. AI 英语对话（AiEnglishTalk）—— 待做
+19. **AI 英语对话** ✅（详见下方小节）
 20. 综合算式动画（MathCompoundExpr，Compose 重写飞入/转移动画）—— 待做
 21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）—— 待做
 
@@ -153,6 +153,32 @@
 - **不做「预取下一句音频」**：web 有 `warm()` 只下载不播放；Android 的 TTS 缓存没有该入口，故只在点击时合成（影响首次点击等待感，不影响正确性）。
 - **`polyphoneOnly: true` 分支未实现**：web 的精细模式依赖 `data/polyphoneChars` 多音字表，Android 暂无该表（古诗走的是 `polyphoneOnly: false` 分支，不受影响）。
 - **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
+
+#### 19. AI 英语对话 ✅（`/module/ai_english_talk`）
+
+家长（或学生）填「主题 + 练习单词 + 练习句子」→ `POST /llm/en-dialogue-setup` 生成一份**多轮英文剧本**（每轮有 AI 台词、该说的回答、意群切分）→ 逐轮练习。
+
+| 回答模式 | 触发 | 流程 |
+|---|---|---|
+| **跟读**（默认） | 进入即用 | AI 领读整句回答 → **逐词扩长阶梯**（第 1 遍读第 1 个词、第 2 遍读前 2 个词……）→ 每级 ≥70 分进下一级 → 整句读完进下一轮 |
+| **自己说** | 点「🎤 我想自己说」 | 录音 → `POST /asr/short` 识别 → `POST /llm/en-answer-judge` 判定 → 通过给表扬；不通过给正确句 + 可展开**意群阶梯**（片段 → 扩长 → 整句）跟读修复 |
+
+- 数据层：`data/englishtalk/EnglishTalkRepository`（`/llm/en-dialogue-setup` · `/llm/en-answer-judge`）、`data/asr/AsrRepository`（`/asr/short`）、翻译复用 `data/dailyen/DailyEnRepository`（`/daily-en/sentence-info` · `/word-info`）。
+- 新增公用能力（都在 `app/`，可被后续模块复用）：
+  - `ui/echo/EchoLadderState`（**纯状态机**）+ `ui/echo/EchoLadder`（纯展示组件）：移植 web `EchoLadder` 的逐词/意群阶梯。`PASS = 70`；第 2 级起连错 2 次**降级**到失败单位做「小步」，小步过关**回原级**；`level == 1` 永不降级。附 13 条单测。
+  - `util/EnText.kt`：`splitEnWords` / `englishOnly` / `normEnWord` / `fallbackChunks` / `soeScene` / `evalModeForScene` / `parsePracticeWords` / `parsePracticeSentences` / `jsTrim` （JS 语义的空白与裁剪，含 NBSP / 全角空格 / BOM）。附 16 条单测。
+  - `ui/common/EnglishWordTapText`：英文文本逐词可点读（点词查 `/daily-en/word-info` 朗读 + 高亮）。
+  - `data/llm/LlmHttp`：由原 `data/zhteach/ZhTeachHttp` **提升+改名**为 `/llm/` 前缀通用 HTTP 层（Auth / 对象解析 / 错误抽取 / 取消透传），三个语文仓储同步改名。
+- 中英朗读统一走注入的 `BaiduTtsCache`：服务端 `lib/baiduTts.ts` 对英文文本**自动换音色**（`4193` 度泽言·自然英文），前端不必区分语言；「先英文后中文」严格串行（`play` 是全局互斥的）。
+- 实测确认：`/llm/en-dialogue-setup` **不传 `lang`**（默认 en）；`/llm/en-answer-judge` 通过时 `correct` 为空。`/asr/short` 无鉴权，`raw.length < 1600` 或无识别结果都返回 **422**（归一成 `Result.success("")`，与「请求失败」分开）。
+
+#### 批次 C 后半 · AI 英语对话的已知差异（有意为之，非遗漏）
+
+- **「自己说」降级为「录一段 → 识别 → 判定」**：web 用 WebSocket 流式 ASR（`/asr/stream`）做实时逐词上屏，Android 无该通道 ⇒ 录音结束才拿到整段文本。
+- **放弃 3 项依赖流式 ASR 的能力**：① 逐词实时提示；② **6 秒静音自动挂阶梯**；③ 提示记录面板。
+- **不做「未作答自动给提示」的三级 hint**（同上一项，依赖流式 ASR 的静音检测）。
+- **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
+- **`EN_WORD_RE` 照抄 web 的三处反直觉行为**：连字符 `-` **不在**字符类内（`well-known` 切成 `well` + `known`）；数字切开（`world4u` → `world` + `u`）；非 ASCII 字母切开（`café` → `caf`）—— 与 `WordbookAutoCollector` 的英文词正则**不同**，不可互换。
 
 ## 4. 实现约定（每新增模块）
 

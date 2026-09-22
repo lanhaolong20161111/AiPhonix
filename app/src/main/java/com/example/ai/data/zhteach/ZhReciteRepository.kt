@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import com.example.ai.data.llm.LlmHttp
 
 /**
  * AI 对话学语文 —— 文章背诵框架（缩写）生成（对齐 web `services/zhRecite.ts` +
@@ -24,10 +25,10 @@ class ZhReciteRepository(
     /** 为每句生成极简背诵提示；失败返回 failure（调用方应静默降级：无提示也能继续练） */
     suspend fun setup(sentences: List<String>): Result<List<ArticleLine>> = withContext(Dispatchers.IO) {
         if (sentences.isEmpty()) return@withContext Result.success(emptyList())
-        ZhTeachHttp.guard {
+        LlmHttp.guard {
             val body = JSONObject().apply { put("sentences", JSONArray(sentences)) }
-            val json = ZhTeachHttp.postJson(client, "$serverBase/api/v1/llm/article-recite", body)
-            ZhTeachHttp.objectList(json.optJSONArray("items")) { o ->
+            val json = LlmHttp.postJson(client, "$serverBase/api/v1/llm/article-recite", body)
+            LlmHttp.objectList(json.optJSONArray("items")) { o ->
                 ArticleLine(
                     text = o.optString("text", ""),
                     short = o.optString("short", ""),

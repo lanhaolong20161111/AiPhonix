@@ -1,4 +1,4 @@
-package com.example.ai.data.zhteach
+package com.example.ai.data.llm
 
 import android.util.Log
 import com.example.ai.data.auth.TokenManager
@@ -11,19 +11,22 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * 「AI 对话学语文」三个仓储（[ZhTeachRepository] / [ZhPoemRepository] / [ZhReciteRepository]）共用的 HTTP 工具。
+ * `/llm/` 前缀的 LLM 端点共用的 HTTP 工具。
  *
- * 项目里其它仓储（`DailyZhRepository` / `CoursewareRepository`）各自内联了一份 `executeJson`，
- * 此处三个仓储要共用同一套语义，故抽出来。
+ * 使用方：「AI 对话学语文」三个仓储（`ZhTeachRepository` / `ZhPoemRepository` /
+ * `ZhReciteRepository`）与「AI 英语对话」的 `EnglishTalkRepository`。
+ *
+ * 项目里大部分仓储（`DailyZhRepository` / `CoursewareRepository`）各自内联了一份 `executeJson`；
+ * 这一组因为要共用同一套语义（失败消息取 detail + 抛异常 + 转 Result），故抽到此处。
  *
  * 语义要点：
  * - `/llm/` 前缀的端点服务端**都要求鉴权**（`resolveCurrentUser(Authorization)`，无第二个参数 = 必需）。
  * - 失败时服务端返回 `{detail: "..."}`（400/422/500），web 的 `api()` 会把 detail 抛成 Error
  *   并由页面显示 `String(e.message)`。所以这里的失败消息也**优先取 detail**。
  */
-internal object ZhTeachHttp {
+internal object LlmHttp {
 
-    private const val TAG = "ZhTeachHttp"
+    private const val TAG = "LlmHttp"
 
     val JSON: okhttp3.MediaType = "application/json; charset=utf-8".toMediaType()
 

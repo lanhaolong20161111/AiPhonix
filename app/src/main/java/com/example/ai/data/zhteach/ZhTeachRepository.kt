@@ -7,6 +7,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import com.example.ai.data.llm.LlmHttp
 
 /** 一道教学题：提问 + 参考回答 + 本题考查的词/句 + 3 级提示（意思 → 例句 → 句型骨架） */
 data class TeachItem(
@@ -49,21 +50,21 @@ class ZhTeachRepository(
     /** 生成教学剧本；失败时 `exception.message` 是可直接展示给用户的中文 detail */
     suspend fun setup(topic: String, words: List<String>, sentences: List<String>): Result<TeachScript> =
         withContext(Dispatchers.IO) {
-            ZhTeachHttp.guard {
+            LlmHttp.guard {
                 val body = JSONObject().apply {
                     put("topic", topic)
                     put("words", JSONArray(words))
                     put("sentences", JSONArray(sentences))
                 }
-                val json = ZhTeachHttp.postJson(client, "$serverBase/api/v1/llm/zh-teach-setup", body)
+                val json = LlmHttp.postJson(client, "$serverBase/api/v1/llm/zh-teach-setup", body)
                 TeachScript(
                     title = json.optString("title", ""),
-                    items = ZhTeachHttp.objectList(json.optJSONArray("items")) { o ->
+                    items = LlmHttp.objectList(json.optJSONArray("items")) { o ->
                         TeachItem(
                             q = o.optString("q", ""),
                             ref = o.optString("ref", ""),
                             focus = o.optString("focus", ""),
-                            hints = ZhTeachHttp.stringList(o.optJSONArray("hints")),
+                            hints = LlmHttp.stringList(o.optJSONArray("hints")),
                         )
                     },
                 )
@@ -73,13 +74,13 @@ class ZhTeachRepository(
     /** 判定孩子的文本回答 */
     suspend fun judge(q: String, ref: String, answer: String): Result<TeachJudgeResult> =
         withContext(Dispatchers.IO) {
-            ZhTeachHttp.guard {
+            LlmHttp.guard {
                 val body = JSONObject().apply {
                     put("q", q)
                     put("ref", ref)
                     put("answer", answer)
                 }
-                val json = ZhTeachHttp.postJson(client, "$serverBase/api/v1/llm/zh-teach-judge", body)
+                val json = LlmHttp.postJson(client, "$serverBase/api/v1/llm/zh-teach-judge", body)
                 TeachJudgeResult(
                     // 服务端可能返回布尔或字符串 "true"，两种都认（与 web `j.ok === true || j.ok === "true"` 一致）
                     ok = json.optBoolean("ok", false) || json.optString("ok", "") == "true",

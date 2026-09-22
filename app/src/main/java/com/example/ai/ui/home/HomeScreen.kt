@@ -60,6 +60,7 @@ fun HomeScreen(
     onOpenDailyChinese: () -> Unit = {},
     onOpenDailyEnglish: () -> Unit = {},
     onOpenSpeechCompose: () -> Unit = {},
+    onOpenAiEnglishTalk: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -295,6 +296,17 @@ fun HomeScreen(
             containerColor = Color(0xFFF3E5F5),
             arrowColor = Color(0xFF6A1B9A),
             onClick = onOpenSpeechCompose,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // AI 英语对话（AI 给台词与回答 → 逐词跟读阶梯；也可自己说 → 录音识别判定）
+        ToolCard(
+            emoji = "🗣",
+            title = "AI 英语对话",
+            subtitle = "AI 陪你说英语，跟读阶梯或自己开口答",
+            containerColor = Color(0xFFE0F2F1),
+            arrowColor = Color(0xFF00695C),
+            onClick = onOpenAiEnglishTalk,
         )
         Spacer(Modifier.height(20.dp))
 

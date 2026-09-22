@@ -115,6 +115,8 @@ import com.example.ai.ui.sentencecompose.SentenceComposeScreen
 import com.example.ai.ui.sentencecompose.SentenceComposeViewModel
 import com.example.ai.ui.speechcompose.SpeechComposeScreen
 import com.example.ai.ui.speechcompose.SpeechComposeViewModel
+import com.example.ai.ui.englishtalk.EnglishTalkScreen
+import com.example.ai.ui.englishtalk.EnglishTalkViewModel
 import com.example.ai.data.dailyzh.DailyZhRepository
 import com.example.ai.data.dailyzh.DailyZhSync
 import com.example.ai.data.dailyen.DailyEnRepository
@@ -187,6 +189,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenDailyChinese = { backStack.add(DailyChinese) },
             onOpenDailyEnglish = { backStack.add(DailyEnglish) },
             onOpenSpeechCompose = { backStack.add(SpeechCompose) },
+            onOpenAiEnglishTalk = { backStack.add(AiEnglishTalk) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -300,6 +303,13 @@ fun MainNavigation(container: AppContainer) {
         entry<SpeechCompose> {
           SpeechComposeScreen(
             viewModel = viewModel { SpeechComposeViewModel(ttsCache = container.ttsCache) },
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<AiEnglishTalk> {
+          EnglishTalkScreen(
+            viewModel = viewModel { EnglishTalkViewModel(ttsCache = container.ttsCache) },
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )

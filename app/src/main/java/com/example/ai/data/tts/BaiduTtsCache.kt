@@ -43,13 +43,39 @@ class BaiduTtsCache(
         @Volatile
         private var activePlayer: android.media.MediaPlayer? = null
 
-        /** 停止并释放当前播放（ViewModel onCleared / 页面返回时调用） */
+        /**
+         * 当前播放对应的「结束回调」—— [playFile] / [playRemoteAndWait] 在挂起期间注册，
+         * [stopAll] 主动调用它来**解开挂起的协程**。
+         *
+         * 🔴 为什么必须有它：`MediaPlayer.stop()` / `release()` **不会**触发
+         * `onCompletion` / `onError`，所以只停播放器的话，`play()` 里的
+         * `suspendCancellableCoroutine` 会**永不返回** ⇒ `play()` 的
+         * `finally { playLock.set(false) }` 永远不执行 ⇒ **全局播放锁永久卡死**
+         * （`playLock` 是静态的），此后整个 App 每一次朗读都被 `play()` 直接拒掉，
+         * 表现为「突然全部没声音」，直到进程重启。
+         *
+         * 只在"有播放挂起时"才会被调用；已结束的播放其回调有 `done` 兜底，重复调用无副作用。
+         */
+        @Volatile
+        private var activeFinish: (() -> Unit)? = null
+
+        /** 停止并释放当前播放（ViewModel onCleared / 页面返回时调用），并**解开挂起的播放协程** */
         fun stopAll() {
-            activePlayer?.let { mp ->
-                runCatching { if (mp.isPlaying) mp.stop() }
-                runCatching { mp.release() }
-            }
+            val mp = activePlayer
+            val finish = activeFinish
             activePlayer = null
+            activeFinish = null
+            runCatching { if (mp?.isPlaying == true) mp.stop() }
+            runCatching { mp?.release() }
+            runCatching { finish?.invoke() }
+        }
+
+        /** 结束播放时清理全局登记（只有登记的就是自己时才清，避免误清新播放） */
+        private fun clearActive(mp: android.media.MediaPlayer) {
+            if (activePlayer === mp) {
+                activePlayer = null
+                activeFinish = null
+            }
         }
 
         /**
@@ -109,10 +135,13 @@ class BaiduTtsCache(
      * 带 headers（如 JWT 认证）。
      */
     fun playRemote(url: String, headers: Map<String, String> = emptyMap(), onError: ((String) -> Unit)? = null) {
+        // ★ 先停掉正在播的那一段：既防叠音，也**解开可能挂起的上一个 play**（否则它会一直占着全局播放锁）。
+        //   旧实现直接覆盖 activePlayer，被覆盖的 MediaPlayer 既没人停也没人释放（漏音 + 泄漏）。
+        stopAll()
         val mp = MediaPlayer()
         activePlayer = mp
         fun releaseIfCurrent() {
-            if (activePlayer === mp) activePlayer = null
+            clearActive(mp)
             runCatching { mp.release() }
         }
         mp.setOnPreparedListener { it.start() }
@@ -154,8 +183,10 @@ class BaiduTtsCache(
             }
             val mp = MediaPlayer()
             activePlayer = mp
+            // 让 stopAll() 能解开本协程（MediaPlayer 被 stop/release 时不触发任何监听器，见 activeFinish 的说明）
+            activeFinish = { finish(false) }
             fun releaseIfCurrent() {
-                if (activePlayer === mp) activePlayer = null
+                clearActive(mp)
                 runCatching { mp.release() }
             }
             cont.invokeOnCancellation {
@@ -248,8 +279,11 @@ class BaiduTtsCache(
         try {
             val mp = MediaPlayer()
             activePlayer = mp // 注册为当前播放器（页面销毁时可显式停止）
+            // 让 stopAll() 能解开本协程：MediaPlayer 被 stop/release 时不触发任何监听器，
+            // 不注册的话 playLock 会永久卡死（见 activeFinish 的说明）。
+            activeFinish = { finish(false) }
             fun releaseIfCurrent() {
-                if (activePlayer === mp) activePlayer = null
+                clearActive(mp)
                 runCatching { mp.release() }
             }
             // 协程取消（页面销毁/返回）时停止并释放，保证声音立即停止
