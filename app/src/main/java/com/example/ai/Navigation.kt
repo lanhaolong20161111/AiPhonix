@@ -117,6 +117,7 @@ import com.example.ai.ui.speechcompose.SpeechComposeScreen
 import com.example.ai.ui.speechcompose.SpeechComposeViewModel
 import com.example.ai.ui.englishtalk.EnglishTalkScreen
 import com.example.ai.ui.englishtalk.EnglishTalkViewModel
+import com.example.ai.ui.mathcompound.MathCompoundExprScreen
 import com.example.ai.data.dailyzh.DailyZhRepository
 import com.example.ai.data.dailyzh.DailyZhSync
 import com.example.ai.data.dailyen.DailyEnRepository
@@ -190,6 +191,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenDailyEnglish = { backStack.add(DailyEnglish) },
             onOpenSpeechCompose = { backStack.add(SpeechCompose) },
             onOpenAiEnglishTalk = { backStack.add(AiEnglishTalk) },
+            onOpenMathCompoundExpr = { backStack.add(MathCompoundExpr) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -312,6 +314,13 @@ fun MainNavigation(container: AppContainer) {
             viewModel = viewModel { EnglishTalkViewModel(ttsCache = container.ttsCache) },
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<MathCompoundExpr> {
+          // 页面自身按 item 管 16dp 内边距（整页是单个 LazyColumn），所以这里只给安全区
+          MathCompoundExprScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
           )
         }
         entry<FeedbackList> { route ->

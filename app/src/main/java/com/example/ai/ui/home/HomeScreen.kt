@@ -61,6 +61,7 @@ fun HomeScreen(
     onOpenDailyEnglish: () -> Unit = {},
     onOpenSpeechCompose: () -> Unit = {},
     onOpenAiEnglishTalk: () -> Unit = {},
+    onOpenMathCompoundExpr: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -307,6 +308,25 @@ fun HomeScreen(
             containerColor = Color(0xFFE0F2F1),
             arrowColor = Color(0xFF00695C),
             onClick = onOpenAiEnglishTalk,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 🧮 动画学数学（对齐 web 首页的「动画学数学」分区）
+        Text(
+            "🧮 动画学数学",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        )
+
+        // 三年级上综合算式动画（找→换→查：合并两个分步算式，讲清何时必须加括号）
+        ToolCard(
+            emoji = "🧮",
+            title = "三年级上综合算式动画",
+            subtitle = "动画演示「找→换→查」合并两个算式，何时必须加括号",
+            containerColor = Color(0xFFE8EAF6),
+            arrowColor = Color(0xFF3949AB),
+            onClick = onOpenMathCompoundExpr,
         )
         Spacer(Modifier.height(20.dp))
 

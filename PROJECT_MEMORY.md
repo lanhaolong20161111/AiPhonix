@@ -10,7 +10,7 @@
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`<待补>`（**批次C后半③** 综合算式动画）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
 - 本轮（批次C后半第 2 个）为**同一任务继续**：**AI 英语对话**（`/module/ai_english_talk`，AI 给台词与回答 → 逐词跟读阶梯；也可自己说 → 录音识别判定）。
 
 ### 已完成（批次A 5/5）
@@ -87,6 +87,24 @@
 - **`englishOnly` 判据是「首个汉字下标 `> 0`」**（不是 `>= 0`）：纯中文原样返回；`englishOnly("  你好") == ""`。
 - **`soeScene` 必须传对**：`word→"0"(≤30)` / `sentence→"1"(≤120)` / `paragraph→"2"(≤120)` / `pinyin→"8"`。省成自动判定时英文句子 `maxRefLen` 只有 **30 字符**（长句被静默截断）。
 
+### 已完成（批次C后半 第 3 个模块｜2026-09-22 续做）
+**三年级上综合算式动画**（`/module/math_compound_expr`）—— **零后端**：出题与讲解全在本地算，`web/src/lib/compoundExpr.ts`（648 行）+ `precedence.ts`（290 行）整份移植为 `data/math/CompoundExpr.kt` + `data/math/Precedence.kt`（纯 Kotlin）。
+
+教学法「找 → 换 → 查」：① 相同数双高亮 + **斜虚线真正连到两个数上**（两端圆点）；② ★ **转移动画**：① 的算式成幽灵，从得数位置起飞→抬起放大→落到 ② 那个数字位置并**原位顶掉**它（② 卡同时隐藏 `= 得数`，因为那时式子还没验证完）；③ **三小步**：先不加括号展示 → 把「按规矩会第一个算到」的运算符标**红**（点名具体是哪个）→ ★ **括号飞入 → 落位 → 向内夹紧**（被抱住那段亮紫边紫底）→ 按正确顺序**逐项绿高亮**。不用加括号时：括号飞进来**想夹→夹不住→被弹回去消散**。
+
+- **出题引擎**：4 题型（先加减后乘除 / 先乘除后加减 / 得数做被除数 / 得数做减数）+ 按权重随机 + 批量去重。★ **反推参数**（先定得数再推操作数）保证 `a op b == result` 恒成立；★ **巧合题拦截**（需括号的题若「去掉括号答案竟一样」直接丢弃）；题面规范（排除重复加数、排除「替换哪个数分不清」的歧义题）。
+- **优先级引擎**（页内可展开的「🔢 先算谁？」小块，也是「查」的前提）：产物是**计算顺序轨迹** `planSteps()`，动画只照轨迹播；`why: PAREN / HIGHER / SAME_LEVEL` 三值直接映射三句讲解。
+- **单测 21 例（新增 2 类）**：`CompoundExprTest`（11 例，1000 道随机全量校验 + 题型判据 + **动画不变量 `fromFirst` 必须连续整块** + 无重复加数）；`PrecedenceTest`（10 例，两组示例的**硬编码常量**裁判 + 括号内优先级 + `nextOpIndex` 两规矩 + 随机 3000 例交叉验算 + 轨迹不变量）。
+  ★ 求值用**互相独立的裁判**：手写递归下降 ↔ `Precedence.planSteps` 的逐步化简（另一份移植）—— 两个不同实现给出同一个整数，才把「生成的题是对的」从信仰变成证明。
+- Compose 侧四个实现要点：① 幽灵飞行 = **单一进度 0→1 + 手写分段插值**（等价 web 的 4 段 WAAPI keyframes，蓄力段用 `easeOutBack` 复刻 back 缓动）；② 括号**真身始终占位（alpha 0）**、替身飞到位后真身立刻显形，且**绝不能给括号加透明度过渡**（会出现「括号闪一下」的空档），时间常量与 VM 落位时刻**同源**；③ 坐标统一报 `boundsInRoot()`、取值只减基准容器（`CeGeom.relTo(anchor, key)`）；④ 优先级小动画用**定宽槽位**（数字 38dp / 运算符 30dp / 间隔 7dp）⇒ 宽度过渡不必量尺寸，扫描条目标位置可直接累加算出。
+- 首页新增「🧮 动画学数学」小标题 + 「三年级上综合算式动画」卡（靛蓝 `E8EAF6` / `3949AB`），对齐 web 首页的「动画学数学」分区。
+
+#### 批次C后半③ 综合算式动画的已知差异（有意为之，非遗漏）
+- **动画未做逐帧核验**：web 靠抓帧 + `getBoundingClientRect` 坐标断言验证落位精度；本机**无设备/模拟器**，Android 只到「构建通过 + 引擎单测绿」，观感由实机验证补。
+- **`prefers-reduced-motion` 换成系统动画缩放**：读 `Settings.Global.ANIMATOR_DURATION_SCALE == 0` 时直接跳到完成态。
+- **易错卡「滚到才揭晓」用 LazyColumn 天然实现**（卡片进入 composition 才起 1.1s 定时器）⇒ 等效 web 的 `IntersectionObserver`，且不需要观察者。
+- **括号「夹紧」的紫边用 `drawBehind` 画**（不改变任何布局尺寸）⇒ 比 web 的负 margin 方案更稳，落位坐标不会因夹紧而漂。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -105,6 +123,13 @@
 0g. **往已有 composable 加回调参数，别忘了私有子 composable**：课件库入口加在家长设置的「内容管理」段，而那段实际在**私有 `PlanEditor`** 里 ⇒ 只改公开签名会 `Unresolved reference`，必须**同时给 `PlanEditor` 加同名参数并透传**。
 0h. **★ 同名的「英文词正则」在本项目有两份、行为不同，别互换**：`util/EnText.splitEnWords`（移植 web `AiEnglishTalkPage`，**连字符不在字符类内** ⇒ `well-known` 切成两词；数字与非 ASCII 字母也会切开）vs `data/wordbook/WordbookAutoCollector`（**允许连字符**、整串匹配）。移植时**照抄来源那一份**，不要"顺手统一"。
 0i. **★ `/asr/short` 的 422 不是错误**：`raw.length < 1600`（音频太短）或百度无识别结果都返回 **422** ⇒ 语义等于「没听到话」，应归一成 `Result.success("")`，与「请求失败（网络/500）」分开处理。另：该端点**无鉴权**。
+0j. **★ Kotlin 局部函数不能前向引用（移植 JS 递归下降求值器必踩）**：`parseFactor` 要回调 `parseExpr`，而 `parseExpr` 又要用 `parseTerm` —— JS 靠**函数声明提升**没事，Kotlin 直接 `Unresolved reference 'parseExpr'`（报在调用那一行，看半天像拼错名）。修法：把最外层那个函数换成 **`lateinit var parseExpr: () -> Int`** 的 lambda 承接，其余保持 `fun`（顺序：parseFactor → parseTerm → parseExpr）。本轮在 `CompoundExpr.evalTokens` / `Precedence.evalExpr` / 单测裁判里**各踩一次**。
+0k. **★ JS 的 `rnd(min,max)` 与 Kotlin `nextInt(min,max)` 语义不同**：JS 是 `min + floor(random*(max-min+1))`，跨度 ≤ 0 时 **返回 min 不报错**；Kotlin `nextInt(2, 1)` **抛 IllegalArgumentException**。生成器里真存在 `rnd(2, r-1)`（r 很小时）⇒ 必须写 `rndInclusive()` 复刻（跨度 ≤ 0 返回 min），否则随机出题会**间歇性崩溃**（而且只在特定 r 值下出现，极难复现）。
+0l. **★ JS 除法出小数、Kotlin Int 除法截断** ⇒ 移植「整数性筛选」不能照抄 `Number.isInteger`：`3/2` 在 JS 是 1.5（会被筛掉），在 Kotlin 是 1（**静默截断，筛不掉**）。web `precedence.test.ts` 里随机造题的精筛必须改写成「每一步的除法都整除」的显式判断（见 `PrecedenceTest.randTokens`）。
+0m. **★ Compose 侧的四条硬约束（本轮集中踩）**：① `Modifier` 扩展里**不能用 `remember`** ⇒ 要写成 `@Composable fun Modifier.xxx()`；② **不要自己定义 `Modifier.clickable(onClick)`** —— 会与 `androidx.compose.foundation.clickable` 同名扩展**歧义**；③ `fontSize = 22f` 是 Float 不是 `TextUnit`（要 `22.sp`），误用会报一长串「None of the following candidates is applicable」；④ `boundsInRoot()` 与 `clip()` 需要**显式 import**（`androidx.compose.ui.layout.boundsInRoot` / `androidx.compose.ui.draw.clip`）。
+0n. **★ `onGloballyPositioned` 给的是绝对（root）坐标**：多容器页面必须**只减自己的基准容器**。把「stage 内的元素」和「resultBox 内的元素」都去减 stage 会得到完全错误的偏移（resultBox 根本不在 stage 里，只是同屏）。本轮统一成 `CeGeom.relTo(anchor, key)` 一种写法后消除。
+0o. **web 源码里 `4 × (14 + 7)` 的「63 巧合题」注释是误读**：带括号 `4×21 = 84`，去括号 `4×14+7 = 63` —— 两者**不等**，它恰恰是**合格**题；原文把「去括号后的值」当成了「两种写法同值」。照它写单测断言（`eq(63, …)`）必然失败。⚠️ 另注：合并分步算式这个题型在数学上（含 Int 截断）**几乎不可能产生真正的巧合题**，`isCoincidental` 是纯防御。
+0p. **Compose 里做「先渲染一帧，再打开过渡」用 `withFrameNanos { }`**（对应 web 的双 `requestAnimationFrame`）：`joined` 先置 false 渲染一帧、再置 true，宽度过渡才会动。
 13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
 14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
 15. **★ 项目里有「四套」切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）；④ **`web/src/lib/readUnit.ts`**（**识别页**用，按**段落**切、认英文句点、有缩略语表 `mr/dr/st/…` 与「单字母 + `.`」跳过；Android 未移植）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。
@@ -128,9 +153,9 @@
 11. **共享 OkHttp `NetworkModule.httpClient` 的 readTimeout 已是 180s**，LLM 的 40s/90s 调用**直接用共享 client**，不必再 `createHttpClient` 派生。
 12. `scripts/` 在 `.gitignore` 里（「# Temp scripts → scripts/」）⇒ **新写的生成脚本不会被提交**（已跟踪的老脚本仍在库里）。生成物 `.kt` 必须提交，且文档要写清生成脚本路径。
 
-### 剩余（批次C后半 2 模块 + 2 待核对）
-- **综合算式动画**（`/module/math_compound_expr`，web 889 行，Compose 重写飞入/位移动画，预计一整轮；规格见 skill `aiphonix-math-anim-page`）、**字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
-  ⚠️ 已确认：剩余模块**都不轻量** —— `MathCompoundExprPage` 889 行、`SubtitleCapture` 视频帧框选（本轮已消化 `SpeechComposePage` 1037 行、`AiEnglishTalkPage` 993 行）。
+### 剩余（批次C后半 最后 1 模块 + 2 待核对）
+- **字幕采集**（`/module/subtitle_capture`，视频帧框选 + 区域 OCR，预计一整轮）。
+  ⚠️ 已确认：剩余模块**不轻量** —— `SubtitleCapture` 要视频帧选取 + 区域框选 + OCR（本轮已分别消化 `MathCompoundExprPage` 889 行、`SpeechComposePage` 1037 行、`AiEnglishTalkPage` 993 行）。
 - 2 项待核对：家长报告完整度、注册页是否已含在登录页。
 - ⚠️ **字幕采集是「每日语文 / 每日英语设置面板的拍照 OCR 自动填入」的前置依赖** —— 那两个面板的 📷/🖼️ 按钮在 Android 右侧目前是缺的（有意留白，见 `DailyChineseScreen` / `DailyEnglishScreen` 的 KDoc）。
 - ⚠️ 待办（不属于 app 范围）：修 `web/src/services/charImages.ts` 的 `type_` → `type`，需单独一次 web 构建 + 部署。

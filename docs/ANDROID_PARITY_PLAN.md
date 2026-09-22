@@ -62,7 +62,7 @@
 | 12 | `/module/ai_english_talk`（AI 英语对话） | ✅ EnglishTalkScreen | chat + TTS + 跟读阶梯 + ASR 判定 | 中 |
 | 13 | `/module/courseware_manager`（课件库） | ✅ CoursewareScreen | 课件上传/管理接口 | 中 |
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
-| 15 | `/module/math_compound_expr`（综合算式动画） | ❌ MathCompoundExprScreen | 纯前端动画（Compose 重写） | 高 |
+| 15 | `/module/math_compound_expr`（综合算式动画） | ✅ MathCompoundExprScreen | **纯前端动画 + 本地规则引擎（零后端）** | 高 |
 | 16 | `/module/subtitle_capture`（字幕采集） | ❌ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 MediaStore + BitmapRegionDecoder） | 高 |
 | 17 | `/module/parent_report`（家长报告） | ⚠️ ReportScreen 需核对 | training/progress + 报告 | 中 |
 | 18 | `/register`（注册页） | ⚠️ 核对 LoginScreen 是否含注册 | auth | 低 |
@@ -71,11 +71,11 @@
 ## 3. 实施批次（每批可独立构建验证）
 
 > **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + 1 模块）已全部完成（提交 `438d749` / `10b58fa` / `d491cf5`）；
-> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **313 用例 / 0 失败**（24 个测试类）。
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **334 用例 / 0 失败**（26 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
-> **AI 对话学语文、AI 英语对话（C 后半前 2 个）**。
-> 剩余：**批次 C 后半 2 个模块**（综合算式动画、字幕采集）+ 2 项待核对。
+> **AI 对话学语文、AI 英语对话、综合算式动画（C 后半前 3 个）**。
+> 剩余：**批次 C 后半最后 1 个模块**（字幕采集）+ 2 项待核对。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -129,7 +129,7 @@
 ### 批次 C 后半（本次会话）
 18. **AI 对话学语文** ✅（详见下方小节）
 19. **AI 英语对话** ✅（详见下方小节）
-20. 综合算式动画（MathCompoundExpr，Compose 重写飞入/转移动画）—— 待做
+20. **综合算式动画** ✅（详见下方小节）
 21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）—— 待做
 
 #### 18. AI 对话学语文 ✅（`/module/speech_compose`）
@@ -179,6 +179,51 @@
 - **不做「未作答自动给提示」的三级 hint**（同上一项，依赖流式 ASR 的静音检测）。
 - **设置面板无拍照 OCR**：与每日语文/英语同一限制，前置依赖「字幕采集」。
 - **`EN_WORD_RE` 照抄 web 的三处反直觉行为**：连字符 `-` **不在**字符类内（`well-known` 切成 `well` + `known`）；数字切开（`world4u` → `world` + `u`）；非 ASCII 字母切开（`café` → `caf`）—— 与 `WordbookAutoCollector` 的英文词正则**不同**，不可互换。
+
+#### 20. 综合算式动画 ✅（`/module/math_compound_expr`）
+
+**零后端**：出题与讲解全部在本地算，`web/src/lib/compoundExpr.ts` + `precedence.ts` 整份移植为
+`data/math/CompoundExpr.kt` + `data/math/Precedence.kt`（纯 Kotlin，可单测）。
+
+教学法「找 → 换 → 查」：
+
+| 步 | 动画 | 学生该看懂的事 |
+|---|---|---|
+| ① 找 | 两式里相同的那个数同时高亮（琥珀），一条**斜虚线真正连到两个数上**（两端带圆点） | 先找到「同一个数」 |
+| ② 换 | ★ **转移动画**：① 的算式成为一块幽灵，从得数位置**起飞 → 沿弧线抬起放大 → 落到 ② 那个数字的位置并原位顶掉它**；① 的得数随即变淡（已被取走）；② 卡的 `= 得数` 同时隐藏（那时式子还没验证完，写等号会误导） | 哪个算式替代了原先数字的位置 |
+| ③ 查 | **三小步**：先不加括号展示 → 把「按规矩会第一个算到」的运算符标**红**（点名具体是哪个）→ ★ **括号从算式两侧飞入 → 落位 → 向内夹紧**，被抱住的那一段亮**紫边紫底** → 按正确顺序**逐项绿高亮** | 顺序变没变、为什么必须加括号 |
+| 不用加括号时 | 括号飞进来**想夹 → 停一下 → 夹不住被弹回去消散** | 括号是多余的 |
+
+- **出题引擎**：4 个题型生成器（先加减后乘除 / 先乘除后加减 / 得数做被除数 / 得数做减数）+ 按权重随机 + 批量去重。
+  - **反推参数**（先定得数再推操作数），保证 `a op b === result` 恒成立；
+  - **巧合题拦截**：需括号的题若「去掉括号答案竟一样」直接丢弃（否则漏括号也算对，讲不出为什么要加括号）；
+  - 题面规范：排除重复加数、排除「替换哪个数分不清」的歧义题、数值卡在三年级范围。
+- **优先级引擎**（页内可展开的「🔢 先算谁？」小块，也是「查」这一步的前提）：产物是**计算顺序轨迹** `planSteps()`，动画只照着轨迹播；`why` 三值直接映射三句讲解文案。
+- **单测（本轮新增 21 例，2 个类）**：
+  - `CompoundExprTest`（11 例）：1000 道随机**全量校验**（分步自身算对 / 第②步必须引用第①步得数 / 代入得数后结果对 / 综合式重新求值 == `answer` / 括号判据与「去括号会不会变值」一致 / 括号配对 / 数值规模 / 无重复加数 / **动画不变量：`fromFirst` 必须是连续整块且中间是运算符**）。
+  - `PrecedenceTest`（10 例）：两组页内示例的**硬编码常量**裁判 + 括号内优先级 + `nextOpIndex` 两规矩 + `reduceAt` 拆无用括号 + 随机 3000 例**交叉验算** + 轨迹不变量。
+  - ★ 求值用了**互相独立的裁判**：本文件手写的递归下降 ↔ `Precedence` 的逐步化简（另一份移植）——两个不同实现给出同一个整数，才把「生成的题是对的」从信仰变成证明。
+
+##### 三个 Compose 侧的实现要点（与 web 的对应）
+
+1. **幽灵飞行**：web 用 WAAPI 的 4 段 keyframes；Compose 侧改成**单一进度 0→1 + 手写分段插值**
+   （`ghostPose(t, dx, dy)`），蓄力段用 `easeOutBack` 复刻 `cubic-bezier(.34,1.56,.64,1)` 的手感。
+2. **括号「交接无接缝」**：真括号**始终占位**（`alpha 0`）⇒ 不跳版；替身飞到位后真身立刻显形，
+   且**绝不能给括号加透明度过渡**（否则会出现「括号闪一下」的空档）。时间常量与 ViewModel 的落位时刻**同源**（都取自 `MathCompoundExprViewModel.companion`）。
+3. **坐标测量**：所有元素统一报 `boundsInRoot()`，取值时**只减基准容器**（`CeGeom.relTo(anchor, key)`）——
+   切勿把「stage 内的数」与「resultBox 内的数」混着减（两者根本不在同一容器里）。
+4. **优先级小动画用定宽槽位**（数字 38dp / 运算符 30dp / 间隔 7dp）：宽度可预知 ⇒「三块并成一个数」只用宽度过渡，
+   **不必量尺寸**，扫描条的目标位置也能直接由槽位宽度累加算出（web 那边是量出来的）。
+   `clipToBounds` 的槽位高度必须留够（±9dp 判级位移 + 上下余量），否则位移会被自己裁掉。
+
+##### 批次 C 后半 · 综合算式动画的已知差异（有意为之，非遗漏）
+
+- **动画未做逐帧核验**：web 靠抓帧 + 坐标断言（`getBoundingClientRect` 比对落位坐标）验证；本机**无设备/模拟器**，
+  Android 侧只到「构建通过 + 引擎单测绿」，动画观感由实机验证补。
+- **`prefers-reduced-motion` 换成系统动画缩放**：读 `Settings.Global.ANIMATOR_DURATION_SCALE == 0` 时直接跳到完成态。
+- **易错卡的「滚到才揭晓」用 LazyColumn 天然实现**：web 是 `IntersectionObserver`（进入 50% 视口后 1.1s 揭晓），
+  Android 把整页做成单个 `LazyColumn`，卡片滚到才进入 composition ⇒ 等效，且不需要观察者。
+- **括号「夹紧」的紫边用 `drawBehind` 画**（不改变任何布局尺寸）⇒ 比 web 的负 margin 方案更稳，落位坐标不会因夹紧而漂。
 
 ## 4. 实现约定（每新增模块）
 
