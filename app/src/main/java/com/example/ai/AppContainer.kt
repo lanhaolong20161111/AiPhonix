@@ -130,4 +130,12 @@ class AppContainer(context: Context) {
     val dailyEnStore: com.example.ai.data.dailyen.DailyEnStore by lazy {
         com.example.ai.data.dailyen.DailyEnStore(appContext)
     }
+
+    // ── 字幕采集（仓储 + 本地持久化：画框记忆 / 书签 / 上次影片） ──
+    val subtitleCaptureRepository: com.example.ai.data.subtitlecapture.SubtitleCaptureRepository by lazy {
+        com.example.ai.data.subtitlecapture.SubtitleCaptureRepository()
+    }
+    val subtitleCaptureStore: com.example.ai.data.subtitlecapture.SubtitleCaptureStore by lazy {
+        com.example.ai.data.subtitlecapture.SubtitleCaptureStore(appContext)
+    }
 }

@@ -122,4 +122,7 @@ import kotlinx.serialization.Serializable
 // ── 动画学数学 ──
 @Serializable data object MathCompoundExpr : NavKey                     // 三年级上综合算式动画（找→换→查，带飞入/位移教学动画）
 
+// ── 视频 ──
+@Serializable data object SubtitleCapture : NavKey                      // 字幕采集（框选影片字幕区 → 截屏存盘带时间戳 + 识图翻译纠错）
+
 // 信息猎人（已删除：引导改由「闯关」模块大模型现场出题）

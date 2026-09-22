@@ -63,19 +63,19 @@
 | 13 | `/module/courseware_manager`（课件库） | ✅ CoursewareScreen | 课件上传/管理接口 | 中 |
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
 | 15 | `/module/math_compound_expr`（综合算式动画） | ✅ MathCompoundExprScreen | **纯前端动画 + 本地规则引擎（零后端）** | 高 |
-| 16 | `/module/subtitle_capture`（字幕采集） | ❌ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 MediaStore + BitmapRegionDecoder） | 高 |
+| 16 | `/module/subtitle_capture`（字幕采集） | ✅ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 `MediaMetadataRetriever` + `Bitmap.createBitmap` 裁剪） | 高 |
 | 17 | `/module/parent_report`（家长报告） | ⚠️ ReportScreen 需核对 | training/progress + 报告 | 中 |
 | 18 | `/register`（注册页） | ⚠️ 核对 LoginScreen 是否含注册 | auth | 低 |
 | 19 | `/module/sentence_practice`（造句练习） | ✅ SentenceComposeScreen | `AiChatRepository.ask("chinese")` + 每日语文句型 | 中 |
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + 1 模块）已全部完成（提交 `438d749` / `10b58fa` / `d491cf5` / `c0663cf`）；
-> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **334 用例 / 0 失败**（26 个测试类）。
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + **5** 模块）已全部完成（提交 `438d749` / `10b58fa` / `d491cf5` / `c0663cf` / `381585c` / 本轮）；
+> `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **353 用例 / 0 失败**（27 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
-> **AI 对话学语文、AI 英语对话、综合算式动画（C 后半前 3 个）**。
-> 剩余：**批次 C 后半最后 1 个模块**（字幕采集）+ 2 项待核对。
+> **AI 对话学语文、AI 英语对话、综合算式动画、字幕采集（C 后半 4 个）**。
+> ✅ **批次 C 后半全部完成**。剩余：2 项待核对（家长报告完整度 / 注册页是否含在 LoginScreen）。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -130,7 +130,7 @@
 18. **AI 对话学语文** ✅（详见下方小节）
 19. **AI 英语对话** ✅（详见下方小节）
 20. **综合算式动画** ✅（详见下方小节）
-21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）—— 待做
+21. 字幕采集（SubtitleCapture，视频帧框选 + 区域 OCR —— 也是每日语文/英语「拍照识别填入」的前置依赖）✅（详见下方小节）
 
 #### 18. AI 对话学语文 ✅（`/module/speech_compose`）
 一个页面装三套练习，由「开始学」时的填写内容分流（顺序与 web 一致：文章 → 古诗 → 词语/句子）。
@@ -224,6 +224,51 @@
 - **易错卡的「滚到才揭晓」用 LazyColumn 天然实现**：web 是 `IntersectionObserver`（进入 50% 视口后 1.1s 揭晓），
   Android 把整页做成单个 `LazyColumn`，卡片滚到才进入 composition ⇒ 等效，且不需要观察者。
 - **括号「夹紧」的紫边用 `drawBehind` 画**（不改变任何布局尺寸）⇒ 比 web 的负 margin 方案更稳，落位坐标不会因夹紧而漂。
+
+#### 21. 字幕采集 ✅（`/module/subtitle_capture`）
+
+打开影片（本地文件 / 云端直链 / B站搜索）→ 在画面上**框选字幕区** → 在某个时间点**截那一帧** → 存盘（文件名带时间戳）+ 交 LLM 识图出「原文 / 翻译 / 纠错 / 讲解」→ 结果卡片可回看、可重测、可跟读评分；框选过的位置会作为**书签**打在进度条上，播放到书签附近**自动暂停**提醒复习。
+
+**分层**（`data/subtitlecapture/` + `ui/subtitlecapture/`）
+
+| 文件 | 职责 |
+|---|---|
+| `SubtitleCaptureModels.kt` | 全部数据类（`CaptureItem` / `SubtitleEval` / `EvalCardModel` / `SubtitleMark` / `RectMemory` / `LastMovie` / `BiliItem` / `CaptureRequest` / `MovieSource`） |
+| `SubtitleCaptureLogic.kt` | **纯函数 object**：时间戳格式、画框坐标换算与 clamp、书签命中、近邻分组、测评卡片合并、影片名推导 —— 逐条对齐 web，可直接 JVM 单测 |
+| `SubtitleCaptureStore.kt` | SharedPreferences（沿用 web 的 localStorage key 名）：画框记忆 / 书签 / 上次影片 |
+| `SubtitleCaptureRepository.kt` | `/subtitle-capture/*` 六个接口（multipart 上传、JSON 重测、列表、删除、B站搜索） |
+| `VideoFrameCropper.kt` | **唯一需要 `Context` 的**：`MediaMetadataRetriever` 取帧 + 旋转校正 + 裁剪 + PNG 压缩 |
+| `ui/subtitlecapture/` | ViewModel（UDF，不持 `Context`）+ Screen（`ExoPlayer`/`PlayerView`、框选叠加层、进度条书签、结果卡片列表） |
+
+##### ★ 抓帧：web 靠 canvas，Android 只能走 MediaMetadataRetriever
+
+| web | Android | 说明 |
+|---|---|---|
+| `<video>` + `canvas.drawImage` | `getFrameAtTime(ms*1000, OPTION_CLOSEST)` + `Bitmap.createBitmap` 裁剪 | 必须 `OPTION_CLOSEST`：`OPTION_CLOSEST_SYNC` 只给关键帧，可能差好几秒，字幕早换句了 |
+| `video.videoWidth/Height`（旋转后尺寸） | 同尺寸 **+ 手动 `Matrix.postRotate`** | 竖拍手机 `METADATA_KEY_VIDEO_ROTATION = 90`，不校正会裁错位置 |
+| —— | 画框 clamp 到帧内 | `createBitmap` 越界会抛 `IllegalArgumentException` |
+| —— | **不能抓控件** | `PlayerView` 底层是 `SurfaceView`，`View.draw(Canvas)` 抓不到画面 |
+| 影片文件存 IndexedDB（重启自动续播） | 只存 SAF URI + `takePersistableUriPermission` | 不做持久化授权，重启后 URI 失效、静默播不出来 |
+| B站用 `<iframe>` 嵌播放器 | `WebView` 载 B站播放页 | **两端都不能采集**（无帧数据），行为一致 |
+
+##### ★ 逐条对齐的「神奇数字」（**不能统一**，各自有出处）
+
+- 书签展示容差 **800ms（含边界 `<=`）** / 自动复习容差 **400ms（严格 `<`）** / `saveMark` 去重窗口 **300ms** / 服务端缓存命中窗口 **500ms** / 近邻截图分组 **1500ms**。
+- 近邻分组是**只比相邻两项、不展开传递性**（`a~b`、`b~c` 成立不代表 `a~c` 一组）。
+- `lastTime` 保留**原影片名**：web `saveLastTime` 即使当前片名不同也保留存着的名字 → Android 照抄，避免进度被写到另一个影片名下。
+- ★ 路由**整段挂 `requireAuth()`**，**包括 `GET /file/:fileName`** ⇒ 截图直链必须 `Coil` 手动加 `Authorization` 头；web 靠 `api()` 的 fetch 自动带 token，`<img src>` 在 Android 会 401。
+
+##### ★ 单测（本轮新增 19 例，1 个类）
+
+`SubtitleCaptureLogicTest` —— 期望值**全部来自 `web/_subcap_probe.mjs`**（把 web 的 `fmt` / `restoreRectForMovie` / 近邻分组 / 书签命中 / `openUrl` 取名 / `mousemove` clamp 原样复制到 node 跑出来的，**不是**按语义推导）。这一步当场抓出一个真差异：`java.net.URL` 比 WHATWG `new URL()` 宽松（空格主机名 JS 抛错、JVM 静默接受）⇒ 改用严格的 `java.net.URI`。
+
+##### 批次 C 后半 · 字幕采集的已知差异（有意为之，非遗漏）
+
+- **云端直链截图不需要 CORS**：web 受浏览器同源策略限制（截图失败 = 未开 CORS），Android 原生请求无此限制 —— 这是**能力提升**，但提示文案沿用了 web 的说法，实机上若看到该句可以直接忽略。
+- **八向缩放手柄不做负偏移**：web 用「10px 圆点 + 负偏移压住框线」，Compose 里超出父边界的子元素收不到手势 ⇒ 就地贴边放在框内（视觉略靠内，但一定可拖）。
+- **进度条书签点与 Slider 轨道有几 dp 偏差**：web 是绝对定位的 div，Compose 侧受 `Slider` 内建 padding 影响。
+- **自动复习用「状态驱动」而非事件通道**：VM 只把 `pendingAutoPauseTs` 挂状态，Screen 观察到后**先 `player.pause()` 再 `consumeAutoPause()`**（顺序不能反，否则朗读会被继续播放打断）。
+- **B站内嵌预览不能采集**：与 web 一致（web 的 iframe 同样拿不到帧）。
 
 ## 4. 实现约定（每新增模块）
 

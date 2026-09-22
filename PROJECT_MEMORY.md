@@ -5,13 +5,13 @@
 
 ---
 
-## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + B + C前半 完成）
+## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（批次A + B + C 全部完成 ✅）
 
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
-- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`c0663cf`（**批次C后半③** 综合算式动画）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）。
-- 本轮（批次C后半第 2 个）为**同一任务继续**：**AI 英语对话**（`/module/ai_english_talk`，AI 给台词与回答 → 逐词跟读阶梯；也可自己说 → 录音识别判定）。
+- 提交：`2ed3d99`（拼音表/AI历史/AI英语）、`b90811a`（评测历史）、`64f03ac`（批次A 文档+记忆）、`e418127`（**批次B** 5 模块）、`438d749`（**批次C前半** 4 模块 + 生词本接线）、`10b58fa`（**批次C后半①** AI 对话学语文）、`d491cf5`（**批次C后半②** AI 英语对话）、`c0663cf` + `381585c`（**批次C后半③** 综合算式动画）、本轮（**批次C后半④** 字幕采集）。均只改 `app/`，`assembleDebug` BUILD SUCCESSFUL（APK ≈35MB）；单测 **27 类 / 353 例 / 0 失败**。
+- ✅ **批次 A/B/C 全部完成**。剩余只有 2 项**待核对**：家长报告完整度（`ReportScreen` vs web `/module/parent_report`）、注册页是否已含在 `LoginScreen`。
 
 ### 已完成（批次A 5/5）
 | 模块 | 关键实现 |
@@ -105,6 +105,47 @@
 - **易错卡「滚到才揭晓」用 LazyColumn 天然实现**（卡片进入 composition 才起 1.1s 定时器）⇒ 等效 web 的 `IntersectionObserver`，且不需要观察者。
 - **括号「夹紧」的紫边用 `drawBehind` 画**（不改变任何布局尺寸）⇒ 比 web 的负 margin 方案更稳，落位坐标不会因夹紧而漂。
 
+### 已完成（批次C后半 第 4 个模块｜2026-09-22 续做）—— **批次C后半收官**
+**字幕采集**（`/module/subtitle_capture`）—— 打开影片（本地 / 云端直链 / B站搜索）→ 在画面上**框选字幕区** → 在某一时间点**截那一帧** → 存盘（文件名含时间戳）+ 交 LLM 识图出「原文 / 翻译 / 纠错 / 讲解」→ 结果卡片可回看、可重测、可跟读评分；框选位置作为**书签**打在进度条上，播放到书签附近**自动暂停**提醒复习。
+
+**分层**（`data/subtitlecapture/` + `ui/subtitlecapture/`）
+
+| 文件 | 职责 |
+|---|---|
+| `SubtitleCaptureModels.kt` | 数据类：`CaptureItem` / `SubtitleEval` / `EvalCardModel` / `SubtitleMark` / `RectMemory` / `LastMovie` / `BiliItem` / `CaptureRequest` / `MovieSource` |
+| `SubtitleCaptureLogic.kt` | **纯函数 object**（可 JVM 单测）：时间戳格式 / 画框坐标换算与 clamp / 书签命中 / 近邻分组 / 测评卡片合并 / URL 推导片名 |
+| `SubtitleCaptureStore.kt` | SharedPreferences（沿用 web 的 localStorage key 名）：画框记忆 / 书签 / 上次影片 |
+| `SubtitleCaptureRepository.kt` | `/subtitle-capture/*` 六个接口（multipart 上传 · JSON 重测 · 列表 · 删除 · B站搜索） |
+| `VideoFrameCropper.kt` | **唯一需要 `Context` 的**：`MediaMetadataRetriever` 取帧 + 旋转校正 + 裁剪 + PNG |
+| `ui/subtitlecapture/` | ViewModel（UDF，**不持 `Context`**）+ Screen（`ExoPlayer`/`PlayerView`、框选叠加层、进度条书签、结果卡列表） |
+
+★ **抓帧：web 靠 canvas，Android 只能走 `MediaMetadataRetriever`**
+
+| web | Android | 说明 |
+|---|---|---|
+| `<video>` + `canvas.drawImage` | `getFrameAtTime(ms*1000, OPTION_CLOSEST)` + `Bitmap.createBitmap` 裁剪 | 必须 `OPTION_CLOSEST`；`OPTION_CLOSEST_SYNC` 只给关键帧、可能差好几秒（字幕早换句了） |
+| `video.videoWidth/Height`（旋转后尺寸） | 同尺寸 **+ 手动 `Matrix.postRotate`** | 竖拍手机 `METADATA_KEY_VIDEO_ROTATION = 90`，不校正会裁错位置 |
+| —— | 画框 **clamp 到帧内** | `createBitmap` 越界会抛 `IllegalArgumentException` |
+| —— | **不能抓控件** | `PlayerView` 底层是 `SurfaceView`，`View.draw(Canvas)` 抓不到画面 ⇒ 必须走 retriever |
+| 影片文件存 IndexedDB（重启自动续播） | 只存 SAF URI + **`takePersistableUriPermission`** | 不做持久化授权重启后 URI 失效、**静默播不出来** |
+| B站用 `<iframe>` 内嵌 | `WebView` 载 B站播放页 | **两端都不能采集**（无帧数据），行为一致 |
+
+★ **逐条对齐的「神奇数字」（各有出处，不能统一成一个）**：书签展示容差 **800ms（含边界 `<=`）** / 自动复习容差 **400ms（严格 `<`）** / `saveMark` 去重窗口 **300ms** / 服务端缓存命中 **500ms** / 近邻截图分组 **1500ms**；近邻分组**只比相邻两项、不展开传递性**。★ `saveLastTime` **保留原影片名**（web 即使当前片名不同也保留存着的名字）⇒ 照抄，否则进度被写到别的影片名下。
+★ 该路由**整段挂 `requireAuth()`**，**包括 `GET /file/:fileName`** ⇒ 截图直链必须给 Coil 手动加 `Authorization` 头（web 靠 `api()` 的 fetch 自动带 token；`<img src>` 在 Android 会 **401**）。`/bili/search` **不鉴权**。
+
+★ **单测 19 例（新增 1 类）`SubtitleCaptureLogicTest`**：期望值**全部来自 `web/_subcap_probe.mjs`**（把 web 的 `fmt` / `restoreRectForMovie` / 近邻分组 / 书签命中 / `openUrl` 取名 / `mousemove` clamp **原样复制到 node** 跑出来的，**不是**按语义推导）。这一步当场抓出真差异 ⇒ 见坑 0q。
+
+- `ui/subtitlecapture/SubtitleCaptureScreen.kt` ≈1100 行，单 `LazyColumn` 承载全部内容（item key：`header/stage/soepopup?/eval/list-header/row-<seq>/footer`）。`ExoPlayer` + `VideoFrameCropper` 由 Screen 持有，Screen 只回传「播放头 / 时长 / 尺寸 / PNG 字节」，**VM 不碰平台资源**。
+- ★ 自动复习用**状态驱动**而非事件通道：VM 只把 `pendingAutoPauseTs` 挂状态，Screen 的 `LaunchedEffect` 观察到后**先 `player.pause()` 再 `consumeAutoPause()`**（顺序反了朗读会被继续播放打断）。
+- 首页新增「🎬 视频」小标题 + 「字幕采集」卡（蓝灰 `ECEFF1` / `37474F`）。
+
+#### 批次C后半④ 字幕采集的已知差异（有意为之，非遗漏）
+- **云端直链截图不需要 CORS**：web 受同源策略限制（截图失败 = 未开 CORS），Android 原生请求无此限制 —— 这是**能力提升**；提示文案沿用了 web 的说法，实机看到该句可直接忽略。
+- **八向缩放手柄不做负偏移**：web 是「10px 圆点 + 负偏移压住框线」，Compose 里**超出父边界的子元素收不到手势** ⇒ 就地贴边放在框内（视觉略靠内，但一定可拖）。
+- **进度条书签点与 `Slider` 轨道有几 dp 偏差**（web 是绝对定位 div，Compose 受 `Slider` 内建 padding 影响）。
+- **B站内嵌预览不能采集**：与 web 一致。
+- **未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「构建通过 + 逻辑单测绿」，取帧裁剪位置 / 旋转视频 / SAF 授权由实机验证补。
+
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - **`type` vs `type_` 参数名不一致 ⇒ 过滤被静默忽略**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`，但 web `services/charImages.ts` 与 Android `CharImageViewModel` 都传 **`type_`**。生产实测（走代理 + 浏览器 UA）：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**，`type_=认` → **1407**。后果是「识字表/写字表/词语表」显示同一份混合内容。**Android 侧已修**（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）。⚠️ **web 侧尚未修**（`web/src/services/charImages.ts` 的 `qs.set("type_", …)` 要改成 `qs.set("type", …)`），需**单独一次 web 构建 + 部署**，不在本轮范围。
 - **web `CharMapPage.TYPE_LABEL` 是过期词表**：写的是 `字/词/句`，但生产 3028 条实测分布是 **认 816 / 写 748 / 词 729 / 英词 533 / 英句 202** ⇒ 与 Android `CharImageList.type_` 词表**完全一致**，汉字地图可**直接透传 `type`、无需映射**。Android 的 `TYPE_LABEL` 已按真实数据定为 `认→识字表 / 写→写字表 / 词→词语表 / 英词→英语词汇表 / 英句→英语句子表`。
@@ -119,7 +160,7 @@
    - 注释里写 `/\n+|(?<=[。；;])\s*/`：其中的 `*/` **提前结束**注释块，后面全被当顶层声明 ⇒ **30+ 个 `Syntax error: Expecting a top level declaration`**。
    - 注释里写 `` `/llm/*` 系列端点 ``：其中的 **`/*` 开启嵌套注释**，把外层 `*/` 吃掉 ⇒ 错误报在**文件末尾**（`Syntax error: Unclosed comment.`），而且**同包其它文件全部**跟着报 `Unresolved reference`（一个"找不到的 object"看起来像包名写错，极具误导性）。
    - ★ 本轮又踩镜像面：注释里写 web 的正则字面量 `` `/[A-Za-z]+(?:['’][A-Za-z]+)*/g` `` —— 末尾 **`*/g` 里的 `*/` 提前结束**注释块，`g` 后的反引号变成顶层声明 ⇒ **30+ 条 `Syntax error: Expecting a top level declaration`**（报在文件末尾附近，同样误导）。自查：`grep -n "\*/g|[A-Za-z0-9_\)\]]\*/"` 扫全仓。
-   规避：注释里用中文描述正则；路径写 `/llm/` 前缀而**不要**写 `/llm/*`。
+   规避：注释里用中文描述正则；路径写 `/llm/` 前缀而**不要**写 `/llm/*`；通配符一律用文字描述（本轮又踩：能力映射表里写 `accept=video/*` 与 `OpenDocument(["video/*"])` ⇒ 报在 `SubtitleCaptureScreen.kt` **文件末尾** `Unclosed comment.` + 同包 `Navigation.kt` 两处 `Unresolved reference`）。
 0g. **往已有 composable 加回调参数，别忘了私有子 composable**：课件库入口加在家长设置的「内容管理」段，而那段实际在**私有 `PlanEditor`** 里 ⇒ 只改公开签名会 `Unresolved reference`，必须**同时给 `PlanEditor` 加同名参数并透传**。
 0h. **★ 同名的「英文词正则」在本项目有两份、行为不同，别互换**：`util/EnText.splitEnWords`（移植 web `AiEnglishTalkPage`，**连字符不在字符类内** ⇒ `well-known` 切成两词；数字与非 ASCII 字母也会切开）vs `data/wordbook/WordbookAutoCollector`（**允许连字符**、整串匹配）。移植时**照抄来源那一份**，不要"顺手统一"。
 0i. **★ `/asr/short` 的 422 不是错误**：`raw.length < 1600`（音频太短）或百度无识别结果都返回 **422** ⇒ 语义等于「没听到话」，应归一成 `Result.success("")`，与「请求失败（网络/500）」分开处理。另：该端点**无鉴权**。
@@ -130,6 +171,10 @@
 0n. **★ `onGloballyPositioned` 给的是绝对（root）坐标**：多容器页面必须**只减自己的基准容器**。把「stage 内的元素」和「resultBox 内的元素」都去减 stage 会得到完全错误的偏移（resultBox 根本不在 stage 里，只是同屏）。本轮统一成 `CeGeom.relTo(anchor, key)` 一种写法后消除。
 0o. **web 源码里 `4 × (14 + 7)` 的「63 巧合题」注释是误读**：带括号 `4×21 = 84`，去括号 `4×14+7 = 63` —— 两者**不等**，它恰恰是**合格**题；原文把「去括号后的值」当成了「两种写法同值」。照它写单测断言（`eq(63, …)`）必然失败。⚠️ 另注：合并分步算式这个题型在数学上（含 Int 截断）**几乎不可能产生真正的巧合题**，`isCoincidental` 是纯防御。
 0p. **Compose 里做「先渲染一帧，再打开过渡」用 `withFrameNanos { }`**（对应 web 的双 `requestAnimationFrame`）：`joined` 先置 false 渲染一帧、再置 true，宽度过渡才会动。
+0q. **★ JVM 的 `java.net.URL` 比 JS 的 WHATWG `URL` 宽松 ⇒ 移植「从 URL 取影片名」必须改用 `java.net.URI`**：`new URL("https://not a url at all with spaces")` 在 JS **抛错**（走截断兜底），`java.net.URL` 会把整串当主机名**静默吃掉**。改用 `URI`（遇空格直接抛）+ `host` 非空校验 + `lowercase()`（对齐 JS `hostname` 转小写）。见 `data/subtitlecapture/SubtitleCaptureLogic.movieNameFromUrl`。★ 这类「标准库宽严不同」只有**拿 web 真实现跑期望值**才能发现（坑 0b 的价值）。
+0r. **★ Compose 两个低频 import/作用域陷阱**：① `Modifier.offset` 要**显式** `import androidx.compose.foundation.layout.offset`（`padding` 在 `unit` 包且常用所以不缺，`offset` 不在）；② `Modifier.align` **只在 `BoxScope` 里可用** ⇒ 需要 `align` 的私有 composable 要写成 **`private fun BoxScope.XXX()`**，写成普通 `Modifier` 扩展会报 `Unresolved reference 'align'`。
+0s. **★ `pointerInput` 的 key 绝不能带「每帧变化的值」**：`pointerInput(rect)` 会在拖拽过程中因 `rect` 更新而**重启手势检测器**，表现为「拖一下就断」。按键一律用固定字符串（`"new-box"` / `"move-box"` / 手柄名 / `mark.ts`）；需要读可变值就用 `rememberUpdatedState`。另：**Compose 里超出父边界的子元素收不到手势** ⇒ web 那套「圆点负偏移压住框线」的八向手柄不能照搬，要就地贴边放到框内。
+0t. **★ SAF 影片 URI 必须 `takePersistableUriPermission`**：`OpenDocument` 默认只给「当次」授权、**不持久化** ⇒ 重启后 URI 失效、播放器**静默播不出来**（不报错，最难查）。拿到 URI 后立刻 `contentResolver.takePersistableUriPermission(uri, FLAG_GRANT_READ_URI_PERMISSION)`（web 对应物是 IndexedDB 存 Blob，无此问题）。
 13. **给 data class 加字段用「带默认值」= 非破坏性扩展**（`WordScore.phoneInfos`、`PhonemeScore.rawAccuracy/matchTag` 都是）——既有构造点零改动。★ 但**别信被 clamp 过的字段**：`PhonemeScore.score` 是 `coerceIn(0,100)`，漏读的 `-1` 变成 `0`，分不清「0 分」与「未读」⇒ 要额外存原始值。
 14. **UI 里按「被测文本」而不是「卡片外层 key」取评测结果**：单词卡会给同卡片内的**例句**也做评测，若例句行去取 `outcomes[word]` 就会显示成单词的分数（我第一版就写错了）。`soeOutcomes` 的 key 一律是实际送进 SOE 的那段文本。
 15. **★ 项目里有「四套」切句口径，互不等价、不可互换**：① `data/zhteach/PoemSplit`（古诗：按 `，。！？；：` 断、标点归前句、换行丢弃 —— 因为古诗的「，」是**句内**停顿，要当一行跟读）；② `data/zhteach/ArticleSplit`（文章：按句末标点 `。！？!?；;…` 断，**吸收紧跟的收尾引号**最多 4 个，换行强制断句）；③ `data/dailyzh/DailyTextSplit.sentences`（只按 `；;\n` 断）；④ **`web/src/lib/readUnit.ts`**（**识别页**用，按**段落**切、认英文句点、有缩略语表 `mr/dr/st/…` 与「单字母 + `.`」跳过；Android 未移植）。★ 另有两处反直觉行为已用单测钉住：连续句末标点**各自成句**（`"只有标点。。。"` → `["只有标点。","。","。"]`）；`mergeShorts` 文本没命中时**回退下标**，会让句子拿到别的句子的缩写。

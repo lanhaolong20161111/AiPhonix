@@ -118,6 +118,8 @@ import com.example.ai.ui.speechcompose.SpeechComposeViewModel
 import com.example.ai.ui.englishtalk.EnglishTalkScreen
 import com.example.ai.ui.englishtalk.EnglishTalkViewModel
 import com.example.ai.ui.mathcompound.MathCompoundExprScreen
+import com.example.ai.ui.subtitlecapture.SubtitleCaptureScreen
+import com.example.ai.ui.subtitlecapture.SubtitleCaptureViewModel
 import com.example.ai.data.dailyzh.DailyZhRepository
 import com.example.ai.data.dailyzh.DailyZhSync
 import com.example.ai.data.dailyen.DailyEnRepository
@@ -192,6 +194,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenSpeechCompose = { backStack.add(SpeechCompose) },
             onOpenAiEnglishTalk = { backStack.add(AiEnglishTalk) },
             onOpenMathCompoundExpr = { backStack.add(MathCompoundExpr) },
+            onOpenSubtitleCapture = { backStack.add(SubtitleCapture) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -320,6 +323,22 @@ fun MainNavigation(container: AppContainer) {
           // 页面自身按 item 管 16dp 内边距（整页是单个 LazyColumn），所以这里只给安全区
           MathCompoundExprScreen(
             onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
+          )
+        }
+        entry<SubtitleCapture> {
+          // 同上：整页是单个 LazyColumn，内边距由 contentPadding 管，这里只给安全区
+          SubtitleCaptureScreen(
+            onBack = { backStack.removeLastOrNull() },
+            viewModel = viewModel {
+              SubtitleCaptureViewModel(
+                repository = container.subtitleCaptureRepository,
+                store = container.subtitleCaptureStore,
+                speechRepository = container.speechRepository,
+                ttsCache = container.ttsCache,
+                ttsEngine = container.ttsEngine,
+              )
+            },
             modifier = Modifier.safeDrawingPadding(),
           )
         }

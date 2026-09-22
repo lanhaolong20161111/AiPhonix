@@ -62,6 +62,7 @@ fun HomeScreen(
     onOpenSpeechCompose: () -> Unit = {},
     onOpenAiEnglishTalk: () -> Unit = {},
     onOpenMathCompoundExpr: () -> Unit = {},
+    onOpenSubtitleCapture: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -327,6 +328,25 @@ fun HomeScreen(
             containerColor = Color(0xFFE8EAF6),
             arrowColor = Color(0xFF3949AB),
             onClick = onOpenMathCompoundExpr,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 🎬 视频（对齐 web 首页的「视频」分区；视频跟读在「英语学习」里）
+        Text(
+            "🎬 视频",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+        )
+
+        // 字幕采集（框选影片字幕区截屏存盘带时间戳，暂停可自动识图+翻译+纠错）
+        ToolCard(
+            emoji = "🎞️",
+            title = "字幕采集",
+            subtitle = "框选影片字幕 · 截屏存盘带时间戳",
+            containerColor = Color(0xFFECEFF1),
+            arrowColor = Color(0xFF37474F),
+            onClick = onOpenSubtitleCapture,
         )
         Spacer(Modifier.height(20.dp))
 
