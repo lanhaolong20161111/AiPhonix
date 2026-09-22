@@ -42,17 +42,17 @@
 | `Murmur` / MurmurScreen | `/module/murmur` | ✅ 已有 |
 | `Account` / `FeedbackList(status)` | web 家长报告/评测历史相关 | ✅ 已有（错题本/掌握/待确认） |
 | `ParentSettings` / ParentSettingsScreen | web SettingsSheet + 家长设置 | ✅ 已有 |
-| `Report` / ReportScreen | `/module/parent_report`（家长报告） | ⚠️ 占位/待核对（web 有完整家长报告） |
+| `Report` / ReportScreen | ⚠️ **不是** web 家长周报 | Android 的 `ReportScreen` 读 `/api/v1/practice/stats` + `/api/v1/practice/history`（App 自己的旧「学习报告」：练习次数/累计练习/总正确率/最近练习）；web `/module/parent_report` 是**家长周报**，数据源完全不同 ⇒ **两者不可互相替代**，见下方「剩余缺口」 |
 
 ### Web 有 / Android 缺失（本次补全清单）
 
 | # | web 路由 / 页面 | Android 缺失 | 依赖 | 难度 |
 |---|---|---|---|---|
-| 1 | `/module/ai_english`（AI 英语识图） | ❌ AiEnglishScreen | 复用 ai-chinese parse-image `mode=english` + chat | 高 |
-| 2 | `/module/ai_parse_result`（AI 识别结果页） | ❌ Android 输入+结果同屏 | web 独立结果页含 blocks 渲染/问答/高亮/历史 | 高（Android 已有大部分能力，需补「保存历史」与历史恢复） |
-| 3 | `/module/ai_history`（AI 历史会话） | ❌ AiHistoryScreen | localStorage 历史（web `aiHistory.ts`） | 中 |
-| 4 | `/module/soe_history`（评测历史） | ❌ SoeHistoryScreen | `POST /soe/records` | 中 |
-| 5 | `/module/pinyin-index` + `/module/pinyin/:id`（拼音表） | ❌ PinyinIndexScreen / PinyinDetailScreen | 静态数据 `web/src/data/pinyinTable.ts` 移植 assets + `/pinyin-audio` | 低 |
+| 1 | `/module/ai_english`（AI 英语识图） | ✅ AiEnglishScreen | 复用 ai-chinese parse-image `mode=english` + chat | 高 |
+| 2 | `/module/ai_parse_result`（AI 识别结果页） | ⚠️ **结构差异（有意）**：Android 输入+结果**同屏**，不做独立结果页；blocks 渲染/问答/高亮已在，历史保存与恢复已具备 | web 独立结果页含 blocks 渲染/问答/高亮/历史 | 高（已覆盖） |
+| 3 | `/module/ai_history`（AI 历史会话） | ✅ AiHistoryScreen + AiHistoryDetailScreen | localStorage 历史（web `aiHistory.ts`） | 中 |
+| 4 | `/module/soe_history`（评测历史） | ✅ SoeHistoryScreen | `POST /soe/records` | 中 |
+| 5 | `/module/pinyin-index` + `/module/pinyin/:id`（拼音表） | ✅ PinyinIndexScreen / PinyinDetailScreen | 静态数据 `web/src/data/pinyinTable.ts` 移植 assets + `/pinyin-audio` | 低 |
 | 6 | `/module/wordbook`（生词本） | ✅ WordbookScreen | 词库/生词本接口 | 中 |
 | 7 | `/module/memory_joy`（记忆快乐本） | ✅ MemoryJoyScreen | `/joy/list` + `/joy/:id` | 中 |
 | 8 | `/module/char_map`（汉字地图） | ✅ CharMapScreen | char-images 全量 + feedback | 中 |
@@ -64,18 +64,18 @@
 | 14 | `/module/daily_chinese` / `daily_english`（每日语文/英语） | ✅ DailyChineseScreen / DailyEnglishScreen | 每日内容接口/静态 | 中 |
 | 15 | `/module/math_compound_expr`（综合算式动画） | ✅ MathCompoundExprScreen | **纯前端动画 + 本地规则引擎（零后端）** | 高 |
 | 16 | `/module/subtitle_capture`（字幕采集） | ✅ SubtitleCaptureScreen | 视频帧选取 + OCR（Android 用 `MediaMetadataRetriever` + `Bitmap.createBitmap` 裁剪） | 高 |
-| 17 | `/module/parent_report`（家长报告） | ⚠️ ReportScreen 需核对 | training/progress + 报告 | 中 |
-| 18 | `/register`（注册页） | ⚠️ 核对 LoginScreen 是否含注册 | auth | 低 |
+| 17 | `/module/parent_report`（**家长周报**） | ❌ **真缺口**（详见下方「剩余缺口」） | `/soe/records`(limit 500) + `/char-images/feedback` 的 **`stats`** + `/wordbook/list` —— 前两者 Android 仓储已有，但 `CharMapRepository.feedbackStatus` **只取了 items、丢掉了 `stats`** | 中 |
+| 18 | `/register`（注册页） | ✅ LoginScreen 已含注册（登录/注册 `FilterChip` 切换 + 注册额外字段 + `viewModel.register()`） | auth | 低（已结案） |
 | 19 | `/module/sentence_practice`（造句练习） | ✅ SentenceComposeScreen | `AiChatRepository.ask("chinese")` + 每日语文句型 | 中 |
 
 ## 3. 实施批次（每批可独立构建验证）
 
-> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（4 + **5** 模块）已全部完成（提交 `438d749` / `10b58fa` / `d491cf5` / `c0663cf` / `381585c` / 本轮）；
+> **进度（2026-09-22）**：批次 A（5/5）、批次 B（5/5）、批次 C（前半 4 + 后半 4）已全部完成（提交 `438d749` / `e418127` / `10b58fa` / `d491cf5` / `c0663cf` + `381585c` / `1670771`）；
 > `assembleDebug` BUILD SUCCESSFUL；`testDebugUnitTest` **353 用例 / 0 失败**（27 个测试类）。
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
 > **AI 对话学语文、AI 英语对话、综合算式动画、字幕采集（C 后半 4 个）**。
-> ✅ **批次 C 后半全部完成**。剩余：2 项待核对（家长报告完整度 / 注册页是否含在 LoginScreen）。
+> ✅ **批次 A/B/C 全部完成 ⇒ 已移植 20/21 个 web 模块。收官核对结论见下方 §3.5**。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -269,6 +269,39 @@
 - **进度条书签点与 Slider 轨道有几 dp 偏差**：web 是绝对定位的 div，Compose 侧受 `Slider` 内建 padding 影响。
 - **自动复习用「状态驱动」而非事件通道**：VM 只把 `pendingAutoPauseTs` 挂状态，Screen 观察到后**先 `player.pause()` 再 `consumeAutoPause()`**（顺序不能反，否则朗读会被继续播放打断）。
 - **B站内嵌预览不能采集**：与 web 一致（web 的 iframe 同样拿不到帧）。
+
+## 3.5 移植现状结论（2026-09-22 收官核对）
+
+**已移植 20 / 21 个 web 模块**：差距表 #1–#16、#18、#19 全部 ✅。#2 是结构差异（Android 输入+结果同屏，能力已覆盖）。
+
+### ❌ 唯一的真缺口：家长周报（`/module/parent_report`）
+
+web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报**（打印友好）：
+
+| 区块 | 口径 |
+|---|---|
+| 四张卡 | 本周发音评测次数 / 本周平均分（无分显示 `—`）/ 已点亮字词 = `fbStats.correct` / 生词本收藏 = `words.length` |
+| 📅 每日评测次数 | 近 7 天柱状图（**今天在最右**），柱高 = `count / maxCount`（`maxCount` 至少 1） |
+| 📖 识字状态 | 认识(绿) / 不确定(橙) / 还不会(红) |
+| 🎯 需要多练的词 | 近 30 天、按 `ref_text`（**去空白 + 截前 8 字**）分组取**最低分**，筛 `< 80`，**升序**取前 8 |
+| 页脚 | 生成时间 + AiPhonix |
+
+- 本周平均分 = 近 7 天里 `suggested_score > 0` 的记录求平均（四舍五入）；逐日平均分同法，无分为 `null`。
+- 数据源 3 个，**Android 都有对应仓储**：`/soe/records`(`limit 500`) → `SoeRecordRepository.fetchRecords()` ✅ ／ `/wordbook/list` → `WordbookRepository.list()` ✅ ／
+  `/char-images/feedback`(`limit 100000`) 需要响应体里的 **`stats: {correct, wrong, unsure, unmarked}`** —— ⚠️ Android `CharMapRepository.feedbackStatus()` **只取 `items`、把 `stats` 丢了** ⇒ 要**新增**一个 `feedbackStats(userId)`（非破坏性）。
+- ★ **不要改 `ReportScreen`**：它是 `entry<Report>` 里本 App 自己的「学习报告」（读 `/api/v1/practice/stats`），与 web 家长周报**不是同一功能** ⇒ 应当作新模块加 `ParentReportScreen` + 新 NavKey。
+
+### 有意保留的能力降级（非遗漏，别当 bug 修）
+
+- **每日英语缺 3 项**：phonics 音形着色（无本地规则库）、「发音要领」（无本地 `phonicsTips.ts` 表）、设置面板拍照 OCR 自动填入。
+- **AI 英语对话缺流式 ASR 相关 3 项**：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板。
+- ★ **4 处设置面板的「拍照 OCR 自动填入」前置依赖已解除**：区域 OCR 所需的取帧+区域裁剪能力随「字幕采集」已具备 ⇒ **现在可以做**（原本推迟的原因正是它）。
+- 结构差异（有意）：AI 识别结果页输入+结果同屏；汉字地图状态取「最新」（web 取最旧是笔误）；生词本朗读不锁多音字；评测历史/汉字地图点击不定位到具体字。
+- B站内嵌预览两端都不能采集（web 是 iframe、Android 是 WebView，都拿不到帧）。
+
+### 非 app 范围（web 侧待修）
+
+- `web/src/services/charImages.ts` 的 `qs.set("type_", …)` → `qs.set("type", …)`：服务端读的是 `type` ⇒ 现在**静默返回全量 3028 条**（应为 816/748/729/533/202）。需**单独一次 web 构建 + 部署**。
 
 ## 4. 实现约定（每新增模块）
 
