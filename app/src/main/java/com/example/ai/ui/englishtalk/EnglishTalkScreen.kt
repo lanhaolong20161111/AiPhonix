@@ -55,7 +55,9 @@ import java.io.File
  *
  * 两种回答模式（默认「跟读」）：
  * - **跟读模式**：AI 直接给出该说的回答 → 领读 → 逐词跟读阶梯（≥70 分过关进下一级）。
- * - **自己回答**：录一段 → 短语音识别 → AI 判定 → 通过表扬 / 不通过给正确句 + 意群阶梯。
+ * - **自己回答**：WebSocket 流式 ASR（[EnglishTurnAsr]）—— 逐词实时上屏、停顿 2s 自动提示下一个词、
+ *   6s 完全没出声自动挂整句单词阶梯、「💡 提示记录」面板；点「⏹ 结束」→ AI 判定 →
+ *   通过表扬 / 不通过给正确句 + 意群阶梯。
  *
  * 页面本身不含业务逻辑，全部委托 [EnglishTalkViewModel]。
  *
@@ -282,6 +284,9 @@ private fun TalkSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
         }
     }
 
+    // ── 💡 提示记录（逐词/整句提示逐行保留，每行可重听；web talk-hints） ──
+    HintRowsPanel(state = state, viewModel = viewModel)
+
     // ── 下一轮 / 完成 ──
     if (state.canAdvance) {
         Button(
@@ -373,7 +378,7 @@ private fun EchoSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
     }
 }
 
-/** 自己回答模式：录音 → 识别 → 判定 */
+/** 自己回答模式：流式 ASR（逐词实时上屏 + 停顿逐词提示 + 6s 静默挂阶梯）→ 判定 */
 @Composable
 private fun FreeSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewModel) {
     Text(
@@ -382,32 +387,65 @@ private fun FreeSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
         color = Grey,
     )
     Row(Modifier.padding(top = 8.dp)) {
-        SmallButton("🧗 回到跟读模式", enabled = state.phase == TalkPhase.IDLE, onClick = viewModel::switchToEcho)
+        SmallButton(
+            "🧗 回到跟读模式",
+            enabled = state.phase == TalkPhase.IDLE || state.phase == TalkPhase.RECORDING,
+            onClick = viewModel::switchToEcho,
+        )
     }
 
-    // 实时文本区：Android 没有流式 ASR，录音结束才拿到整段文本
+    // 实时文本区：已说文本（FIN_TEXT 定稿累积）+ 临时文本（MID_TEXT，未定稿）
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = HintBg,
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
     ) {
-        Text(
-            text = state.saidText.ifBlank { "（还没说）" },
-            fontSize = 16.sp,
-            color = if (state.saidText.isBlank()) Grey else Black,
-            modifier = Modifier.padding(10.dp),
-        )
+        Row(Modifier.padding(10.dp)) {
+            if (state.saidText.isBlank() && state.interimText.isBlank() && state.phase != TalkPhase.RECORDING) {
+                Text("（还没说）", fontSize = 16.sp, color = Grey)
+            } else {
+                Text(state.saidText, fontSize = 16.sp, color = Black)
+                if (state.interimText.isNotBlank()) {
+                    Text(
+                        state.interimText,
+                        fontSize = 15.sp,
+                        color = Grey,
+                        modifier = Modifier.padding(start = 6.dp),
+                    )
+                }
+            }
+        }
     }
 
     when (state.phase) {
         TalkPhase.RECORDING -> StatusText("● 录音中… 说完了点下方红色结束", OkColor)
+        TalkPhase.HINTING -> StatusText("🔊 提示中，请听提示词…", Blue)
         TalkPhase.READING -> StatusText("🔊 朗读中… 录音已暂停", Blue)
         TalkPhase.JUDGING -> StatusText("🤔 AI 在听你回答…", Blue)
         TalkPhase.IDLE -> Unit
     }
 
+    if (state.phase == TalkPhase.RECORDING) {
+        // 电平条（web speech-level：宽度 4%~100%）
+        val pct = (state.asrLevel.coerceIn(0f, 1f) * 100).coerceAtLeast(4f)
+        Surface(
+            shape = RoundedCornerShape(4.dp),
+            color = HintBg,
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(6.dp),
+        ) {
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = OkColor,
+                modifier = Modifier.fillMaxWidth(pct / 100f).height(6.dp),
+            ) {}
+        }
+    }
+
     if (state.errText.isNotBlank()) {
         Text(state.errText, fontSize = 13.sp, color = ErrorColor, modifier = Modifier.padding(top = 6.dp))
+    }
+    if (state.asrError.isNotBlank()) {
+        Text(state.asrError, fontSize = 13.sp, color = ErrorColor, modifier = Modifier.padding(top = 6.dp))
     }
 
     Spacer(Modifier.height(10.dp))
@@ -415,14 +453,17 @@ private fun FreeSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
     val recordEnabled: Boolean
     val recordColor: Color
     when {
-        state.recording -> {
+        state.phase == TalkPhase.RECORDING -> {
             recordLabel = "⏹ 结束"; recordEnabled = true; recordColor = ErrorColor
+        }
+        state.phase == TalkPhase.HINTING -> {
+            recordLabel = "🔊 提示中…"; recordEnabled = false; recordColor = DisabledBg
+        }
+        state.phase == TalkPhase.READING -> {
+            recordLabel = "🔊 朗读中…"; recordEnabled = false; recordColor = DisabledBg
         }
         state.phase == TalkPhase.JUDGING -> {
             recordLabel = "🤔 判定中…"; recordEnabled = false; recordColor = DisabledBg
-        }
-        state.phase != TalkPhase.IDLE -> {
-            recordLabel = "🔊 朗读中…"; recordEnabled = false; recordColor = DisabledBg
         }
         state.canStartRecording -> {
             recordLabel = "🎤 开始录音"; recordEnabled = true; recordColor = OkColor
@@ -433,7 +474,7 @@ private fun FreeSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
     }
     Button(
         onClick = {
-            if (state.recording) viewModel.stopRecording() else viewModel.startRecording()
+            if (state.phase == TalkPhase.RECORDING) viewModel.stopRecording() else viewModel.startRecording()
         },
         enabled = recordEnabled,
         colors = ButtonDefaults.buttonColors(
@@ -516,11 +557,85 @@ private fun FreeSection(state: EnglishTalkUiState, viewModel: EnglishTalkViewMod
             }
         }
     }
+
+    // ── 6s 无话引导：整句单词阶梯测评（自由模式；跟读模式的阶梯在上面回答区里） ──
+    if (state.guidedLadderOpen && state.ladder != null) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Color.White,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .border(1.dp, CardBorder, RoundedCornerShape(12.dp)),
+        ) {
+            Column(Modifier.padding(14.dp)) {
+                if (state.ladder.done) {
+                    Text(
+                        "✅ 整句过关！点下方进入下一轮",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OkColor,
+                    )
+                } else {
+                    EchoLadder(
+                        view = state.ladder,
+                        reading = state.rolling,
+                        recording = state.recording,
+                        evaluating = state.evaluating,
+                        score = state.ladderScore,
+                        failCount = state.ladderFailCount,
+                        error = state.ladderError,
+                        onReadAgain = viewModel::readLadderAgain,
+                        onToggleRecord = viewModel::toggleLadderRecord,
+                        onSkip = viewModel::skipLadder,
+                    )
+                }
+            }
+        }
+    }
 }
 
 // ══════════════════════════════════════════════════════════════
 // 小组件
 // ══════════════════════════════════════════════════════════════
+
+/** 「💡 提示记录」面板（逐行保留，每行可重听；web talk-hints） */
+@Composable
+private fun HintRowsPanel(state: EnglishTalkUiState, viewModel: EnglishTalkViewModel) {
+    if (state.hintRows.isEmpty()) return
+    Card {
+        Text(
+            "💡 提示记录",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Black,
+        )
+        for ((i, h) in state.hintRows.withIndex()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            ) {
+                Text(
+                    "${i + 1}",
+                    fontSize = 13.sp,
+                    color = Grey,
+                    modifier = Modifier.width(20.dp),
+                )
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (h.full) "（整句）${h.text}" else h.text,
+                        fontSize = 14.sp,
+                        color = Black,
+                    )
+                    if (h.zh.isNotBlank()) {
+                        Text(h.zh, fontSize = 12.sp, color = Grey)
+                    }
+                }
+                SmallButton("🔊", enabled = true, onClick = { viewModel.playTts(h.text) })
+            }
+        }
+    }
+}
 
 @Composable
 private fun Card(bg: Color = Color.White, content: @Composable () -> Unit) {

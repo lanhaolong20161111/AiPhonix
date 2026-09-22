@@ -34,6 +34,13 @@ fun splitJsWhitespace(s: String): List<String> = JS_WS.split(s).filter { it.isNo
 fun removeJsWhitespace(s: String): String = JS_WS.replace(s, "")
 
 /**
+ * 连续 JS `\s` 语义空白折叠成单个半角空格 —— 等价于 JS 的 `s.replace(/\s+/g, " ")`。
+ * 与 [splitJsWhitespace] / [removeJsWhitespace] 共用同一字符集。
+ * （`EnglishTurnAsr.cleanAsrText` 的第二段清洗用它。）
+ */
+fun collapseJsWhitespace(s: String): String = JS_WS.replace(s, " ")
+
+/**
  * 复刻 JS 的 `String(number)` —— 整数不带小数点，小数保留原样。
  *
  * ⚠️ Kotlin `Float.toString()` 会把整数值打成 `"85.0"`，而 JS 是 `"85"`；

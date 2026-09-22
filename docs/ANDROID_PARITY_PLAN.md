@@ -176,9 +176,10 @@
 
 #### 批次 C 后半 · AI 英语对话的已知差异（有意为之，非遗漏）
 
-- **「自己说」降级为「录一段 → 识别 → 判定」**：web 用 WebSocket 流式 ASR（`/asr/stream`）做实时逐词上屏，Android 无该通道 ⇒ 录音结束才拿到整段文本。
-- **放弃 3 项依赖流式 ASR 的能力**：① 逐词实时提示；② **6 秒静音自动挂阶梯**；③ 提示记录面板。
-- **不做「未作答自动给提示」的三级 hint**（同上一项，依赖流式 ASR 的静音检测）。
+- ~~**「自己说」降级为「录一段 → 识别 → 判定」**~~ **已在本轮补齐**：自由模式改走 WebSocket 流式 ASR（`data/asr/StreamingAsrClient` ⇔ `/asr/stream` + `data/audio/StreamingPcmRecorder` 边录边发，hook 等价物 `ui/englishtalk/EnglishTurnAsr`），对齐 web `useEnglishTurn` 的 MID_TEXT/FIN_TEXT 口径与 pause/resume 生命周期。
+- ~~**放弃 3 项依赖流式 ASR 的能力**~~ **已全部补齐**：① 逐词实时上屏（saidText+interimText+电平条）；② **6 秒静音自动挂阶梯**（`startGuided`：整句提示行 + EchoLadder 单词阶梯，复用 `EchoLadderState`）；③ 提示记录面板（`TalkHintRow` 列表 + 🔊 重听走 `playTts`，录音中自动暂停/恢复 ASR）。静音判定（300ms 轮询、能量阈值 0.02、首静默 6s、停顿 2s）在 `PauseWatch`（时钟可注入，已单测）。
+- **不做「未作答自动给提示」的三级 hint**：web 也只做「停顿 → 提示下一个词」与「首静默 → 挂阶梯」，无三级 hint，本条本来就不是 gap。
+- ⚠️ 与 web 的**有意差异**：提示行单词翻译没有 web 的「本地课标词库同步查」快路径（Android 无这份词库），一律走 `/daily-en/word-info`（面板首行显示晚一拍）。
 - **「📷 拍照识词」已完成**：设置面板顶部的「拍照识词（推荐）」入口卡 → 整页 OCR（`/ai-chinese/parse-image` + `mode=english`）→ `EnVocabExtract` 抽词句（纯函数 + 单测）→ 勾选导入「练习单词 / 练习句子」。对齐 web `EnVocabPhotoSheet`。
 
   ⚠️ 与 web 的有意差异：识别阶段只有「处理图片 / 识别中」两档，`UPLOADING` 这一档在 Android 不可达（`parseImage` 一次 await 到底，无中间回调）；文案保持一致。
@@ -327,7 +328,7 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
 - ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。
-- **AI 英语对话缺流式 ASR 相关 3 项**：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板。
+- ~~**AI 英语对话缺流式 ASR 相关 3 项**~~ **已补齐**（本轮）：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板（见「批次 C 后半 · AI 英语对话」小节）。
 - **「拍照 OCR 自动填入」已全部落地**：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）、AI 英语对话（整页识词抽句）三处设置面板均已移植，对应 `OcrPickSheet` / `EnVocabPhotoSheet` 系 + `EnVocabExtract` 抽词规则。AI 对话学语文（web 本就无 OCR）是**唯一**不做的一处，不是 parity gap。
 - 结构差异（有意）：AI 识别结果页输入+结果同屏；汉字地图状态取「最新」（web 取最旧是笔误）；生词本朗读不锁多音字；评测历史/汉字地图点击不定位到具体字。
 - B站内嵌预览两端都不能采集（web 是 iframe、Android 是 WebView，都拿不到帧）。

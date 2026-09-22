@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.data.aichinese.AiChineseRepository
-import com.example.ai.data.asr.AsrRepository
 import com.example.ai.data.audio.AudioRecorder
 import com.example.ai.data.dailyen.DailyEnRepository
 import com.example.ai.data.englishtalk.DialogueLine
@@ -28,6 +27,7 @@ import com.example.ai.util.fallbackChunks
 import com.example.ai.util.parsePracticeSentences
 import com.example.ai.util.parsePracticeWords
 import com.example.ai.util.splitEnWords
+import com.example.ai.util.splitJsWhitespace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -47,8 +47,8 @@ import java.util.concurrent.ConcurrentHashMap
 /** 回答模式：`ECHO` = AI 直接给回答并逐词跟读（**默认主线**）；`FREE` = 孩子自己说 */
 enum class TalkAnswerMode { ECHO, FREE }
 
-/** 阶段（自由模式的录音/朗读状态机；跟读模式的阶梯自带状态） */
-enum class TalkPhase { IDLE, RECORDING, JUDGING, READING }
+/** 阶段（自由模式的录音/朗读状态机；跟读模式的阶梯自带状态）。`HINTING` = 逐词提示中（ASR 已暂停） */
+enum class TalkPhase { IDLE, RECORDING, HINTING, JUDGING, READING }
 
 /** 一次整句判定结果 */
 data class TalkFeedback(
@@ -59,8 +59,17 @@ data class TalkFeedback(
     val said: String = "",
 )
 
-/** 阶梯用途：跟读模式的本轮目标句 vs 自由模式错句修复 */
-private enum class LadderRole { ECHO_TARGET, CORRECT_FIX }
+/** 「💡 提示记录」面板的一行（web `hintRows`：逐行保留 + 懒加载中文翻译） */
+data class TalkHintRow(
+    val text: String = "",
+    /** true = 整句提示（提示行前缀「（整句）」）；false = 逐词提示 */
+    val full: Boolean = false,
+    /** 中文翻译（异步补上；逐词提示走单词翻译、整句走整句翻译） */
+    val zh: String = "",
+)
+
+/** 阶梯用途：跟读模式的本轮目标句 vs 自由模式错句修复 vs 6s 静默引导 */
+private enum class LadderRole { ECHO_TARGET, CORRECT_FIX, GUIDED }
 
 /**
  * AI 英语对话陪练（对齐 web `pages/AiEnglishTalkPage.tsx`）。
@@ -72,22 +81,22 @@ private enum class LadderRole { ECHO_TARGET, CORRECT_FIX }
  * 1. [TalkAnswerMode.ECHO]（默认主线）—— AI 直接给出这一轮该说的回答（显示 + 中文翻译 + 领读），
  *    孩子**照着跟读**，用 [EchoLadderState] 逐词扩长（第 1 遍读第 1 个词 → … → 整句），
  *    每级 ≥70 分过关。全程不碰麦克风以外的识别（只有 SOE 评测）。
- * 2. [TalkAnswerMode.FREE]（可选旧流程）—— 孩子自己说，录完一次上传**短语音识别**
- *    （`/asr/short`）→ `/llm/en-answer-judge` 判定 → 通过给表扬、不通过给正确句 + 可展开意群阶梯。
+ * 2. [TalkAnswerMode.FREE]（可选旧流程）—— 孩子自己说，走 **WebSocket 流式 ASR**
+ *    （[EnglishTurnAsr] ⇔ `/asr/stream`，对齐 web `useEnglishTurn`）：
+ *    逐词实时上屏（MID_TEXT）/ 停顿 2s 自动提示下一个词 / 6s 完全没出声自动挂整句单词阶梯，
+ *    点「⏹ 结束」取整句 → `/llm/en-answer-judge` 判定 → 通过给表扬、不通过给正确句 + 可展开意群阶梯。
  *
  * 朗读口径：**中英连读**（[speakPair]）——英文读完紧接着读这句的中文翻译，
  * 翻译与英文朗读**并发**取，故总等待 ≈ max(英文时长, 翻译时长) + 中文时长。
  *
- * ⚠️ 与 web 的两处**有意差异**（详见 `docs/ANDROID_PARITY_PLAN.md`）：
- * - 自由模式**没有 WebSocket 流式 ASR**（Android 侧没有流式通道）⇒ 无实时中间文本、
- *   无「停顿 2s 逐词提示」、无「6 秒静音自动挂阶梯」；改为「录完一次 → 识别 → 判定」。
- * - 因此「提示记录」面板不存在（它只由逐词提示产生）。
+ * ⚠️ 与 web 的**有意差异**：
+ * - 「💡 提示记录」的单词翻译没有 web 的「本地课标词库同步查」快路径（Android 无这份词库），
+ *   一律走 `/daily-en/word-info`（首行显示会晚一拍，面板行为一致）。
  * - 「📷 拍照识词」**已实现**（整页 OCR → 抽词句 → 勾选导入，见 `EnVocabPhotoSession` / `EnVocabPhotoSheet`），
  *   与 web 的 `EnVocabPhotoSheet` 对齐；抽词规则在 `data/envocab/EnVocabExtract.kt`（纯函数 + 单测）。
  */
 class EnglishTalkViewModel(
     private val talkRepository: EnglishTalkRepository = EnglishTalkRepository(),
-    private val asrRepository: AsrRepository = AsrRepository(),
     private val dailyEnRepository: DailyEnRepository = DailyEnRepository(),
     private val audioRecorder: AudioRecorder = AudioRecorder(),
     /**
@@ -128,10 +137,36 @@ class EnglishTalkViewModel(
     /** 唯一持 Context 的依赖（`OcrPlatform` 只包了 applicationContext，无状态） */
     private val ocrPlatformRef: OcrPlatform? = ocrPlatform
 
+    /**
+     * 自由模式的流式 ASR 单轮控制器（web `useEnglishTurn` 的等价物）。
+     * pauseMs=2000（停顿 → 逐词提示）、initialSilenceMs=6000（完全没出声 → 挂引导阶梯），
+     * 与 web `AiEnglishTalkPage` 传参逐位一致。
+     */
+    private val turnAsr = EnglishTurnAsr(
+        scope = viewModelScope,
+        pauseMs = 2_000,
+        initialSilenceMs = 6_000,
+        onPause = { said -> viewModelScope.launch { pauseHandler(said) } },
+        onInitialSilence = { viewModelScope.launch { startGuided() } },
+    )
+
     init {
         // 弹层状态转发进本页 state（与每日语文/英语同一套做法）
         viewModelScope.launch {
             photo.state.collect { s -> setState { it.copy(photo = s) } }
+        }
+        // 流式 ASR 状态 → UiState（saidText 实时上屏 / interimText 临时文本 / level 电平 / error）
+        viewModelScope.launch {
+            turnAsr.state.collect { ts ->
+                setState {
+                    it.copy(
+                        saidText = ts.saidText,
+                        interimText = ts.interimText,
+                        asrLevel = ts.level,
+                        asrError = ts.error,
+                    )
+                }
+            }
         }
     }
 
@@ -142,6 +177,8 @@ class EnglishTalkViewModel(
     private var evalJob: Job? = null
     /** 生成剧情 / 换轮 */
     private var turnJob: Job? = null
+    /** 主动朗读（提示行/再读/点读；录音中会先暂停 ASR，读完自动恢复） */
+    private var playTtsJob: Job? = null
 
     /** 剧情真源（UI 只取需要的字段，不整份塞进 UiState） */
     private var script: DialogueScript = DialogueScript()
@@ -151,6 +188,14 @@ class EnglishTalkViewModel(
 
     private var ladderState: EchoLadderState? = null
     private var ladderRole = LadderRole.ECHO_TARGET
+
+    // ── 逐词提示状态（web hintWordsRef/hintIdxRef/lastHintTextRef/fullHintGivenRef/hintBusyRef） ──
+    private var hintWords: List<String> = emptyList()
+    private var hintIdx = 0
+    private var lastHintText = ""
+    private var fullHintGiven = false
+    @Volatile
+    private var hintBusy = false
 
     /** 本页会话内 英→中 翻译缓存（跨轮复用，避免同句反复调 LLM） */
     private val zhCache = ConcurrentHashMap<String, String>()
@@ -258,6 +303,12 @@ class EnglishTalkViewModel(
         zhInflight.clear()
         ladderState = null
         ladderRole = LadderRole.ECHO_TARGET
+        // 提示状态复位（web beginScript 同款：hintWords/hintIdx/lastHintText/fullHintGiven/hintCount/hintRows）
+        hintWords = sc.lines.firstOrNull()?.hintWords.orEmpty()
+        hintIdx = 0
+        lastHintText = ""
+        fullHintGiven = false
+        hintBusy = false
         val first = sc.lines.firstOrNull()
         setState {
             EnglishTalkUiState(
@@ -454,13 +505,21 @@ class EnglishTalkViewModel(
     fun skipLadder() {
         val st = ladderState ?: return
         speakJob?.cancel()
-        if (ladderRole == LadderRole.CORRECT_FIX) {
-            ladderState = null
-            setState { it.copy(fixLadderOpen = false, ladder = null, ladderScore = null, ladderError = "") }
-            return
+        when (ladderRole) {
+            LadderRole.CORRECT_FIX -> {
+                ladderState = null
+                setState { it.copy(fixLadderOpen = false, ladder = null, ladderScore = null, ladderError = "") }
+            }
+            // 自由模式 6s 引导阶梯的「跳过」= 收起（web setGuided(null)）
+            LadderRole.GUIDED -> {
+                ladderState = null
+                setState { it.copy(guidedLadderOpen = false, ladder = null, ladderScore = null, ladderError = "") }
+            }
+            LadderRole.ECHO_TARGET -> {
+                st.forceFinish()
+                publishLadder(st)
+            }
         }
-        st.forceFinish()
-        publishLadder(st)
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -472,6 +531,7 @@ class EnglishTalkViewModel(
         turnSeq += 1
         cancelAllJobs()
         ladderState = null
+        resetHintState()
         setState {
             it.copy(
                 answerMode = TalkAnswerMode.FREE,
@@ -484,7 +544,9 @@ class EnglishTalkViewModel(
                 correctZh = "",
                 errText = "",
                 saidText = "",
+                interimText = "",
                 fixLadderOpen = false,
+                guidedLadderOpen = false,
                 phase = TalkPhase.IDLE,
                 recording = false,
                 evaluating = false,
@@ -492,6 +554,8 @@ class EnglishTalkViewModel(
                 speakingWord = null,
             )
         }
+        // web switchToFree 会 await turnHook.stop()：停掉可能残留的流式录音
+        viewModelScope.launch { turnAsr.stop() }
     }
 
     /** 切回「🧗 跟读模式」（本轮）：重新领读目标句并挂阶梯 */
@@ -500,6 +564,7 @@ class EnglishTalkViewModel(
         val seq = turnSeq
         cancelAllJobs()
         ladderState = null
+        resetHintState()
         setState {
             it.copy(
                 answerMode = TalkAnswerMode.ECHO,
@@ -511,7 +576,9 @@ class EnglishTalkViewModel(
                 correctZh = "",
                 errText = "",
                 saidText = "",
+                interimText = "",
                 fixLadderOpen = false,
+                guidedLadderOpen = false,
                 phase = TalkPhase.IDLE,
                 recording = false,
                 evaluating = false,
@@ -519,67 +586,225 @@ class EnglishTalkViewModel(
                 speakingWord = null,
             )
         }
+        // web switchToEcho 会 await turnHook.stop()：停掉可能残留的流式录音
+        viewModelScope.launch { turnAsr.stop() }
         val line = script.lines.getOrNull(_uiState.value.turn) ?: return
         flowJob = viewModelScope.launch { armEcho(englishOnly(line.target), seq) }
     }
 
+    /** 绿色「开始录音」（自由模式）：起流式 ASR（逐词实时上屏 + 静音检测随之工作） */
     fun startRecording() {
         val s = _uiState.value
         if (s.answerMode != TalkAnswerMode.FREE) return
         if (s.phase != TalkPhase.IDLE || s.judging) return
         speakJob?.cancel()
+        viewModelScope.launch {
+            val ok = turnAsr.start()
+            if (ok) {
+                setState { it.copy(phase = TalkPhase.RECORDING, errText = "") }
+            } else {
+                val msg = _uiState.value.asrError.ifBlank { "开始录音失败，请检查麦克风权限" }
+                setState { it.copy(phase = TalkPhase.IDLE, errText = msg) }
+            }
+        }
+    }
+
+    /** 红色「⏹ 结束」→ 取整句（流式已说文本）→ AI 判定（web `finishRecording`） */
+    fun stopRecording() {
+        val s = _uiState.value
+        if (s.answerMode != TalkAnswerMode.FREE) {
+            if (s.recording) audioRecorder.stop()
+            return
+        }
+        if (s.phase != TalkPhase.RECORDING || s.judging) return
         evalJob?.cancel()
         evalJob = viewModelScope.launch {
+            setState { it.copy(phase = TalkPhase.JUDGING, judging = true) }
             try {
-                audioRecorder.reset()
-                setState {
-                    it.copy(phase = TalkPhase.RECORDING, recording = true, errText = "", saidText = "")
-                }
-                val pcm = audioRecorder.record()
-                setState { it.copy(phase = TalkPhase.IDLE, recording = false) }
-                if (pcm.size < MIN_AUDIO_BYTES) {
-                    setState { it.copy(errText = "没有听到内容，请再试一次") }
-                    return@launch
-                }
-                setState { it.copy(phase = TalkPhase.JUDGING, judging = true) }
-                val said = asrRepository.recognize(pcm, "en").getOrElse { e ->
-                    setState {
-                        it.copy(
-                            phase = TalkPhase.IDLE,
-                            judging = false,
-                            errText = e.message ?: "语音识别失败，请再试一次",
-                        )
-                    }
-                    return@launch
-                }
+                val said = turnAsr.stop()
                 if (said.isBlank()) {
                     setState {
                         it.copy(phase = TalkPhase.IDLE, judging = false, errText = "没有听到内容，请再试一次")
                     }
                     return@launch
                 }
-                setState { it.copy(saidText = said) }
+                if (script.lines.getOrNull(_uiState.value.turn) == null) {
+                    setState { it.copy(phase = TalkPhase.IDLE, judging = false) }
+                    return@launch
+                }
                 submitAnswer(said)
             } catch (e: CancellationException) {
-                setState { it.copy(phase = TalkPhase.IDLE, recording = false, judging = false) }
+                setState { it.copy(phase = TalkPhase.IDLE, judging = false) }
                 throw e
             } catch (e: Exception) {
-                Log.w(TAG, "录音失败: ${e.message}")
+                Log.w(TAG, "结束录音失败: ${e.message}")
                 setState {
-                    it.copy(
-                        phase = TalkPhase.IDLE,
-                        recording = false,
-                        judging = false,
-                        errText = e.message ?: "录音失败，请检查麦克风权限",
-                    )
+                    it.copy(phase = TalkPhase.IDLE, judging = false, errText = e.message ?: "识别失败，请再试一次")
                 }
             }
         }
     }
 
-    /** 红色「⏹ 结束」 */
-    fun stopRecording() {
-        if (_uiState.value.recording) audioRecorder.stop()
+    // ══════════════════════════════════════════════════════════════
+    // 流式 ASR 的页面消费（对齐 web AiEnglishTalkPage 的 pauseHandler / startGuided / hintRows）
+    // ══════════════════════════════════════════════════════════════
+
+    /** 提示状态复位（web beginScript / nextTurn / 切模式的公共部分；hintRows 由调用方按需清） */
+    private fun resetHintState() {
+        hintIdx = 0
+        lastHintText = ""
+        fullHintGiven = false
+        hintBusy = false
+    }
+
+    /**
+     * 停顿处理（说过话后静音 ≥2s）：暂停 ASR → 提示下一个词并朗读 → 停 1.5s → 自动恢复录音。
+     * 词提示完后给一次整句；整句给过就不再提示（不周期性打断 ASR）。
+     */
+    private suspend fun pauseHandler(saidSoFar: String) {
+        // saidSoFar 是停顿瞬间的已说文本快照；页面侧用 state.saidText 的同一份数据，web 也未消费此参数
+        @Suppress("UNUSED_PARAMETER") val unused = saidSoFar
+        val s = _uiState.value
+        if (s.phase != TalkPhase.RECORDING || hintBusy) return
+        val line = script.lines.getOrNull(s.turn) ?: return
+        val target = englishOnly(line.target)
+        if (target.isEmpty()) return
+        // 词已提示完 → 整句提示只给一次；之后停顿一律静默，让 ASR 连续工作到孩子点结束
+        val isFull = hintIdx >= hintWords.size
+        if (isFull && fullHintGiven) return
+        if (isFull) fullHintGiven = true
+        hintBusy = true
+        setState { it.copy(phase = TalkPhase.HINTING) }
+        turnAsr.pause()
+
+        val text = if (hintIdx < hintWords.size) hintWords[hintIdx] else target
+        if (hintIdx < hintWords.size) hintIdx += 1
+        if (text.isNotEmpty() && text != lastHintText) {
+            lastHintText = text
+            val rowIdx = pushHintRow(text, isFull)
+            readHintAloud(text, isFull, rowIdx) // 整句：英文读完接着读中文
+        } else if (text.isNotEmpty()) {
+            // 与上一条提示相同 → 只重读，不再追加记录行（web 同款）
+            speak(englishOnly(text), READ_TIMEOUT_MS)
+        }
+
+        // 播完提示词停一下让 TA 消化，再自动切回 ASR 继续录
+        delay(1_500)
+        hintBusy = false
+        if (_uiState.value.phase == TalkPhase.HINTING) {
+            val resumed = turnAsr.resume()
+            if (resumed) setState { it.copy(phase = TalkPhase.RECORDING) }
+            else setState { it.copy(phase = TalkPhase.IDLE, errText = "麦克风恢复失败，请点「开始录音」重试") }
+        }
+    }
+
+    /** 6s 完全没出过声 → 不干等：先把整句显示并朗读，再进入「第1词→前2词→…整句」阶梯测评 */
+    private suspend fun startGuided() {
+        val s = _uiState.value
+        if (s.phase != TalkPhase.RECORDING || hintBusy || s.guidedLadderOpen) return
+        val line = script.lines.getOrNull(s.turn) ?: return
+        hintBusy = true
+        turnAsr.stop()
+        hintBusy = false
+        val en = englishOnly(line.target)
+        val words = splitEnWords(en)
+        // 显示整句提示行（可重听，中文翻译异步补上），再「英文→中文」朗读，最后挂载单词阶梯
+        val rowIdx = pushHintRow(en, true)
+        setState { it.copy(phase = TalkPhase.IDLE, feedback = null) }
+        readHintAloud(en, true, rowIdx)
+        if (en.isEmpty()) return
+        val st = EchoLadderState(
+            units = words.ifEmpty { listOf(en) },
+            chunks = emptyList(),
+            sentence = en,
+        )
+        ladderState = st
+        ladderRole = LadderRole.GUIDED
+        setState {
+            it.copy(guidedLadderOpen = true, ladder = st.view(), ladderScore = null, ladderFailCount = 0, ladderError = "")
+        }
+        readLadder()
+    }
+
+    /**
+     * 朗读提示行：**先读英文，紧接着读中文**（只有整句提示行读中文——逐词提示读单个词的中文没教学意义还占时长）。
+     * 中文等不到（超时/失败）就只读英文，不阻塞录音恢复。
+     * @param rowIndex 该行在 hintRows 中的下标；换轮后下标可能被复用，故配合 turnSeq 校验
+     */
+    private suspend fun readHintAloud(text: String, full: Boolean, rowIndex: Int) {
+        val en = englishOnly(text)
+        if (en.isEmpty()) return
+        val seq = turnSeq
+        val zhDeferred = if (full) {
+            viewModelScope.async { fetchZhTimed(en, true) }
+        } else {
+            null // 逐词提示不读中文
+        }
+        speak(en, READ_TIMEOUT_MS)
+        val zh = try {
+            zhDeferred?.await().orEmpty()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            ""
+        }
+        if (!full || seq != turnSeq) return
+        if (zh.isNotEmpty()) speak(zh, READ_TIMEOUT_MS)
+        // 翻译是后到的 → 补写回该行，保证「提示句子的中文翻译」一定显示
+        updateHintRowZh(rowIndex, zh)
+    }
+
+    /** 追加提示词记录行（逐行保留）+ 自动懒加载中文翻译（整句/单词都补）。返回该行下标 */
+    private fun pushHintRow(text: String, full: Boolean): Int {
+        val idx = _uiState.value.hintRows.size
+        setState { it.copy(hintRows = it.hintRows + TalkHintRow(text = text, full = full)) }
+        val seq = turnSeq
+        viewModelScope.launch {
+            val zh = fetchZh(text, full)
+            if (zh.isNotEmpty() && seq == turnSeq) updateHintRowZh(idx, zh)
+        }
+        return idx
+    }
+
+    /** 只补空行（web：`!r.zh ? { ...r, zh } : r`），避免先到的旧翻译覆盖新翻译 */
+    private fun updateHintRowZh(idx: Int, zh: String) {
+        if (zh.isEmpty()) return
+        setState { st ->
+            st.copy(
+                hintRows = st.hintRows.mapIndexed { i, r ->
+                    if (i == idx && r.zh.isEmpty()) r.copy(zh = zh) else r
+                },
+            )
+        }
+    }
+
+    /** 录音中主动朗读（提示行 🔊 / 再读 / 点读）：暂停 ASR（防录到扬声器），读完后停 1.2s 自动恢复 */
+    fun playTts(t: String) {
+        val en = englishOnly(t)
+        if (en.isBlank()) return
+        val full = splitJsWhitespace(en).size > 1 // web：/\s/.test(en) ⇒ 整句走中英连读
+        playTtsJob?.cancel()
+        playTtsJob = viewModelScope.launch {
+            val wasRecording = _uiState.value.phase == TalkPhase.RECORDING
+            if (wasRecording) {
+                hintBusy = true
+                setState { it.copy(phase = TalkPhase.READING) }
+                turnAsr.pause()
+            }
+            if (full) speakPair(en) else speak(en, READ_TIMEOUT_MS)
+            if (wasRecording) resumeAfterRead()
+        }
+    }
+
+    /** 读完后停 1.2s 恢复录音继续计时（web playTts 尾部同款） */
+    private suspend fun resumeAfterRead() {
+        delay(1_200)
+        hintBusy = false
+        if (_uiState.value.phase == TalkPhase.READING) {
+            val resumed = turnAsr.resume()
+            if (resumed) setState { it.copy(phase = TalkPhase.RECORDING) }
+            else setState { it.copy(phase = TalkPhase.IDLE, errText = "麦克风恢复失败，请点「开始录音」重试") }
+        }
     }
 
     private suspend fun submitAnswer(said: String) {
@@ -668,11 +893,15 @@ class EnglishTalkViewModel(
         turnJob?.cancel()
         turnJob = viewModelScope.launch {
             cancelAllJobs()
+            // web nextTurn 开头 await turnHook.stop()：停掉可能残留的流式录音
+            turnAsr.stop()
             if (next < script.lines.size) {
                 turnSeq += 1
                 val seq = turnSeq
                 val ln = script.lines[next]
                 ladderState = null
+                resetHintState()
+                hintWords = ln.hintWords
                 setState {
                     it.copy(
                         turn = next,
@@ -684,11 +913,14 @@ class EnglishTalkViewModel(
                         feedback = null,
                         errText = "",
                         saidText = "",
+                        interimText = "",
+                        hintRows = emptyList(),
                         ladder = null,
                         ladderScore = null,
                         ladderFailCount = 0,
                         ladderError = "",
                         fixLadderOpen = false,
+                        guidedLadderOpen = false,
                         phase = TalkPhase.IDLE,
                         recording = false,
                         evaluating = false,
@@ -710,41 +942,45 @@ class EnglishTalkViewModel(
     // 点读 / 重读
     // ══════════════════════════════════════════════════════════════
 
-    /** 「🔊 再读」AI 台词（多词 ⇒ 中英连读，与自动领读同口径） */
+    /** 「🔊 再读」AI 台词（多词 ⇒ 中英连读；录音中先暂停 ASR，读完自动恢复 —— web `playTts`） */
     fun reReadAi() {
         val t = _uiState.value.aiText
         if (t.isBlank()) return
-        speakJob?.cancel()
-        speakJob = viewModelScope.launch { speakPair(t, turnSeq) }
+        playTts(t)
     }
 
-    /** 「🔊 再读」正确句（多词 ⇒ 中英连读） */
+    /** 「🔊 再读」正确句（多词 ⇒ 中英连读；录音中先暂停 ASR） */
     fun reReadCorrect() {
         val t = _uiState.value.feedback?.correct.orEmpty()
         if (t.isBlank()) return
-        speakJob?.cancel()
-        speakJob = viewModelScope.launch { speakPair(t, turnSeq) }
+        playTts(t)
     }
 
     /**
      * 点读单个英文单词（[com.example.ai.ui.common.EnglishWordTapText]）。
      *
      * 单词只读英文、不连读中文（追求点读手感，与 web 一致）。
-     * ⚠️ 录音中直接忽略：Android 侧的录音是「一次录一段」，没有 web 的 ASR pause/resume，
-     * 点读声会被录进麦克风。
+     * ★ 流式 ASR 之后录音中点读不再忽略：走 [playTts] 同款「暂停 ASR → 读完 → 停 1.2s 恢复」，
+     *   不会把点读声录进识别（web `speakOverride=(w)=>playTts(w)` 同口径）。
      */
     fun speakWord(word: String) {
         val w = word.trim()
         if (w.isEmpty()) return
-        if (_uiState.value.recording) return
-        speakJob?.cancel()
-        speakJob = viewModelScope.launch {
+        playTtsJob?.cancel()
+        playTtsJob = viewModelScope.launch {
+            val wasRecording = _uiState.value.phase == TalkPhase.RECORDING
+            if (wasRecording) {
+                hintBusy = true
+                setState { it.copy(phase = TalkPhase.READING) }
+                turnAsr.pause()
+            }
             setState { it.copy(speakingWord = w) }
             try {
                 speak(w, READ_TIMEOUT_MS)
             } finally {
                 setState { it.copy(speakingWord = null) }
             }
+            if (wasRecording) resumeAfterRead()
         }
     }
 
@@ -869,6 +1105,7 @@ class EnglishTalkViewModel(
         flowJob?.cancel()
         speakJob?.cancel()
         evalJob?.cancel()
+        playTtsJob?.cancel()
     }
 
     private fun setState(block: (EnglishTalkUiState) -> EnglishTalkUiState) {
@@ -879,6 +1116,7 @@ class EnglishTalkViewModel(
         turnJob?.cancel()
         cancelAllJobs()
         photo.release()
+        turnAsr.destroy()
         audioRecorder.stop()
         BaiduTtsCache.stopAll()
         super.onCleared()
@@ -951,6 +1189,16 @@ data class EnglishTalkUiState(
     val phase: TalkPhase = TalkPhase.IDLE,
     // ── 自由模式 ──
     val saidText: String = "",
+    /** 实时临时文本（流式 ASR MID_TEXT，未定稿；灰色显示在已说文本后面） */
+    val interimText: String = "",
+    /** 流式 ASR 音量等级 0-1（电平条） */
+    val asrLevel: Float = 0f,
+    /** 流式 ASR 自身的错误（鉴权失败/连接失败；与 [errText] 分开渲染，web 同款两个错误区） */
+    val asrError: String = "",
+    /** 「💡 提示记录」面板（逐词提示 + 整句提示逐行保留） */
+    val hintRows: List<TalkHintRow> = emptyList(),
+    /** 自由模式 6s 静默引导的单词阶梯是否展开（阶梯本体复用 [ladder]） */
+    val guidedLadderOpen: Boolean = false,
     val feedback: TalkFeedback? = null,
     val judging: Boolean = false,
     val errText: String = "",
