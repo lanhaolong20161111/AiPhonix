@@ -4712,6 +4712,84 @@ button.btn-mode-off {
   border-radius: 3px;
   padding: 0 2px;
 }
+/* 数学「审题高亮」（MathAnalyze）：量数 / 关系词 / 问题句
+   文字一律纯黑，靠底色 + 下划线区分（项目颜色规范：正文禁止浅灰/彩色字） */
+.mh-qty {
+  background: #e3f2fd;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 700;
+  color: #000;
+}
+.mh-rel {
+  background: #fde68a;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 700;
+  color: #000;
+}
+.mh-ask {
+  background: #e8f5e9;
+  border-bottom: 2px solid #2e7d32;
+  font-weight: 600;
+  color: #000;
+}
+.mh-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #000;
+}
+.mh-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mh-swatch {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 3px;
+}
+.mh-swatch.mh-qty { background: #e3f2fd; border: 1px solid #90caf9; }
+.mh-swatch.mh-rel { background: #fde68a; border: 1px solid #f59e0b; }
+.mh-swatch.mh-ask { background: #e8f5e9; border: 1px solid #2e7d32; }
+.mh-empty {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #000;
+}
+.mh-panel { margin-top: 8px; }
+.mh-panel-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 2px;
+}
+.mh-panel-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: #000;
+}
+.mh-chip {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 13px;
+  color: #000;
+}
+.mh-line {
+  width: 100%;
+  line-height: 1.6;
+  color: #000;
+}
 /* 词性着色：名词蓝 / 动词红 / 形容词绿（颜色+字重双通道，色弱可见）
    中文包在 .pos-* 外层 span 内逐字仍可点读；英文 .pos-* 加在 .tap-char-word 上 */
 .pos-n { color: #1565c0; font-weight: 600; }

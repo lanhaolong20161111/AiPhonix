@@ -16,6 +16,7 @@ import { isSpeakableChar } from "../lib/chars"
 import { BlockText } from "../components/BlockText"
 import { BlockAsk } from "../components/BlockAsk"
 import { BlockHighlight } from "../components/BlockHighlight"
+import { MathAnalyze } from "../components/MathAnalyze"
 import { QaHistoryModal } from "../components/QaHistoryModal"
 import { PhonicsWord, PhonicsToggle } from "../components/PhonicsWord"
 import type { HighlightMarkItem, PosTagItem, StoryElementItem } from "../services/aichinese"
@@ -1357,7 +1358,12 @@ export function AiParseResultPage() {
                 {/* 块底部只保留「解析高亮」与「跟 AI 对话」；朗读移到左侧朗读模式栏
                     （2026-09-15 按需求移除喇叭 🔊 与「整块加入生词本」📥）。 */}
                 <div className="block-ops">
-                  <BlockHighlight key={`${sessionId}-${runId}-qh${i}`} text={seg.text} />
+                  {/* 数学走「审题高亮」（量数/关系词/问题句）；英语仍用语文式词句高亮 */}
+                  {isEnglish ? (
+                    <BlockHighlight key={`${sessionId}-${runId}-qh${i}`} text={seg.text} />
+                  ) : (
+                    <MathAnalyze key={`${sessionId}-${runId}-qm${i}`} text={seg.text} />
+                  )}
                   <BlockAsk text={seg.text} qaKey={`${sessionId}:q-${i}`} />
                 </div>
               </div>
@@ -1404,7 +1410,7 @@ export function AiParseResultPage() {
               </div>
             )}
             <div className="block-ops">
-              <BlockHighlight key={`${sessionId}-${runId}-texth`} text={text} />
+              <MathAnalyze key={`${sessionId}-${runId}-texth`} text={text} />
               <BlockAsk text={text} qaKey={`${sessionId}:text`} />
             </div>
           </div>
