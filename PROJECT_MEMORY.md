@@ -5,6 +5,43 @@
 
 ---
 
+## 0.6 🆕 2026-09-22 Web 数学「解析高亮」改用数学专用 analyze
+
+### 问题
+数学题块底部的 ✨「解析高亮」此前调的是**语文**的 `POST /ai-chinese/highlight-mark`，
+标的是「core 核心句 / beautiful 优美词句 / word 重点词」——**「优美词句」对数学应用题毫无意义**，属于套错对象。
+
+### 现在（`16ff8d5`）
+数学改走**数学专用**的 `POST /ai-homework/analyze`（该接口**早已实现、但此前从未被任何页面调用**），
+按应用题「审题三步」标注 —— 规则实现见 `web/src/lib/mathAnalyze.ts`：
+
+| 类型 | 含义 | 渲染 |
+|---|---|---|
+| `qty` 量数 | 数字 + 单位（已知数据） | 浅蓝底 |
+| `rel` 关系词 | 运算线索（一共 / 比…多 / 比…少 / …倍） | 琥珀底 |
+| `ask` 问题句 | 题目问什么（框定所求） | 浅绿底 + 绿下划线 |
+
+- 优先级 `ask < rel < qty`（逐字数组覆盖），问题句里的量数仍单独标出；
+- 未知量（`quantities[].value === null`）不落正文，只在面板列出；
+- 面板另展示 数量 / 数量关系 / 所求 / 关键条件；
+- 文字一律纯黑，靠底色 + 下划线区分（项目颜色规范）。
+
+### 两个易踩的匹配坑（已在 `mathAnalyze.test.ts` 立护栏）
+1. **数字必须独立出现**：否则 `value=2` 会命中 `"20"` 里的 `"2"`，标错位置（`findNumber()`）。
+2. **关系词兜底模式要用前后视排除「多少」**：`/多(?!少)/`、`/(?<!多)少/`，
+   否则问句「一共有多少个」会被误标成 less 关系词。
+
+### 接口字段（此前 TS 漏声明，已补）
+`AnalyzeResult` 实际还返回 `quantities[{name,value,unit}]` 与
+`relations[{a,b,type:more|less|times|total,amount,parts}]`；`web/src/services/aiHomework.ts`
+原先只声明了 `topic/sentences/total_key_points/questions`。
+
+### 未动
+语文块与表格块仍用 `BlockHighlight`（受 `isChinese` 守卫）；英语段保留原高亮
+（英语有自身的词性着色 / 文章要素）。**别把数学这套规则套到语文上**——语文要的是好词好句。
+
+---
+
 ## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（**21/21 全部完成 ✅**）
 
 ### 背景
