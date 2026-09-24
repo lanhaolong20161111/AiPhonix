@@ -146,7 +146,6 @@ export function BlockText({
   const isTitle = block.type === "title" || block.type === "heading"
   const isNote = block.type === "note"
   const text = block.text.replace(/\s+/g, "")
-  if (!text.trim()) return null
 
   // 给本块每个汉字注上显示用拼音（带调号）：多音字优先用服务端 polyphones，其余查词库
   useEffect(() => {
@@ -205,6 +204,10 @@ export function BlockText({
         .map((t) => ({ word: t.word, cls: STORY_CLS[t.kind] })),
     [storyTags],
   )
+
+  // ⚠️ 早退必须放在所有 Hook 之后：放到上面会让空文本时跳过 useEffect/useMemo，
+  // 违反 Hook 调用顺序（同一实例从空→非空渲染会抛「Rendered more hooks than…」）。
+  if (!text.trim()) return null
 
   const renderLine = (
     lineText: string,
