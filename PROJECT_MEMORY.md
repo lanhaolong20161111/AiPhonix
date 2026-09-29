@@ -188,6 +188,25 @@
 - **B站内嵌预览不能采集**：与 web 一致。
 - **未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「构建通过 + 逻辑单测绿」，取帧裁剪位置 / 旋转视频 / SAF 授权由实机验证补。
 
+### 已完成（数学动画 · 第 2 个模块｜2026-09-29）—— 等式变变变 ✅（**21/21 之外的新增模块**）
+**等式变变变**（路由键 `module/math_equation_move`，见 `web/src/routes.tsx:120`）—— **零后端**：出题与讲解全在本地算，`web/src/lib/equationMove.ts` 整份移植为 `data/math/EqMove.kt`（纯 Kotlin），页面 `web/src/pages/EquationMovePage.tsx` → `ui/eqmove/`（VM + Screen）。
+
+教学法「找 → 飞 → 落 → 算」：① 要搬走的那一整块**脉动高亮**；② ★ 整块起飞越过**等号分界线**（等号上下各一段虚线 + 底部「等号 = 分界」标签），**跨线那一瞬符号翻牌**（旧符号转半圈缩走、新符号从对面转出来）+ 竖线闪一下 ⇒ 把「这条线就是变号的分界」演出来；③ 落在等号另一侧末尾，源侧原位**只变灰划掉、不删除**（学生看得出它从哪儿走的）；④ 算出结果并把答案代回原式验算 ✓。另有两条支线：**同侧交换反例**（滑动换位，符号一点不动）、**两步搬运**（`a - x = b` / `a ÷ x = b` 要先搬含 x 的整块，再搬第二个数）。
+
+- **出题引擎**：7 题型（plus / minus / times / divide / minusVar / divideVar / sameSide）+ 加权池随机。★ **反推参数**（先定 x 与操作数再算得数）⇒ 每道题恒成立，动画只照着 `MoveAction` 播、自己不参与计算。
+- **随机 5 题练习**（与 web 同步新增）：4 条基本变号规律**各一道**（Fisher–Yates 打乱）+ 其余从全池随机；「🔄 换一组」重开并清零计分。
+- 🔴 **命名必须带 `Eq` / `eq` / `EQ_` 前缀**：`EqMove.kt` 与 `CompoundExpr.kt`、`Precedence.kt` **同处 `com.example.ai.data.math` 一个 package**，Kotlin **顶层声明同包不能重名**。那边已有 `KIND_LABEL` / `RULES` / `MISTAKE_CASES` / `rndInclusive` / `generateProblem` —— 照抄 web 的裸名会直接编译不过（`Overload resolution ambiguity` / `Conflicting declarations`，报错位置在多处调用点、极具误导性）。`Precedence.kt` 也是靠 `P` / `Pr` / `PR_` 前缀在同一包避让的 ⇒ 沿用同一惯例。同名文件还有 `EqState` / `EqSideList`（原 web 的 `Side`）/ `EqTerm` / `eqFlipOp` / `eqSideToText` / `eqRndInclusive` / `generateEqProblem` / `generateEqDrill` / `EqPracticeItem` / `EQ_KIND_LABEL` / `EQ_RULES` / `EQ_MISTAKE_CASES` / `EQ_PRACTICE`。
+- **单测 16 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **460 用例 / 0 失败 / 35 类**。★ 两个**互相独立**的裁判给同一个数：裁判 A 按 `EqTerm` 序列逐项求值；裁判 B 把算式**渲染成文本再解析求值**（另一条实现路径，只认字符串）。断言链：原式成立 → **每搬一步前后都还成立** → 搬的项只是符号取反、值一字未改 → 末态右侧求值 == `answer` == `x` → 答案代回**原式**也成立。覆盖 7 种题型 ×300 + 混合随机 1000 + 随机练习 5 组 ×300。
+- ⚠️ **同侧交换的判据别用「显示形态」拼串比**：首项不写符号是**显示约定**，不代表它没符号。`5 + x` 的项是 `[(null,"5"), (+,"x")]`、`x + 5` 是 `[(null,"x"), (+,"5")]` —— 按 `"${op?.sym ?: ""}${value}"` 拼串再排序会得到 `["5","+x"]` vs `["x","+5"]`，**永远不等**（本轮真踩到，挂在断言上）。正确口径（与 web `equationMove.test.ts` 第 270~273 行一致）：① 左侧**整体求值**不变；② 第二项写出来的符号仍是 `+`；③ 逐项取「**语义**符号 + 值」再比较（测试里**独立复算了一遍**「首项没写符号时带的是 + 还是 ×」）。
+- Compose 侧实现要点：① 幽灵飞行 = 单一进度 0→1 + **手写三段分段插值**（等价 web 的 4 段 WAAPI keyframes，蓄力段用 `easeOutBack`）；★ **跨线点 `cross` 由实测几何算出**（源项中心 ↔ 等号线 ↔ 落位槽），**不能写死** ⇒ 翻牌时刻由 Screen 在飞行动画跑到 cross 时回调 VM 记账（`onGhostCrossed`），VM 只管状态、Screen 管几何与动画。② **落位槽从动画一开始就以 alpha 0 占位**（`graphicsLayer{alpha}` 不影响布局）⇒ 整个动画期间两侧宽度完全不变，幽灵落点像素级准确。③ 坐标统一报 `boundsInRoot()`、取值只减基准容器（`EqGeom.relTo(anchor, key)`）。④ 同侧交换用 **FLIP**：量旧位 → 换序 → 倒推 `dx` → 滑动（`dx > 0` 抬上去、`dx < 0` 沉下来，否则两项半路正面叠成一个「x5」）。⑤ 「找」的脉动高亮用 `rememberInfiniteTransition`（仅在 `lit` 时创建）。⑥ 等号线用 `Canvas(matchParentSize)` 画，**状态读在 draw lambda 里** ⇒ 只重绘不重组。
+- 首页「🧮 动画学数学」小节下新增第 2 张卡「⚖️ 等式变变变」（橙 `FFF7ED` / `EA580C`），NavKey `EqMove`。
+
+#### 等式变变变的已知差异（有意为之，非遗漏）
+- **动画未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「APK 构建通过 + 全量单测绿」，观感由实机验证补。
+- **`prefers-reduced-motion` 换成系统动画缩放**：读 `Settings.Global.ANIMATOR_DURATION_SCALE == 0` 时直接跳到完成态。
+- **易错卡「滚到才揭晓」用 LazyColumn 天然实现**（卡片进入 composition 才起 1.1s 定时器）⇒ 等效 web 的 `IntersectionObserver`。
+- **题型选择排成 3 行、口诀/原理/易错 chips 排成 2 行**：web 是 flex-wrap，窄屏（320）会顶出横向滚动，Android 直接分行。
+
 ### 已完成（收官补齐｜2026-09-22）—— **21/21 全部移植完成 ✅**
 **家长周报**（`/module/parent_report`）—— 近 7 天评测趋势 + 识字状态 + 需多练的词，给家长看。
 

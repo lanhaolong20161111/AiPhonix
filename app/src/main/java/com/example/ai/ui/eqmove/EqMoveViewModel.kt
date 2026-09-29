@@ -1,0 +1,324 @@
+package com.example.ai.ui.eqmove
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.ai.data.math.EqPracticeItem
+import com.example.ai.data.math.EqState
+import com.example.ai.data.math.MoveAction
+import com.example.ai.data.math.MoveKind
+import com.example.ai.data.math.MoveProblem
+import com.example.ai.data.math.eqSideToText
+import com.example.ai.data.math.eqSolutionText
+import com.example.ai.data.math.generateEqDrill
+import com.example.ai.data.math.generateEqProblem
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+/**
+ * 「等式变变变」状态机 —— 把「找 → 飞 → 落 → 算」摊成一条**确定性时间轴**。
+ *
+ * 与 web/src/pages/EquationMovePage.tsx 逐项对齐：
+ *   · phase：IDLE → FIND → FLY → LAND → SOLVE → DONE（同侧交换走 FIND → SLIDE → DONE）
+ *   · stepIndex：当前在搬第几步（两步题 a - x / a ÷ x 会有 0、1 两轮）
+ *   · stepDone：这一步是否已落位
+ *   · symFlipped：★ 幽灵**跨过等号线的那一瞬** —— 符号翻牌，同时等号线闪一下
+ *
+ * ⚠️ [symFlipped] 与 [borderHit] 不由这里的时间轴直接定时 —— 幽灵在**哪个进度**跨过等号线
+ *    取决于实测几何（源项中心 ↔ 等号线 ↔ 落位槽），只有 Screen 量得出来。
+ *    所以由 Screen 在飞行动画跑到 cross 时回调 [onGhostCrossed]（与综合算式页「Screen 播动画、
+ *    VM 管状态」的分工一致）。
+ */
+enum class EqPhase { IDLE, FIND, FLY, LAND, SLIDE, SOLVE, DONE }
+
+data class EqMoveUiState(
+    val kind: MoveKind = MoveKind.PLUS,
+    val problem: MoveProblem? = null,
+    val phase: EqPhase = EqPhase.IDLE,
+    /** 当前是第几步搬运（0-based） */
+    val stepIndex: Int = 0,
+    /** 当前这一步是否已经落位 */
+    val stepDone: Boolean = false,
+    /** 幽灵的符号是否已经翻牌（跨线那一下） */
+    val symFlipped: Boolean = false,
+    /** 递增计数：每次跨线 +1，Screen 用它强制重播等号线的闪光 */
+    val borderHit: Int = 0,
+    /** 同侧交换：是否已换序（由 Screen 量完旧位置后回调 setSwapped） */
+    val swapped: Boolean = false,
+    val solved: Boolean = false,
+    val showRules: Boolean = false,
+    val showWhy: Boolean = false,
+    val showMistakes: Boolean = false,
+    /** 每次换题/重播递增 —— Screen 用它判断「本轮是否已播过」（滚出屏幕再回来不重播） */
+    val runToken: Int = 0,
+    // ── 随机练习（5 道，可换一组）──
+    val drill: List<EqPracticeItem> = emptyList(),
+    /** 换一组时 +1，Screen 用它做 key 让每道练习卡重新挂载（清掉上一组的作答状态） */
+    val drillRound: Int = 0,
+    val drillAnswered: Int = 0,
+    val drillCorrect: Int = 0,
+) {
+    /** 当前这一步的搬运动作（同侧交换题没有搬运） */
+    val curAction: MoveAction?
+        get() = problem?.takeIf { !it.isSameSide }?.actions?.getOrNull(stepIndex)
+
+    val playing: Boolean get() = phase != EqPhase.IDLE && phase != EqPhase.DONE
+    val canPlay: Boolean get() = problem != null && !playing
+
+    /** 舞台上此刻渲染的两侧（用 before + 涂装，不改 state ⇒ 布局不重排） */
+    val view: EqState?
+        get() {
+            val p = problem ?: return null
+            if (p.isSameSide) return if (swapped) p.final else p.initial
+            return p.actions.getOrNull(stepIndex)?.before ?: p.initial
+        }
+
+    /** 结果区何时出现 */
+    val showResult: Boolean get() = phase == EqPhase.SOLVE || solved
+
+    /** 播放按钮文案 */
+    val playButtonText: String
+        get() = when (phase) {
+            EqPhase.IDLE -> "▶ 播放动画"
+            EqPhase.DONE -> "↻ 再看一遍"
+            else -> "播放中…"
+        }
+
+    /** 阶段提示（描述**当下这一拍**在干什么；文案逐字对齐 web） */
+    val hintText: String
+        get() {
+            val p = problem ?: return ""
+            if (p.isSameSide) {
+                val a = p.initial.left[0].value
+                val b = eqSideToText(p.initial.right)
+                return when (phase) {
+                    EqPhase.FIND -> "要挪走的是 $a —— 它现在待在 x 的前面。"
+                    // ⚠️ 这里是纯文本渲染，别写 markdown 的 ** —— 星号会原样显示出来
+                    EqPhase.SLIDE ->
+                        "看：$a 从 x 的前面挪到了后面。它可没跨过那条竖线 —— 所以「+」还是「+」，一点没变。" +
+                            "这就是「同一边随便换，符号不用调」。"
+                    EqPhase.DONE -> "换好了：${eqSideToText(p.final.left)} = $b　符号一个都没动 ✓"
+                    else -> "点「播放动画」，看把数挪到 x 后面时，符号会不会变。"
+                }
+            }
+            val act = p.actions.getOrNull(stepIndex)
+            if (act == null) {
+                return if (phase == EqPhase.DONE) "解出来啦：${eqSolutionText(p)}" else "点「播放动画」。"
+            }
+            val from = if (act.srcOp == null) act.value else "${act.srcOp.sym}${act.value}"
+            return when (phase) {
+                EqPhase.FIND ->
+                    "第 ${stepIndex + 1} 步：要搬走的是「$from」这一整块。" +
+                        if (act.srcOp == null) {
+                            "它写在最前面、没带符号，其实等效于「+${act.value}」—— 跨过等号就要变成「-」。"
+                        } else {
+                            "它跨过等号，符号必须变相反。"
+                        }
+                EqPhase.FLY -> if (symFlipped) {
+                    "正好跨过等号线 ——「${act.fromOp.sym}」翻成了「${act.toOp.sym}」！这条竖线就是变号的分界。"
+                } else {
+                    "「$from」正整块飞向等号另一侧……"
+                }
+                EqPhase.LAND ->
+                    "落位了：右边多出「${act.toOp.sym} ${act.value}」。" +
+                        "左边刚才那个位置已经变灰 —— 它是从这儿搬走的。"
+                EqPhase.SOLVE -> if (p.flipSides) {
+                    "现在 x 单独在等号右边了。等号两边可以互换位置 ⇒ x = ${eqSideToText(p.final.right)}。"
+                } else {
+                    "x 已经单独留在等号左边了 —— 右边就是答案。"
+                }
+                EqPhase.DONE -> "解出来啦：${eqSolutionText(p)}　（把答案代回原式，两边一样 ✓）"
+                else -> "点「播放动画」，看这个数怎样从等号一边跑到另一边。"
+            }
+        }
+}
+
+class EqMoveViewModel : ViewModel() {
+
+    private val _uiState = MutableStateFlow(EqMoveUiState(drill = generateEqDrill(5)))
+    val uiState: StateFlow<EqMoveUiState> = _uiState.asStateFlow()
+
+    /** 当前正在跑的时间轴（换题/重播前先取消，避免两条时间轴交错改状态） */
+    private var timelineJob: Job? = null
+
+    init {
+        newProblem(MoveKind.PLUS)
+    }
+
+    // ── 用户动作 ──
+
+    /**
+     * 换一道题并切到 [k] 这类题型。
+     *
+     * 🔴 与 web 同一处坑：**别让 [k] 缺省成「当前 kind 之外的随机值」** ——
+     *    web 那边把 `kind` 放进 useCallback 依赖数组，导致 setKind 重建回调、
+     *    初始化 effect 又跑一遍 `newProblem("plus")`，把刚点出来的题型覆盖掉。
+     *    这里改成显式传参（`k == null` 才沿用当前 kind），没有那层耦合。
+     */
+    fun newProblem(k: MoveKind?) {
+        timelineJob?.cancel()
+        val kk = k ?: _uiState.value.kind
+        _uiState.update {
+            it.copy(
+                kind = kk,
+                problem = generateEqProblem(kk),
+                phase = EqPhase.IDLE,
+                stepIndex = 0,
+                stepDone = false,
+                symFlipped = false,
+                swapped = false,
+                solved = false,
+                runToken = it.runToken + 1,
+            )
+        }
+    }
+
+    fun toggleRules() = _uiState.update { it.copy(showRules = !it.showRules) }
+
+    fun toggleWhy() = _uiState.update { it.copy(showWhy = !it.showWhy) }
+
+    fun toggleMistakes() = _uiState.update { it.copy(showMistakes = !it.showMistakes) }
+
+    /** 同侧交换：Screen 量完旧位置后把顺序真正换掉 */
+    fun setSwapped(v: Boolean) = _uiState.update { it.copy(swapped = v) }
+
+    /**
+     * ★ 幽灵跨过等号线的那一瞬（由 Screen 的飞行动画回调）：
+     * 符号翻牌 + 等号线闪一下。只在 FLY 阶段生效，每个阶段最多记一次。
+     */
+    fun onGhostCrossed() {
+        _uiState.update {
+            if (it.phase != EqPhase.FLY || it.symFlipped) it
+            else it.copy(symFlipped = true, borderHit = it.borderHit + 1)
+        }
+    }
+
+    /**
+     * 播放整条时间轴。
+     * @param reduced 系统「关闭动画」时为 true —— 直接跳到完成态（对齐 web 的 prefers-reduced-motion）
+     */
+    fun play(reduced: Boolean = false) {
+        val state = _uiState.value
+        val problem = state.problem ?: return
+        timelineJob?.cancel()
+
+        val events = mutableListOf<Pair<Long, () -> Unit>>()
+        fun at(t: Long, action: () -> Unit) {
+            events.add(t to action)
+        }
+
+        // 每次播放都先复位（进入「找」之前舞台是干净的）
+        at(0) {
+            _uiState.update {
+                it.copy(
+                    stepIndex = 0,
+                    stepDone = false,
+                    symFlipped = false,
+                    swapped = false,
+                    solved = false,
+                    runToken = it.runToken + 1,
+                )
+            }
+        }
+
+        if (reduced) {
+            at(0) {
+                _uiState.update {
+                    it.copy(
+                        stepIndex = problem.actions.size,
+                        stepDone = true,
+                        swapped = true,
+                        solved = true,
+                        phase = EqPhase.DONE,
+                    )
+                }
+            }
+            timelineJob = viewModelScope.launch { runTimeline(events) }
+            return
+        }
+
+        // 同侧交换：只有「找」和「滑」两拍
+        if (problem.isSameSide) {
+            at(0) { _uiState.update { it.copy(phase = EqPhase.FIND) } }
+            at(T_FIND) { _uiState.update { it.copy(phase = EqPhase.SLIDE) } }
+            at(T_FIND + T_SLIDE) {
+                _uiState.update { it.copy(phase = EqPhase.DONE, solved = true) }
+            }
+            timelineJob = viewModelScope.launch { runTimeline(events) }
+            return
+        }
+
+        // 每一步：找（脉动高亮）→ 飞（跨线翻牌）→ 落（原位变灰、对面显形）
+        var t = 0L
+        problem.actions.forEachIndexed { k, _ ->
+            at(t) {
+                _uiState.update {
+                    it.copy(stepIndex = k, stepDone = false, symFlipped = false, phase = EqPhase.FIND)
+                }
+            }
+            t += T_FIND
+            at(t) { _uiState.update { it.copy(phase = EqPhase.FLY) } }
+            t += T_FLY
+            at(t) {
+                // 落位：幽灵退场，目标侧槽位显形（同一刻，位置重合）
+                _uiState.update {
+                    it.copy(stepDone = true, symFlipped = false, phase = EqPhase.LAND)
+                }
+            }
+            t += T_LAND
+        }
+        at(t) { _uiState.update { it.copy(phase = EqPhase.SOLVE) } }
+        at(t + T_SOLVE) { _uiState.update { it.copy(phase = EqPhase.DONE, solved = true) } }
+
+        timelineJob = viewModelScope.launch { runTimeline(events) }
+    }
+
+    /** 按绝对时刻依次执行（同一时刻的多个动作按登记顺序执行） */
+    private suspend fun runTimeline(events: List<Pair<Long, () -> Unit>>) {
+        var cursor = 0L
+        for ((at, action) in events.sortedBy { it.first }) {
+            val wait = at - cursor
+            if (wait > 0) delay(wait)
+            cursor = at
+            action()
+        }
+    }
+
+    // ── 随机练习 ──
+
+    /** 换一组：重新随机 5 道（四条基本变号规律仍保证各有一道） */
+    fun reshuffleDrill() = _uiState.update {
+        it.copy(
+            drill = generateEqDrill(5),
+            drillRound = it.drillRound + 1,
+            drillAnswered = 0,
+            drillCorrect = 0,
+        )
+    }
+
+    /** 一道练习首次点选时上报对错（每题只报一次） */
+    fun gradeDrill(ok: Boolean) = _uiState.update {
+        it.copy(drillAnswered = it.drillAnswered + 1, drillCorrect = it.drillCorrect + if (ok) 1 else 0)
+    }
+
+    companion object {
+        /** ① 找：脉动高亮「要搬走的是这一整块」 */
+        const val T_FIND = 2000L
+
+        /** ② 飞（含跨线翻牌） */
+        const val T_FLY = 1250L
+
+        /** ③ 落：停住，看清源位置变灰、对面显形 */
+        const val T_LAND = 1500L
+
+        /** ④ 算 + 验算 */
+        const val T_SOLVE = 1500L
+
+        /** 同侧交换：滑动 */
+        const val T_SLIDE = 1400L
+    }
+}

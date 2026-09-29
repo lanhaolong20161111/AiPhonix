@@ -62,6 +62,7 @@ fun HomeScreen(
     onOpenSpeechCompose: () -> Unit = {},
     onOpenAiEnglishTalk: () -> Unit = {},
     onOpenMathCompoundExpr: () -> Unit = {},
+    onOpenEqMove: () -> Unit = {},
     onOpenSubtitleCapture: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
@@ -328,6 +329,17 @@ fun HomeScreen(
             containerColor = Color(0xFFE8EAF6),
             arrowColor = Color(0xFF3949AB),
             onClick = onOpenMathCompoundExpr,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 等式变变变（移项变号：幽灵飞越等号线、跨线翻牌，含随机 5 题练习）
+        ToolCard(
+            emoji = "⚖️",
+            title = "等式变变变",
+            subtitle = "动画演示移项变号：跨过等号符号才变，同侧换位置不变",
+            containerColor = Color(0xFFFFF7ED),
+            arrowColor = Color(0xFFEA580C),
+            onClick = onOpenEqMove,
         )
         Spacer(Modifier.height(12.dp))
 

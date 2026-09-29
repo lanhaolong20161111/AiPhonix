@@ -278,6 +278,8 @@
 
 **已移植 21 / 21 个 web 模块 —— 全部完成** ✅。差距表 #1–#19 全部 ✅；#2 是结构差异（Android 输入+结果同屏，能力已覆盖）。
 
+> **2026-09-29 追加**：web 侧后来又新增了「等式变变变」（路由键 `module/math_equation_move`，见 `web/src/routes.tsx:120`），Android 已同步移植（见下方「批次 C 收官后新增：等式变变变」）。此后若 web 再新增模块，需先 `grep -n 'path: "module/' web/src/routes.tsx` 对一遍清单（⚠️ 路由键**不带前导斜杠**、且新页未必按序追加），不要只看本文档的旧表。
+
 ### ✅ 家长周报（`/module/parent_report`）—— 已补齐（原本是唯一真缺口）
 
 web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报**（打印友好）：
@@ -324,6 +326,30 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 - **单测** 13 例全绿（Segmenter 8 + Tips 5），期望值全部来自跑 web 真实现的探针（`tsx` 跑 `segmentPhonics`/`phoneTip`/`tipSpeechText`，探针用毕即删）。
 - ★ **JVM 正则移植陷阱**（连踩三轮才定位）：`java.util.regex` **支持嵌套字符类**——类内未转义的 `[` 会被当成「嵌套类」开启、一路吞到下一个 `]`，把中间的分组全部吃掉，报错位置（`Unmatched closing ')'`）极具误导性（JS 不支持嵌套类，`[` 在类内是字面量）⇒ 移植 JS 正则时类内 `[` 必须转义 `\[`；且 JVM 对 `]` 作类成员的解析与 JS 不同 ⇒ 定界符集合改用「选择分支」`(?:/|\\|]|）|\))`。教训：**JS 正则逐字照抄到 Kotlin 必挂，逐构造在 JVM 实测后再落码**。
 
+### 批次 C 收官后新增：等式变变变（动画学数学 第 2 页｜2026-09-29）
+
+**等式变变变**（`/module/math_equation_move`）—— **零后端**：`web/src/lib/equationMove.ts` → `data/math/EqMove.kt`，`web/src/pages/EquationMovePage.tsx` → `ui/eqmove/`（VM + Screen）。NavKey `EqMove`，首页「🧮 动画学数学」小节第 2 张卡。
+
+教学法「找 → 飞 → 落 → 算」：① 要搬走的那一整块脉动高亮 → ② ★ 越过**等号分界线**（上下两段虚线 + 「等号 = 分界」标签），**跨线那一瞬符号翻牌** + 竖线闪光 → ③ 落在对侧末尾、源侧原位**只变灰划掉不删除** → ④ 算出结果并把答案**代回原式**验算 ✓。两条支线：**同侧交换反例**（滑动换位，符号不动）、**两步搬运**（`a - x` / `a ÷ x`）。
+
+| 层 | 文件 | 说明 |
+|---|---|---|
+| 引擎 | `data/math/EqMove.kt` | 纯 Kotlin：7 题型 + 加权池随机 + 随机 5 题练习生成 + 静态口诀/易错/对比练习资料 |
+| VM | `ui/eqmove/EqMoveViewModel.kt` | `EqPhase`（IDLE/FIND/FLY/LAND/SLIDE/SOLVE/DONE）+ 确定性事件表（`T_FIND/T_FLY/T_LAND/T_SOLVE/T_SLIDE`，Screen 同源取用）；随机 5 题与计分也在这里 |
+| Screen | `ui/eqmove/EqMoveScreen.kt` | 单 `LazyColumn`；幽灵飞越翻牌 / 等号分界线 / 落位槽 / 同侧滑动 FLIP / 练习区 |
+
+- **引擎单测 16 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **460 用例 / 0 失败 / 35 类**（此前 444 / 34）。★ 两个**互相独立**的裁判：逐项序列求值 ↔ **渲染成文本再解析求值**。
+- 🔴 **顶层命名必须加 `Eq` / `eq` / `EQ_` 前缀**：与 `CompoundExpr.kt`、`Precedence.kt` **同包**（`com.example.ai.data.math`），Kotlin 顶层声明同包不能重名；那边已有 `KIND_LABEL` / `RULES` / `MISTAKE_CASES` / `rndInclusive` / `generateProblem`。`Precedence.kt` 用 `P` / `Pr` / `PR_` 前缀避让，本页沿用同一惯例。
+- ⚠️ **同侧交换的断言别按「显示形态」拼串比较**：首项不写符号是显示约定。`5 + x` 是 `[(null,"5"),(+, "x")]`、`x + 5` 是 `[(null,"x"),(+, "5")]`，用 `"${op?.sym ?: ""}${value}"` 排序后会得到两个不同的列表。正确口径：整体求值不变 + 第二项符号仍是 `+` + 逐项「语义符号 + 值」比较。
+- ★ **翻牌时刻不能写死**：幽灵在哪个进度跨过等号线取决于**实测几何**（源项中心 ↔ 等号线 ↔ 落位槽）⇒ 由 Screen 在飞行动画跑到 `cross` 时回调 `viewModel.onGhostCrossed()`（VM 只管状态，Screen 管几何与动画）。
+- 与 web 逐条对齐：落位槽**从动画一开始就 alpha 0 占位**（宽度不变 ⇒ 落点像素级准确）、源侧项**变灰 + 划掉但不删除**、同侧交换用 **FLIP 且上下错开**（否则两项半路叠成一个「x5」）。
+
+#### 等式变变变的已知差异（有意为之，非遗漏）
+- **动画未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「APK 构建通过 + 全量单测绿」，观感由实机验证补。
+- `prefers-reduced-motion` 换成系统动画缩放（`ANIMATOR_DURATION_SCALE == 0` ⇒ 直接跳完成态）。
+- 易错卡「滚到才揭晓」用 LazyColumn 天然实现（等效 web 的 `IntersectionObserver`）。
+- 题型选择排成 3 行 / chips 排成 2 行（web 是 flex-wrap，窄屏 320 会顶出横向滚动）。
+
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
 - ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。
@@ -347,8 +373,20 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 
 ## 5. 验证
 
-- `.\gradlew.bat assembleDebug` 通过（本机无设备/模拟器，安装验证由用户手机完成）。
-- 每批完成提交一次（`AiPhonix` 仓库，只含 `app/` 改动）。
+本机跑 Gradle 需要显式给 `JAVA_HOME`（`JAVA_HOME` 默认是空的）：
+
+```bash
+cd AiPhonix
+export JAVA_HOME="C:/Program Files/Java/jdk-21.0.11"
+./gradlew :app:assembleDebug --console=plain          # 冷启动约 14 min（首次全量 dex）
+./gradlew :app:testDebugUnitTest --console=plain      # 全量单测
+```
+
+- **最近一次门禁（2026-09-29）**：`assembleDebug` ✅；全量单测 **460 用例 / 0 失败 / 0 错误 / 0 跳过，35 个测试类**（`app/build/test-results/testDebugUnitTest/*.xml` 汇总）。
+- 只跑新增模块的引擎单测可提速：`./gradlew :app:testDebugUnitTest --tests "com.example.ai.data.math.EqMoveTest"` ⇒ **算法文件先配单测跑通再写 UI**，别把错误带进 Screen（Screen 报错定位成本远高于引擎）。
+- 本机无设备/模拟器 ⇒ 安装与动画观感由用户手机验证。
+- 每批完成提交一次（`AiPhonix` 仓库，**只 `git add app/ docs/ PROJECT_MEMORY.md`**，绝不 `git add -A`）。
+- ⚠️ 本机 Gradle 提示 `14 busy and N stopped Daemons could not be reused` 属正常（历史遗留 daemon 多），不影响构建结果。
 
 ## 6. 文档同步
 

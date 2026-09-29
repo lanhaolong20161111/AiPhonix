@@ -118,6 +118,7 @@ import com.example.ai.ui.speechcompose.SpeechComposeScreen
 import com.example.ai.ui.speechcompose.SpeechComposeViewModel
 import com.example.ai.ui.englishtalk.EnglishTalkScreen
 import com.example.ai.ui.englishtalk.EnglishTalkViewModel
+import com.example.ai.ui.eqmove.EqMoveScreen
 import com.example.ai.ui.mathcompound.MathCompoundExprScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureViewModel
@@ -195,6 +196,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenSpeechCompose = { backStack.add(SpeechCompose) },
             onOpenAiEnglishTalk = { backStack.add(AiEnglishTalk) },
             onOpenMathCompoundExpr = { backStack.add(MathCompoundExpr) },
+            onOpenEqMove = { backStack.add(EqMove) },
             onOpenSubtitleCapture = { backStack.add(SubtitleCapture) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
@@ -348,6 +350,13 @@ fun MainNavigation(container: AppContainer) {
         entry<MathCompoundExpr> {
           // 页面自身按 item 管 16dp 内边距（整页是单个 LazyColumn），所以这里只给安全区
           MathCompoundExprScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
+          )
+        }
+        entry<EqMove> {
+          // 同上：整页是单个 LazyColumn，内边距由各 item 管，这里只给安全区
+          EqMoveScreen(
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding(),
           )
