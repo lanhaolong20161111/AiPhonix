@@ -221,7 +221,43 @@
 - **题型选择排成 3 行、口诀/原理/易错 chips 排成 2 行**：web 是 flex-wrap，窄屏（320）会顶出横向滚动，Android 直接分行（13 题型后按 `EQ_KIND_GROUPS` 四组分段，每段 3 列 + 末尾补空位）。
 - **首项显形与 combine / flip 两种新动作的观感同属「未逐帧核验」** —— 逻辑由 27 例单测钉死（含每种题型 ×300 的逐步守恒），动画由实机补验。
 
-### 已完成（收官补齐｜2026-09-22）—— **21/21 全部移植完成 ✅**
+### 已完成（数学动画 · 第 2 模块续｜2026-09-29）—— 分步解方程练习 ✅
+**需求原话**：「练习题也要分步骤动画 学生跟着动画步骤填每一步的答案 直到完成算式求解」。
+
+把原来的「一道题只问一次」（只问「挪过去符号变成什么」）整体换成**一步一填的分步解题**：学生答出一步 → 卡片**就在卡内**演出这一步的动画 → 再填下一步 → 一路填到把 `x` 解出来。
+> ⚠️ 本节**取代**上面「随机 6 题练习」（原 `DRILL_BASIC` / `DRILL_STEP` / `DRILL_POOL`）与「选项集 4 → 5 个」两条里关于**随机练习**的旧设计；**教材对比练习**（`EQ_PRACTICE` ×4、`EqPracticeAnswer` / `EqPracticeAsk`）原样保留，`PracticeCard` 仍服务于它。
+
+- 引擎（`web/src/lib/equationMove.ts` ↔ `data/math/EqMove.kt` 逐行对照）新增 `SolveStep` / `SolveItem`：
+  - ★ 步骤 = `p.actions` 各一步 ＋（`flipSides` 时）补一次「两边对调」 ＋（`!isSameSide` 时）最后「算出来」一步。上一步的 `after` **必须逐字段等于**下一步的 `before`。
+  - ★ **每一条都从 `BUILDERS[kind]()` 生成的 `MoveProblem` 派生**，绝不另算一遍数学 —— 否则会出现「练习说跨线变号、主舞台演的却是同侧换位」的自相矛盾。
+  - ★ 删除 `PracticeKind` / `buildPracticeItem` / `generateEqDrill`（Kotlin 侧同步删 `EqPracticeKind` / `DRILL_*` / `buildPracticeItem` / `generateEqDrill`，并去掉 `EqPracticeItem.kind`）。组合策略不变：**4 条基本规律各一道 ＋ 1 道多步题（必出）＋ 1 道「同侧换位不变号」反例（必出）**，打乱后取前 n。
+- ★★ **分步解题的数值判据（本轮新确立、被单测钉死）**：四种动作在数值上**分成两类**
+  - `move` —— 两侧的值**都会变**（这正是「搬运」的含义），但**等式照旧成立**
+  - `swap` / `combine` / `flip` —— 两侧的值**一分不动**，只有写法变了
+
+  ⇒ 学生只要用「数值变没变」就能替我们判「这一步到底跨没跨等号线」。**我第一版判据写成「每一步两侧都不许变」，被自己的单测当场抓出**（`plus 第 1 步(move): 左边求值变了（17 ⇒ 8）`）—— 已拆成 `stateHolds()`（只断言等式成立）+ 按 `type` 分支（`move` 用不等断言、其余用相等断言）。
+- ★ **「忘变号」陷阱项**：把末态右侧除首项外的运算符全翻回去再求值（代 `x=0`，此时右侧已不含未知数）⇒ 得到经典错答 `noFlip`，**保证进选项**，学生选中时点破（`trapAnswer` / `trapTip`）。实测 `x + 8 = 12` 的陷阱项是 **`20`**（= 12+8）✔。⚠️ `noFlip` 必须用 **Double** 累积再判整除 —— JS 的除法会出小数，Kotlin 的 `Int` 会**静默截断**把 `8÷3` 变成合法的 `2` 混进选项。
+- ★ **同侧反例题（`sameSide`）刻意不给「算出来」那一步**（`solved: false`、`steps.size == 1`）—— 它只演示「同侧换位不变号」，硬凑一步会把「这一步不用解」这个教学点抹掉；收尾文案改为「🧩 这一步填完了」。
+- 卡片（web `SolveCard` / `SolveDone` ↔ `ui/eqmove/EqMoveScreen.kt` 尾部）：
+  - ★ **卡内幽灵必须绝对定位**（web 用 `position:absolute`；Compose 用**每张卡一个独立的 `EqGeom` 实例** + 相对卡片舞台的偏移）。主舞台一屏一道题、用视口坐标没问题；**一屏 6 张卡再用视口坐标，幽灵会飞出卡片盖到隔壁**。
+  - ★ **复用主舞台的渲染件**：给 `EqSideContent` / `EqToken` / `GhostBlock` / `OpGlyphText` / `FlippingGlyph` 加了**带默认值的 `size` / `spacing` / `glyphW` / `padH` / `padV` 参数**（默认值 == 原值 ⇒ **主舞台零变化**；卡片传 20sp / 6dp / 13dp / 5dp / 1dp）。卡片自己的阶段枚举映射回 `EqPhase` ⇒ 涂装规则一字不改。
+  - ★ 卡内时间轴（比主舞台短一截）：`S_FIND 560` / `S_FLY 780` / `S_SLIDE 700` / `S_LAND 820`；`SOLVE` 步没有可演动作 ⇒ 直接亮结果。
+  - ★ **`flip` 刻意不做 FLIP 测量**（对调时两侧的项会换边，「按文本找旧位」本就不成立）⇒ 纯视觉擦身而过（左侧从右滑来、右侧从左滑来）；`flipSides` 补出来的那次对调同样走这条。
+  - ★ 计分单位从「题」改成「**步**」（`EqMoveUiState.drillStepCount`）；每一步**只在第一次点选时**记成绩，答错可以再试（红框留在原地、选项不锁死）。
+- 🔴 **同名函数在测试里先踩到「局部声明不能前向引用」**：给卡片加符号翻牌协程时，把 `LaunchedEffect(symFlipped, playToken)` 写在了 `symFlipped` / `playToken` 的 `remember` **之前** ⇒ `Unresolved reference`。**同时还有 8 条级联报错**（`view.left` / `view.right` / `term.value`），根因却只是 Screen 少了一句 `import com.example.ai.data.math.EqState`（`val view: EqState?` 解析不了 ⇒ 整条链塌掉）。**Compose 文件里引入新类型一定要补 import**，否则报错位置全在调用点、极具误导性。
+- **验证（web 本地 dev server `5188`）**：`tsc -b` 零错误 · `tsx --test` **278/278 全绿** · 抓帧脚本 `web/_eq_solve_shot.mjs` 改「跑到四类动作都见过为止」（`MAX_ROUNDS = 20`，避免靠抽签），最终**第 11 轮收工**：**11 轮 ×6 张 = 72 张分步卡**（共填 **154 步**），实测：
+  - **72 张卡「轨迹条数 == 步数」零误差** ✔；答错能再试 ✔（`bad:true, stillEnabled:true`）；**零 `/api/v1/` 调用** ✔；窄屏 320 无溢出 ✔（`{scrollW:320, innerW:320}`）；console 只有 dev server 自签名证书的 2 条 `SSL certificate error`（与本页无关）。
+  - ★ **四类动作（跨线变号 / 同侧换位 / 同侧合并 / 两边对调）全部在浏览器里亲眼见到** ✔，含一直抽不到的 `同侧合并`（帧文件 `L8_第步同侧合并_*.png`：紫底 `x` + 3 条轨迹 + 选项禁用 + 绿框「不变」）。
+  - 「算出来」步 **60/60** 都是 4 个互不相同的选项，且陷阱项确为「忘变号」算出的数 ✔（抽样：`11-3` 正解 8 / 陷阱 14；`21÷3` 正解 7 / 陷阱 63；`5×4` 正解 20 / 陷阱 40；`11+8` 正解 19 / 陷阱 3）。
+  - 关键帧人工核对：`L4_第步跨线变号_2motion.png`（幽灵压在等号上、源项 13 划掉）· `L5_第步两边对调_2motion.png`（`flipSides` 题正确调成 `x = 13 - 8`）· `B3_progress.png` / `N_narrow_card.png`（同侧反例题收尾「🧩 这一步填完了」）· `L1_第步跨线变号_2motion.png`（那是**故意先点错**的那一拍）。
+  - ⚠️ **中途插曲：「`同侧合并` 连跑 10 轮一次都没抽到」** —— `combine` 只在 `bothSides` / `multiStep` 里出现，而每轮**只抽 1 道**进阶型（2/8 命中率）⇒ **纯抽签运气，不是功能坏了**。两手处置：① 脚本改成「跑到四类都见过」（`NEED` + `kindsSeen()`）；② 另写**引擎层确定性检查** `web/_eq_kind_check.ts`（13 题型 × 8 轮逐个 `buildSolveItem`，断言答案在选项里 / 首尾相接 / `move` 答案 ≠「不变」而同侧答案 ==「不变」/ `solved` 时末步必为 `solve`）⇒ 全绿，`combine` 确实存在且 5 种步骤类型数据自洽 ✔。**以后遇到「某分支没被抓到」，先怀疑抽样，再怀疑代码。**
+  - ⚠️ **抓帧脚本的「下一步」按钮只在该步 `settled` 之后（约 2.2s）才渲染**：早先脚本只等 260ms 就查、查不到直接跳过 ⇒ **步骤漂移 + 每张卡干等 30s**（18 张 ≈ 540s，看着像卡死）。已改成 `waitFor({state:"visible", timeout:5000})` + 短超时 `readText()`，三轮全部跑完无卡死。
+- **Android 侧**：`:app:testDebugUnitTest` **472 用例 / 0 失败 / 35 套件**（`EqMoveTest` 28 例：删 7 例整题用例、加 8 例分步用例）+ `:app:assembleDebug` 通过。
+
+#### 分步解方程练习的已知差异（有意为之，非遗漏）
+- **动画未做逐帧核验**（同上一节）：本机无设备/模拟器 ⇒ 只到「`assembleDebug` 通过 + 全量单测绿 + web 侧抓帧核对」，实机观感由用户补验。
+- **`combine` 步的视觉已由浏览器抓帧确认**（`L8_第步同侧合并_*.png`）；它与 `swap` **共用同一条渲染分支**（差别只有合成项的紫底高亮）。
+
 **家长周报**（`/module/parent_report`）—— 近 7 天评测趋势 + 识字状态 + 需多练的词，给家长看。
 
 - 分层：`data/parentreport/`（`ParentReportLogic` 纯函数引擎 + `ParentReportRepository` 只做聚合）+ `ui/parentreport/`（ViewModel + Screen）。

@@ -893,8 +893,20 @@ fun generateEqProblem(kind: MoveKind? = null, random: Random = Random.Default): 
     buildProblem(kind ?: POOL[eqRndInclusive(0, POOL.size - 1, random)], random)
 
 // ────────────────────────────────────────────────────────────
-// 随机练习：默认 6 道，把「移项变号」的六种情形全练到
+// 分步解方程练习：学生跟着动画一步一填，直到把 x 解出来
 // ────────────────────────────────────────────────────────────
+//
+// 与 web 侧 web/src/lib/equationMove.ts 的 SolveStep / SolveItem **逐行对照**，行为必须一致。
+//
+// 设计要点（改动前先看 web 那边）：
+//   · 每道题都被拆成「一步一个问题」：学生答出这一步，卡片就**在卡内**把这一步的动画演给他看，
+//     再填下一步，一路填到把 x 解出来。
+//   · 步骤 = 每个动作一步 ＋（x 落在等号右边时）补一次「两边对调」 ＋ 最后「算出来」一步。
+//   · ⚠️ 同侧反例题（[MoveKind.SAME_SIDE]）**没有**「算出来」那一步 —— 它只演示「同侧换位不变号」，
+//     压根没打算求解，硬凑一步会把「这一步不用解」这个教学点抹掉。
+//   · 数字选项里**必定含着「忘变号」会算出的那个数** —— 那正是这一页要防的错。
+//   · 每一条数据都**从 [buildProblem] 生成的 [MoveProblem] 派生**，绝不自己另算一遍数学 ——
+//     否则迟早会出现「练习说跨线变号、主舞台演的却是同侧换位」这种自相矛盾。
 
 /** 跨线后符号变成什么；[Same] 表示同侧换位、符号不变 */
 sealed class EqPracticeAnswer {
@@ -905,15 +917,8 @@ sealed class EqPracticeAnswer {
 /** 问法：CROSS = 跨过等号变成什么（默认）；SAME_SIDE = 同侧换位，符号怎么变 */
 enum class EqPracticeAsk { CROSS, SAME_SIDE }
 
-/** 随机练习的题型 —— 前 4 种覆盖四条变号规律，中间 4 种是「要搬两次（含首项显形）」，最后是反例 */
-enum class EqPracticeKind {
-    PLUS, MINUS, TIMES, DIVIDE,
-    MINUS_VAR, DIVIDE_VAR, REVEAL_PLUS, REVEAL_TIMES,
-    SAME_SIDE,
-}
-
 /**
- * 一道练习题。
+ * 一道固定对比练习题（教材给的那四张）。
  *
  * [movedLabel] 普通题不用给（默认显示「符号 + 数字」如「+8」）；
  * 两步型要显式给，因为搬的是 x 本身（「-x」「÷x」）。
@@ -934,150 +939,321 @@ data class EqPracticeItem(
     val movedLabel: String? = null,
     /** 问法：CROSS = 跨过等号变成什么（默认）；SAME_SIDE = 同侧换位，符号怎么变 */
     val ask: EqPracticeAsk? = null,
-    /** 出题来源的题型 —— 随机练习带上它，断言「哪几类必出」时才有确切依据 */
-    val kind: EqPracticeKind? = null,
 )
 
-/** 4 种基本题型：每轮练习各来一道，保证四条变号规律全练到 */
-private val DRILL_BASIC: List<EqPracticeKind> =
-    listOf(EqPracticeKind.PLUS, EqPracticeKind.MINUS, EqPracticeKind.TIMES, EqPracticeKind.DIVIDE)
+/** 分步练习里一步的类型 —— 决定卡片怎么演这一步的动画 */
+enum class EqStepType {
+    /** 跨等号搬运（全页唯一要变号的），走「幽灵飞越」 */
+    MOVE,
 
-/** 「要搬两次」的进阶型：每轮**必出**一道（含首项显形的两种） */
-private val DRILL_STEP: List<EqPracticeKind> = listOf(
-    EqPracticeKind.MINUS_VAR, EqPracticeKind.DIVIDE_VAR,
-    EqPracticeKind.REVEAL_PLUS, EqPracticeKind.REVEAL_TIMES,
+    /** 同侧换位（只在一侧内部滑动，绝不跨等号线） */
+    SWAP,
+
+    /** 同侧合并同类项（值不变，只是写法变短） */
+    COMBINE,
+
+    /** 两边整体对调 */
+    FLIP,
+
+    /** 最后一步「把右边的数算出来」—— 没有可演的动作，直接亮结果 */
+    SOLVE,
+}
+
+/** 分步练习里的一步：学生答一个问题，卡片就把这一步的动画演给他看 */
+data class EqSolveStep(
+    /** 这一步开始时等式的样子（卡片小舞台渲染它） */
+    val before: EqState,
+    /** 这一步做完的样子 —— 下一步的 before 必定等于它 */
+    val after: EqState,
+    val type: EqStepType,
+    /** 步骤小标签：跨线变号 / 同侧换位 / 同侧合并 / 两边对调 / 算出来 */
+    val label: String,
+    /** 问法 */
+    val ask: String,
+    /** 选项文本（按钮上原样显示） */
+    val options: List<String>,
+    /** 正确答案 —— 必定是 [options] 里的一个 */
+    val answer: String,
+    /** 答对后点明的道理 */
+    val why: String,
+    /** 答错时的通用提示 */
+    val wrongTip: String,
+    /** ★ 这一步底下的原始动作 —— 卡片照着它演动画（「算出来」与补出来的「两边对调」没有） */
+    val action: MoveAction? = null,
+    /** 「算出来」专用：忘了变号会算出的那个数（选项里的经典陷阱） */
+    val trapAnswer: String? = null,
+    /** 「算出来」专用：选到陷阱项时点破的那句话 */
+    val trapTip: String? = null,
 )
 
-/** 全部题型池（补齐名额时从这里随机，含「同侧不变号」这个反例） */
-private val DRILL_POOL: List<EqPracticeKind> = DRILL_BASIC + DRILL_STEP + EqPracticeKind.SAME_SIDE
+/** 一道分步解方程练习 */
+data class EqSolveItem(
+    val kind: MoveKind,
+    val kindLabel: String,
+    /** 原式 */
+    val initial: EqState,
+    /** 解完的规范形态（同侧反例题就是「换完位置」的形态） */
+    val final: EqState,
+    /** 一步一步要填的步骤：actions 各一步（x 落在右边再补一次对调）＋ 最后「算出来」 */
+    val steps: List<EqSolveStep>,
+    val x: Int,
+    val answer: Int,
+    /** 一行解答：x = 14 - 8 = 6 */
+    val solution: String,
+    /** 是否真的把 x 解出来了（同侧反例题只演示一步，不解） */
+    val solved: Boolean,
+    /** 收尾文案 */
+    val finalNote: String,
+)
 
-/** 造一道练习题：先定 x 与操作数 → 反推等式另一端，保证恒成立且答案是非负整数 */
-private fun buildPracticeItem(kind: EqPracticeKind, random: Random): EqPracticeItem = when (kind) {
-    EqPracticeKind.PLUS -> {
-        val x = eqRndInclusive(2, 9, random)
-        val a = eqRndInclusive(2, 9, random)
-        val b = x + a
-        EqPracticeItem(
-            before = "x + $a = $b",
-            sym = EqOp.ADD, num = a, answer = EqPracticeAnswer.Op(EqOp.SUB), x = x,
-            result = "x = $b - $a = $x",
-            why = "加号跨过等号 ⇒ 变成减号。",
-        )
-    }
+/** 步骤小标签（web 侧 [SOLVE_LABEL] 同款文案） */
+private fun eqStepLabel(type: EqStepType): String = when (type) {
+    EqStepType.MOVE -> "跨线变号"
+    EqStepType.SWAP -> "同侧换位"
+    EqStepType.COMBINE -> "同侧合并"
+    EqStepType.FLIP -> "两边对调"
+    EqStepType.SOLVE -> "算出来"
+}
 
-    EqPracticeKind.MINUS -> {
-        val x = eqRndInclusive(11, 20, random)
-        val a = eqRndInclusive(2, 9, random)
-        val b = x - a
-        EqPracticeItem(
-            before = "x - $a = $b",
-            sym = EqOp.SUB, num = a, answer = EqPracticeAnswer.Op(EqOp.ADD), x = x,
-            result = "x = $b + $a = $x",
-            why = "减号跨过等号 ⇒ 变成加号。",
-        )
-    }
+private fun eqSolveSide(s: EqSide): String = if (s == EqSide.LEFT) "左边" else "右边"
 
-    EqPracticeKind.TIMES -> {
-        val x = eqRndInclusive(2, 9, random)
-        val a = eqRndInclusive(2, 9, random)
-        val b = x * a
-        EqPracticeItem(
-            before = "x × $a = $b",
-            sym = EqOp.MUL, num = a, answer = EqPracticeAnswer.Op(EqOp.DIV), x = x,
-            result = "x = $b ÷ $a = $x",
-            why = "乘号跨过等号 ⇒ 变成除号（因子到对面变倒数）。",
-        )
-    }
+/** 一步「符号该变成什么」的选项：四个变号 + 一个「不变」（后者正是同侧动作的正确答案） */
+private fun eqOpOptions(value: String): List<String> =
+    listOf("+$value", "-$value", "×$value", "÷$value", "不变")
 
-    EqPracticeKind.DIVIDE -> {
-        val a = eqRndInclusive(2, 9, random)
-        val b = eqRndInclusive(2, 9, random)
-        val x = a * b
-        EqPracticeItem(
-            before = "x ÷ $a = $b",
-            sym = EqOp.DIV, num = a, answer = EqPracticeAnswer.Op(EqOp.MUL), x = x,
-            result = "x = $b × $a = $x",
-            why = "除号跨过等号 ⇒ 变成乘号（因子到对面变倒数）。",
-        )
-    }
-
-    EqPracticeKind.MINUS_VAR -> {
-        val a = eqRndInclusive(11, 20, random)
-        val x = eqRndInclusive(2, 9, random)
-        val b = a - x
-        EqPracticeItem(
-            before = "$a - x = $b",
-            sym = EqOp.SUB, num = x, answer = EqPracticeAnswer.Op(EqOp.ADD), x = x, movedLabel = "-x",
-            result = "$a = $b + x　⇒　x = $a - $b = $x",
-            why = "「-x」是一整块 —— 跨过等号，「-」变成「+」。",
-        )
-    }
-
-    EqPracticeKind.DIVIDE_VAR -> {
-        val b = eqRndInclusive(2, 9, random)
-        val x = eqRndInclusive(2, 9, random)
-        val a = b * x
-        EqPracticeItem(
-            before = "$a ÷ x = $b",
-            sym = EqOp.DIV, num = x, answer = EqPracticeAnswer.Op(EqOp.MUL), x = x, movedLabel = "÷x",
-            result = "$a = $b × x　⇒　x = $a ÷ $b = $x",
-            why = "「÷x」是一整块 —— 跨过等号，「÷」变成「×」。",
-        )
-    }
-
-    EqPracticeKind.REVEAL_PLUS -> {
-        val a = eqRndInclusive(2, 9, random)
-        val x = eqRndInclusive(2, 9, random)
-        val b = a + x
-        EqPracticeItem(
-            before = "$a + x = $b",
-            sym = EqOp.ADD, num = a, answer = EqPracticeAnswer.Op(EqOp.SUB), x = x,
-            result = "$a + x = $b　⇒　x + $a = $b　⇒　x = $b - $a = $x",
-            why = "$a 站在最前面没写符号 —— 先跟 x 换个位置（不变号），露出「+」，跨过等号才变成「-」。",
-        )
-    }
-
-    EqPracticeKind.REVEAL_TIMES -> {
-        val a = eqRndInclusive(2, 9, random)
-        val x = eqRndInclusive(2, 9, random)
-        val b = a * x
-        EqPracticeItem(
-            before = "$a × x = $b",
-            sym = EqOp.MUL, num = a, answer = EqPracticeAnswer.Op(EqOp.DIV), x = x,
-            result = "$a × x = $b　⇒　x × $a = $b　⇒　x = $b ÷ $a = $x",
-            why = "$a 站在最前面没写符号 —— 先跟 x 换个位置（不变号），露出「×」，跨过等号才变成「÷」。",
-        )
-    }
-
-    EqPracticeKind.SAME_SIDE -> {
-        val a = eqRndInclusive(2, 9, random)
-        val x = eqRndInclusive(2, 9, random)
-        val b = a + x
-        EqPracticeItem(
-            before = "$a + x = $b",
-            sym = EqOp.ADD, num = a, answer = EqPracticeAnswer.Same, x = x,
-            ask = EqPracticeAsk.SAME_SIDE,
-            result = "$a + x = $b　⇒　x + $a = $b",
-            why = "$a 只是和 x 换了位置，压根没跨过等号 —— 同一边交换，符号一点不用动。",
-        )
-    }
+/**
+ * 选项里跟在符号后面的那个「量」：
+ *   搬运 = 被搬项本身 · 合并 = 合并后的结果 · 对调 = x（对调没有具体的被搬项）
+ */
+private fun eqStepValue(a: MoveAction): String = when (a.type) {
+    EqActionType.FLIP -> "x"
+    EqActionType.COMBINE -> a.combined ?: a.value
+    else -> a.value
 }
 
 /**
- * 生成一组随机练习题（默认 **6** 道）。
+ * 一侧在给定 x 下的数值（**只给练习选项用**：算「忘了变号会得到几」）。
  *
- * 组合策略：**4 条基本变号规律各一道**（顺序打乱）＋ **1 道「要搬两次」的进阶型**（必出）
- *   ＋ **1 道「同侧换位不变号」反例**（必出）——
- *   只要 n >= 6，「加变减 / 减变加 / 乘变除 / 除变乘 / 同侧不变 / 搬两次」六种情形每轮都被练到。
- *
- * 为什么是 6 而不是 5：5 道只够「4 条基本 + 1 道进阶」，塞不下「两步型」和「同侧不变号」
- *   两类，必然有一类练不到。多一道刚好把六种情形占满。
+ * ⚠️ 必须用 [Double] 累积 —— web 那边是 JS number，除法会出小数；
+ *    这里若用 Int，`8 ÷ 3` 会被**静默截断**成 2，然后被当成一个合法的整数选项混进去。
+ *    调用方拿到的 Double 要自己判「是不是整数」。
  */
-fun generateEqDrill(n: Int = 6, random: Random = Random.Default): List<EqPracticeItem> {
-    val kinds = DRILL_BASIC.toMutableList()
-    if (n > DRILL_BASIC.size) kinds.add(DRILL_STEP[eqRndInclusive(0, DRILL_STEP.size - 1, random)])
-    if (n > DRILL_BASIC.size + 1) kinds.add(EqPracticeKind.SAME_SIDE)
-    while (kinds.size < n) kinds.add(DRILL_POOL[eqRndInclusive(0, DRILL_POOL.size - 1, random)])
+private fun eqSideValueAt(side: EqSideList, xVal: Int): Double {
+    if (side.isEmpty()) return Double.NaN
+    var acc = eqTermValueAt(side[0], xVal).toDouble()
+    if (side[0].op == EqOp.SUB) acc = -acc
+    for (i in 1 until side.size) {
+        val t = side[i]
+        val v = eqTermValueAt(t, xVal).toDouble()
+        when (t.op) {
+            EqOp.ADD -> acc += v
+            EqOp.SUB -> acc -= v
+            EqOp.MUL -> acc *= v
+            EqOp.DIV -> acc /= v
+            null -> return Double.NaN
+        }
+    }
+    return acc
+}
+
+/** 洗牌（**返回新列表**，不动入参） */
+private fun eqShuffled(items: List<String>, random: Random): List<String> {
+    val a = items.toMutableList()
+    for (i in a.size - 1 downTo 1) {
+        val j = eqRndInclusive(0, i, random)
+        val tmp = a[i]
+        a[i] = a[j]
+        a[j] = tmp
+    }
+    return a
+}
+
+/** 把一个动作变成「学生要填的那一步」 */
+private fun eqStepOfAction(a: MoveAction): EqSolveStep {
+    // ── 搬运：全页唯一跨等号的动作 ⇒ 唯一要变号的 ──
+    if (a.type == EqActionType.MOVE) {
+        val shown = if (a.srcOp == null) a.value else "${a.srcOp.sym}${a.value}"
+        return EqSolveStep(
+            before = a.before,
+            after = a.after,
+            type = EqStepType.MOVE,
+            label = eqStepLabel(EqStepType.MOVE),
+            action = a,
+            ask = if (a.srcOp == null) {
+                "「${a.value}」站在最前面、前面不写符号 —— 它其实带着一个看不见的「${a.fromOp.sym}」。把它挪到等号另一边，符号该变成什么？"
+            } else {
+                "把「$shown」挪到等号另一边，符号该变成什么？"
+            },
+            options = eqOpOptions(eqStepValue(a)),
+            answer = "${a.toOp.sym}${a.value}",
+            why = "它跨过了等号 ——「${a.fromOp.sym}」必须变成「${a.toOp.sym}」。",
+            wrongTip = "它跨过了等号，符号一定要变相反：「${a.fromOp.sym}」要变成「${a.toOp.sym}」。",
+        )
+    }
+
+    // ── 同侧重排三兄弟：一个字节都不跨等号线 ⇒ 符号一点不动 ──
+    val where = eqSolveSide(a.from)
+    if (a.type == EqActionType.SWAP) {
+        return EqSolveStep(
+            before = a.before,
+            after = a.after,
+            type = EqStepType.SWAP,
+            label = eqStepLabel(EqStepType.SWAP),
+            action = a,
+            ask = "这一步只是在${where}内部把两项换个位置 —— 它跨过等号了吗？符号该变成什么？",
+            options = eqOpOptions(eqStepValue(a)),
+            answer = "不变",
+            why = "它没跨过等号，只是在同一侧换了个位置 —— 符号一点不用动。",
+            wrongTip = "这一步压根没碰那条等号线。只有「从等号一边搬到另一边」才变号。",
+        )
+    }
+    if (a.type == EqActionType.COMBINE) {
+        val merged = a.combined ?: a.value
+        return EqSolveStep(
+            before = a.before,
+            after = a.after,
+            type = EqStepType.COMBINE,
+            label = eqStepLabel(EqStepType.COMBINE),
+            action = a,
+            ask = "这一步是把${where}的两个同类项合起来（${a.value} 并进旁边那一项，结果是 ${merged}）" +
+                "—— 合并跨过等号了吗？符号该变成什么？",
+            options = eqOpOptions(eqStepValue(a)),
+            answer = "不变",
+            why = "合并是同一侧内部的事，不跨等号线 —— 求值一分没变，只是写法变短了。",
+            wrongTip = "合并就像把同一个篮子里的东西倒在一起，压根没跨等号线 ⇒ 符号不用变。",
+        )
+    }
+    return EqSolveStep(
+        before = a.before,
+        after = a.after,
+        type = EqStepType.FLIP,
+        label = eqStepLabel(EqStepType.FLIP),
+        action = a,
+        ask = "这一步是把等号两边整体对调 —— 对调之后，x 的符号该变成什么？",
+        options = eqOpOptions(eqStepValue(a)),
+        answer = "不变",
+        why = "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
+        wrongTip = "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
+    )
+}
+
+/**
+ * 收尾那一步：把右边的数算出来。
+ * ★ 选项里**必定含着「忘了变号」会算出的那个数** —— 那正是这一页要防的错。
+ */
+private fun eqSolveStepOf(p: MoveProblem, random: Random): EqSolveStep {
+    val right = eqSideToText(p.final.right)
+    // 忘变号：把末态右侧除首项以外的运算符全部翻回去再求值
+    // （x 此时已单独在左边 ⇒ 右侧不含未知数，代 0 即得常数）
+    val noFlip = eqSideValueAt(
+        p.final.right.mapIndexed { i, t ->
+            val op = t.op
+            if (i == 0 || op == null) t else t.copy(op = eqFlipOp(op))
+        },
+        0,
+    )
+    val wrongs = mutableListOf<Int>()
+    fun push(c: Double) {
+        if (!c.isFinite() || c % 1.0 != 0.0 || c < 0.0) return
+        val ci = c.toInt()
+        if (ci == p.answer || wrongs.contains(ci) || wrongs.size >= 3) return
+        wrongs.add(ci)
+    }
+    push(noFlip) // ← 经典陷阱：移项没变号
+    push((p.answer + 1).toDouble())
+    push((p.answer - 1).toDouble())
+    push((p.answer * 2).toDouble())
+    push((p.answer + 3).toDouble())
+    val trap = if (noFlip.isFinite() && noFlip % 1.0 == 0.0 && noFlip >= 0.0 && noFlip.toInt() != p.answer) {
+        noFlip.toInt().toString()
+    } else {
+        null
+    }
+    return EqSolveStep(
+        before = p.final,
+        after = p.final,
+        type = EqStepType.SOLVE,
+        label = eqStepLabel(EqStepType.SOLVE),
+        ask = "最后一步：把右边的 $right 算出来，x 等于几？",
+        options = eqShuffled(listOf(p.answer.toString()) + wrongs.map { it.toString() }, random),
+        answer = p.answer.toString(),
+        why = "x = $right = ${p.answer}。把 ${p.answer} 代回原式，等号两边一样。",
+        wrongTip = "再算一遍：$right。",
+        trapAnswer = trap,
+        trapTip = "这正是「移项忘了变号」会算出来的数 —— 前面跨过等号时符号已经变过一次，别再翻回去。",
+    )
+}
+
+/** flipSides 的题（a - x = b 这类）搬完后 x 单独落在**等号右边** —— 再对调一次才写成 x = … */
+private fun eqFlipBackStep(from: EqState, to: EqState): EqSolveStep = EqSolveStep(
+    before = from,
+    after = to,
+    type = EqStepType.FLIP,
+    label = eqStepLabel(EqStepType.FLIP),
+    ask = "x 已经单独待在等号右边了 —— 把两边整体对调一下，每一项的符号该变成什么？",
+    options = eqOpOptions("x"),
+    answer = "不变",
+    why = "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
+    wrongTip = "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
+)
+
+/**
+ * 把一道题拆成「一步一填」的练习题。
+ * ★ 步骤 = 每个动作一步 ＋（x 落在等号右边时）补一次两边对调 ＋ 最后「算出来」一步。
+ * ⚠️ 同侧反例题（[MoveKind.SAME_SIDE]）**没有**「算出来」那一步 —— 它只演示「同侧换位不变号」，
+ *    压根没打算求解，硬凑一步会把「这一步不用解」这个教学点抹掉。
+ */
+fun eqBuildSolveItem(kind: MoveKind, random: Random = Random.Default): EqSolveItem {
+    val p = buildProblem(kind, random)
+    val steps = p.actions.map { eqStepOfAction(it) }.toMutableList()
+    val last = p.actions.lastOrNull()
+    if (p.flipSides && last != null) steps.add(eqFlipBackStep(last.after, p.final))
+    if (!p.isSameSide) steps.add(eqSolveStepOf(p, random))
+    return EqSolveItem(
+        kind = kind,
+        kindLabel = p.kindLabel,
+        initial = p.initial,
+        final = p.final,
+        steps = steps,
+        x = p.x,
+        answer = p.answer,
+        solution = eqSolutionText(p),
+        solved = !p.isSameSide,
+        finalNote = if (p.isSameSide) {
+            "这道题只演一步：同一侧换个位置，符号一点没变。要把 x 单独留下来，" +
+                "下一步就得让最前面那个数跨过等号 —— 那时候才变号。"
+        } else {
+            "解出来了：x = ${p.answer}。把 ${p.answer} 代回原式 ${eqToText(p.initial)}，等号两边一样。"
+        },
+    )
+}
+
+/** 4 条基本变号规律：每轮各一道 */
+private val EQ_SOLVE_BASIC: List<MoveKind> =
+    listOf(MoveKind.PLUS, MoveKind.MINUS, MoveKind.TIMES, MoveKind.DIVIDE)
+
+/** 「要多步才解得完」的进阶型：每轮**必出**一道（首项显形 / 两边都有 x / 多项多步…） */
+private val EQ_SOLVE_STEP: List<MoveKind> = listOf(
+    MoveKind.MINUS_VAR, MoveKind.DIVIDE_VAR,
+    MoveKind.REVEAL_PLUS, MoveKind.REVEAL_TIMES,
+    MoveKind.X_RIGHT, MoveKind.THREE_TERMS,
+    MoveKind.BOTH_SIDES, MoveKind.MULTI_STEP,
+)
+
+/** 补齐名额时的题型池（含「同侧不变号」这个反例） */
+private val EQ_SOLVE_POOL: List<MoveKind> = EQ_SOLVE_BASIC + EQ_SOLVE_STEP + MoveKind.SAME_SIDE
+
+/**
+ * 生成一组分步解方程练习（默认 **6** 道）。
+ *
+ * ★ 组合策略与「六种情形全练到」一致：**4 条基本变号规律各一道** ＋ **1 道多步题（必出）**
+ *   ＋ **1 道「同侧换位不变号」反例（必出）**，整体打乱后取前 n 道。
+ */
+fun eqGenerateSolveItems(n: Int = 6, random: Random = Random.Default): List<EqSolveItem> {
+    val kinds = EQ_SOLVE_BASIC.toMutableList()
+    if (n > EQ_SOLVE_BASIC.size) kinds.add(EQ_SOLVE_STEP[eqRndInclusive(0, EQ_SOLVE_STEP.size - 1, random)])
+    if (n > EQ_SOLVE_BASIC.size + 1) kinds.add(MoveKind.SAME_SIDE)
+    while (kinds.size < n) kinds.add(EQ_SOLVE_POOL[eqRndInclusive(0, EQ_SOLVE_POOL.size - 1, random)])
     // Fisher–Yates 打乱，避免每轮都是「+ - × ÷」同一个次序
     for (i in kinds.size - 1 downTo 1) {
         val j = eqRndInclusive(0, i, random)
@@ -1085,7 +1261,7 @@ fun generateEqDrill(n: Int = 6, random: Random = Random.Default): List<EqPractic
         kinds[i] = kinds[j]
         kinds[j] = tmp
     }
-    return kinds.take(n).map { k -> buildPracticeItem(k, random).copy(kind = k) }
+    return kinds.take(n).map { k -> eqBuildSolveItem(k, random) }
 }
 
 // ────────────────────────────────────────────────────────────

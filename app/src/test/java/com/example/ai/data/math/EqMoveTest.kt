@@ -291,6 +291,83 @@ private fun checkProblem(p: MoveProblem, tag: String) {
 
 private val ALL_KINDS: List<MoveKind> = MoveKind.values().toList()
 
+// ────────────────────────────────────────────────────────────
+// 分步解方程练习的判据
+// ────────────────────────────────────────────────────────────
+
+/** 四个「变号」+ 一个「不变」—— 卡片上按这个顺序渲染 */
+private val OP_OPTIONS = listOf("+", "-", "×", "÷", "不变")
+
+/** 等式两侧都用两路裁判算一遍，并且必须相等 */
+private fun stateHolds(st: EqState, xVal: Int, label: String): Pair<Int, Int> {
+    val l = bothAgree(st.left, xVal, "$label 左边")
+    val r = bothAgree(st.right, xVal, "$label 右边")
+    assertEquals("$label: 等式不成立（$l ≠ $r）", l, r)
+    return l to r
+}
+
+/**
+ * 一步动作在数值上只有两种可能：
+ *   · MOVE —— 两侧的值**都会变**（这正是「搬运」的含义），但**等式照旧成立**
+ *   · SWAP / COMBINE / FLIP / SOLVE —— 两侧的值**一分不动**，只有写法变了
+ *
+ * ⇒ 学生只要用「数值变没变」就能替我们判「这一步到底跨没跨等号线」。
+ */
+private fun stepKeepsValue(step: EqSolveStep, xVal: Int, label: String) {
+    val before = stateHolds(step.before, xVal, "$label 变形前")
+    val after = stateHolds(step.after, xVal, "$label 变形后")
+    if (step.type == EqStepType.MOVE) {
+        assertTrue("$label: 搬运必然同时改变两侧的值，实际 $before → $after", before != after)
+    } else {
+        assertEquals("$label: 同侧动作/求解步不该改变任何一侧的值", before, after)
+    }
+}
+
+/** 一步自己的数据必须自洽：选项、答案、标签、文案、动作类型 */
+private fun checkStep(step: EqSolveStep, label: String) {
+    assertTrue("$label: 选项不能为空", step.options.isNotEmpty())
+    assertTrue("$label: 答案「${step.answer}」必须出现在选项里", step.options.contains(step.answer))
+    assertEquals("$label: 选项不该重复", step.options.size, step.options.toSet().size)
+    assertTrue("$label: 标签不能为空", step.label.isNotBlank())
+    assertTrue(
+        "$label: 问法 / 讲解 / 提示都不能为空",
+        step.ask.isNotBlank() && step.why.isNotBlank() && step.wrongTip.isNotBlank(),
+    )
+    when (step.type) {
+        EqStepType.MOVE -> {
+            assertNotEquals("$label: 跨线步的答案不该是「不变」", "不变", step.answer)
+            assertTrue("$label: 跨线步必须带着原始动作", step.action != null)
+            assertEquals("$label: 跨线步的动作类型应当一致", EqActionType.MOVE, step.action?.type)
+        }
+        EqStepType.SWAP -> {
+            assertEquals("$label: 同侧换位的答案应当是「不变」", "不变", step.answer)
+            assertEquals("$label: 换位步的动作类型应当一致", EqActionType.SWAP, step.action?.type)
+        }
+        EqStepType.COMBINE -> {
+            assertEquals("$label: 同侧合并的答案应当是「不变」", "不变", step.answer)
+            assertEquals("$label: 合并步的动作类型应当一致", EqActionType.COMBINE, step.action?.type)
+        }
+        EqStepType.FLIP -> {
+            // ⚠️ flipSides 补出来的那次「两边对调」**没有**原始动作（引擎不给）
+            assertEquals("$label: 两边对调的答案应当是「不变」", "不变", step.answer)
+            if (step.action != null) {
+                assertEquals("$label: 对调步的动作类型应当一致", EqActionType.FLIP, step.action?.type)
+            }
+        }
+        EqStepType.SOLVE -> {
+            assertTrue("$label: 「算出来」的答案必须是数字", step.answer.toIntOrNull() != null)
+            assertTrue("$label: 「算出来」不该带动作（它没有可演的动作）", step.action == null)
+        }
+    }
+    if (step.type != EqStepType.SOLVE) {
+        // 符号步的选项顺序固定：四个变号 + 一个「不变」
+        assertEquals(
+            "$label: 符号步的选项应当是「+ - × ÷ 不变」",
+            OP_OPTIONS,
+            step.options.map { if (it == "不变") "不变" else it.take(1) },
+        )
+    }
+}
 class EqMoveTest {
 
     // ── 核心规则 ──────────────────────────────────────────────
@@ -607,135 +684,174 @@ class EqMoveTest {
         }
     }
 
-    // ── 随机练习（默认 6 道）──────────────────────────────────
+    // ── 分步解方程练习（默认 6 道）────────────────────────────
 
+    /** 一步步首尾相接：第一步就是原式，最后一步落回 final，且「算出来」只出现在最后 */
     @Test
-    fun drillIsSixItemsAndAnswersFollowTheRule() {
-        for (round in 1..300) {
-            val items = generateEqDrill(6)
+    fun solveStepsAreChainedFromInitialToFinal() {
+        repeat(200) {
+            val items = eqGenerateSolveItems(6)
             assertEquals("默认应生成 6 道", 6, items.size)
             for (it2 in items) {
-                if (it2.ask == EqPracticeAsk.SAME_SIDE) {
-                    assertEquals("${it2.before}：同侧换位，符号应当不变", EqPracticeAnswer.Same, it2.answer)
-                } else {
+                assertTrue("${it2.kindLabel}: 至少要有一问", it2.steps.isNotEmpty())
+                assertEquals("${it2.kindLabel}: 第一步不是从原式开始", it2.initial, it2.steps[0].before)
+                assertEquals("${it2.kindLabel}: 最后一步没落回最终形态", it2.final, it2.steps.last().after)
+                // 第 k 步做完的样子，必须**逐字段等于**第 k+1 步开始的样子
+                for (k in 0 until it2.steps.size - 1) {
                     assertEquals(
-                        "${it2.before}：把「${it2.sym.sym}」搬过等号应变成「${it2.sym.flip.sym}」",
-                        EqPracticeAnswer.Op(eqFlipOp(it2.sym)),
-                        it2.answer,
+                        "${it2.kindLabel}: 第 ${k + 2} 步接不上第 ${k + 1} 步",
+                        it2.steps[k].after,
+                        it2.steps[k + 1].before,
                     )
+                }
+                val solveAt = it2.steps.mapIndexedNotNull { i, s -> if (s.type == EqStepType.SOLVE) i else null }
+                assertEquals(
+                    "${it2.kindLabel}: 「算出来」的步数与 solved 不符",
+                    if (it2.solved) 1 else 0,
+                    solveAt.size,
+                )
+                if (solveAt.isNotEmpty()) {
+                    assertEquals("${it2.kindLabel}: 「算出来」必须是最后一步", it2.steps.size - 1, solveAt[0])
+                }
+            }
+        }
+    }
+
+    /**
+     * 每一步都是等价变形，且每一步的答案都跟「跨没跨等号线」严格一致。
+     * ★ 13 种题型**逐个**扫 —— 确定性覆盖 threeTerms / bothSides / multiStep 这些结构题型
+     *   （尤其是只有它们才有的 combine：靠随机抽签经常抽不到，必须钉死跑）。
+     */
+    @Test
+    fun solveEveryStepIsAnEquivalentTransform() {
+        for (kind in MoveKind.values()) {
+            repeat(30) {
+                val it2 = eqBuildSolveItem(kind)
+                assertEquals("题型应原样带出", kind, it2.kind)
+                it2.steps.forEachIndexed { k, s ->
+                    val tag = "$kind 第 ${k + 1} 步(${s.type})"
+                    stepKeepsValue(s, it2.x, tag)
+                    checkStep(s, tag)
+                }
+            }
+        }
+        repeat(60) {
+            for (it2 in eqGenerateSolveItems(6)) {
+                it2.steps.forEachIndexed { k, s ->
+                    val tag = "${it2.kindLabel} 第 ${k + 1} 步(${s.type})"
+                    stepKeepsValue(s, it2.x, tag)
+                    checkStep(s, tag)
                 }
             }
         }
     }
 
     @Test
-    fun drillAlwaysCoversFourBasicRules() {
-        for (round in 1..300) {
-            val syms = generateEqDrill(6).map { it.sym }.toSet()
-            for (s in EqOp.values()) {
-                assertTrue("第 $round 轮缺少「${s.sym}」这一类题", syms.contains(s))
-            }
-        }
-    }
-
-    @Test
-    fun drillAlwaysHasOneStepItemAndOneSameSideItem() {
+    fun solveAlwaysCoversFourBasicPlusOneStepPlusSameSide() {
         val stepKinds = listOf(
-            EqPracticeKind.MINUS_VAR, EqPracticeKind.DIVIDE_VAR,
-            EqPracticeKind.REVEAL_PLUS, EqPracticeKind.REVEAL_TIMES,
+            MoveKind.MINUS_VAR, MoveKind.DIVIDE_VAR, MoveKind.REVEAL_PLUS, MoveKind.REVEAL_TIMES,
+            MoveKind.X_RIGHT, MoveKind.THREE_TERMS, MoveKind.BOTH_SIDES, MoveKind.MULTI_STEP,
         )
-        for (round in 1..300) {
-            val kinds = generateEqDrill(6).map { it.kind }
+        repeat(200) { round ->
+            val kinds = eqGenerateSolveItems(6).map { it.kind }
+            for (k in listOf(MoveKind.PLUS, MoveKind.MINUS, MoveKind.TIMES, MoveKind.DIVIDE)) {
+                assertEquals("第 ${round + 1} 轮「$k」应当正好 1 道", 1, kinds.count { it == k })
+            }
             assertTrue(
-                "第 $round 轮缺「要搬两次 / 首项显形」的进阶题",
-                kinds.any { it != null && stepKinds.contains(it) },
+                "第 ${round + 1} 轮缺「要多步才解得完」的题",
+                kinds.any { stepKinds.contains(it) },
             )
             assertEquals(
-                "第 $round 轮「同侧不变号」反例应当正好 1 道",
+                "第 ${round + 1} 轮「同侧不变号」反例应当正好 1 道",
                 1,
-                kinds.count { it == EqPracticeKind.SAME_SIDE },
+                kinds.count { it == MoveKind.SAME_SIDE },
             )
-            // 四条基本规律各一道，且不多不少
-            for (k in listOf(
-                EqPracticeKind.PLUS, EqPracticeKind.MINUS,
-                EqPracticeKind.TIMES, EqPracticeKind.DIVIDE,
-            )) {
-                assertEquals("第 $round 轮「$k」应当正好 1 道", 1, kinds.count { it == k })
-            }
             assertEquals(6, kinds.size)
         }
     }
 
     @Test
-    fun drillAnswersVerifiedBySecondEvaluator() {
-        val twoStep = Regex("^(\\d+) ([+×÷-]) x = (\\d+)$")
-        for (round in 1..300) {
-            for (it2 in generateEqDrill(6)) {
-                // ① 原式把解代进去必须成立（用文本裁判，不复用引擎的判据）
-                val parts = it2.before.split(" = ")
-                assertEquals("${it2.before} 格式异常", 2, parts.size)
+    fun solveSameSideItemIsSingleStepAndUnsolved() {
+        repeat(60) {
+            val it2 = eqBuildSolveItem(MoveKind.SAME_SIDE)
+            assertTrue("同侧反例题不该声称解出了 x", !it2.solved)
+            assertEquals("同侧反例题只演一步", 1, it2.steps.size)
+            assertEquals(EqStepType.SWAP, it2.steps[0].type)
+            assertEquals("不变", it2.steps[0].answer)
+            assertTrue("收尾文案要点明「同一侧」", it2.finalNote.contains("同一侧"))
+            // 它确实**没有**把 x 解出来 —— 末态的 x 不孤单，还得再跨一次线
+            assertTrue(
+                "同侧反例题的末态不该已经只剩「x = 一个数」",
+                it2.final.left.size + it2.final.right.size > 1,
+            )
+        }
+    }
+
+    /** 把答案代回**原式**必须成立；用两路裁判各算一遍（term 序列 + 渲染文本） */
+    @Test
+    fun solveAnswerBackInOriginalHolds() {
+        fun check(it2: EqSolveItem) {
+            val (l, r) = stateHolds(it2.initial, it2.answer, "${it2.kindLabel}: x=${it2.answer} 代回原式")
+            assertEquals("${it2.kindLabel}: 代回原式应当两侧相等", l, r)
+            if (it2.solved) {
+                assertEquals("${it2.kindLabel}: 解出来后左边应当只剩一项", 1, it2.final.left.size)
+                assertTrue("${it2.kindLabel}: 左边那一项应当就是 x", it2.final.left[0].isVar)
                 assertEquals(
-                    "${it2.before} 代入 x=${it2.x} 不成立",
-                    evalNumExpr(parts[0].replace("x", it2.x.toString())),
-                    evalNumExpr(parts[1].replace("x", it2.x.toString())),
+                    "${it2.kindLabel}: 解答文案应当与末态一致",
+                    "x = ${eqSideToText(it2.final.right)} = ${it2.answer}",
+                    it2.solution,
                 )
+                assertEquals(
+                    "${it2.kindLabel}: 最后一步「算出来」的答案应当是 ${it2.answer}",
+                    it2.answer.toString(),
+                    it2.steps.last().answer,
+                )
+            }
+        }
+        for (kind in MoveKind.values()) repeat(30) { check(eqBuildSolveItem(kind)) }
+        repeat(80) { for (it2 in eqGenerateSolveItems(6)) check(it2) }
+    }
 
-                // ② 换位 / 移项之后另算一遍，必须正好等于解
-                if (it2.ask == EqPracticeAsk.SAME_SIDE) {
-                    // 同侧换位：a + x = b ⇒ x + a = b —— 交换律，左边求值不变
-                    val a = parts[0].split(" ")[0].toInt()
-                    val b = parts[1].toInt()
-                    assertEquals("${it2.before}：同侧换位式 x + $a = $b 不成立", b, it2.x + a)
-                    continue
+    @Test
+    fun solveNumbersInPrimaryRange() {
+        val cap = mapOf(
+            MoveKind.TIMES to 81,
+            MoveKind.DIVIDE to 81,
+            MoveKind.DIVIDE_VAR to 81,
+            MoveKind.REVEAL_TIMES to 81,
+        )
+        repeat(200) {
+            for (it2 in eqGenerateSolveItems(6)) {
+                val c = cap[it2.kind] ?: 20
+                for (side in listOf(it2.initial.left, it2.initial.right, it2.final.left, it2.final.right)) {
+                    for (t in side) {
+                        if (t.isVar) continue
+                        assertTrue("${it2.kindLabel}: ${t.value} 超出「$c 以内」范围", t.value.toInt() <= c)
+                    }
                 }
-
-                val m = twoStep.find(it2.before)
-                if (m != null) {
-                    // a (<op>) x = b 这类：先把 a 换到后面（不变号），再跨线变号
-                    val a = m.groupValues[1].toInt()
-                    val b = m.groupValues[3].toInt()
-                    val txt = "$b ${eqFlipOp(it2.sym).sym} ${it2.x}"
-                    assertEquals("${it2.before}：移项后 $txt 应等于 $a", a, evalTwoTermText(txt))
-                } else {
-                    val b = it2.before.substringAfter("= ").trim().toInt()
-                    val txt = "$b ${eqFlipOp(it2.sym).sym} ${it2.num}"
-                    assertEquals("${it2.before}：移项后 $txt 应等于解 ${it2.x}", it2.x, evalTwoTermText(txt))
-                }
-
-                // ③ 结果文案里要对得上最终答案
-                assertTrue("「${it2.before}」结果串应含最终答案 ${it2.x}", it2.result.contains("= ${it2.x}"))
+                assertTrue("${it2.kindLabel}: 解 ${it2.answer} 越界", it2.answer in 2..81)
             }
         }
     }
 
     @Test
-    fun drillNumbersInPrimaryRange() {
-        for (round in 1..300) {
-            for (it2 in generateEqDrill(6)) {
-                val b = it2.before.substringAfter("= ").trim().toInt()
-                assertTrue("${it2.before}：等号右侧 $b 越界", b in 2..81)
-                assertTrue("${it2.before}：被搬的数是 ${it2.num}，超出 2..9", it2.num in 2..9)
-                assertTrue("${it2.before}：解 ${it2.x} 越界", it2.x in 2..81)
-            }
-        }
-    }
-
-    @Test
-    fun drillDiffersBetweenRounds() {
+    fun solveDiffersBetweenRounds() {
         val seen = mutableSetOf<String>()
-        repeat(40) { seen.add(generateEqDrill(6).joinToString(" | ") { it.before }) }
+        repeat(40) { seen.add(eqGenerateSolveItems(6).joinToString(" | ") { eqToText(it.initial) }) }
         assertTrue("40 轮只出现 ${seen.size} 种题组 —— 随机性不足", seen.size > 5)
     }
 
     @Test
-    fun drillCountParameterDegradesGracefully() {
-        for (round in 1..100) {
+    fun solveCountParameterDegradesGracefully() {
+        repeat(60) {
             for (n in listOf(1, 2, 4, 5, 6, 8, 12)) {
-                val items = generateEqDrill(n)
+                val items = eqGenerateSolveItems(n)
                 assertEquals("n=$n 时应当正好生成 $n 道", n, items.size)
                 if (n >= 4) {
-                    val syms = items.map { it.sym }.toSet()
-                    for (s in EqOp.values()) assertTrue("n=$n 缺 ${s.sym}", syms.contains(s))
+                    val kinds = items.map { it.kind }.toSet()
+                    for (k in listOf(MoveKind.PLUS, MoveKind.MINUS, MoveKind.TIMES, MoveKind.DIVIDE)) {
+                        assertTrue("n=$n 缺 $k", kinds.contains(k))
+                    }
                 }
             }
         }

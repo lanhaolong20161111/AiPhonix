@@ -329,6 +329,8 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 ### 批次 C 收官后新增：等式变变变（动画学数学 第 2 页｜2026-09-29）
 
 > **2026-09-29 追加（本批次）**：出题引擎扩到 **13 题型**、动作模型扩到 **4 种**（move / swap / combine / flip），新增「首项显形」动画与 5 选项练习卡，单测 16 → **27 例**。web 侧同一批改动已重建并 CF 上线（入口 `index-B-L1pf7k.js`）。
+>
+> **2026-09-29 再续（本批次·同日）**：练习区从「一题一问」改成**分步解题**（逐步填到解出 x，见下「再续：练习区改成『分步解题』」），单测 27 → **28 例**。web 侧已重建上线（入口 `index-d5z2vrrd.js`）。
 
 **等式变变变**（`/module/math_equation_move`）—— **零后端**：`web/src/lib/equationMove.ts` → `data/math/EqMove.kt`，`web/src/pages/EquationMovePage.tsx` → `ui/eqmove/`（VM + Screen）。NavKey `EqMove`，首页「🧮 动画学数学」小节第 2 张卡。
 
@@ -336,19 +338,40 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 
 | 层 | 文件 | 说明 |
 |---|---|---|
-| 引擎 | `data/math/EqMove.kt` | 纯 Kotlin：**13 题型**（基础 7 + 首项显形 / 未知数在右 / 一边三项 / 两边都有 x / 两步）+ **4 种动作模型**（`move` / `swap` / `combine` / `flip`）+ 加权池随机 + **随机 6 题**练习生成 + 静态口诀/易错/对比练习资料 |
-| VM | `ui/eqmove/EqMoveViewModel.kt` | `EqPhase`（IDLE/FIND/FLY/LAND/SLIDE/SOLVE/DONE）+ 确定性事件表（`T_FIND/T_FLY/T_LAND/T_SOLVE/T_SLIDE`，Screen 同源取用）；随机 6 题与计分也在这里 |
-| Screen | `ui/eqmove/EqMoveScreen.kt` | 单 `LazyColumn`；幽灵飞越翻牌 / 等号分界线 / 落位槽 / 同侧滑动 FLIP / 练习区 |
+| 引擎 | `data/math/EqMove.kt` | 纯 Kotlin：**13 题型**（基础 7 + 首项显形 / 未知数在右 / 一边三项 / 两边都有 x / 两步）+ **4 种动作模型**（`move` / `swap` / `combine` / `flip`）+ 加权池随机 + **分步解方程练习**（随机 6 题 × 每题逐步填到解出 x）+ 静态口诀/易错/对比练习资料 |
+| VM | `ui/eqmove/EqMoveViewModel.kt` | `EqPhase`（IDLE/FIND/FLY/LAND/SLIDE/SOLVE/DONE）+ 确定性事件表（`T_FIND/T_FLY/T_LAND/T_SOLVE/T_SLIDE`，Screen 同源取用）；分步练习与计分（**按步**，`drillStepCount`）也在这里 |
+| Screen | `ui/eqmove/EqMoveScreen.kt` | 单 `LazyColumn`；幽灵飞越翻牌 / 等号分界线 / 落位槽 / 同侧滑动 FLIP / **分步练习卡（卡内独立舞台 + 幽灵 + 解题轨迹）** |
 
-- **引擎单测 27 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **471 用例 / 0 失败 / 35 类**（此前 444 / 34）。★ 两个**互相独立**的裁判：逐项序列求值 ↔ **渲染成文本再解析求值**。★ `checkProblem` 按 `a.type` 分支校验四种动作各自的守恒律（MOVE 翻符号 / SWAP 不动符号 / COMBINE 项数 −1 / FLIP 左右对调）。
+- **引擎单测 28 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **472 用例 / 0 失败 / 35 类**（此前 444 / 34；本轮练习区改分步解题后删 7 例整题用例、加 8 例分步用例，27 → 28）。★ 两个**互相独立**的裁判：逐项序列求值 ↔ **渲染成文本再解析求值**。★ `checkProblem` 按 `a.type` 分支校验四种动作各自的守恒律（MOVE 翻符号 / SWAP 不动符号 / COMBINE 项数 −1 / FLIP 左右对调）。
 - 🔴 **顶层命名必须加 `Eq` / `eq` / `EQ_` 前缀**：与 `CompoundExpr.kt`、`Precedence.kt` **同包**（`com.example.ai.data.math`），Kotlin 顶层声明同包不能重名；那边已有 `KIND_LABEL` / `RULES` / `MISTAKE_CASES` / `rndInclusive` / `generateProblem`。`Precedence.kt` 用 `P` / `Pr` / `PR_` 前缀避让，本页沿用同一惯例。
 - ⚠️ **同侧交换的断言别按「显示形态」拼串比较**：首项不写符号是显示约定。`5 + x` 是 `[(null,"5"),(+, "x")]`、`x + 5` 是 `[(null,"x"),(+, "5")]`，用 `"${op?.sym ?: ""}${value}"` 排序后会得到两个不同的列表。正确口径：整体求值不变 + 第二项符号仍是 `+` + 逐项「语义符号 + 值」比较。
 - ★ **翻牌时刻不能写死**：幽灵在哪个进度跨过等号线取决于**实测几何**（源项中心 ↔ 等号线 ↔ 落位槽）⇒ 由 Screen 在飞行动画跑到 `cross` 时回调 `viewModel.onGhostCrossed()`（VM 只管状态，Screen 管几何与动画）。
 - 与 web 逐条对齐：落位槽**从动画一开始就 alpha 0 占位**（宽度不变 ⇒ 落点像素级准确）、源侧项**变灰 + 划掉但不删除**、同侧交换用 **FLIP 且上下错开**（否则两项半路叠成一个「x5」）。★ **combine 后文本变了**（`3x`/`-2x` → `x`）⇒ 找不到旧位就安静收场、只留紫色高亮，**与 web 同款行为**（`EquationMovePage.tsx:361`）。
 - 🔴 **FLIP 的位置上报 key 必须带侧别前缀**：`geom.report("$valuePrefix${term.value}")` 存的是 `lval-8`，查表若写成 `prevSide[term.value]`（少前缀）⇒ **全部落空**、`?: return@forEachIndexed` **静默提前返回**，同侧滑动「看着实现了、其实从未动过」（本轮真实 bug）。web 侧靠 `.eq-side-${side}` 选择器把查询限定在一侧内，文本 key 才敢不带前缀（`EquationMovePage.tsx:348-361`）—— Compose 没有 DOM 选择器可依托，前缀必须落在 key 上。
 
+#### 再续：练习区改成「分步解题」（一步一填到解出 x｜2026-09-29）
+
+> **需求原话**：「练习题也要分步骤动画 学生跟着动画步骤填每一步的答案 直到完成算式求解」。原先的「随机 6 题」是**一道题只问一次**（问「挪过去符号变成什么」），答完即止 —— 与新需求不符，已整段替换。
+
+★ **数据全部从既有 `BUILDERS[kind]()` 派生，不另写一套数学**：`MoveProblem.actions` 本来就是权威轨迹，逐条翻成 `EqSolveStep` 即可（web `equationMove.ts:1005-1291` ↔ Kotlin `EqMove.kt` 尾部同构）。
+
+- **引擎新增**：`EqStepType{MOVE,SWAP,COMBINE,FLIP,SOLVE}`、`EqSolveStep`、`EqSolveItem`、`eqBuildSolveItem(kind, random)`、`eqGenerateSolveItems(n=6, random)`、加权池 `EQ_SOLVE_BASIC/STEP/POOL`；**删除** `EqPracticeKind` / `DRILL_*` / `buildPracticeItem` / `generateEqDrill`（`EQ_PRACTICE` 那 4 张固定对比卡与 `PracticeCard` 保留，仍在用）。
+- ★ **数值判据（本轮新确立，被单测钉死）**：四种动作在数值上**分成两类** —— `move` 两侧的值**都会变**（这正是「搬运」的含义），**但等式照旧成立**；`swap`/`combine`/`flip` 与 `solve` 两侧的值**一分不动**，只有写法变了。⇒ 学生只要用「数值变没变」就能替我们判「这一步到底跨没跨等号线」。单测里拆成 `stateHolds()`（只断言等式成立）+ 按 `type` 分支。
+  - ⚠️ 别写成一刀切「每一步两侧都不许变」——`move` **按定义就要改两侧的值**（本轮我自己踩过：`AssertionError: plus 第 1 步(move): 左边求值变了（17 ⇒ 8）`）。
+- ★ **「忘变号」陷阱项**：把末态右侧除首项外的运算符全翻回去再求值（代 `x=0`）得 `noFlip`，**保证进选项**、答错时点破。
+  - ⚠️ **`noFlip` 必须用 `Double` 累积再判整除**（`c % 1.0 != 0.0`）：JS 除法出小数，Kotlin `Int` 会**静默截断**把 `8÷3` 变成合法的 `2` 混进选项。
+- **`flipSides` 题**（`a - x = b` 等）搬完后 x 落在**等号右边** ⇒ 补一步「两边对调」；**同侧反例题**（`sameSide`）**没有「算出来」那一步**（`solved:false`、`steps.size == 1`、收尾文案「🧩 这一步填完了」）。
+- **卡内动画**：web `SolveCard`/`SolveDone`（`EquationMovePage.tsx:1018-1496`）↔ Compose `SolveCard`/`SolveDone`。时间轴 `S_FIND 560 / S_FLY 780 / S_SLIDE 700 / S_LAND 820`，阶段枚举 `ASK→FIND→FLY→SLIDE→LAND→SETTLED`（映射回既有 `EqPhase` 复用涂装规则）。
+- ★ **一屏 6 张卡 ⇒ 卡内幽灵必须绝对定位**：主舞台幽灵是视口坐标（一屏一题），卡片里照抄会**飞出卡片盖到隔壁**。Compose 侧给**每张卡一个独立 `EqGeom` 实例** + 相对卡片舞台的偏移（web 用 `position:absolute`）。
+- ★ **复用主舞台渲染件靠「带默认值的参数」**：给 `EqSideContent`/`EqToken`/`GhostBlock`/`OpGlyphText`/`FlippingGlyph` 加 `size`/`spacing`/`glyphW`/`padH`/`padV`（默认值 == 原值 ⇒ **主舞台零变化**），卡片传 `SOLVE_FONT = 20.sp` / 6.dp / 13.dp / 5.dp / 1.dp。
+- ★ **`flip` 刻意不做 FLIP 测量**：对调时两侧项会换边，「按文本找旧位」本就不成立 ⇒ 纯视觉擦身而过（与 web 同款）。
+- ⚠️ **Kotlin 局部声明不能前向引用**：`LaunchedEffect(symFlipped, playToken){…}` 必须写在两个 `remember` **之后**（写在前面报 `Unresolved reference 'symFlipped'/'playToken'`，位置在 1522 行、极具误导）。
+- ⚠️ **Screen 必须 `import …math.EqState`**：漏了会让 `val view: EqState?` 解析不了，连带 `view.left/right/term.value` **8 条级联报错**（报错位置全在调用点、不在 import 处）。
+- **计分单位从「题」改成「步」**：VM 新增 `drillStepCount = drill.sumOf { it.steps.size }`，完成判定**必须用它**（不是 `drill.size`）。
+- **单测**：删掉 7 个整题练习用例，换成 8 个分步判据（首尾相接 / **13 题型逐个扫等价变形** / 必出四基本+两步+同侧反例 / 同侧反例只演一步且 unsolved / 答案代回原式双裁判 / 数值范围 / 换一组会真的换 / n<6 退让）。★ **13 题型必须逐个扫**：`combine` 只出现在 `bothSides`/`multiStep` 里，靠随机抽签常抽不到（web 抓帧脚本连跑 10 轮都没钓到 ⇒ 另写引擎层确定性检查才证明功能完好，**别把「抽不到」误判成 bug**）。
+
 #### 等式变变变的已知差异（有意为之，非遗漏）
-- **动画未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「APK 构建通过 + 全量单测绿」，观感由实机验证补。
+- **动画未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「APK 构建通过 + 全量单测绿」，观感由实机验证补。（分步练习的卡内动画同此；web 侧已用抓帧脚本逐帧核对过观感 —— 含跨线翻符号、同侧只滑动不跨线、两边对调、选项禁用与绿框反馈。）
 - `prefers-reduced-motion` 换成系统动画缩放（`ANIMATOR_DURATION_SCALE == 0` ⇒ 直接跳完成态）。
 - 易错卡「滚到才揭晓」用 LazyColumn 天然实现（等效 web 的 `IntersectionObserver`）。
 - 题型选择排成 3 行 / chips 排成 2 行（web 是 flex-wrap，窄屏 320 会顶出横向滚动）。

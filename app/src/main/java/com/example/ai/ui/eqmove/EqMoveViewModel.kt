@@ -3,7 +3,7 @@ package com.example.ai.ui.eqmove
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ai.data.math.EqActionType
-import com.example.ai.data.math.EqPracticeItem
+import com.example.ai.data.math.EqSolveItem
 import com.example.ai.data.math.EqSide
 import com.example.ai.data.math.EqState
 import com.example.ai.data.math.MoveAction
@@ -12,7 +12,7 @@ import com.example.ai.data.math.MoveProblem
 import com.example.ai.data.math.eqFlipOp
 import com.example.ai.data.math.eqSideToText
 import com.example.ai.data.math.eqSolutionText
-import com.example.ai.data.math.generateEqDrill
+import com.example.ai.data.math.eqGenerateSolveItems
 import com.example.ai.data.math.generateEqProblem
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -66,13 +66,16 @@ data class EqMoveUiState(
     val showMistakes: Boolean = false,
     /** 每次换题/重播递增 —— Screen 用它判断「本轮是否已播过」（滚出屏幕再回来不重播） */
     val runToken: Int = 0,
-    // ── 随机练习（6 道，可换一组）──
-    val drill: List<EqPracticeItem> = emptyList(),
+    // ── 分步解方程练习（6 道，可换一组）──
+    val drill: List<EqSolveItem> = emptyList(),
     /** 换一组时 +1，Screen 用它做 key 让每道练习卡重新挂载（清掉上一组的作答状态） */
     val drillRound: Int = 0,
     val drillAnswered: Int = 0,
     val drillCorrect: Int = 0,
 ) {
+    /** 分步练习的总步数 —— 计分单位是**步**（不是题），完成判定必须用它 */
+    val drillStepCount: Int get() = drill.sumOf { it.steps.size }
+
     /** ★ 当前这一步的动作（move / swap / combine / flip 都在里面）。
      *  上一版这里把同侧交换题整个排除掉了 —— 于是 swap 根本进不了统一路径，只能靠 isSameSide 特判；
      *  现在四种动作都从这里取，Screen 再按 [EqActionType] 分流渲染。 */
@@ -210,7 +213,7 @@ data class EqMoveUiState(
 
 class EqMoveViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EqMoveUiState(drill = generateEqDrill(6)))
+    private val _uiState = MutableStateFlow(EqMoveUiState(drill = eqGenerateSolveItems(6)))
     val uiState: StateFlow<EqMoveUiState> = _uiState.asStateFlow()
 
     /** 当前正在跑的时间轴（换题/重播前先取消，避免两条时间轴交错改状态） */
@@ -375,17 +378,17 @@ class EqMoveViewModel : ViewModel() {
 
     // ── 随机练习 ──
 
-    /** 换一组：重新随机 6 道（四条基本变号规律仍保证各有一道，另有必出的两步型与同侧反例） */
+    /** 换一组：重新随机 6 道分步题（四条基本变号规律仍保证各有一道，另有必出的多步题与同侧反例） */
     fun reshuffleDrill() = _uiState.update {
         it.copy(
-            drill = generateEqDrill(6),
+            drill = eqGenerateSolveItems(6),
             drillRound = it.drillRound + 1,
             drillAnswered = 0,
             drillCorrect = 0,
         )
     }
 
-    /** 一道练习首次点选时上报对错（每题只报一次） */
+    /** 分步练习的**每一步**首次点选时上报对错（答错可以再试，成绩只认第一次） */
     fun gradeDrill(ok: Boolean) = _uiState.update {
         it.copy(drillAnswered = it.drillAnswered + 1, drillCorrect = it.drillCorrect + if (ok) 1 else 0)
     }

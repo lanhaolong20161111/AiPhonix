@@ -14,10 +14,12 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,7 +45,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,13 +64,18 @@ import com.example.ai.data.math.EqOp
 import com.example.ai.data.math.EqPracticeAnswer
 import com.example.ai.data.math.EqPracticeAsk
 import com.example.ai.data.math.EqPracticeItem
+import com.example.ai.data.math.EqSolveItem
+import com.example.ai.data.math.EqSolveStep
+import com.example.ai.data.math.EqStepType
 import com.example.ai.data.math.EqSide
 import com.example.ai.data.math.EqSideList
+import com.example.ai.data.math.EqState
 import com.example.ai.data.math.MoveAction
 import com.example.ai.data.math.MoveKind
 import com.example.ai.data.math.MoveProblem
 import com.example.ai.data.math.eqFlipOp
 import com.example.ai.data.math.eqSideToText
+import com.example.ai.data.math.eqToText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -827,6 +836,10 @@ private fun EqSideContent(
     slideT: Float,
     valuePrefix: String,
     modifier: Modifier = Modifier,
+    /** 字号 —— 主舞台 26sp；分步练习卡里要小一号（一屏 6 张卡，26sp 会把卡片撑破） */
+    size: TextUnit = STAGE_FONT,
+    /** 项与项之间的间距 */
+    spacing: Dp = 8.dp,
 ) {
     val isSrc = act != null && act.from == which
     val move = act?.type == EqActionType.MOVE
@@ -835,7 +848,7 @@ private fun EqSideContent(
     Box(modifier, contentAlignment = Alignment.Center) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
         ) {
             side.forEachIndexed { i, term ->
                 // move：只动 index 那 1 项 · swap / combine：index 与 index2 两项都参与
@@ -856,6 +869,7 @@ private fun EqSideContent(
                     taken = taking && state.stepDone,
                     involved = involved,
                     merged = merged,
+                    size = size,
                     modifier = Modifier
                         .then(
                             if (taking && !state.stepDone) Modifier.posReporter { geom.report("src", it) }
@@ -880,6 +894,7 @@ private fun EqSideContent(
                     isVar = act.isVar,
                     slot = true,
                     slotOn = state.stepDone,
+                    size = size,
                     modifier = Modifier.posReporter { geom.report("slot", it) },
                 )
             }
@@ -895,6 +910,11 @@ private fun EqToken(
     isVar: Boolean,
     modifier: Modifier = Modifier,
     valueModifier: Modifier = Modifier,
+    /** 字号 —— 卡片里要小一号（见 [EqSideContent] 的 size） */
+    size: TextUnit = STAGE_FONT,
+    /** 内边距 —— 同样随字号缩小，卡片里才不臃肿 */
+    padH: Dp = 6.dp,
+    padV: Dp = 2.dp,
     taking: Boolean = false,
     lit: Boolean = false,
     taken: Boolean = false,
@@ -942,14 +962,14 @@ private fun EqToken(
             .then(
                 if (merged) Modifier.border(2.dp, Color(0x478B5CF6), RoundedCornerShape(9.dp)) else Modifier,
             )
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = padH, vertical = padV),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (op != null) OpGlyphText(op, dim = taken)
+        if (op != null) OpGlyphText(op, dim = taken, size = size)
         Text(
             text = value,
-            fontSize = STAGE_FONT,
+            fontSize = size,
             fontWeight = FontWeight.ExtraBold,
             color = if (taken) Faint else InkColor,
             fontStyle = if (isVar) FontStyle.Italic else FontStyle.Normal,
@@ -960,10 +980,10 @@ private fun EqToken(
 }
 
 @Composable
-private fun OpGlyphText(op: EqOp, dim: Boolean = false) {
+private fun OpGlyphText(op: EqOp, dim: Boolean = false, size: TextUnit = STAGE_FONT) {
     Text(
         op.sym,
-        fontSize = STAGE_FONT,
+        fontSize = size,
         fontWeight = FontWeight.ExtraBold,
         color = (if (op == EqOp.MUL || op == EqOp.DIV) MdColor else AsColor)
             .let { if (dim) it.copy(alpha = 0.45f) else it },
@@ -976,28 +996,36 @@ private fun OpGlyphText(op: EqOp, dim: Boolean = false) {
  *   首项本来就没写符号 ⇒ 旧符号位不能凭空冒出来（web 用 visibility:hidden，这里直接不画）。
  */
 @Composable
-private fun GhostBlock(act: MoveAction, flipped: Boolean, t: Float) {
+private fun GhostBlock(
+    act: MoveAction,
+    flipped: Boolean,
+    t: Float,
+    size: TextUnit = STAGE_FONT,
+    glyphW: Dp = GlyphW,
+    padH: Dp = 6.dp,
+    padV: Dp = 2.dp,
+) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(9.dp))
             .background(LitAmber)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = padH, vertical = padV),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (flipped) {
-            Box(Modifier.width(GlyphW), contentAlignment = Alignment.Center) {
+            Box(Modifier.width(glyphW), contentAlignment = Alignment.Center) {
                 if (t < 1f && act.srcOp != null) {
-                    FlippingGlyph(op = act.srcOp, rot = -180f * t, scale = 1f - t, alpha = 1f - t)
+                    FlippingGlyph(op = act.srcOp, rot = -180f * t, scale = 1f - t, alpha = 1f - t, size = size)
                 }
-                FlippingGlyph(op = act.toOp, rot = 180f * (1f - t), scale = t, alpha = 1f)
+                FlippingGlyph(op = act.toOp, rot = 180f * (1f - t), scale = t, alpha = 1f, size = size)
             }
         } else if (act.srcOp != null) {
-            OpGlyphText(act.srcOp)
+            OpGlyphText(act.srcOp, size = size)
         }
         Text(
             text = act.value,
-            fontSize = STAGE_FONT,
+            fontSize = size,
             fontWeight = FontWeight.ExtraBold,
             color = InkColor,
             fontStyle = if (act.isVar) FontStyle.Italic else FontStyle.Normal,
@@ -1006,10 +1034,10 @@ private fun GhostBlock(act: MoveAction, flipped: Boolean, t: Float) {
 }
 
 @Composable
-private fun FlippingGlyph(op: EqOp, rot: Float, scale: Float, alpha: Float) {
+private fun FlippingGlyph(op: EqOp, rot: Float, scale: Float, alpha: Float, size: TextUnit = STAGE_FONT) {
     Text(
         op.sym,
-        fontSize = STAGE_FONT,
+        fontSize = size,
         fontWeight = FontWeight.ExtraBold,
         color = if (op == EqOp.MUL || op == EqOp.DIV) MdColor else AsColor,
         modifier = Modifier.graphicsLayer {
@@ -1186,7 +1214,7 @@ private fun DrillSection(
     Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "🎯 随机 6 题 · 专练移项变号",
+                "🧩 分步解方程 · 6 题",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Black0,
@@ -1208,30 +1236,30 @@ private fun DrillSection(
             )
         }
         Text(
-            "每轮六种情形全练到：加变减 · 减变加 · 乘变除 · 除变乘 · 要搬两次（含首项显形）· 同侧换位不变号。" +
-                "先看清它到底跨没跨过等号，再点答案。",
+            "一道题拆成好几步：答对一步，卡片就把它演给你看，再填下一步 —— 一路填到把 x 解出来。" +
+                "每一步都先问自己：它跨过等号线了吗？",
             fontSize = 12.sp,
             color = Grey,
             modifier = Modifier.padding(top = 4.dp, bottom = 6.dp),
         )
-        // 计分
+        // 计分：★ 单位是**步**（不是题）—— 每一步只在首次点选时记一次成绩
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("已答 ", fontSize = 13.sp, color = Slate)
+            Text("已填 ", fontSize = 13.sp, color = Slate)
             Text("${state.drillAnswered}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Black0)
-            Text(" / ${state.drill.size}　·　答对 ", fontSize = 13.sp, color = Slate)
+            Text(" / ${state.drillStepCount} 步　·　一次答对 ", fontSize = 13.sp, color = Slate)
             Text("${state.drillCorrect}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Black0)
-            Text(" 道", fontSize = 13.sp, color = Slate)
+            Text(" 步", fontSize = 13.sp, color = Slate)
         }
-        if (state.drillAnswered >= state.drill.size && state.drill.isNotEmpty()) {
+        if (state.drillAnswered >= state.drillStepCount && state.drill.isNotEmpty()) {
             Text(
-                if (state.drillCorrect == state.drill.size) {
-                    "🎉 全对！这条规律你已经拿下了"
+                if (state.drillCorrect == state.drillStepCount) {
+                    "🎉 全对！每一步都填对了"
                 } else {
                     "再点「换一组」接着练"
                 },
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (state.drillCorrect == state.drill.size) OkColor else Slate,
+                color = if (state.drillCorrect == state.drillStepCount) OkColor else Slate,
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
@@ -1239,7 +1267,7 @@ private fun DrillSection(
         state.drill.forEachIndexed { i, item ->
             // 换一组 ⇒ drillRound 变化 ⇒ 整组重挂载（清掉上一组的作答状态）
             key(state.drillRound, i) {
-                PracticeCard(item = item, index = i + 1, onGraded = onGraded)
+                SolveCard(item = item, index = i + 1, onGraded = onGraded)
             }
             Spacer(Modifier.height(8.dp))
         }
@@ -1422,3 +1450,609 @@ private fun PracticeCard(
         }
     }
 }
+
+/***************************************
+ * 分步解方程练习卡 —— 学生跟着动画一步一步填，直到把 x 解出来
+ *
+ * 与 web/src/pages/EquationMovePage.tsx 的 SolveCard / SolveDone 逐项对齐。
+ *
+ * ★ 为什么卡片里的幽灵必须**绝对定位**（相对卡片自己的舞台），不能照搬主舞台那套：
+ *   主舞台一屏只有一道题，幽灵用整页坐标没问题；这里一屏 6 张卡，
+ *   再用视口坐标，幽灵就会飞出卡片、盖到隔壁卡上（web 侧的 fixed 幽灵同理）。
+ *   Compose 里靠「每张卡一个独立的 [EqGeom] 实例 + 偏移相对卡片舞台」自然做到这件事。
+ *
+ * ★ 数学与动作类型**全部来自引擎**（item.steps[].action）—— 卡片只负责演，自己一步都不算。
+ *
+ * 🔴 教学正确性铁律（与主舞台同一条）：**只有 MOVE 跨等号线**。
+ *   SWAP / COMBINE / FLIP 一个字节都不跨 ⇒ 绝不能落进「幽灵飞越」那条路，
+ *   否则会把「同侧换位不变号」画成「整块飞过等号」，教学上正好教反。
+ ***************************************/
+
+/** 卡片内的字号 —— 一屏 6 张卡，主舞台的 26sp 会把卡片撑破 */
+private val SOLVE_FONT = 20.sp
+
+/** 卡片内动画时间轴（都比主舞台短一截：卡片小、一次 6 张，节奏拖长了整页会闹） */
+private const val S_FIND = 560L
+private const val S_FLY = 780L
+private const val S_SLIDE = 700L
+private const val S_LAND = 820L
+
+/** 卡片内的阶段（与 web 的 SolvePhase 一一对应） */
+private enum class SolveCardPhase { ASK, FIND, FLY, SLIDE, LAND, SETTLED }
+
+/** 映射到主舞台的阶段枚举 —— 这样 [EqSideContent] / [EqToken] 能原样复用（涂装规则一字不改） */
+private fun solvePhaseToEq(p: SolveCardPhase): EqPhase = when (p) {
+    SolveCardPhase.ASK -> EqPhase.IDLE
+    SolveCardPhase.FIND -> EqPhase.FIND
+    SolveCardPhase.FLY -> EqPhase.FLY
+    SolveCardPhase.SLIDE -> EqPhase.SLIDE
+    SolveCardPhase.LAND -> EqPhase.LAND
+    SolveCardPhase.SETTLED -> EqPhase.DONE
+}
+
+/** 选项按钮的字色：乘除蓝 / 加减橙 / 「不变」灰 / 数字黑 */
+private fun solveOptFg(o: String): Color = when {
+    o == "不变" -> SameFg
+    o.startsWith("×") || o.startsWith("÷") -> MdColor
+    o.startsWith("+") || o.startsWith("-") -> AsColor
+    else -> InkColor
+}
+
+/**
+ * 分步练习卡：一步一填。
+ *
+ * @param index 题号（不传就不画小圆点）
+ * @param onGraded 每一步**只在第一次点选**时上报对错 —— 答错可以再试，但成绩只认第一次
+ */
+@Composable
+private fun SolveCard(
+    item: EqSolveItem,
+    index: Int? = null,
+    onGraded: ((Boolean) -> Unit)? = null,
+) {
+    val reduced = animationsDisabled(LocalContext.current)
+
+    // 每张卡一个独立的几何注册表 ⇒ 6 张卡的 "src"/"slot"/"eq" 互不干扰
+    val geom = remember { EqGeom() }
+    val fly = remember { Animatable(0f) }
+    val slide = remember { Animatable(1f) }
+    /** 符号翻牌进度：0 = 还是旧符号，1 = 已经翻成新符号 */
+    val flipAnim = remember { Animatable(1f) }
+
+    var stepIndex by remember { mutableIntStateOf(0) }
+    var phase by remember { mutableStateOf(SolveCardPhase.ASK) }
+    /** 这一步已经点错过的选项（留在红框里，别让它偷偷变回正常） */
+    var tried by remember { mutableStateOf<List<String>>(emptyList()) }
+    /** 同侧重排（swap / combine）：是否已换过序 —— 只有它俩 + flip 用得上 */
+    var swapped by remember { mutableStateOf(false) }
+    var symFlipped by remember { mutableStateOf(false) }
+    /** 递增计数：每次点对 +1 ⇒ 驱动下面那条时间轴（等价于 web 的 later() 定时器组） */
+    var playToken by remember { mutableIntStateOf(0) }
+
+    // 符号翻牌（0.56s：旧符号转半圈缩走、新符号从对面转出来）—— 与主舞台同款
+    // ⚠️ 必须放在 symFlipped / playToken 的声明**之后**（Kotlin 局部声明不能前向引用）
+    LaunchedEffect(symFlipped, playToken) {
+        if (!symFlipped || reduced) {
+            flipAnim.snapTo(1f)
+            return@LaunchedEffect
+        }
+        flipAnim.snapTo(0f)
+        flipAnim.animateTo(1f, tween(560, easing = CubicBezierEasing(0.4f, 0f, 0.6f, 1f)))
+    }
+
+    var slideSide by remember { mutableStateOf(EqSide.LEFT) }
+    var slidePlan by remember { mutableStateOf<List<Pair<Int, Float>>>(emptyList()) }
+    var prevSide by remember { mutableStateOf<Map<String, Rect>>(emptyMap()) }
+
+    val step: EqSolveStep? = item.steps.getOrNull(stepIndex)
+    val act = step?.action
+    /** ★ 只有搬运才跨等号线 —— 换位/合并/对调只在同一侧重排（与主舞台同一条铁律） */
+    val isMove = act?.type == EqActionType.MOVE
+    /** 这一步已经填完了（答对之后） */
+    val filled = phase == SolveCardPhase.LAND || phase == SolveCardPhase.SETTLED
+    /** 两边整体对调那一拍（纯视觉擦身而过，不做 FLIP 测量） */
+    val flipping = step?.type == EqStepType.FLIP && phase == SolveCardPhase.SLIDE
+
+    /**
+     * 卡片上此刻渲染的两侧。
+     *  · move —— 全程停在 before：源项变灰留着、目标侧由隐形落位槽占位 ⇒ 飞越期间布局零重排
+     *  · swap / combine —— 到点切 after，再靠 FLIP 补差值动画
+     *  · flip（含 flipSides 补出来的那次对调）/「算出来」—— 到点直接切 after
+     */
+    val view: EqState? = when {
+        step == null -> null
+        isMove -> step.before
+        act?.type == EqActionType.SWAP || act?.type == EqActionType.COMBINE ->
+            if (swapped) step.after else step.before
+        else -> if (phase == SolveCardPhase.ASK || phase == SolveCardPhase.FIND) step.before else step.after
+    }
+
+    // ── 时间轴：点对之后把这一拍的动画演出来（FIND → 飞/滑 → 落 → 停）──
+    //    ⚠️ SOLVE 那一步没有可演的动作 ⇒ 直接亮结果。
+    //    ⚠️ 同侧三类**绝不**走 fly 分支 —— 见文件头那条铁律。
+    LaunchedEffect(playToken) {
+        if (playToken == 0 || reduced) return@LaunchedEffect
+        val s = step ?: return@LaunchedEffect
+        val a = s.action
+        if (s.type == EqStepType.SOLVE) {
+            phase = SolveCardPhase.SETTLED
+            return@LaunchedEffect
+        }
+        delay(S_FIND)
+        if (a != null && a.type == EqActionType.MOVE) {
+            // ── 飞：只有跨等号的搬运才走这条 ──
+            phase = SolveCardPhase.FLY
+            var src: Rect? = null
+            var slot: Rect? = null
+            var eqR: Rect? = null
+            var tries = 0
+            // 几何可能还没量到（第一帧）—— 最多等 4 帧
+            while (tries < 4 && (src == null || slot == null || eqR == null)) {
+                withFrameNanos { }
+                src = geom.relTo("stage", "src")
+                slot = geom.relTo("stage", "slot")
+                eqR = geom.relTo("stage", "eq")
+                tries++
+            }
+            val ss = src
+            val tt = slot
+            val qq = eqR
+            if (ss != null && tt != null && qq != null) {
+                // 幽灵中心到达等号线时的进度比例（dx 为 0 时按一半算）
+                val span = tt.center.x - ss.center.x
+                val cross = (if (abs(span) < 1f) 0.5f else (qq.center.x - ss.center.x) / span)
+                    .coerceIn(0.3f, 0.8f)
+                fly.snapTo(0f)
+                // ★ 跨线那一刻：符号翻牌
+                launch {
+                    snapshotFlow { fly.value }.first { it >= cross }
+                    symFlipped = true
+                }
+                withFrameNanos { }
+                fly.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(S_FLY.toInt(), easing = CubicBezierEasing(0.45f, 0.05f, 0.35f, 1f)),
+                )
+            }
+            symFlipped = false
+            phase = SolveCardPhase.LAND
+            delay(S_LAND)
+            phase = SolveCardPhase.SETTLED
+        } else {
+            // ── 同侧重排：一个字节都不跨等号线 ──
+            phase = SolveCardPhase.SLIDE
+            if (a != null && (a.type == EqActionType.SWAP || a.type == EqActionType.COMBINE)) {
+                // ① 此刻渲染的还是「换位前 / 合并前」的形态 —— 先把那一侧的旧位置量下来
+                slideSide = a.from
+                prevSide = geom.snapshot(if (a.from == EqSide.LEFT) "lval-" else "rval-")
+                swapped = true
+                repeat(2) { withFrameNanos { } } // 等换序后的布局落定
+                val own = if (a.from == EqSide.LEFT) view?.left.orEmpty() else view?.right.orEmpty()
+                val prefix = if (a.from == EqSide.LEFT) "lval-" else "rval-"
+                val plan = mutableListOf<Pair<Int, Float>>()
+                own.forEachIndexed { i, term ->
+                    // ⚠️ snapshot 的 key 是**带前缀的完整 key**（"lval-8"），不能拿 term.value 直接查
+                    val prev = prevSide["$prefix${term.value}"] ?: return@forEachIndexed
+                    val now = geom.abs("$prefix${term.value}") ?: return@forEachIndexed
+                    val dx = prev.left - now.left
+                    if (abs(dx) < 0.5f) return@forEachIndexed // 位置没动（比如中间那个「+」）就别动它
+                    plan.add(i to dx)
+                }
+                slidePlan = plan
+                slide.snapTo(0f)
+                slide.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(S_SLIDE.toInt(), easing = CubicBezierEasing(0.34f, 1.16f, 0.64f, 1f)),
+                )
+                slidePlan = emptyList()
+            } else {
+                // flip（含 flipSides 补出来的那次对调）：不做 FLIP 测量，靠整体擦身而过
+                swapped = true
+                slide.snapTo(0f)
+                slide.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(S_SLIDE.toInt(), easing = CubicBezierEasing(0.4f, 0f, 0.6f, 1f)),
+                )
+            }
+            phase = SolveCardPhase.LAND
+            delay(S_LAND)
+            phase = SolveCardPhase.SETTLED
+        }
+    }
+
+    val nextStep: () -> Unit = {
+        stepIndex += 1
+        phase = SolveCardPhase.ASK
+        tried = emptyList()
+        swapped = false
+        symFlipped = false
+        slidePlan = emptyList()
+    }
+
+    /** 点选项：错了可以再试（每一步都得真填对），对了就把这一拍的动画演出来 */
+    val pick: (String) -> Unit = { o ->
+        val s = step
+        if (s != null && phase == SolveCardPhase.ASK) {
+            val right = o == s.answer
+            if (tried.isEmpty()) onGraded?.invoke(right) // 成绩只记第一次点选
+            if (!right) {
+                tried = tried + o
+            } else if (reduced || s.type == EqStepType.SOLVE) {
+                // 关掉了动画 / 这步没有可演的动作 ⇒ 直接到位
+                swapped = true
+                phase = SolveCardPhase.SETTLED
+            } else {
+                phase = SolveCardPhase.FIND
+                playToken += 1
+            }
+        }
+    }
+
+    // ── 整道题已经填完了 ──
+    if (step == null || view == null) {
+        SolveDone(item = item, index = index)
+        return
+    }
+
+    val borderColor = when {
+        filled -> OkColor
+        tried.isNotEmpty() -> BadColor
+        else -> Color(0xFFE2E8F0)
+    }
+    val cardState = EqMoveUiState(
+        phase = solvePhaseToEq(phase),
+        stepDone = filled,
+        swapped = swapped,
+        symFlipped = symFlipped,
+    )
+
+    Card(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .border(1.dp, borderColor, RoundedCornerShape(12.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+    ) {
+        Column(Modifier.padding(11.dp)) {
+            // ── 头：题号 + 原式 + 进度 ──
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (index != null) {
+                    Text(
+                        index.toString(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .size(17.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Faint)
+                            .padding(top = 1.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(
+                    eqToText(item.initial),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = InkColor,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f),
+                )
+                Text("${stepIndex + 1} / ${item.steps.size}", fontSize = 11.sp, color = Faint)
+            }
+
+            // ── 已经填过的步骤：一行一条，攒起来就是完整的解题过程 ──
+            if (stepIndex > 0) {
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    for (i in 0 until stepIndex) {
+                        val s = item.steps[i]
+                        SolveChip(no = i + 1, label = s.label, after = eqToText(s.after))
+                    }
+                }
+            }
+
+            // ── 当前这一步的小舞台 ──
+            Spacer(Modifier.height(7.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFFF8FAFC))
+                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                    .padding(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 16.dp)
+                    .onGloballyPositioned { geom.report("stage", it.boundsInRoot()) },
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    EqSideContent(
+                        side = view.left,
+                        which = EqSide.LEFT,
+                        act = act,
+                        state = cardState,
+                        geom = geom,
+                        slidePlan = if (slideSide == EqSide.LEFT) slidePlan else emptyList(),
+                        slideT = slide.value,
+                        valuePrefix = "lval-",
+                        modifier = Modifier.weight(1f).then(eqFlipLayer(flipping, EqSide.LEFT, slide.value)),
+                        size = SOLVE_FONT,
+                        spacing = 6.dp,
+                    )
+                    Text(
+                        "=",
+                        fontSize = 21.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Faint,
+                        modifier = Modifier
+                            .padding(horizontal = 1.dp)
+                            .posReporter { geom.report("eq", it) },
+                    )
+                    EqSideContent(
+                        side = view.right,
+                        which = EqSide.RIGHT,
+                        act = act,
+                        state = cardState,
+                        geom = geom,
+                        slidePlan = if (slideSide == EqSide.RIGHT) slidePlan else emptyList(),
+                        slideT = slide.value,
+                        valuePrefix = "rval-",
+                        modifier = Modifier.weight(1f).then(eqFlipLayer(flipping, EqSide.RIGHT, slide.value)),
+                        size = SOLVE_FONT,
+                        spacing = 6.dp,
+                    )
+                }
+
+                // 飞行中的幽灵（相对卡片舞台坐标，不参与布局）
+                if (!reduced && phase == SolveCardPhase.FLY && act != null) {
+                    val s = geom.relTo("stage", "src")
+                    val t = geom.relTo("stage", "slot")
+                    val q = geom.relTo("stage", "eq")
+                    if (s != null && t != null && q != null) {
+                        val gx = t.center.x - s.center.x
+                        val gy = t.center.y - s.center.y
+                        val cross = (if (abs(gx) < 1f) 0.5f else (q.center.x - s.center.x) / gx)
+                            .coerceIn(0.3f, 0.8f)
+                        val pose = eqGhostPose(fly.value, gx, gy, cross)
+                        Box(
+                            Modifier
+                                .offset {
+                                    IntOffset((s.left + pose.dx).roundToInt(), (s.top + pose.dy).roundToInt())
+                                }
+                                .graphicsLayer {
+                                    scaleX = pose.scale
+                                    scaleY = pose.scale
+                                    alpha = pose.alpha
+                                },
+                        ) {
+                            GhostBlock(
+                                act = act,
+                                flipped = symFlipped,
+                                t = flipAnim.value,
+                                size = SOLVE_FONT,
+                                glyphW = 13.dp,
+                                padH = 5.dp,
+                                padV = 1.dp,
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── 问 + 选项 ──
+            Spacer(Modifier.height(7.dp))
+            Text(
+                "第 ${stepIndex + 1} 步 · ${step.label}",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = AsColor,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xFFFFF7ED))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+            Text(
+                step.ask,
+                fontSize = 12.5.sp,
+                color = Slate,
+                modifier = Modifier.padding(top = 5.dp),
+            )
+
+            Spacer(Modifier.height(7.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                step.options.forEach { o ->
+                    val isRight = o == step.answer
+                    val isWrong = tried.contains(o)
+                    val showRight = phase != SolveCardPhase.ASK && isRight
+                    val bg = when {
+                        showRight -> OkColor
+                        isWrong -> BadColor
+                        o == "不变" -> Color.Transparent // 「不变」不透底，靠虚线框跟四个「变号」区分
+                        else -> Color(0xFFF8FAFC)
+                    }
+                    Text(
+                        text = o,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (showRight || isWrong) Color.White else solveOptFg(o),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        textDecoration = if (isWrong) TextDecoration.LineThrough else TextDecoration.None,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(bg)
+                            .then(
+                                if (o == "不变" && phase == SolveCardPhase.ASK) {
+                                    Modifier.drawBehind {
+                                        drawRoundRect(
+                                            color = BorderColor,
+                                            cornerRadius = CornerRadius(9.dp.toPx()),
+                                            style = Stroke(
+                                                width = 2f,
+                                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(9f, 7f)),
+                                            ),
+                                        )
+                                    }
+                                } else {
+                                    Modifier.border(
+                                        1.dp,
+                                        if (showRight || isWrong) bg else BorderColor,
+                                        RoundedCornerShape(9.dp),
+                                    )
+                                },
+                            )
+                            .clickableNoRipple(enabled = phase == SolveCardPhase.ASK) { pick(o) }
+                            .padding(vertical = 8.dp),
+                    )
+                }
+            }
+
+            // ── 反馈 ──
+            if (phase == SolveCardPhase.ASK && tried.isNotEmpty()) {
+                val last = tried.last()
+                val tip = if (step.trapAnswer != null && last == step.trapAnswer) {
+                    step.trapTip ?: step.wrongTip
+                } else {
+                    step.wrongTip
+                }
+                Text(
+                    "❌ 再想想 —— $tip",
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BadColor,
+                    modifier = Modifier.padding(top = 7.dp),
+                )
+            }
+            if (filled) {
+                Text(
+                    "✅ 对了！${step.why}",
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OkColor,
+                    modifier = Modifier.padding(top = 7.dp),
+                )
+                Text(
+                    "这一步做完：${eqToText(step.after)}",
+                    fontSize = 12.sp,
+                    color = Slate,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+            if (phase == SolveCardPhase.SETTLED) {
+                Text(
+                    if (stepIndex + 1 < item.steps.size) "下一步 ▶" else "看结果 🎉",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 9.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(InkColor)
+                        .clickableNoRipple { nextStep() }
+                        .padding(vertical = 10.dp),
+                )
+            }
+        }
+    }
+}
+
+/** 一道分步题全部填完之后的样子：把走过的每一步连起来，就是完整的解题过程 */
+@Composable
+private fun SolveDone(item: EqSolveItem, index: Int? = null) {
+    Card(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .border(1.dp, if (item.solved) OkColor else Color(0xFFE2E8F0), RoundedCornerShape(12.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+    ) {
+        Column(Modifier.padding(11.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (index != null) {
+                    Text(
+                        index.toString(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .size(17.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Faint)
+                            .padding(top = 1.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(
+                    eqToText(item.initial),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = InkColor,
+                    maxLines = 1,
+                )
+            }
+            Spacer(Modifier.height(7.dp))
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                item.steps.forEachIndexed { i, s ->
+                    SolveChip(no = i + 1, label = s.label, after = eqToText(s.after))
+                }
+            }
+            Text(
+                if (item.solved) "🎉 解出来了：x = ${item.answer}" else "🧩 这一步填完了",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (item.solved) OkColor else Slate,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                item.finalNote,
+                fontSize = 11.5.sp,
+                color = Faint,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+/** 解题轨迹上的一小条：「1 跨线变号 → x = 13 + 5」 */
+@Composable
+private fun SolveChip(no: Int, label: String, after: String) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color(0xFFF1F5F9))
+            .padding(horizontal = 7.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("$no", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Faint)
+        Spacer(Modifier.width(4.dp))
+        Text("$label → $after", fontSize = 10.sp, color = Slate, maxLines = 1)
+    }
+}
+
+/**
+ * 「两边对调」那一拍的视觉：左边从**右边**滑来、右边从**左边**滑来（擦身而过）。
+ * ★ 刻意不做 FLIP 测量 —— 对调时两侧的项会换边，「按文本找旧位」本就不成立。
+ */
+private fun eqFlipLayer(on: Boolean, which: EqSide, t: Float): Modifier =
+    if (!on) {
+        Modifier
+    } else {
+        Modifier.graphicsLayer {
+            val k = 1f - t
+            translationX = (if (which == EqSide.LEFT) 1f else -1f) * k * 16f
+            alpha = 0.25f + 0.75f * t
+        }
+    }
