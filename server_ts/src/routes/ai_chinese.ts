@@ -110,7 +110,7 @@ router.post("/ai-chinese/highlight-mark", async (c) => {
   } catch {
     reply = await deepseekChat("你是一个只输出JSON的小学语文老师。", prompt, 2048, "highlight")
   }
-  const highlights: any[] = []
+  const highlights: { type: string; phrase: string; reason: string }[] = []
   let tip = ""
   try {
     const data = JSON.parse((reply || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""))
@@ -145,8 +145,8 @@ router.post("/ai-chinese/pos-tags", async (c) => {
   // 缓存：同语言同文本不重复调 LLM
   const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
   const cacheKey = `${CACHE_DIR}/postags_${hash}.json`
-  let cached: any = null
-  try { cached = readCache(cacheKey) } catch { /* 缓存读取失败忽略 */ }
+  let cached: Record<string, unknown> | null = null
+  try { cached = readCache(cacheKey) as Record<string, unknown> | null } catch { /* 缓存读取失败忽略 */ }
   if (cached && Array.isArray(cached.tags)) {
     return c.json({ lang, tags: cached.tags })
   }
@@ -213,8 +213,8 @@ router.post("/ai-chinese/story-elements", async (c) => {
   // 缓存：同语言同文本不重复调 LLM
   const hash = createHash("sha256").update(`${lang}|${text}`).digest("hex")
   const cacheKey = `${CACHE_DIR}/storyelems_${hash}.json`
-  let cached: any = null
-  try { cached = readCache(cacheKey) } catch { /* 缓存读取失败忽略 */ }
+  let cached: Record<string, unknown> | null = null
+  try { cached = readCache(cacheKey) as Record<string, unknown> | null } catch { /* 缓存读取失败忽略 */ }
   if (cached && Array.isArray(cached.elements)) {
     return c.json({ lang, elements: cached.elements })
   }

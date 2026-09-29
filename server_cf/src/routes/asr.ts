@@ -71,7 +71,7 @@ router.get("/asr/stream", async (c) => {
 
   const sendDown = (payload: string | ArrayBuffer) => {
     try {
-      server.send(payload as any) // server ↔ client 同一 pair 内互通
+      server.send(payload) // server ↔ client 同一 pair 内互通
     } catch { /* ignore */ }
   }
 
@@ -81,7 +81,7 @@ router.get("/asr/stream", async (c) => {
     const sock = await connectBaidu("web-child")
     up = sock
     sock.addEventListener("message", (ev: MessageEvent) => {
-      const d: any = ev.data
+      const d: string | ArrayBuffer = ev.data
       if (typeof d === "string") sendDown(d)
       else sendDown(d as ArrayBuffer)
     })
@@ -98,7 +98,7 @@ router.get("/asr/stream", async (c) => {
   // 服务端侧 accept + 注册监听
   server.accept()
   server.addEventListener("message", async (ev: MessageEvent) => {
-    const data: any = ev.data
+    const data: string | ArrayBuffer | Blob = ev.data
     if (typeof data === "string") {
       // 文本帧：START → 改写注入凭据；FINISH/CANCEL/HEARTBEAT → 原样转发
       let payload: string = data

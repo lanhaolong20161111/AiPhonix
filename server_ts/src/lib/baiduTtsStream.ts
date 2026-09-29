@@ -6,6 +6,13 @@
 import WebSocket from "ws"
 import { getConfig } from "../env.js"
 
+// 百度流式 TTS WebSocket 控制消息结构（实测）
+interface BaiduTtsWsMsg {
+  type?: string
+  code?: number
+  message?: string
+}
+
 const WS_URL = "wss://aip.baidubce.com/ws/2.0/speech/publiccloudspeech/v1/tts"
 const TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 
@@ -68,7 +75,7 @@ export async function synthesizeStream(text: string, speaker: string, speed: num
   })
   ws.on("message", (data: Buffer, isBinary: boolean) => {
     if (!isBinary) {
-      let j: any = null
+      let j: BaiduTtsWsMsg | null = null
       try { j = JSON.parse(data.toString()) } catch { return }
       if (j?.type === "system.started") {
         if (j.code !== 0) return fail(new Error(`流式 TTS 启动失败 code=${j.code} ${j.message ?? ""}`))

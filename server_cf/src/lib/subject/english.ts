@@ -45,6 +45,8 @@ import {
   tidyBlocks,
   writeCacheJson,
   dropPageNumberLines,
+  type RawBlock,
+  type RawLine,
   type SubjectOcrOutcome,
 } from "./kernel.js"
 
@@ -73,10 +75,10 @@ export const ENGLISH_CACHE_SUFFIX = "_en_r6"
  *  因此它也享受了 `markPoetry` 的"短行 + 句末标点 → 整块居中"判定。本次隔离**原样保留**
  *  以免版面发生非预期变化；隔离之后要改这一条，只需动这一个函数，不会再波及语文。 */
 export function finalizeEnglishBlocks(raw: unknown[]): Block[] {
-  const cleaned = (raw || [])
-    .map((b: any) => {
-      const lines = ((b?.lines || []) as unknown[])
-        .map((ln: any) => {
+  const cleaned = ((raw || []) as RawBlock[])
+    .map((b: RawBlock) => {
+      const lines = ((b?.lines || []) as RawLine[])
+        .map((ln: RawLine) => {
           const lt = cleanOcrText(String(ln?.text ?? "")).trim()
           if (!lt.trim()) return null
           return { text: lt, indent: clampIndent(ln?.indent) }

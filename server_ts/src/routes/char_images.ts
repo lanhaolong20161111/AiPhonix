@@ -14,15 +14,39 @@ const IMAGE_DIR = dataPath("char_images")
 const FEEDBACK_FILE = dataPath("char_image_feedback.json")
 const AUDIO_DIR = dataPath("char_audio")
 
-let index: any[] = []
-let indexMap = new Map<string, any>()
+/** 单字图片索引项（char_image_index.json 里的元素） */
+interface CharImageItem {
+  char?: string
+  pinyin?: string
+  image?: string
+  url?: string
+  grade?: string
+  semester?: string
+  type?: string
+  [k: string]: unknown
+}
+/** 反馈记录项 */
+interface CharImageFeedback {
+  user_id?: number
+  char?: string
+  grade?: string
+  semester?: string
+  type?: string
+  learning_status?: unknown
+  needs_regen?: boolean
+  timestamp?: string
+  [k: string]: unknown
+}
+
+let index: CharImageItem[] = []
+let indexMap = new Map<string, CharImageItem>()
 const pinyinCache = new Map<string, string>()
 
 const loadIndex = () => {
   index = []
   indexMap = new Map()
   mkdirSync(IMAGE_DIR, { recursive: true })
-  const data = readJson<{ items?: any[] } | any[]>(INDEX_FILE, [])
+  const data = readJson<{ items?: CharImageItem[] } | CharImageItem[]>(INDEX_FILE, [])
   const raw = Array.isArray(data) ? data : data?.items ?? []
   for (const item of raw) {
     if (!item?.char) continue
@@ -86,7 +110,7 @@ router.post("/feedback", async (c) => {
     needs_regen: Boolean(body?.needs_regen),
     timestamp: new Date().toISOString(),
   }
-  const feedbacks = readJson<any[]>(FEEDBACK_FILE, [])
+  const feedbacks = readJson<CharImageFeedback[]>(FEEDBACK_FILE, [])
   const existing = feedbacks.find(
     (x) =>
       Number(x?.user_id ?? 0) === entry.user_id &&
@@ -109,7 +133,7 @@ router.post("/feedback", async (c) => {
 
 // GET /api/v1/char-images/feedback（全站学习反馈：要求登录）
 router.get("/feedback", requireAuth(), (c) => {
-  let items = readJson<any[]>(FEEDBACK_FILE, [])
+  let items = readJson<CharImageFeedback[]>(FEEDBACK_FILE, [])
   const user_id = Number(c.req.query("user_id") ?? 0)
   const limit = Number(c.req.query("limit") ?? 50)
   const offset = Number(c.req.query("offset") ?? 0)
@@ -118,7 +142,7 @@ router.get("/feedback", requireAuth(), (c) => {
   items = [...items].sort((a, b) => String(b?.timestamp ?? "").localeCompare(String(a?.timestamp ?? "")))
   const stats = { correct: 0, wrong: 0, unsure: 0, unmarked: 0 }
   for (const x of items) {
-    const s = x?.learning_status
+    const s = String(x?.learning_status ?? "")
     if (s in stats) stats[s as keyof typeof stats]++
     else stats.unmarked++
   }

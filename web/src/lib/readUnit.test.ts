@@ -1,6 +1,13 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { splitSentences, sentenceAt, toReadableBlockText } from "./readUnit"
+import {
+  splitSentences,
+  sentenceAt,
+  toReadableBlockText,
+  buildRange,
+  paraIndexAtOffset,
+  rangeSliceIn,
+} from "./readUnit"
 
 test("中文按句末标点切句，标点归前句", () => {
   const spans = splitSentences("秋天的雨，是一把钥匙。它带着清凉和温柔。")
@@ -92,4 +99,81 @@ test("整块文本：多段拼接结果与逐段读一致（缩进空格已归�
 test("整块文本：空串/空白安全返回空", () => {
   assert.equal(toReadableBlockText(""), "")
   assert.equal(toReadableBlockText("  \n\t "), "")
+})
+
+// ── 范围朗读（选字模式）────────────────────────────────────
+
+test("范围：同段内两点 → 切出连续子串（含缩进前缀按原样保留）", () => {
+  const paras = ["\u3000\u3000秋天的雨，是一把钥匙。", "\u3000\u3000它带着清凉和温柔。"]
+  const built = buildRange(paras, { pi: 0, offset: 4 }, { pi: 0, offset: 9 })
+  assert.ok(built)
+  assert.equal(built.text, "的雨，是一")
+  assert.deepEqual(built.range, { start: 4, end: 9, paras })
+})
+
+test("范围：终点在起点之前 → 自动交换", () => {
+  const paras = ["abcdef"]
+  const built = buildRange(paras, { pi: 0, offset: 5 }, { pi: 0, offset: 1 })
+  assert.ok(built)
+  assert.equal(built.text, "bcde")
+  assert.equal(built.range.start, 1)
+  assert.equal(built.range.end, 5)
+})
+
+test("范围：跨段选择 → 拼成连续朗读文本", () => {
+  const paras = ["第一段。", "第二段。", "第三段。"]
+  const built = buildRange(paras, { pi: 0, offset: 2 }, { pi: 2, offset: 2 })
+  assert.ok(built)
+  assert.equal(built.text, "段。第二段。第三")
+  assert.equal(built.range.start, 2)
+  assert.equal(built.range.end, 10)
+})
+
+test("范围：两点相同（点同一字）→ 扩成单字", () => {
+  const paras = ["abcdef"]
+  const mid = buildRange(paras, { pi: 0, offset: 3 }, { pi: 0, offset: 3 })
+  assert.ok(mid)
+  assert.equal(mid.text, "d")
+  const last = buildRange(paras, { pi: 0, offset: 5 }, { pi: 0, offset: 5 })
+  assert.ok(last)
+  assert.equal(last.text, "f") // 末字点两次 → 向前扩成该字本身
+})
+
+test("范围：偏移越界夹到段落边界，段落列表为空返回 null", () => {
+  const paras = ["abc"]
+  const built = buildRange(paras, { pi: 0, offset: -3 }, { pi: 0, offset: 99 })
+  assert.ok(built)
+  assert.equal(built.text, "abc")
+  assert.equal(buildRange([], { pi: 0, offset: 0 }, { pi: 0, offset: 1 }), null)
+})
+
+test("范围：按点击偏移反查段落下标（数学逐行块用）", () => {
+  const paras = ["12", "34", "56"]
+  assert.equal(paraIndexAtOffset(paras, 0), 0)
+  assert.equal(paraIndexAtOffset(paras, 1), 0)
+  assert.equal(paraIndexAtOffset(paras, 2), 1)
+  assert.equal(paraIndexAtOffset(paras, 5), 2)
+  assert.equal(paraIndexAtOffset(paras, 99), 2)
+})
+
+test("范围高亮：第 0 段只高亮落在区间内的子串", () => {
+  const paras = ["abcdef"]
+  const range = { start: 2, end: 4, paras }
+  assert.deepEqual(rangeSliceIn("abcdef", 0, range), { from: 2, to: 4 })
+  assert.deepEqual(rangeSliceIn("abcdef", 0, { start: 4, end: 4, paras }), null) // 空区间
+  assert.deepEqual(rangeSliceIn("abcdef", 1, range), null) // 段下标越界
+})
+
+test("范围高亮：跨段时各段只高亮自己的交集", () => {
+  const paras = ["abc", "def"]
+  const range = { start: 1, end: 5, paras }
+  assert.deepEqual(rangeSliceIn("abc", 0, range), { from: 1, to: 3 })
+  assert.deepEqual(rangeSliceIn("def", 1, range), { from: 0, to: 2 })
+  assert.deepEqual(rangeSliceIn("ghi", 2, range), null)
+})
+
+test("范围高亮：body 与 paras 段落体不一致时按 indexOf 兜底", () => {
+  const paras = ["abc"]
+  const range = { start: 1, end: 3, paras }
+  assert.deepEqual(rangeSliceIn("xxabcxx", 0, range), { from: 3, to: 5 })
 })

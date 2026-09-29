@@ -7,6 +7,32 @@ function hmacSha1Base64(key: string, message: string): string {
   return createHmac("sha1", key).update(message).digest("base64")
 }
 
+// 腾讯 SOE 评测返回结构（实测 WebSocket final 帧的 result 对象）
+interface SoeTone { RefTone?: unknown; HypothesisTone?: unknown }
+interface SoePhoneInfo {
+  Phone?: string; Word?: string; RefPhone?: string; ReferencePhone?: string
+  PronAccuracy?: number; MatchTag?: number
+}
+interface SoeWord {
+  PronAccuracy?: number; MatchTag?: number; Word?: string; ReferenceWord?: string
+  Tone?: SoeTone; RefTone?: unknown; HypothesisTone?: unknown
+  PhoneInfos?: SoePhoneInfo[]; PhoneInfo?: SoePhoneInfo[]
+}
+interface SoeResult {
+  PronAccuracy?: number; PronFluency?: number; PronCompletion?: number; SuggestedScore?: number
+  Words?: SoeWord[]
+}
+// 本服务输出结构（transformResult 产物）
+interface SoePhoneOut {
+  phone: string; reference_phone: string; accuracy: number; match_tag: number
+}
+interface SoeWordOut {
+  word: string; accuracy: number; match_tag: number
+  tone: { ref: unknown; hyp: unknown } | null
+  phone_infos: SoePhoneOut[]
+}
+type PinyinFn = (text: string, opts?: Record<string, unknown>) => unknown
+
 export class TencentSOEService {
   constructor(private appId: string, private secretId: string, private secretKey: string) {}
 
@@ -58,7 +84,8 @@ export class TencentSOEService {
   /** 把中文参考文本转成拼音（text_mode=1 用），非中文字符丢弃。pinyin-pro 不可用时返回 null。 */
   private async zhToPinyin(text: string): Promise<string | null> {
     try {
-      const mod: any = await import("pinyin-pro")
+      const imported = await import("pinyin-pro")
+      const mod = imported as { pinyin?: PinyinFn; default?: { pinyin?: PinyinFn } }
       const fn = mod?.pinyin ?? mod?.default?.pinyin
       if (typeof fn !== "function") return null
       const arr = fn(text, { toneType: "num", type: "array", nonZh: "removed" }) as string[]
@@ -83,7 +110,7 @@ export class TencentSOEService {
     pron_fluency: number
     pron_completion: number
     suggested_score: number
-    words: unknown[]
+    words: SoeWordOut[]
   }> {
     const voiceId = randomUUID()
     const ts = String(Math.floor(Date.now() / 1000))
@@ -114,11 +141,13 @@ export class TencentSOEService {
     const uv = keys.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join("&")
     const wsUrl = `wss://soe.cloud.tencent.com/soe/api/${this.appId}?${uv}&signature=${encodeURIComponent(signature)}`
 
-    const audioData = Buffer.from(audioBase64, "base64")
+    const audioRaw = Buffer.from(audioBase64, "base64")
+    // 腾讯要求音频长度为偶数（16bit 采样），奇数会报 4107；去掉末尾字节不影响 mp3 解码
+    const audioData = audioRaw.length % 2 === 1 ? audioRaw.subarray(0, audioRaw.length - 1) : audioRaw
 
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(wsUrl, { handshakeTimeout: 30000 })
-      let result: any = null
+      let result: SoeResult | null = null
 
       ws.on("open", () => {
         // 握手响应会先来，open 后等待 recv
@@ -180,7 +209,7 @@ export class TencentSOEService {
     pron_fluency: number
     pron_completion: number
     suggested_score: number
-    words: unknown[]
+    words: SoeWordOut[]
   }> {
     if (!engine) {
       if (scene === "pinyin") engine = "16k_zh"
@@ -218,8 +247,8 @@ export class TencentSOEService {
     }
   }
 
-  private transformResult(result: any, engine: string, evalModeVal: string) {
-    const words: any[] = []
+  private transformResult(result: SoeResult, engine: string, evalModeVal: string) {
+    const words: SoeWordOut[] = []
     for (const w of result.Words ?? []) {
       let tone: { ref: unknown; hyp: unknown } | null = null
       const t = w.Tone
@@ -230,8 +259,8 @@ export class TencentSOEService {
       }
       const phoneItems = w.PhoneInfos ?? w.PhoneInfo ?? []
       const phones = (Array.isArray(phoneItems) ? phoneItems : [])
-        .filter((p: any) => p && typeof p === "object")
-        .map((p: any) => ({
+        .filter((p: SoePhoneInfo) => p && typeof p === "object")
+        .map((p: SoePhoneInfo) => ({
           phone: String(p.Phone ?? "") || String(p.Word ?? "") || String(p.RefPhone ?? "") || "",
           reference_phone: String(p.ReferencePhone ?? "") || String(p.RefPhone ?? "") || "",
           accuracy: p.PronAccuracy ?? 0,

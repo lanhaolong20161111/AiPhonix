@@ -17,7 +17,7 @@
 import { readBlob, exists } from "./storage.js"
 import { getEnv } from "../env.js"
 import { cleanOcrText } from "./aiTextUtils.js"
-import { markdownToBlocks, stripEmbeddedHtml } from "./paddleMarkdown.js"
+import { markdownToBlocks, stripEmbeddedHtml, type OcrBlock } from "./paddleMarkdown.js"
 
 const JOB_URL = "https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
 const MODEL = "PaddleOCR-VL-1.6"
@@ -53,10 +53,21 @@ function breakerBlockedOutcome(): string {
   return `Paddle 熔断冷却中（连续慢失败 ${breaker.failStreak} 次），跳过以直接回退豆包`
 }
 
+// Paddle API 响应结构（实测 aistudio 托管服务 submit/poll/jsonl 三段式）
+interface PaddleSubmitResp { data?: { jobId?: string } }
+interface PaddlePollResp { data?: { state?: string; resultUrl?: { jsonUrl?: string }; errorMsg?: string } }
+interface PaddleJsonlPage { result?: { layoutParsingResults?: { markdown?: { text?: string } }[] } }
+interface PaddleV6JsonlPage {
+  result?: {
+    dataInfo?: { width?: number; height?: number }
+    ocrResults?: { prunedResult?: { rec_texts?: string[]; rec_scores?: number[]; rec_boxes?: number[][] } }[]
+  }
+}
+
 export interface PaddleOcrOutcome {
   ok: boolean
   text: string
-  blocks: any[]
+  blocks: OcrBlock[]
   markdown: string
   error?: string
   ms?: number
@@ -129,8 +140,8 @@ async function paddleOcrExtractOnce(
       const body = await submit.text().catch(() => "")
       return { ok: false, text: "", blocks: [], markdown: "", error: `submit HTTP ${submit.status}: ${body.slice(0, 200)}`, ms: Date.now() - t0 }
     }
-    const sj = (await submit.json()) as any
-    jobId = sj?.data?.jobId
+    const sj = (await submit.json()) as PaddleSubmitResp
+    jobId = sj?.data?.jobId ?? ""
     if (!jobId) return { ok: false, text: "", blocks: [], markdown: "", error: `无 jobId: ${JSON.stringify(sj).slice(0, 200)}`, ms: Date.now() - t0 }
   } catch (e) {
     return { ok: false, text: "", blocks: [], markdown: "", error: `submit 异常: ${(e as Error).message}`, ms: Date.now() - t0 }
@@ -139,21 +150,21 @@ async function paddleOcrExtractOnce(
   console.log(`[paddle-ocr] 提交任务 ${jobId} (${(Date.now() - t0)}ms)`)
 
   let jsonlUrl = ""
-  let lastState = ""
+  let lastState: string | undefined = ""
   while (Date.now() - t0 < timeoutMs) {
     try {
       const rr = await fetch(`${JOB_URL}/${jobId}`, { headers })
       if (rr.status !== 200) {
         return { ok: false, text: "", blocks: [], markdown: "", error: `poll HTTP ${rr.status}`, ms: Date.now() - t0 }
       }
-      const d = (await rr.json() as any)?.data
+      const d = (await rr.json() as PaddlePollResp)?.data
       const state = d?.state
       if (state !== lastState) {
         console.log(`[paddle-ocr] 状态 ${state} (${(Date.now() - t0)}ms)`)
         lastState = state
       }
       if (state === "done") {
-        jsonlUrl = d?.resultUrl?.jsonUrl
+        jsonlUrl = d?.resultUrl?.jsonUrl ?? ""
         break
       }
       if (state === "failed") {
@@ -183,7 +194,7 @@ async function paddleOcrExtractOnce(
       const s = line.trim()
       if (!s) continue
       try {
-        const res = (JSON.parse(s) as any)?.result
+        const res = (JSON.parse(s) as PaddleJsonlPage)?.result
         for (const r2 of res?.layoutParsingResults ?? []) {
           md += (r2?.markdown?.text ?? "") + "\n"
         }
@@ -292,28 +303,28 @@ async function paddleV6DetectBlocksOnce(
       const body = await submit.text().catch(() => "")
       return { ok: false, blocks: [], width: 0, height: 0, error: `submit HTTP ${submit.status}: ${body.slice(0, 200)}`, ms: Date.now() - t0 }
     }
-    const sj = (await submit.json()) as any
-    jobId = sj?.data?.jobId
+    const sj = (await submit.json()) as PaddleSubmitResp
+    jobId = sj?.data?.jobId ?? ""
     if (!jobId) return { ok: false, blocks: [], width: 0, height: 0, error: `无 jobId: ${JSON.stringify(sj).slice(0, 200)}`, ms: Date.now() - t0 }
   } catch (e) {
     return { ok: false, blocks: [], width: 0, height: 0, error: `submit 异常: ${(e as Error).message}`, ms: Date.now() - t0 }
   }
 
   let jsonlUrl = ""
-  let lastState = ""
+  let lastState: string | undefined = ""
   while (Date.now() - t0 < timeoutMs) {
     try {
       const rr = await fetch(`${V6_JOB_URL}/${jobId}`, { headers })
       if (rr.status !== 200) {
         return { ok: false, blocks: [], width: 0, height: 0, error: `poll HTTP ${rr.status}`, ms: Date.now() - t0 }
       }
-      const d = (await rr.json() as any)?.data
+      const d = (await rr.json() as PaddlePollResp)?.data
       const state = d?.state
       if (state !== lastState) {
         lastState = state
       }
       if (state === "done") {
-        jsonlUrl = d?.resultUrl?.jsonUrl
+        jsonlUrl = d?.resultUrl?.jsonUrl ?? ""
         break
       }
       if (state === "failed") {
@@ -341,7 +352,7 @@ async function paddleV6DetectBlocksOnce(
       const s = line.trim()
       if (!s) continue
       try {
-        const parsed = JSON.parse(s) as any
+        const parsed = JSON.parse(s) as PaddleV6JsonlPage
         const result = parsed?.result
         const info = result?.dataInfo
         if (info) {

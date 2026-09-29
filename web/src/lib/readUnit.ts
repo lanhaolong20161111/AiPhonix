@@ -85,3 +85,79 @@ export function toReadableBlockText(raw: string): string {
     .replace(/\s+/g, " ")
     .trim()
 }
+
+// ── 范围朗读（「选字」模式：先点起点字，再点终点字，朗读开头到结束这一段）──────
+//
+// 范围定义在**块的段落体序列**上：渲染时每个块（/文本段）有一串按顺序的段落体
+// （语文/数学正文 = reflow 出的语义段落，数学算式 = 逐行，英语 = englishReflow 段落，
+// 均含各自缩进前缀），`ReadRange.start/end` 是落在 `paras.join("")` 上的字符偏移。
+// 这样起点/终点即使跨段，也能统一成一段连续的朗读文本，并按段切出各自的高亮区间。
+
+export interface ReadRange {
+  /** 范围在 paras.join("") 上的起始偏移（含） */
+  start: number
+  /** 范围在 paras.join("") 上的结束偏移（不含） */
+  end: number
+  /** 块内按渲染顺序的段落体列表（渲染与计算必须同一份） */
+  paras: string[]
+}
+
+/** 从「段落体列表 + 点击偏移」反查所在段落下标（数学逐行块 / 表格等 paraKey 不带序号时用）。 */
+export function paraIndexAtOffset(paras: string[], offset: number): number {
+  if (!paras || paras.length === 0) return 0
+  let cum = 0
+  for (let i = 0; i < paras.length; i++) {
+    cum += paras[i].length
+    if (offset < cum) return i
+  }
+  return paras.length - 1
+}
+
+/** 第 paraIndex 段落在朗读区间内应高亮的子串区间（相对该段 body）；无交集返回 null。
+ *  body 与 paras[paraIndex] 应逐字一致（都是渲染时的段落体）；不一致时按 indexOf 兜底。 */
+export function rangeSliceIn(
+  body: string,
+  paraIndex: number,
+  range: ReadRange,
+): { from: number; to: number } | null {
+  const { start, end, paras } = range
+  if (!paras || paraIndex < 0 || paraIndex >= paras.length) return null
+  let cum = 0
+  for (let i = 0; i < paraIndex; i++) cum += paras[i].length
+  const lo = Math.max(cum, start) - cum
+  const hi = Math.min(cum + paras[paraIndex].length, end) - cum
+  if (hi <= lo) return null
+  if (body === paras[paraIndex]) return { from: lo, to: hi }
+  const idx = body.indexOf(paras[paraIndex])
+  if (idx >= 0) return { from: idx + lo, to: idx + hi }
+  return null
+}
+
+/** 两个「段落下标 + 段内偏移」→ 规整成一段连续范围 + 朗读文本。
+ *  终点在起点之前时自动交换；两点相同时扩成单字；段落列表为空返回 null。 */
+export function buildRange(
+  paras: string[],
+  a: { pi: number; offset: number },
+  b: { pi: number; offset: number },
+): { range: ReadRange; text: string } | null {
+  if (!paras || paras.length === 0) return null
+  const cumAt = (pi: number, off: number): number => {
+    const idx = Math.max(0, Math.min(pi, paras.length - 1))
+    let cum = 0
+    for (let i = 0; i < idx; i++) cum += paras[i].length
+    return cum + Math.max(0, Math.min(off, paras[idx].length))
+  }
+  const total = paras.reduce((s, p) => s + p.length, 0)
+  if (total === 0) return null
+  let s = cumAt(a.pi, a.offset)
+  let e = cumAt(b.pi, b.offset)
+  if (s > e) [s, e] = [e, s]
+  if (s === e) {
+    if (e < total) e = s + 1
+    else if (s > 0) s -= 1
+    else return null
+  }
+  const text = paras.join("").slice(s, e)
+  if (!text) return null
+  return { range: { start: s, end: e, paras }, text }
+}

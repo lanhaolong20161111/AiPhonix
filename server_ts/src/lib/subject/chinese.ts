@@ -46,6 +46,8 @@ import {
   normType,
   readCacheJson,
   writeCacheJson,
+  type RawBlock,
+  type RawLine,
   type SubjectOcrOutcome,
 } from "./kernel.js"
 
@@ -55,10 +57,10 @@ import {
  *
  *  这三条**内联在语文自己的文件里**，不通过参数开关表达 —— 调用方无法漏传、也无法传错。 */
 export function finalizeChineseBlocks(raw: unknown[]): Block[] {
-  const cleaned = (raw || [])
-    .map((b: any) => {
-      const lines = ((b?.lines || []) as unknown[])
-        .map((ln: any) => {
+  const cleaned = ((raw || []) as RawBlock[])
+    .map((b: RawBlock) => {
+      const lines = ((b?.lines || []) as RawLine[])
+        .map((ln: RawLine) => {
           const lt = cleanOcrText(String(ln?.text ?? "")).trim()
           if (!lt) return null
           return { text: lt, indent: clampIndent(ln?.indent) } as BlockLine

@@ -6,6 +6,19 @@ import { Hono } from "hono"
 
 const router = new Hono()
 
+// B站搜索 API 返回结构（实测）
+interface BiliSearchItem {
+  bvid?: string
+  title?: string
+  author?: string
+  duration?: string | number
+}
+interface BiliSearchResp {
+  code?: number
+  message?: string
+  data?: { result?: BiliSearchItem[]; numResults?: number }
+}
+
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
@@ -40,12 +53,12 @@ router.get("/bili/search", async (c) => {
       },
       signal: AbortSignal.timeout(10000),
     })
-    const j: any = await resp.json().catch(() => null)
+    const j = (await resp.json().catch(() => null)) as BiliSearchResp | null
     if (!j || j.code !== 0) {
       return c.json({ detail: `B站搜索失败(code=${j?.code ?? "?"} ${j?.message ?? ""})`, code: j?.code ?? -1 }, 502)
     }
     const items = (j.data?.result ?? [])
-      .map((it: any) => ({
+      .map((it: BiliSearchItem) => ({
         bvid: it.bvid ?? "",
         title: String(it.title ?? "").replace(/<[^>]+>/g, ""),
         author: it.author ?? "",

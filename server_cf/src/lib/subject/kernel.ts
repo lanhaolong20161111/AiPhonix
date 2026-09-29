@@ -40,6 +40,20 @@ import { autoOrient } from "../image.js"
 export const BLOCK_TYPES = ["title", "heading", "body", "question", "option", "note", "table", "foot"]
 export const BLOCK_ALIGNS = ["left", "center", "right"]
 
+/** 未归一化的原始 block（来自 ark JSON / 缓存，字段可能缺失）。
+ *  finalize*Blocks 接受这个形状，归一化成 Block[]。 */
+export interface RawBlock {
+  type?: string
+  text?: string
+  align?: string
+  lines?: unknown[]
+  polyphones?: Record<string, unknown>
+}
+export interface RawLine {
+  text?: string
+  indent?: unknown
+}
+
 /** 越界 type 一律回退 `body`（契约 §1 约定 1） */
 export function normType(v: unknown): string {
   const t = String(v ?? "").trim()

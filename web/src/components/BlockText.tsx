@@ -11,6 +11,8 @@ import { isSpeakableChar } from "../lib/chars"
 import { tokenizePinyinText, applyToneStr } from "../lib/pinyin"
 import { BLANK_RE, splitBlanks } from "../lib/paragraphFlow"
 import { chineseBodyParagraphs } from "../lib/subject/chinese"
+import { rangeSliceIn } from "../lib/readUnit"
+import type { ReadRange } from "../lib/readUnit"
 import { PinyinInline } from "./PinyinInline"
 import { getCharPinyinDict } from "../services/wordbank"
 import { useSoeScore } from "../hooks/useSoeScore"
@@ -38,13 +40,15 @@ interface BlockTextProps {
   onSpeakPhrase?: (phrase: string) => void
   /** 隐藏块头朗读喇叭（由外部操作条提供） */
   hideSpeak?: boolean
-  /** 段落级点击（朗读模式）：父级据此判定「整个块 / 块里的哪一句」并高亮朗读。
+  /** 段落级点击（朗读模式）：父级据此判定「整个块 / 块里的哪一句 / 起点→终点范围」并高亮朗读。
    *  paraKey 是段落在本块内的稳定键（`p0`/`l3`），父级回传 readMark 时按它匹配；
-   *  blockText 是本块**全文** —— 段落模式的朗读单位是整个块，不传它父级只能拿到被点的那一段。 */
-  onParaClick?: (paraKey: string, paraText: string, blockText: string, e: ReactMouseEvent) => void
+   *  blockText 是本块**全文** —— 段落模式的朗读单位是整个块，不传它父级只能拿到被点的那一段。
+   *  paras 是本块按渲染顺序的段落体列表（选字范围朗读用，作起点/终点的累计偏移基准）。 */
+  onParaClick?: (paraKey: string, paraText: string, blockText: string, e: ReactMouseEvent, paras?: string[]) => void
   /** 朗读模式选中的单位：paraKey 指明哪一段，text 是高亮子串。
-   *  `whole=true` 表示整块模式 —— 本块内每一段都整段高亮（块文本跨多段，无法用子串匹配）。 */
-  readMark?: { paraKey: string; text: string; whole?: boolean } | null
+   *  `whole=true` 表示整块模式 —— 本块内每一段都整段高亮（块文本跨多段，无法用子串匹配）。
+   *  `range` 表示选字范围模式 —— 各段按在 paras 序列上的累计偏移切本段交集高亮。 */
+  readMark?: { paraKey: string; text: string; whole?: boolean; range?: ReadRange } | null
   /** 朗读模式是否生效：生效时给正文加可点提示（点正文=选单位朗读，不再逐字点读） */
   readActive?: boolean
 }
@@ -350,12 +354,29 @@ export function BlockText({
     })
   }
 
-  /** 段落正文渲染：整块模式→整段全高亮；句子模式→只高亮 readMark.text 那段子串。
+  /** 段落正文渲染：整块模式→整段全高亮；句子模式→只高亮 readMark.text 那段子串；
+   *  选字范围→按本段在块内段落体序列（lineKey 即段落下标）上的累计偏移切本段交集。
    *  按子串切成 前/中/后 三段分别 renderLine —— 各段仍是 inline span，视觉上连成一段。 */
   const renderParaBody = (body: string, paraKey: string, lineKey: number, narrowSpace: boolean): ReactNode => {
     // 整块模式：块文本是「多段拼起来」的，body 只是其中一段，子串匹配必然落空 →
     // 直接整段套 read-hl（每段各自高亮，合起来就是整块被选中）。
     if (readMark?.whole) return renderLine(body, lineKey, narrowSpace, true)
+    // 选字范围：lineKey = 该段在块内段落体序列（flowParas / baseLines）里的下标
+    if (readMark?.range) {
+      const rs = rangeSliceIn(body, lineKey, readMark.range)
+      if (rs && rs.to > rs.from) {
+        const before = body.slice(0, rs.from)
+        const mid = body.slice(rs.from, rs.to)
+        const after = body.slice(rs.to)
+        return (
+          <>
+            {before && renderLine(before, lineKey * 10 + 1, narrowSpace)}
+            {renderLine(mid, lineKey * 10 + 2, narrowSpace, true)}
+            {after && renderLine(after, lineKey * 10 + 3, narrowSpace)}
+          </>
+        )
+      }
+    }
     const mk = readMark && readMark.paraKey === paraKey ? readMark.text : ""
     if (mk) {
       const idx = body.indexOf(mk)
@@ -407,7 +428,7 @@ export function BlockText({
           // 标题块没有「段落容器」，整块就是这一行：直接把点击挂在这一层，
           // 否则朗读模式下点标题没反应（正文块的点击挂在各自的 .flow-para / .block-line-row 上）。
           onClick={
-            isTitle && onParaClick ? (e) => onParaClick("t0", text, block.text, e) : undefined
+            isTitle && onParaClick ? (e) => onParaClick("t0", text, block.text, e, [text]) : undefined
           }
         >
           {isTitle ? (
@@ -426,7 +447,7 @@ export function BlockText({
                       <div
                         key={i}
                         className={`block-line-row block-para${onParaClick ? " read-pickable" : ""}`}
-                        onClick={onParaClick ? (e) => onParaClick(paraKey, body, block.text, e) : undefined}
+                        onClick={onParaClick ? (e) => onParaClick(paraKey, body, block.text, e, flowParas!.map((p) => `\u3000\u3000${p}`)) : undefined}
                       >
                         {renderParaBody(body, paraKey, i, true)}
                       </div>
@@ -441,7 +462,7 @@ export function BlockText({
                         key={i}
                         className={`block-line-row${onParaClick ? " read-pickable" : ""}`}
                         style={{ paddingLeft: pad ? `${pad}em` : undefined }}
-                        onClick={onParaClick ? (e) => onParaClick(paraKey, l.text, block.text, e) : undefined}
+                        onClick={onParaClick ? (e) => onParaClick(paraKey, l.text, block.text, e, baseLines.map((x) => x.text)) : undefined}
                       >
                         {renderParaBody(l.text, paraKey, i, false)}
                       </div>

@@ -79,7 +79,7 @@ function safeName(name: string): string {
 }
 
 // 解析 multipart 表单里的 meta（兼容字符串 / Blob 文件两种上传方式）
-async function parseMeta(form: FormData): Promise<Record<string, any>> {
+async function parseMeta(form: FormData): Promise<Record<string, unknown>> {
   const metaRaw = form.get("meta")
   try {
     if (typeof metaRaw === "string") return JSON.parse(metaRaw)
@@ -96,18 +96,19 @@ async function parseMeta(form: FormData): Promise<Record<string, any>> {
 // 存盘 + 写 manifest，返回记录与文件名。供 capture / auto-evaluate 复用。
 async function saveCapture(
   data: Buffer,
-  meta: Record<string, any>
+  meta: Record<string, unknown>
 ): Promise<{ rec: CaptureMeta; path: string }> {
   const timestampMs = Math.max(0, Number(meta.timestamp_ms) || 0)
   const movieName = String(meta.movie_name ?? "unknown").slice(0, 256)
   const note = String(meta.note ?? "").slice(0, 500)
   const videoWidth = Number(meta.video_width) || 0
   const videoHeight = Number(meta.video_height) || 0
+  const cropMeta = (meta.crop ?? {}) as Record<string, unknown>
   const crop = {
-    x: Number(meta.crop?.x) || 0,
-    y: Number(meta.crop?.y) || 0,
-    w: Number(meta.crop?.w) || 0,
-    h: Number(meta.crop?.h) || 0,
+    x: Number(cropMeta.x) || 0,
+    y: Number(cropMeta.y) || 0,
+    w: Number(cropMeta.w) || 0,
+    h: Number(cropMeta.h) || 0,
   }
   const cropWidth = Number(meta.crop_width) || 0
   const cropHeight = Number(meta.crop_height) || 0
@@ -202,7 +203,7 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
     `字幕原文：\n${subtitle}\n` +
     "要求：grammar_corrections 最多列 3 处；若无误则为空数组；explanation 不超过 60 字。"
 
-  let parsed: any = {}
+  let parsed: Record<string, unknown> = {}
   try {
     const reply = await getArk().chat({
       prompt: userPrompt,
@@ -226,9 +227,9 @@ async function evaluateSubtitle(imagePath: string, lang: "en" | "zh"): Promise<{
     translation: String(parsed.translation ?? "").trim(),
     grammar_corrections: Array.isArray(parsed.grammar_corrections)
       ? parsed.grammar_corrections
-          .filter((g: any) => g && g.original && g.corrected)
+          .filter((g: Record<string, unknown>) => g && g.original && g.corrected)
           .slice(0, 3)
-          .map((g: any) => ({
+          .map((g: Record<string, unknown>) => ({
             original: String(g.original),
             corrected: String(g.corrected),
             reason: String(g.reason ?? ""),

@@ -8701,3 +8701,527 @@ button.btn-mode-off {
   .pr-slot, .pr-tok, .pr-op { transition: none; }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   等式变变变（移项变号）— /module/math_equation_move
+   核心视觉：项跨过等号线的那一瞬间，符号「翻牌」
+   ══════════════════════════════════════════════════════════════ */
+
+.eq-page {
+  --eq-md: #2563eb;
+  --eq-as: #ea580c;
+  --eq-ok: #16a34a;
+  --eq-bad: #dc2626;
+  --eq-lit: #fde68a;
+}
+
+.eq-sub {
+  margin: -6px 0 12px;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+/* ── chip 行 ── */
+.eq-rules-bar {
+  display: flex;
+  flex-wrap: wrap; /* ⚠️ 必须：320 宽视口下会顶出横向滚动 */
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.eq-chip {
+  width: auto; /* ⚠️ 全局 button 是 width:100% */
+  flex: 0 1 auto;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #dbe3ee;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── 口诀 ── */
+.eq-rules { margin-bottom: 14px; }
+.eq-rule-block + .eq-rule-block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+}
+.eq-rule-title { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: #0f172a; }
+.eq-rules ul { margin: 0; padding-left: 18px; }
+.eq-rules li { font-size: 13px; line-height: 1.75; color: #475569; }
+
+/* ── 「为什么能移项」 ── */
+.eq-why { margin-bottom: 14px; }
+.eq-why-title { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: #334155; }
+.eq-why-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+.eq-why-line { display: inline-flex; align-items: center; gap: 7px; }
+.eq-why-add { display: inline-flex; align-items: center; gap: 4px; animation: eq-rise 0.35s ease-out; }
+/* 「两边同时加减同一个数」演示里的抵消：+5 与 -5 一起划掉（只划一个会以为另一个还留着） */
+.eq-why-cancel { opacity: 0.22; text-decoration: line-through; transition: opacity 0.35s; }
+.eq-why-cancelwrap { display: inline-flex; align-items: center; gap: 4px; }
+.eq-why-note { margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: #64748b; }
+
+/* ── 题型选择 ── */
+/* 13 种题型按引擎的 KIND_GROUPS 分四组（组名/顺序都来自引擎，页面不再手写清单） */
+.eq-kind-groups { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 14px; }
+.eq-kind-group { display: flex; flex-direction: column; gap: 6px; }
+.eq-kind-group-title { margin: 0; font-size: 12px; font-weight: 800; color: #64748b; }
+/* 最后一组是「反例 · 同侧不变号」—— 换个标题色提醒这是「陷阱」组
+   （依赖 KIND_GROUPS 把反例固定在最后一位） */
+.eq-kind-group:last-child .eq-kind-group-title { color: #b45309; }
+.eq-kind-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 8px; }
+/* 组内的选择行把上下 margin 收掉，组间距交给 .eq-kind-groups 的 gap，避免双倍留白 */
+.eq-kind-group .eq-kind-row { margin: 0; }
+.eq-kind {
+  width: auto;
+  padding: 6px 11px;
+  border-radius: 9px;
+  border: 1px solid #dbe3ee;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.eq-kind.eq-kind-on { background: #1e293b; border-color: #1e293b; color: #fff; }
+.eq-kind-tip { margin: 0 0 10px; font-size: 12px; color: #94a3b8; }
+
+/* ── 舞台 ── */
+.eq-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 26px 14px 30px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.eq-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+}
+
+.eq-eq { font-size: 28px; font-weight: 800; color: #94a3b8; padding: 0 2px; }
+
+.eq-tok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 9px;
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s, opacity 0.3s, transform 0.3s;
+}
+
+/* ★ 符号定宽：+ - × ÷ 四个符号占**同样宽度**
+   ⇒ 落位前后宽度完全一致 ⇒ 布局零重排 ⇒ 幽灵落点像素级准确 */
+.eq-op {
+  display: inline-block;
+  width: 1.06em;
+  text-align: center;
+  /* ★ 抬到最上层：同侧交换时 5 和 x 会从「+」身上擦过去，
+     绝不能把「+」压住 —— 这一页的重点恰恰是「符号根本没动」 */
+  position: relative;
+  z-index: 4;
+}
+.eq-op-md { color: var(--eq-md); }
+.eq-op-as { color: var(--eq-as); }
+
+.eq-val { display: inline-block; }
+.eq-val.eq-var { font-style: italic; }
+
+/* 「找」：要搬走的这一整块脉动高亮 */
+.eq-tok.eq-lit {
+  background: var(--eq-lit);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.35);
+  animation: eq-pulse 1s ease-in-out infinite;
+}
+@keyframes eq-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3); }
+  50% { transform: scale(1.1); box-shadow: 0 0 0 7px rgba(251, 191, 36, 0.13); }
+}
+
+/* 「落」：搬走了 —— ★ 只变灰划掉、**不删除**（保留占位 ⇒ 布局不跳，也看得出它从哪儿走） */
+.eq-tok.eq-taken {
+  opacity: 0.3;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  animation: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* 「合」：合并同类项后**活下来的那一项**（3x 和 -2x ⇒ x）—— 它是「几块合起来的结果」。
+   用紫色，跟移项的加减橙 / 乘除蓝区分开；`animation: none` 明确压掉 .eq-lit 的脉动
+   （滑到位的瞬间这一项可能同时还想亮，紫底优先，避免两个动画打架） */
+.eq-tok.eq-merged {
+  background: #ede9fe;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.28);
+  animation: none;
+}
+
+/* 目标侧的**隐形落位槽**：从动画一开始就占着位，落位时显形
+   ⚠️ 隐藏态只许改 opacity —— 加 transform 会让 getBoundingClientRect 测出偏移的落点 */
+.eq-slot { opacity: 0; }
+.eq-slot.eq-slot-on {
+  opacity: 1;
+  animation: eq-land-glow 0.85s ease-out;
+}
+@keyframes eq-land-glow {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55); }
+  100% { box-shadow: 0 0 0 11px rgba(22, 163, 74, 0); }
+}
+
+/* ── 等号分界线（上下两段，等号自己是「门」）── */
+.eq-border { position: absolute; inset: 0; pointer-events: none; }
+.eq-border-seg {
+  position: absolute;
+  width: 0;
+  border-left: 2px dashed #cbd5e1;
+  transform: translateX(-1px);
+}
+.eq-border-seg.eq-border-hit { animation: eq-border-hit 0.9s ease-out; }
+@keyframes eq-border-hit {
+  0% { border-color: #cbd5e1; box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+  30% { border-color: #f59e0b; box-shadow: 0 0 0 7px rgba(251, 191, 36, 0.28); }
+  100% { border-color: #cbd5e1; box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+}
+.eq-border-tag {
+  position: absolute;
+  bottom: 7px;
+  transform: translateX(-50%);
+  padding: 0 5px;
+  background: #fff;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* ── 飞行中的幽灵 ── */
+.eq-ghost {
+  position: fixed;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* ⚠️ padding / gap / 字号必须与 .eq-tok 逐字一致 ⇒ 落位瞬间交接看不出接缝 */
+  padding: 2px 6px;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.18), 0 0 0 2px rgba(251, 191, 36, 0.45);
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #0f172a;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 首项本来没写符号：符号位**占位但不可见**（宽度一致 ⇒ 落位不跳） */
+.eq-ghost .eq-op.eq-op-off { opacity: 0; }
+
+/* ★★ 跨过等号线那一刻：符号「翻个牌」——旧符号转半圈缩走，新符号从对面转出来 */
+.eq-flipwrap {
+  position: relative;
+  display: inline-block;
+  width: 1.06em;
+  height: 1.18em;
+}
+.eq-flipwrap > span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.eq-flipwrap .eq-fw-old { animation: eq-fw-old 0.56s cubic-bezier(0.4, 0, 0.6, 1) both; }
+.eq-flipwrap .eq-fw-new { animation: eq-fw-new 0.56s cubic-bezier(0.4, 0, 0.6, 1) both; }
+/* 首项本来就没写符号 —— 旧符号位不能凭空冒出来 */
+.eq-flipwrap .eq-fw-old.eq-fw-invisible { visibility: hidden; }
+@keyframes eq-fw-old {
+  0% { transform: rotate(0deg) scale(1); opacity: 1; }
+  45% { transform: rotate(-165deg) scale(0.45); opacity: 0.3; }
+  100% { transform: rotate(-180deg) scale(0); opacity: 0; }
+}
+@keyframes eq-fw-new {
+  0% { transform: rotate(180deg) scale(0); opacity: 0; }
+  52% { transform: rotate(190deg) scale(0); opacity: 0; }
+  100% { transform: rotate(360deg) scale(1); opacity: 1; }
+}
+
+/* ── 阶段提示 ── */
+.eq-hint {
+  min-height: 64px;
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.65;
+  transition: background 0.3s, color 0.3s;
+}
+.eq-hint-fly { background: #fef3c7; color: #92400e; }
+.eq-hint-done { background: #dcfce7; color: #166534; }
+.eq-hint-sm { margin: 10px 0 0; font-size: 12px; line-height: 1.6; color: #94a3b8; }
+
+/* ── 结果区 ── */
+.eq-result-box {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  text-align: center;
+  animation: eq-rise 0.4s ease-out;
+}
+.eq-result-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #16a34a;
+}
+.eq-result-main { margin: 0; font-size: 26px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+.eq-result-main b { font-size: 30px; color: var(--eq-ok); }
+.eq-result-eq { margin: 6px 0 0; font-size: 13px; color: #64748b; font-variant-numeric: tabular-nums; }
+.eq-check { margin: 8px 0 0; font-size: 13px; color: #166534; font-variant-numeric: tabular-nums; }
+.eq-ok { margin-left: 6px; font-weight: 800; color: var(--eq-ok); }
+
+@keyframes eq-rise {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ── 控制按钮 ── */
+.eq-actions { display: flex; gap: 10px; margin-top: 14px; }
+.eq-btn {
+  width: auto; /* ⚠️ 全局 button 为 width:100% */
+  flex: 1 1 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbe3ee;
+  background: #fff;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.eq-btn.eq-btn-primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+.eq-btn:disabled { background: #9ca3af; border-color: #9ca3af; color: #fff; }
+
+/* ── 易错卡 ── */
+.eq-mistakes { margin-bottom: 4px; }
+.eq-mistake { margin-bottom: 10px; padding: 13px 14px; }
+.eq-mistake-title { margin: 0 0 10px; font-size: 14px; font-weight: 800; color: #0f172a; }
+.eq-mistake-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.eq-mistake-expr { flex: 1; }
+.eq-mistake-row.eq-wrong { background: #fef2f2; }
+.eq-mistake-row.eq-right {
+  background: #f0fdf4;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.45s, transform 0.45s;
+}
+.eq-mistake-row.eq-right.eq-right-in { opacity: 1; transform: none; }
+.eq-mistake-tag {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+.eq-wrong .eq-mistake-tag { color: var(--eq-bad); }
+.eq-right .eq-mistake-tag { color: var(--eq-ok); }
+.eq-wrong .eq-mistake-expr { color: #991b1b; }
+.eq-right .eq-mistake-expr { color: #166534; }
+.eq-mistake-why { margin: 9px 0 0; font-size: 13px; line-height: 1.6; color: #475569; }
+.eq-mistake-tip {
+  margin: 6px 0 0;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #fef3c7;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #92400e;
+}
+
+/* ── 对比练习 ── */
+.eq-practice { margin-top: 20px; }
+.eq-sec-title { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: #0f172a; }
+.eq-sec-sub { margin: 0 0 12px; font-size: 12px; color: #94a3b8; line-height: 1.55; }
+
+.eq-pcard { position: relative; margin-bottom: 10px; overflow: hidden; }
+.eq-pcard::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #e2e8f0;
+}
+.eq-pcard.eq-pcard-ok::before { background: var(--eq-ok); }
+.eq-pcard.eq-pcard-bad::before { background: var(--eq-bad); }
+
+.eq-pcard-expr { margin: 0 0 8px; font-size: 22px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+.eq-pcard-ask { margin: 0 0 10px; font-size: 13px; color: #475569; }
+.eq-pcard-opts { display: flex; gap: 8px; }
+.eq-opt {
+  width: auto;
+  flex: 1 1 0;
+  padding: 10px 4px;
+  border-radius: 11px;
+  border: 2px solid #e2e8f0;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.eq-opt.eq-opt-as { color: var(--eq-as); }
+.eq-opt.eq-opt-md { color: var(--eq-md); }
+.eq-opt.eq-opt-right {
+  border-color: var(--eq-ok);
+  background: #dcfce7;
+  color: #166534;
+  animation: eq-opt-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.eq-opt.eq-opt-wrong {
+  border-color: var(--eq-bad);
+  background: #fee2e2;
+  color: #991b1b;
+  animation: eq-shake 0.45s;
+}
+.eq-opt-sym { margin-right: 1px; }
+/* 第 5 个选项「不变」：它是「同侧换位」的正解，却是移项题的陷阱
+   ⇒ **绝不能**用绿/红暗示对错，用虚线边 + 石板灰底跟四个符号选项区分开。
+   ⚠️ 底色/边框用 :not() 限定在「还没作答」的状态：这条规则位置比 .eq-opt-right/.eq-opt-wrong
+      更靠后，specificity 又相同，不加 :not() 会把绿底红底直接盖掉。 */
+.eq-opt.eq-opt-same { font-size: 15px; }
+.eq-opt.eq-opt-same .eq-opt-sym { margin-right: 0; }
+.eq-opt.eq-opt-same:not(.eq-opt-right):not(.eq-opt-wrong) {
+  border-style: dashed;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+}
+@keyframes eq-opt-pop {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+.eq-pcard-fb { margin-top: 10px; padding: 9px 11px; border-radius: 10px; font-size: 13px; line-height: 1.65; animation: eq-rise 0.3s ease-out; }
+.eq-pcard-fb.eq-fb-ok { background: #f0fdf4; color: #166534; }
+.eq-pcard-fb.eq-fb-bad { background: #fef2f2; color: #991b1b; }
+.eq-fb-head { display: block; }
+.eq-fb-res { display: block; margin-top: 4px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+@keyframes eq-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+/* 无障碍：尊重系统「减少动态效果」 */
+@media (prefers-reduced-motion: reduce) {
+  .eq-tok,
+  .eq-slot,
+  .eq-hint,
+  .eq-mistake-row.eq-right { transition: none; }
+  .eq-tok.eq-lit,
+  .eq-slot.eq-slot-on,
+  .eq-opt.eq-opt-right,
+  .eq-opt.eq-opt-wrong,
+  .eq-result-box,
+  .eq-pcard-fb,
+  .eq-why-add,
+  .eq-border-seg.eq-border-hit { animation: none; }
+  .eq-flipwrap .eq-fw-old,
+  .eq-flipwrap .eq-fw-new { animation: none; }
+  .eq-flipwrap .eq-fw-old { display: none; }
+}
+
+/* ── 随机 5 题练习：专练移项变号 ── */
+.eq-drill { margin-top: 22px; }
+.eq-drill-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.eq-drill-head .eq-sec-title { margin: 0; }
+/* ⚠️ 全局 button 是 width:100%、.eq-btn 是 flex:1 1 0 —— 这里两个都要显式收回 */
+.eq-btn.eq-btn-sm {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #f8fafc;
+}
+.eq-btn.eq-btn-sm:active { background: #eef2f7; }
+.eq-drill-score {
+  margin: 0 0 12px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 12.5px;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+.eq-drill-score b { color: #1d4ed8; font-size: 14px; }
+.eq-drill-perfect { color: #16a34a; font-weight: 800; }
+.eq-pcard-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  vertical-align: 2px;
+}
+

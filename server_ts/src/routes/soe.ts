@@ -1,6 +1,6 @@
 /** SOE 路由 — /api/v1/soe/evaluate|records|records/{id}|records/batch-delete */
 import { Hono } from "hono"
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray, type SQL } from "drizzle-orm"
 import { db } from "../db/index.js"
 import { speechEvalRecords } from "../db/schema.js"
 import { getConfig } from "../env.js"
@@ -83,7 +83,7 @@ router.post("/soe/records", async (c) => {
   const evalType = String(body?.eval_type ?? "")
   const limit = Math.min(Number(body?.limit ?? 50) || 50, 200)
   const offset = Math.max(Number(body?.offset ?? 0) || 0, 0)
-  const conditions: any[] = []
+  const conditions: SQL[] = []
   if (userId > 0) conditions.push(eq(speechEvalRecords.userId, userId))
   if (language) conditions.push(eq(speechEvalRecords.language, language))
   if (evalType) conditions.push(eq(speechEvalRecords.evalType, evalType))

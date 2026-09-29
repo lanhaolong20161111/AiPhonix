@@ -35,6 +35,8 @@ import {
   normType,
   readCacheJson,
   writeCacheJson,
+  type RawBlock,
+  type RawLine,
   type SubjectOcrOutcome,
 } from "./kernel.js"
 /** 数学的存储位置（与语文/英语各自的目录天然隔离，不存在键名撞车） */
@@ -100,10 +102,10 @@ export function mathClean(s: string): string {
  *  而 `markOrderedIndent` 会把以「1.」「一、」「①」开头的行一律抬到 indent=1 —— 试卷题干本来就顶格，
  *  抬上去就与原图不符。这里只保留表格结构修正（markdown 竖线表合并 + 内嵌 `<table>` 提升为 table 块）。 */
 export function finalizeMathBlocks(raw: unknown[]): Block[] {
-  const cleaned = (raw || [])
-    .map((b: any) => {
-      const lines = ((b?.lines || []) as unknown[])
-        .map((ln: any) => {
+  const cleaned = ((raw || []) as RawBlock[])
+    .map((b: RawBlock) => {
+      const lines = ((b?.lines || []) as RawLine[])
+        .map((ln: RawLine) => {
           // 竖式对齐靠行首空格：只裁行尾，绝不 trim 行首
           const lt = mathClean(String(ln?.text ?? "")).replace(/\s+$/, "")
           if (!lt.trim()) return null

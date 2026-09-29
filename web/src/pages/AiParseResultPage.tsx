@@ -27,7 +27,8 @@ import { detailFromError } from "../services/auth"
 import { addWordbook } from "../services/wordbook"
 import { SpeakableTable } from "../components/SpeakableTable"
 import { splitInlineTables, stripMdHeaders } from "../lib/paragraphFlow"
-import { sentenceAt, toReadableBlockText } from "../lib/readUnit"
+import { sentenceAt, toReadableBlockText, rangeSliceIn, buildRange, paraIndexAtOffset } from "../lib/readUnit"
+import type { ReadRange } from "../lib/readUnit"
 import {
   isTableSeg,
   mathAlignTextAlign,
@@ -272,6 +273,17 @@ function caretOffsetIn(e: ReactMouseEvent, paraText: string): number {
   return Math.min(total, paraText.length)
 }
 
+/** 范围朗读：从 paraKey 反查段落下标（renderMixedText/BlockText/EnglishResult 的 paraKey 形如
+ *  `p2` / `l3` / `s0-p1`）；paraKey 不带序号时（数学逐行块的 `body`）按点击偏移累计长度反查。 */
+function paraIndexFromKey(paraKey: string, paras: string[] | undefined, off: number): number {
+  if (!paras || paras.length === 0) return 0
+  const m = /(?:^|-)p(\d+)$/.exec(paraKey)
+  if (m) return Math.min(Number(m[1]), paras.length - 1)
+  const l = /^l(\d+)$/.exec(paraKey)
+  if (l) return Math.min(Number(l[1]), paras.length - 1)
+  return paraIndexAtOffset(paras, off)
+}
+
 /** 文章要素 kind → CSS 类（与 BlockText 的 STORY_CLS 保持一致） */const STORY_CLS: Record<string, string> = {
   person: "story-person",
   time: "story-time",
@@ -304,8 +316,8 @@ function EnglishResult({
     blockIdx: number
     /** 本块全文：段落模式的朗读单位是整个块（整段课文 / 整道题） */
     blockText: string
-    onParaClick: (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string) => void
-    readMark: { blockIdx: number; paraKey: string; text: string; whole?: boolean } | null
+    onParaClick: (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string, paras?: string[]) => void
+    readMark: { blockIdx: number; paraKey: string; text: string; whole?: boolean; range?: ReadRange } | null
   }
 }) {
   // 去掉模型偶发写出的 markdown 标题记号（`## Tom's Family`），否则会原样显示 `##`。
@@ -331,11 +343,27 @@ function EnglishResult({
   // 断行规则（标题样行独占一段、句末即段落边界）由英语学科模块自己决定，
   // 不再通过 opts 开关从外部注入 —— 见 web/src/lib/subject/english.ts。
   /** 朗读高亮切分（与语文/数学同构）：整块模式→本段全高亮（块全文跨多段，子串匹配落空）；
-   *  句子模式→只高亮 readMark.text 那一句。 */
-  const splitRead = (body: string, paraKey: string, renderFn: (s: string) => ReactNode): ReactNode => {
+   *  句子模式→只高亮 readMark.text 那一句；选字范围→按段在块内段落体序列上的偏移切交集。 */
+  const splitRead = (body: string, paraKey: string, renderFn: (s: string) => ReactNode, pi: number): ReactNode => {
     const rm = readMeta
     const mine = !!rm && !!rm.readMark && rm.readMark.blockIdx === rm.blockIdx
     if (mine && rm!.readMark!.whole) return <span className="read-hl">{renderFn(body)}</span>
+    if (mine && rm!.readMark!.range) {
+      const rs = rangeSliceIn(body, pi, rm!.readMark!.range)
+      if (rs && rs.to > rs.from) {
+        const before = body.slice(0, rs.from)
+        const mid = body.slice(rs.from, rs.to)
+        const after = body.slice(rs.to)
+        return (
+          <>
+            {before && renderFn(before)}
+            <span className="read-hl">{renderFn(mid)}</span>
+            {after && renderFn(after)}
+          </>
+        )
+      }
+      return renderFn(body)
+    }
     const mk = mine && rm!.readMark!.paraKey === paraKey ? rm!.readMark!.text : ""
     if (mk) {
       const idx = body.indexOf(mk)
@@ -354,8 +382,10 @@ function EnglishResult({
     }
     return renderFn(body)
   }
-  const textParas = (segText: string, keyBase: string) =>
-    englishReflow(segText).map((para, pi) => {
+  const textParas = (segText: string, keyBase: string) => {
+    // 选字范围朗读要用「块内段落体序列」做累计偏移基准：与渲染逐字一致（英语段落无缩进前缀）
+    const paras = englishReflow(segText)
+    return paras.map((para, pi) => {
       const paraKey = `${keyBase}-p${pi}`
       const pickable = !!readMeta
       return (
@@ -364,7 +394,7 @@ function EnglishResult({
           className={`flow-para${pickable ? " read-pickable" : ""}`}
           onClick={
             pickable
-              ? (e) => readMeta!.onParaClick(readMeta!.blockIdx, paraKey, para, e, readMeta!.blockText)
+              ? (e) => readMeta!.onParaClick(readMeta!.blockIdx, paraKey, para, e, readMeta!.blockText, paras)
               : undefined
           }
         >
@@ -375,10 +405,11 @@ function EnglishResult({
               onWordSpeak={onWordSpeak}
               phrases={phrases}
             />
-          ))}
+          ), pi)}
         </div>
       )
     })
+  }
   // 内嵌 HTML 表格（Paddle/豆包表格模式把表格混排在正文里）：按 `<table>` 切段 ——
   // 表格段画成真正的表格方框（整词/整格朗读），其余文本段并段后逐词点读。
   // 直接整段丢给 SpeakableTable 会丢掉表格前后的文字，整段丢给逐词渲染则标签会被显示成尖括号。
@@ -493,18 +524,28 @@ export function AiParseResultPage() {
   const [markUploading, setMarkUploading] = useState(false)
 
   // ── 朗读模式（页面左侧小按钮）───────────────────────────────
-  // readUnit：段落（=整个块）/ 句子 二选一（互斥）；repeatOn + repeatTimes：反复朗读（默认 1 次）
-  const [readUnit, setReadUnit] = useState<"para" | "sent" | null>(null)
+  // readUnit：整块（para）/ 句子（sent）/ 选字范围（range）三选一（互斥）；repeatOn + repeatTimes：反复朗读（默认 1 次）
+  const [readUnit, setReadUnit] = useState<"para" | "sent" | "range" | null>(null)
   const [repeatOn, setRepeatOn] = useState(false)
   const [repeatTimes, setRepeatTimes] = useState(1)
   /** 当前高亮的朗读单位。
    *  - 段落模式（whole=true）：text 是**整个块**的全文，块内每一段整段高亮；
-   *  - 句子模式：text 是点中的那一句，按 blockIdx+paraKey 定位到那一段里做子串高亮。 */
+   *  - 句子模式：text 是点中的那一句，按 blockIdx+paraKey 定位到那一段里做子串高亮；
+   *  - 选字范围（range）：text 是起点→终点这一段的朗读文本，range 给出在块内段落体序列上的偏移，
+   *    各段按 rangeSliceIn 切出自己的高亮区间。 */
   const [readMark, setReadMark] = useState<
-    { blockIdx: number; paraKey: string; text: string; whole?: boolean } | null
+    { blockIdx: number; paraKey: string; text: string; whole?: boolean; range?: ReadRange } | null
+  >(null)
+  /** 选字范围朗读：第一次点下的起点（等待第二次点同块的终点）。换模式/换块/换页都会清空。 */
+  const [rangeStart, setRangeStart] = useState<
+    { blockIdx: number; paras: string[]; pi: number; offset: number; ch: string } | null
   >(null)
   /** 朗读模式是否生效（任一按钮打开即可）：生效时点正文=选单位朗读，不再逐字点读 */
   const readActive = readUnit !== null || repeatOn
+  // 离开「选字」模式即清空未完成的起点选择（避免切到句子/整块后还残留半截范围）
+  useEffect(() => {
+    if (readUnit !== "range") setRangeStart(null)
+  }, [readUnit])
 
   // 语文各块的高亮（解析后叠加到正文渲染）
   const [hlMap, setHlMap] = useState<Record<number, HighlightMarkItem[]>>({})
@@ -717,13 +758,47 @@ export function AiParseResultPage() {
    *  - 段落模式 = **整个块**（语文一块=一段/一题，数学一块=一整道题，英语一块=一段课文）；
    *    点块内任一处都读整块，不再只读被点中的那一个语义段落。
    *  - 句子模式 = 用点击偏移定位到那一句。
+   *  - 选字范围 = 第一次点=起点、第二次（同块）点=终点，朗读从起点到终点这一段。
    * 高亮它并朗读（反复朗读开启时按 repeatTimes 连读，默认 1 次）。
    * 挂在这里（早于下方 `if (!session)` 提前 return）以满足 hooks 调用顺序恒定。
    */
   const handleReadClick = useCallback(
-    (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string) => {
+    (blockIdx: number, paraKey: string, paraText: string, e: ReactMouseEvent, blockText?: string, paras?: string[]) => {
       // 标记模式优先：正在选「不认识的字」时点正文只做标记，不朗读
       if (marking) return
+
+      // ── 选字范围朗读：先点起点、再点终点（必须同一块，否则在该块重选起点）──
+      if (readUnit === "range") {
+        // 表格等没有逐字段落序列的块：退回整块朗读（点表格 = 读整块）
+        if (!paras || paras.length === 0) {
+          const t = toReadableBlockText(blockText ?? "") || toReadableBlockText(paraText)
+          if (!t.trim()) return
+          setReadMark({ blockIdx, paraKey: "", text: t, whole: true })
+          const times = repeatOn ? Math.max(1, repeatTimes) : 1
+          void (async () => { for (let i = 0; i < times; i++) await speakBlock(t) })()
+          return
+        }
+        const len = Math.max(0, paraText.length - 1)
+        const off = Math.max(0, Math.min(caretOffsetIn(e, paraText), len))
+        const pi = paraIndexFromKey(paraKey, paras, off)
+        const ch = (paras[pi] ?? "")[Math.min(off, Math.max(0, (paras[pi]?.length ?? 1) - 1))] ?? ""
+        // 第一次点（或换块重选）= 起点；保留 paras 作为该块段落序列的权威来源
+        if (!rangeStart || rangeStart.blockIdx !== blockIdx) {
+          setRangeStart({ blockIdx, paras, pi, offset: off, ch })
+          return
+        }
+        // 第二次（同块）= 终点：用起点的 paras 规整出范围（渲染确定性 → 同块 paras 一致）
+        const built = buildRange(rangeStart.paras, { pi: rangeStart.pi, offset: rangeStart.offset }, { pi, offset: off })
+        setRangeStart(null)
+        if (!built) return
+        const t = toReadableBlockText(built.text)
+        if (!t) return
+        setReadMark({ blockIdx, paraKey: "", text: t, whole: false, range: built.range })
+        const times = repeatOn ? Math.max(1, repeatTimes) : 1
+        void (async () => { for (let i = 0; i < times; i++) await speakBlock(t) })()
+        return
+      }
+
       const unit = readUnit ?? "sent" // 只开了「反复朗读」时默认按句子
       const whole = unit === "para"
       // 整块文本可能带表格 HTML / OCR 物理换行 → 先清成可读串再读。
@@ -739,7 +814,7 @@ export function AiParseResultPage() {
         for (let i = 0; i < times; i++) await speakBlock(t)
       })()
     },
-    [readUnit, repeatOn, repeatTimes, speakBlock, marking],
+    [readUnit, repeatOn, repeatTimes, speakBlock, marking, rangeStart],
   )
 
   /**
@@ -790,8 +865,10 @@ export function AiParseResultPage() {
   const mathSegments = !isChinese && !isEnglish ? mathDisplaySegments(blocks, questions, text) : []
 
   /** 逐字可点读渲染（数学/语文的纯文本分支共用）：点字朗读 + 加生词本 + 记录点击。
-   * HTML 表格不在这里渲染——由 splitInlineTables 切出后交给可点读表格组件。 */
-  const renderTapChars = (t: string, tag: string) =>
+   * HTML 表格不在这里渲染——由 splitInlineTables 切出后交给可点读表格组件。
+   * readRange=true（选字范围朗读）时禁用逐字点读：让点击冒泡到段落容器交给 handleReadClick
+   * 用 caretOffsetIn 取精确偏移，否则逐字 speakChar 会与段落朗读打架。 */
+  const renderTapChars = (t: string, tag: string, readRange = false) =>
     [...t].map((ch, ci) =>
       ch === "\n" || ch === " " || !isSpeakableChar(ch) ? (
         <span key={ci} className="tap-char-space">
@@ -801,11 +878,15 @@ export function AiParseResultPage() {
         <span
           key={ci}
           className={`tap-char-item${speakingChar === ch ? " playing" : ""}`}
-          onClick={() => {
-            addTappedWordbook(ch, tag)
-            void speakChar(ch, {})
-            void recordCharClick([ch])
-          }}
+          onClick={
+            readRange
+              ? undefined
+              : () => {
+                  addTappedWordbook(ch, tag)
+                  void speakChar(ch, {})
+                  void recordCharClick([ch])
+                }
+          }
         >
           {ch}
         </span>
@@ -816,16 +897,34 @@ export function AiParseResultPage() {
    *  中段仍是 inline 元素，视觉上仍是一整段（不能换成块级，否则会断行）。
    *  · 整块模式（readMark.whole）：readMark.text 是**多段拼起来的块全文**，而 body 只是其中
    *    一段，子串匹配必然落空 → 这一段整段高亮（块内每段都走这里 = 整块被选中）。
-   *  · 句子模式：mid = 点中的那一句。 */
+   *  · 句子模式：mid = 点中的那一句。
+   *  · 选字范围（readMark.range）：按该段（pi）在块内段落体序列上的累计偏移切本段交集。 */
   const renderReadSplit = (
     body: string,
     blockIdx: number,
     paraKey: string,
     renderFn: (s: string) => ReactNode,
+    pi: number,
   ): ReactNode => {
     const rm = readMark
     const isMine = !!rm && rm.blockIdx === blockIdx
     if (isMine && rm!.whole) return <span className="read-hl">{renderFn(body)}</span>
+    if (isMine && rm!.range) {
+      const rs = rangeSliceIn(body, pi, rm!.range)
+      if (rs && rs.to > rs.from) {
+        const before = body.slice(0, rs.from)
+        const mid = body.slice(rs.from, rs.to)
+        const after = body.slice(rs.to)
+        return (
+          <>
+            {before && renderFn(before)}
+            <span className="read-hl">{renderFn(mid)}</span>
+            {after && renderFn(after)}
+          </>
+        )
+      }
+      return renderFn(body)
+    }
     const mk = isMine && rm!.paraKey === paraKey ? rm!.text : ""
     if (mk) {
       const idx = body.indexOf(mk)
@@ -884,17 +983,19 @@ export function AiParseResultPage() {
           </div>
         )
       }
-      return reflowFn(seg.text).map((para, pi) => {
+      // 选字范围朗读要用到「块内段落体序列」（起点/终点的累计偏移基准）：
+      // 与渲染逐字一致 —— 含缩进前缀，这样 buildRange/rangeSliceIn 的偏移与段落 body 一一对应。
+      const paras = reflowFn(seg.text).map((para) => (indent ? `\u3000\u3000${para}` : para))
+      return paras.map((body, pi) => {
         const paraKey = `p${pi}`
-        const body = indent ? `\u3000\u3000${para}` : para
         return (
           <div
             key={`x${si}-${pi}`}
             className={`flow-para${readActive ? " read-pickable" : ""}`}
             // 第 5 参 = 本块全文：段落模式读的是「整个块」，不是被点的这一段
-            onClick={readActive ? (e) => handleReadClick(blockIdx, paraKey, body, e, t) : undefined}
+            onClick={readActive ? (e) => handleReadClick(blockIdx, paraKey, body, e, t, paras) : undefined}
           >
-            {renderReadSplit(body, blockIdx, paraKey, (s) => renderTapChars(s, tag))}
+            {renderReadSplit(body, blockIdx, paraKey, (s) => renderTapChars(s, tag, readUnit === "range"), pi)}
           </div>
         )
       })
@@ -916,22 +1017,40 @@ export function AiParseResultPage() {
     if (seg.type === "body") {
       // 算式/竖式块逐行渲染，没有 .flow-para 承载点击 → 点击与高亮都挂在这一层。
       // 整块朗读命中本块时，每行整行高亮（块文本跨多行，无法用子串匹配）。
+      // 选字范围朗读：以「逐行文本」为段落体序列，rangeSliceIn 按行号切本行交集。
+      const lineTexts = seg.lines.map((l) => l.text)
+      const linesText = lineTexts.join("") // 与 DOM 文本一致（行间无分隔符）
       const hl = readActive && !!readMark && readMark.blockIdx === idx && !!readMark.whole
       return (
         <div
           className={`ai-question-block-text tap-char${readActive ? " read-pickable" : ""}`}
           style={style}
-          onClick={readActive ? (e) => handleReadClick(idx, "body", seg.text, e, seg.text) : undefined}
+          onClick={readActive ? (e) => handleReadClick(idx, "body", linesText, e, seg.text, lineTexts) : undefined}
         >
-          {seg.lines.map((l, li) => (
-            <div
-              key={li}
-              className={`math-line${hl ? " read-hl" : ""}`}
-              style={{ paddingInlineStart: `${mathIndentEm(l.indent)}em` }}
-            >
-              {renderTapChars(l.text, "recog_math")}
-            </div>
-          ))}
+          {seg.lines.map((l, li) => {
+            // 选字范围：按行号在块内行序列上切本行的高亮区间
+            const rs = readActive && !!readMark && readMark.blockIdx === idx && readMark.range
+              ? rangeSliceIn(l.text, li, readMark.range)
+              : null
+            const renderLineChars = (s: string) => renderTapChars(s, "recog_math", readUnit === "range")
+            return (
+              <div
+                key={li}
+                className={`math-line${hl ? " read-hl" : ""}`}
+                style={{ paddingInlineStart: `${mathIndentEm(l.indent)}em` }}
+              >
+                {rs && rs.to > rs.from ? (
+                  <>
+                    {l.text.slice(0, rs.from) && renderLineChars(l.text.slice(0, rs.from))}
+                    <span className="read-hl">{renderLineChars(l.text.slice(rs.from, rs.to))}</span>
+                    {l.text.slice(rs.to) && renderLineChars(l.text.slice(rs.to))}
+                  </>
+                ) : (
+                  renderLineChars(l.text)
+                )}
+              </div>
+            )
+          })}
         </div>
       )
     }
@@ -1262,7 +1381,7 @@ export function AiParseResultPage() {
                       onCharClick={handleCharClick}
                       onSpeakBlock={(t) => speakBlock(t)}
                       readActive={readActive}
-                      onParaClick={readActive ? (paraKey, paraText, blockText, e) => handleReadClick(i, paraKey, paraText, e, blockText) : undefined}
+                      onParaClick={readActive ? (paraKey, paraText, blockText, e, paras) => handleReadClick(i, paraKey, paraText, e, blockText, paras) : undefined}
                       readMark={readMark && readMark.blockIdx === i ? readMark : null}
                       hideSpeak
                     />

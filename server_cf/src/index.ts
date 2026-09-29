@@ -4,6 +4,7 @@
  * - 业务路由挂载结构与 server_ts 一致
  */
 import { Hono } from "hono"
+import type { Context } from "hono"
 import { setEnv, getConfig, getEnv } from "./env.js"
 import type { Bindings } from "./bindings.js"
 import { toKey } from "./lib/storage.js"
@@ -177,7 +178,7 @@ function extMime(key: string): string {
   return m ? MIME_BY_EXT[m[1].toLowerCase()] ?? "application/octet-stream" : "application/octet-stream"
 }
 
-async function serveR2Object(c: any, key: string, cacheControl: string): Promise<Response> {
+async function serveR2Object(c: Context, key: string, cacheControl: string): Promise<Response> {
   const env = getEnv()
   const rangeHeader = c.req.header("Range")
   let obj = null as R2ObjectBody | null
@@ -232,7 +233,7 @@ app.get("/", (c) => c.redirect("/web/", 302))
 // 只有「Assets 未命中」的路径（React Router 深链接）才会进到这里 → 回 index.html（SPA fallback）。
 // 注意：fetch 必须用 "/web/"（带斜杠）——Assets 对 "/web/index.html" 会走 clean-URL 重定向到
 // "/web/"（307），而 "/web/" 会直接命中 web/index.html 并 200 返回内容，路径得以保留。
-const serveWebIndex = async (c: any) => {
+const serveWebIndex = async (c: Context) => {
   const req = c.req.raw as Request
   const url = new URL(req.url)
   const assetReq = new Request(new URL("/web/", url), req)

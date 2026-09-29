@@ -277,7 +277,7 @@ router.post("/sentence-batch-save", async (c) => {
   const body = await c.req.json().catch(() => null)
   const sentences = body?.sentences ?? {}
   let added = 0
-  for (const [word, item] of Object.entries(sentences) as [string, any][]) {
+  for (const [word, item] of Object.entries(sentences) as [string, { sentence?: string; source?: string }][]) {
     if (item?.sentence) {
       sentenceCache[word] = { sentence: item.sentence, source: item?.source ?? "cache" }
       added++
@@ -413,7 +413,7 @@ router.post("/en-dialogue-setup", async (c) => {
     const title = String(j?.title ?? "").trim()
     const rawLines = Array.isArray(j?.lines) ? j.lines : []
     const lines = rawLines
-      .map((l: any) => {
+      .map((l: Record<string, unknown>) => {
         const ai = String(l?.ai ?? "").trim()
         const target = String(l?.target ?? "").trim()
         let hint_words: string[]
@@ -617,7 +617,7 @@ router.post("/zh-teach-setup", async (c) => {
     const j = extractJson(reply)
     const title = String(j?.title ?? "").trim()
     const items = (Array.isArray(j?.items) ? j.items : [])
-      .map((it: any) => ({
+      .map((it: Record<string, unknown>) => ({
         q: String(it?.q ?? "").trim(),
         ref: String(it?.ref ?? "").trim(),
         focus: String(it?.focus ?? "").trim(),
@@ -726,11 +726,11 @@ router.post("/zh-poem-setup", async (c) => {
     const title = String(j?.title ?? "").trim()
     const summary = String(j?.summary ?? "").trim()
     const lines = (Array.isArray(j?.lines) ? j.lines : [])
-      .map((l: any) => ({
+      .map((l: Record<string, unknown>) => ({
         verse: String(l?.verse ?? "").trim(),
         meaning: String(l?.meaning ?? "").trim(),
         chars: (Array.isArray(l?.chars) ? l.chars : [])
-          .map((ch: any) => ({ c: String(ch?.c ?? "").trim(), m: String(ch?.m ?? "").trim() }))
+          .map((ch: Record<string, unknown>) => ({ c: String(ch?.c ?? "").trim(), m: String(ch?.m ?? "").trim() }))
           .filter((ch: { c: string }) => ch.c),
       }))
       .filter((l: { verse: string }) => l.verse)

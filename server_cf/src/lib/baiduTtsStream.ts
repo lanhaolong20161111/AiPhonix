@@ -10,6 +10,13 @@
 import { getConfig } from "../env.js"
 
 /** Workers 不能 fetch wss://，须用 https + Upgrade 头（同 asr.ts 的出站方式） */
+// 百度流式 TTS WebSocket 控制消息结构（实测）
+interface BaiduTtsWsMsg {
+  type?: string
+  code?: number
+  message?: string
+}
+
 const WS_BASE = "https://aip.baidubce.com/ws/2.0/speech/publiccloudspeech/v1/tts"
 const TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 
@@ -81,9 +88,9 @@ export async function synthesizeStream(text: string, speaker: string, speed: num
 
   // 事件注册
   sock.addEventListener("message", (ev: MessageEvent) => {
-    const d: any = ev.data
+    const d: string | ArrayBuffer | Blob = ev.data
     if (typeof d === "string") {
-      let j: any = null
+      let j: BaiduTtsWsMsg | null = null
       try { j = JSON.parse(d) } catch { return }
       if (j?.type === "system.started") {
         if (j.code !== 0) return fail(new Error(`流式 TTS 启动失败 code=${j.code} ${j.message ?? ""}`))

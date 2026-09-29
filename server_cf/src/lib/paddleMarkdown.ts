@@ -45,9 +45,21 @@ function collectTable(lines: string[], i: number): { html: string; next: number 
  * 一段正文被切得七零八落。现在按空行聚合，lines 保留段内各物理行（首行 indent=1、
  * 续行 indent=0），前端据此把物理行并回语义段落并自动折行（段落首行空两格）。
  * polyphones 留空（本引擎不标拼音）。 */
-export function markdownToBlocks(md: string): any[] {
+export interface OcrLine {
+  text: string
+  indent: number
+}
+export interface OcrBlock {
+  type: "title" | "heading" | "body" | "table"
+  text: string
+  align: string
+  lines: OcrLine[]
+  polyphones: Record<string, string>
+}
+
+export function markdownToBlocks(md: string): OcrBlock[] {
   const lines = md.split("\n")
-  const blocks: any[] = []
+  const blocks: OcrBlock[] = []
   let i = 0
   let para: string[] = []
   const flushPara = () => {

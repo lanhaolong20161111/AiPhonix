@@ -53,6 +53,8 @@ import {
   normAlign,
   normType,
   readCacheJson,
+  type RawBlock,
+  type RawLine,
   type SubjectOcrOutcome,
 } from "./kernel.js"
 
@@ -73,10 +75,10 @@ export const CHINESE_CACHE_SUFFIX = "_r5"
 
 /** 语文 Block 收尾：逐行 trim、body 首行缩进两格、诗歌居中判定、保留 polyphones。 */
 export function finalizeChineseBlocks(raw: unknown[]): Block[] {
-  const cleaned = (raw || [])
-    .map((b: any) => {
-      const lines = ((b?.lines || []) as unknown[])
-        .map((ln: any) => {
+  const cleaned = ((raw || []) as RawBlock[])
+    .map((b: RawBlock) => {
+      const lines = ((b?.lines || []) as RawLine[])
+        .map((ln: RawLine) => {
           const lt = cleanOcrText(String(ln?.text ?? "")).trim()
           if (!lt.trim()) return null
           return { text: lt, indent: clampIndent(ln?.indent) } as BlockLine
