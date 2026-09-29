@@ -1,27 +1,31 @@
 package com.example.ai.data.math
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.random.Random
 
 /**
- * 移项变号引擎单测 —— 核心判据：**每一次搬运都必须保持等式成立**。
+ * 移项变号引擎单测 —— 核心判据：**每一次动作都必须保持等式成立**。
  *
  * 两个**互相独立**的裁判给同一个数，才把「移项是合法的等价变形」从信仰变成证明：
  *   · 裁判 A：按 [EqTerm] 序列逐项求值（不复用引擎的任何算术与判据）
  *   · 裁判 B：把算式**渲染成文本**（如 `14 - 8`）再解析求值 —— 另一条实现路径，只认字符串
  *
  * 断言链：
- *   原式成立 → 每搬一步都还成立 → 搬的项只是符号取反、值一字未改 → 末态右侧求值 === x
- *   → 而且把答案代回**原式**也成立（证明解是对的）
+ *   原式成立 → 每做一步都还成立 → 搬的项只是符号变了 / 换位的项符号没动 / 合并的项求值没变
+ *   → x 从未被反复搬 → 末态右侧求值 === x → 而且把答案代回**原式**也成立（证明解是对的）
+ *
+ * 移植自 web/src/lib/equationMove.test.ts（逐条对齐，含 swap / combine / flip 三种新动作的判据）。
  */
 
 // ────────────────────────────────────────────────────────────
 // 裁判 A：按 term 序列求值
 // ────────────────────────────────────────────────────────────
 
-private fun valueOf(t: EqTerm, xVal: Int): Int = if (t.isVar) xVal else t.value.toInt()
+/** 项的数值：`5x` 在 x=3 时是 15（系数必须算进去 —— 这是新题型的重点） */
+private fun valueOf(t: EqTerm, xVal: Int): Int = if (t.isVar) eqCoefOf(t) * xVal else t.value.toInt()
 
 private fun evalSide(side: EqSideList, xVal: Int): Int {
     require(side.isNotEmpty()) { "空的一侧无法求值" }
@@ -66,74 +70,226 @@ private fun evalTwoTermText(text: String): Int {
     }
 }
 
-private fun term(op: EqOp?, value: String, isVar: Boolean = false) = EqTerm(op, value, isVar)
+/** 纯数字算式（可能是单个数字）：`14` ⇒ 14 · `6 + 8` ⇒ 14 */
+private fun evalNumExpr(text: String): Int {
+    val t = text.trim()
+    if (!t.contains(" ")) return t.toInt()
+    return evalTwoTermText(t)
+}
 
 /**
- * 每一项的「**语义**符号 + 值」—— 与显示形态无关，供同侧交换比对用。
- *
- * ⚠️ 不能直接拿 `t.op?.sym ?: ""` 拼串比：**首项不写符号是显示约定**，不代表它没符号。
- *    `5 + x` 的项是 [(null,"5"), (+,"x")]、`x + 5` 是 [(null,"x"), (+,"5")] ——
- *    两边符号其实都是「+」，但按显示形态拼串会得到 ["5","+x"] vs ["x","+5"]，排序后永远不等。
- *    这里独立复算一遍「首项没写符号时它到底带的是 + 还是 ×」（与引擎的 eqEffectiveOp 各写一份）。
+ * 两路裁判必须一致。
+ * ⚠️ 裁判 A 是**严格从左往右**算的，只在「一侧里不混优先级」时等价 ——
+ *    乘除链只出现在两项的一侧（`a × x` / `b ÷ a`），其余多项目的一侧只有加减。这里把它钉住。
  */
-private fun signedTerms(side: EqSideList): List<String> = side.mapIndexed { i, t ->
-    val op = t.op ?: run {
-        val next = side.getOrNull(i + 1)
-        if (next != null && (next.op == EqOp.MUL || next.op == EqOp.DIV)) EqOp.MUL else EqOp.ADD
+private fun bothAgree(side: EqSideList, xVal: Int, label: String): Int {
+    assertTrue("$label: 一侧不该为空", side.isNotEmpty())
+    if (side.any { it.op == EqOp.MUL || it.op == EqOp.DIV }) {
+        assertTrue("$label: 乘除链只允许出现在两项的一侧，实际 ${side.size} 项", side.size <= 2)
     }
-    "${op.sym}${t.value}"
+    val a = evalSide(side, xVal)
+    if (side.size == 2) {
+        val txt = eqSideToText(side, xVal)
+        val b = evalTwoTermText(txt)
+        assertEquals("$label: 两路裁判不一致（自己 $a / 文本 $b）—— $txt", a, b)
+    }
+    return a
 }
+
+/** 一侧的「组成」（值 + 身份），判断换位时组成有没有被改动 */
+private fun composition(side: EqSideList): String =
+    side.map { "${it.value}:${it.isVar}" }.sorted().joinToString("|")
+
+private fun sideOf(st: EqState, from: EqSide): EqSideList = if (from == EqSide.LEFT) st.left else st.right
+
+private fun otherSide(from: EqSide): EqSide = if (from == EqSide.LEFT) EqSide.RIGHT else EqSide.LEFT
+
+/** 动作构成（按 type 计），与 web 的 EXPECTED_ACTIONS 逐字对齐 */
+internal fun actionSeq(p: MoveProblem): String = p.actions.joinToString(",") { it.type.name.lowercase() }
+
+private val EXPECTED_ACTIONS: Map<MoveKind, String> = mapOf(
+    MoveKind.PLUS to "move",
+    MoveKind.MINUS to "move",
+    MoveKind.TIMES to "move",
+    MoveKind.DIVIDE to "move",
+    MoveKind.MINUS_VAR to "move,swap,move",
+    MoveKind.DIVIDE_VAR to "move,swap,move",
+    MoveKind.REVEAL_PLUS to "swap,move",
+    MoveKind.REVEAL_TIMES to "swap,move",
+    MoveKind.X_RIGHT to "flip,move",
+    MoveKind.THREE_TERMS to "move,move",
+    MoveKind.BOTH_SIDES to "swap,move,combine",
+    MoveKind.MULTI_STEP to "move,swap,move,combine",
+    MoveKind.SAME_SIDE to "swap",
+)
 
 // ────────────────────────────────────────────────────────────
 // 判据链
 // ────────────────────────────────────────────────────────────
 
 private fun checkProblem(p: MoveProblem, tag: String) {
+    val x = p.x
     val where = "$tag【${p.kind}】${eqToText(p.initial)}"
 
-    // ① 解是正整数 + 原式成立
-    assertTrue("$where：解应为正整数，实为 ${p.x}", p.x > 0)
-    assertEquals("$where：原式代入 x=${p.x} 后两边不等", evalSide(p.initial.left, p.x), evalSide(p.initial.right, p.x))
+    // ① 答案必须是正整数，且与 x 一致
+    assertTrue("$where：解应为正整数，实为 $x", x > 0)
+    assertEquals("$where：answer 与 x 不等", x, p.answer)
 
-    // ② 每搬一步，等式都必须仍然成立（不只是首末态对）
-    for ((i, a) in p.actions.withIndex()) {
-        assertEquals(
-            "$where 第 ${i + 1} 步搬运**前**等式不成立",
-            evalSide(a.before.left, p.x), evalSide(a.before.right, p.x),
-        )
-        assertEquals(
-            "$where 第 ${i + 1} 步搬运**后**等式不成立",
-            evalSide(a.after.left, p.x), evalSide(a.after.right, p.x),
-        )
-        // ③ 搬的项只是符号取反，值一个字都没变
-        assertEquals("$where 第 ${i + 1} 步：跨过等号后符号应为原符号取反", eqFlipOp(a.fromOp), a.toOp)
-        val appended = if (a.from == EqSide.LEFT) a.after.right.last() else a.after.left.last()
-        assertEquals("$where 第 ${i + 1} 步：搬到对面那一项的值不能变", a.value, appended.value)
+    // ② 原等式成立（两路裁判都同意）
+    assertEquals("$where：原式本身不成立 —— ${eqToText(p.initial, x)}", evalSide(p.initial.left, x), evalSide(p.initial.right, x))
+
+    // ③ 动作构成与题型对得上
+    assertEquals("$where：动作构成与题型不符", EXPECTED_ACTIONS.getValue(p.kind), actionSeq(p))
+
+    // ④ 每一步做完，等式都必须**仍然成立**（这就是「等价变形」的证明）
+    var prev: EqState = p.initial
+    var varMoves = 0
+    p.actions.forEachIndexed { k, a ->
+        val w = "$where 第${k + 1}步(${a.type})"
+        assertEquals("$w: before 与上一步的 after 不衔接", eqToText(prev), eqToText(a.before))
+
+        val srcBefore = sideOf(a.before, a.from)
+        val srcAfter = sideOf(a.after, a.from)
+
+        when (a.type) {
+            EqActionType.MOVE -> {
+                // 符号翻转必须正好是「变相反」，而且翻转两次回到原值
+                assertEquals("$w: 符号没有按规则翻转", eqFlipOp(a.fromOp), a.toOp)
+                assertEquals("$w: flip 不是自反的", a.fromOp, eqFlipOp(eqFlipOp(a.fromOp)))
+
+                // 写了符号的项：等效符号 === 写出来的符号
+                if (a.srcOp != null) {
+                    assertEquals("$w: 显式符号与等效符号不符", a.srcOp, a.fromOp)
+                } else {
+                    assertTrue(
+                        "$w: 首项没写符号时，等效只可能是 + 或 ×，实际 ${a.fromOp}",
+                        a.fromOp == EqOp.ADD || a.fromOp == EqOp.MUL,
+                    )
+                }
+
+                // 项数守恒：源侧 -1、目标侧 +1
+                val dstBefore = sideOf(a.before, otherSide(a.from))
+                val dstAfter = sideOf(a.after, otherSide(a.from))
+                assertEquals("$w: 源侧项数没减 1", srcBefore.size - 1, srcAfter.size)
+                assertEquals("$w: 目标侧项数没加 1", dstBefore.size + 1, dstAfter.size)
+
+                // ★ 搬过去的必须是「同一块」，只有符号变
+                val landed = dstAfter.last()
+                assertEquals("$w: 搬过去的数值变了", a.value, landed.value)
+                assertEquals("$w: 搬过去的项身份变了", a.isVar, landed.isVar)
+                assertEquals("$w: 落位项的符号不对", a.toOp, landed.op)
+
+                if (a.isVar) {
+                    varMoves++
+                    assertTrue("$w: x 项被搬了不止一次", varMoves <= 1)
+                }
+            }
+
+            EqActionType.SWAP -> {
+                // ★ 同侧换位：符号**一点不动**，组成不变，这一侧求值不变
+                assertEquals("$w: 同侧换位不许改符号", a.fromOp, a.toOp)
+                assertEquals("$w: 只支持相邻换位", a.index + 1, a.index2)
+                assertTrue("$w: 换位下标越界", a.index2!! < srcBefore.size)
+                assertNotEquals("$w: 中间是 ÷，换位不成立", EqOp.DIV, srcBefore[a.index2].op)
+                assertEquals("$w: 换位不该改变项数", srcBefore.size, srcAfter.size)
+                assertEquals("$w: 换位不该改变这一侧的组成", composition(srcBefore), composition(srcAfter))
+                assertEquals(
+                    "$w: 换位后这一侧求值变了 —— 说明不该变号的地方变号了",
+                    evalSide(srcBefore, x),
+                    evalSide(srcAfter, x),
+                )
+            }
+
+            EqActionType.COMBINE -> {
+                // 合并同类项：项数 -1，但这一侧求值不变；合并后的文本要能对上
+                assertEquals("$w: 只支持相邻合并", a.index + 1, a.index2)
+                assertEquals("$w: 合并后项数应减 1", srcBefore.size - 1, srcAfter.size)
+                assertEquals(
+                    "$w: 合并是「改写」不是「运算」，求值必须不变",
+                    evalSide(srcBefore, x),
+                    evalSide(srcAfter, x),
+                )
+                assertTrue("$w: 缺合并后的文本", !a.combined.isNullOrEmpty())
+                assertEquals("$w: 合并后的文本没落到位置上", a.combined, srcAfter[a.index].value)
+                // 合并结果必须真的等于那两项的和
+                val sum = eqSignedCoef(srcBefore[a.index]) + eqSignedCoef(srcBefore[a.index2!!])
+                assertEquals("$w: 合并后的系数 ${eqCoefOf(srcAfter[a.index])} ≠ $sum", sum, eqCoefOf(srcAfter[a.index]))
+            }
+
+            EqActionType.FLIP -> {
+                // 两边整体对调：左变右、右变左，内容一模一样
+                assertEquals("$w: 对调后左边应等于原右边", eqSideToText(a.before.right), eqSideToText(a.after.left))
+                assertEquals("$w: 对调后右边应等于原左边", eqSideToText(a.before.left), eqSideToText(a.after.right))
+            }
+        }
+
+        // ★ 做任何一步之后，等式都必须依然成立（两路裁判）
+        val l = bothAgree(a.after.left, x, "$w after.left")
+        val r = bothAgree(a.after.right, x, "$w after.right")
+        assertEquals("$w: 做完这一步等式不成立了 —— ${eqToText(a.after, x)}", l, r)
+
+        prev = a.after
     }
 
-    if (!p.isSameSide) {
-        // ④ 末态：x 单独在一边，另一边求值 === answer === x
-        assertEquals("$where：末态左边应只剩一项", 1, p.final.left.size)
-        assertTrue("$where：末态左边那一项必须是 x", p.final.left[0].isVar)
-        assertEquals("$where：末态右边不得再含 x", 0, p.final.right.count { it.isVar })
-        assertEquals("$where：末态右侧求值 != answer", evalSide(p.final.right, p.x), p.answer)
-        assertEquals("$where：answer 必须等于解 x", p.x, p.answer)
+    // ⑤ x 项最多被搬一次（不许来回搬）
+    assertTrue("$where：x 项被搬了不止一次", varMoves <= 1)
 
-        // ★ 裁判 B 交叉验算（另一条实现路径，只认文本）
-        if (p.final.right.size == 2) {
-            val txt = eqSideToText(p.final.right)
-            assertEquals("$where：裁判 B 对「$txt」的求值与裁判 A 不一致", p.answer, evalTwoTermText(txt))
+    // ⑥ 末态：x 单独在一边，另一边是能算出答案的式子（且不该再留着 x）
+    if (!p.isSameSide) {
+        assertEquals("$where：末态左边应只有一项", 1, p.final.left.size)
+        assertTrue("$where：末态左边应是 x", p.final.left[0].isVar)
+        assertEquals("$where：x 不应带符号", null, p.final.left[0].op)
+        assertEquals("$where：末态左边应当是 1 个 x（不是 2x）", 1, eqCoefOf(p.final.left[0]))
+        assertTrue("$where：末态右边不该为空", p.final.right.isNotEmpty())
+        assertEquals("$where：末态右边不该还留着 x", 0, p.final.right.count { it.isVar })
+        assertEquals("$where：末态右边求值 != answer", p.answer, evalSide(p.final.right, x))
+    }
+
+    // ⑦ ★ 把答案代回**原式**也必须成立（证明这个解是对的）
+    assertEquals(
+        "$where：把 x=${p.answer} 代回原式不成立 —— ${eqToText(p.initial, p.answer)}",
+        evalSide(p.initial.left, p.answer),
+        evalSide(p.initial.right, p.answer),
+    )
+
+    // ⑧ 数值规模 & 无退化（三年级教材范围）
+    for (side in listOf(p.initial.left, p.initial.right, p.final.left, p.final.right)) {
+        for (t in side) {
+            if (t.isVar) {
+                val k = eqCoefOf(t)
+                assertTrue("$where：x 的系数超范围 ${t.value}", k in 1..9)
+                continue
+            }
+            val n = t.value.toInt()
+            assertTrue("$where：数字超范围 $n", n in 1..100)
         }
-        if (p.initial.left.size == 2 && p.initial.right.size == 1) {
-            val l = eqSideToText(p.initial.left, p.x)
-            val r = eqSideToText(p.initial.right, p.x)
-            assertEquals("$where：裁判 B 认为原式不成立（$l vs $r）", evalTwoTermText(l), r.toInt())
+    }
+    // 乘除题：因子不许是 1（×1 / ÷1 看不出规律，是退化题）
+    for (side in listOf(p.initial.left, p.initial.right)) {
+        for (t in side) {
+            if ((t.op == EqOp.MUL || t.op == EqOp.DIV) && !t.isVar) {
+                assertTrue("$where：乘除因子退化为 1", t.value.toInt() >= 2)
+            }
         }
+    }
+
+    // ⑨ 同侧交换题：只换位置，不搬运
+    if (p.isSameSide) {
+        assertEquals("$where：同侧交换不该有搬运", 0, p.actions.count { it.type == EqActionType.MOVE })
+        assertEquals("$where：同侧交换后左边求值变了", evalSide(p.initial.left, x), evalSide(p.final.left, x))
+        assertEquals("$where：同侧交换的 answer 应等于 x", x, p.answer)
+    }
+
+    // ⑩ 需要末尾对调的题（a - x = b / a ÷ x = b）
+    if (p.kind == MoveKind.MINUS_VAR || p.kind == MoveKind.DIVIDE_VAR) {
+        assertTrue("$where：${p.kind} 需要末尾左右对调", p.flipSides)
+        assertEquals("$where：${p.kind} 要搬两次", 2, p.actions.count { it.type == EqActionType.MOVE })
     } else {
-        assertEquals("$where：同侧交换不该有任何搬运", 0, p.actions.size)
-        assertEquals("$where：同侧交换的解就是 x 本身", p.x, p.answer)
+        assertTrue("$where：只有 minusVar / divideVar 需要末尾对调", !p.flipSides)
     }
 }
+
+private val ALL_KINDS: List<MoveKind> = MoveKind.values().toList()
 
 class EqMoveTest {
 
@@ -148,6 +304,11 @@ class EqMoveTest {
         assertEquals(EqOp.ADD, eqFlipOp(EqOp.SUB))
         assertEquals(EqOp.DIV, eqFlipOp(EqOp.MUL))
         assertEquals(EqOp.MUL, eqFlipOp(EqOp.DIV))
+        // 加减与乘除不能串门
+        assertNotEquals(EqOp.MUL, eqFlipOp(EqOp.ADD))
+        assertNotEquals(EqOp.DIV, eqFlipOp(EqOp.ADD))
+        assertNotEquals(EqOp.ADD, eqFlipOp(EqOp.MUL))
+        assertNotEquals(EqOp.SUB, eqFlipOp(EqOp.MUL))
     }
 
     @Test
@@ -164,6 +325,8 @@ class EqMoveTest {
         // 否则等效 +
         assertEquals(EqOp.ADD, eqEffectiveOp(listOf(term(null, "15"), term(EqOp.SUB, "x", true)), 0))
         assertEquals(EqOp.ADD, eqEffectiveOp(listOf(term(null, "15"), term(EqOp.ADD, "x", true)), 0))
+        // `5x` 是**一个**加数，不是「5 乘 x」—— 等效符号仍是 +
+        assertEquals(EqOp.ADD, eqEffectiveOp(listOf(term(null, "5x", true)), 0))
     }
 
     @Test
@@ -179,12 +342,25 @@ class EqMoveTest {
         assertEquals(setOf(1, 2, 3), seen)
     }
 
-    // ── 七种题型，逐一跑完整判据链 ─────────────────────────────
+    @Test
+    fun coefHandlesVarAndNumber() {
+        // `x` 的系数是 1、`5x` 是 5、`12` 是 12（系数是 bothSides / multiStep 的命脉）
+        assertEquals(1, eqCoefOf(term(null, "x", true)))
+        assertEquals(5, eqCoefOf(term(null, "5x", true)))
+        assertEquals(12, eqCoefOf(term(null, "12")))
+        assertEquals(-5, eqSignedCoef(term(EqOp.SUB, "5x", true)))
+        assertEquals(3, eqSignedCoef(term(null, "3")))
+        // 代入 x 后：`5x` 且 x=3 ⇒ 15
+        assertEquals(15, eqTermValueAt(term(null, "5x", true), 3))
+        assertEquals(12, eqTermValueAt(term(null, "12"), 3))
+    }
+
+    // ── 十三种题型，逐一跑完整判据链 ───────────────────────────
 
     @Test
     fun everyKindKeepsEqualityAtEveryStep() {
         val rnd = Random(20260929)
-        for (kind in MoveKind.values()) {
+        for (kind in ALL_KINDS) {
             repeat(300) { i -> checkProblem(generateEqProblem(kind, rnd), "第${i + 1}题") }
         }
     }
@@ -196,28 +372,116 @@ class EqMoveTest {
     }
 
     @Test
-    fun twoStepProblemsNeedTwoActionsAndFlipSides() {
-        val rnd = Random(5)
-        repeat(200) {
-            val p1 = generateEqProblem(MoveKind.MINUS_VAR, rnd)
-            assertEquals("a - x = b 要搬两次", 2, p1.actions.size)
-            assertTrue("a - x = b 末态要左右对调", p1.flipSides)
+    fun kindLabelTipAndGroupsAreComplete() {
+        for (kind in ALL_KINDS) {
+            assertTrue("$kind 缺 label", !EQ_KIND_LABEL[kind].isNullOrEmpty())
+            assertTrue("$kind 缺 tip", !EQ_KIND_TIP[kind].isNullOrEmpty())
+        }
+        val grouped = EQ_KIND_GROUPS.flatMap { it.kinds }
+        assertEquals("分组里出现重复题型", grouped.size, grouped.toSet().size)
+        assertEquals("分组必须恰好覆盖全部题型", ALL_KINDS.sortedBy { it.name }, grouped.sortedBy { it.name })
+    }
 
-            val p2 = generateEqProblem(MoveKind.DIVIDE_VAR, rnd)
-            assertEquals("a ÷ x = b 要搬两次", 2, p2.actions.size)
-            assertTrue("a ÷ x = b 末态要左右对调", p2.flipSides)
+    // ── 新题型的专项判据 ──────────────────────────────────────
 
-            val p3 = generateEqProblem(MoveKind.PLUS, rnd)
-            assertEquals("x + a = b 只需搬一次", 1, p3.actions.size)
-            assertTrue("x + a = b 不需要对调", !p3.flipSides)
+    @Test
+    fun revealKindsSwapFirstThenMove() {
+        for (i in 1..200) {
+            for (kind in listOf(MoveKind.REVEAL_PLUS, MoveKind.REVEAL_TIMES)) {
+                val p = generateEqProblem(kind)
+                val swap = p.actions[0]
+                assertEquals("$kind：第一步应是同侧换位", EqActionType.SWAP, swap.type)
+                assertEquals("$kind：换位必须发生在首项上", 0, swap.index)
+                // 换之前：首项真的没写符号（这就是那个「看不见」的坑）
+                assertEquals("$kind：换位前首项应当没写符号", null, sideOf(swap.before, swap.from)[0].op)
+                // 换位不动号
+                assertEquals("$kind：换位不许改符号", swap.fromOp, swap.toOp)
+                // 换之后：原来那个首项落到第二位，写上了自己的符号
+                val landed = sideOf(swap.after, swap.from)[1]
+                assertEquals("$kind：换过来的还是同一个数", swap.value, landed.value)
+                assertEquals("$kind：换到后面应当写出它的等效符号", swap.fromOp, landed.op)
+                // 然后再跨线变号
+                val move = p.actions[1]
+                assertEquals("$kind：第二步应是跨线搬运", EqActionType.MOVE, move.type)
+                assertEquals("$kind：搬的时候它已经写在屏幕上了", swap.fromOp, move.srcOp)
+                assertEquals("$kind：跨过等号才变号", eqFlipOp(swap.fromOp), move.toOp)
+            }
+        }
+    }
+
+    @Test
+    fun bothSidesMergesToSingleX() {
+        for (i in 1..300) {
+            val p = generateEqProblem(MoveKind.BOTH_SIDES)
+            assertEquals("动作顺序", "swap,move,combine", actionSeq(p))
+            val swap = p.actions[0]
+            val move = p.actions[1]
+            val comb = p.actions[2]
+            assertEquals("换位发生在右边（右边的 x 项是首项）", EqSide.RIGHT, swap.from)
+            assertTrue("第二步搬的是 x 项", move.isVar)
+            assertEquals("右边的 x 项搬到左边要变号", EqOp.SUB, move.toOp)
+            assertTrue("合并的是两个 x 项", comb.isVar)
+            // 合并后左边只剩一个 x（系数 1）—— 这是「k - m = 1」的设计目的
+            assertEquals("合并后应是 1 个 x", 1, eqCoefOf(p.final.left[0]))
+            assertEquals("右边只剩一个常数", 1, p.final.right.size)
+            assertEquals("末态右边的数就是答案", p.answer, p.final.right[0].value.toInt())
+        }
+    }
+
+    @Test
+    fun multiStepOrderIsFixed() {
+        for (i in 1..300) {
+            val p = generateEqProblem(MoveKind.MULTI_STEP)
+            assertEquals("move,swap,move,combine", actionSeq(p))
+            assertTrue("第一步先搬常数", !p.actions[0].isVar)
+            assertEquals(EqSide.LEFT, p.actions[0].from)
+            assertEquals(EqOp.SUB, p.actions[0].toOp)
+            assertEquals(EqActionType.SWAP, p.actions[1].type)
+            assertEquals(EqSide.RIGHT, p.actions[1].from)
+            assertTrue("第三步才搬 x 项", p.actions[2].isVar)
+            assertEquals(EqActionType.COMBINE, p.actions[3].type)
+            // 末态右边是「常数 - 常数」，两项都是数
+            assertEquals(2, p.final.right.size)
+            assertTrue("末态右边两项都应是数", p.final.right.none { it.isVar })
+        }
+    }
+
+    @Test
+    fun xRightFlipsThenMoves() {
+        for (i in 1..200) {
+            val p = generateEqProblem(MoveKind.X_RIGHT)
+            assertEquals("第一步是两边整体对调", EqActionType.FLIP, p.actions[0].type)
+            assertTrue("原式里 x 不在左边", p.initial.left.none { it.isVar })
+            assertTrue("原式里 x 在右边（首项）", p.initial.right[0].isVar)
+            assertEquals(EqActionType.MOVE, p.actions[1].type)
+            assertEquals(EqOp.SUB, p.actions[1].toOp)
+            assertEquals(
+                "${p.initial.left[0].value} = x + ${p.initial.right[1].value}",
+                eqToText(p.initial),
+            )
+        }
+    }
+
+    @Test
+    fun threeTermsMovesTwiceBothPlusToMinus() {
+        for (i in 1..200) {
+            val p = generateEqProblem(MoveKind.THREE_TERMS)
+            assertEquals(3, p.initial.left.size)
+            assertTrue(p.initial.left[0].isVar)
+            for (a in p.actions) {
+                assertEquals(EqActionType.MOVE, a.type)
+                assertEquals(EqOp.ADD, a.srcOp)
+                assertEquals(EqOp.SUB, a.toOp)
+            }
+            assertEquals("右边攒下 3 项：b - a - c", 3, p.final.right.size)
+            assertTrue(!p.final.right[0].isVar)
         }
     }
 
     @Test
     fun sameSideExchangeChangesNothing() {
-        val rnd = Random(9)
-        repeat(200) {
-            val p = generateEqProblem(MoveKind.SAME_SIDE, rnd)
+        for (i in 1..200) {
+            val p = generateEqProblem(MoveKind.SAME_SIDE)
             assertTrue("同侧交换题必须标记 isSameSide", p.isSameSide)
 
             val a = p.initial.left
@@ -240,7 +504,84 @@ class EqMoveTest {
 
             // ④ 等号右边原封不动
             assertEquals("同侧换序不该动等号右边", eqSideToText(p.initial.right), eqSideToText(p.final.right))
+
+            // ⑤ 唯一那一步就是换位，而且是「符号零变化」—— 与 sameSide 的定义互证
+            assertEquals("同侧交换只有一步", 1, p.actions.size)
+            assertEquals(EqActionType.SWAP, p.actions[0].type)
+            assertEquals(p.actions[0].fromOp, p.actions[0].toOp)
         }
+    }
+
+    @Test
+    fun twoStepProblemsNeedTwoMovesAndARevealSwap() {
+        val rnd = Random(5)
+        repeat(200) {
+            val p1 = generateEqProblem(MoveKind.MINUS_VAR, rnd)
+            assertEquals("a - x = b 要搬两次", 2, p1.actions.count { it.type == EqActionType.MOVE })
+            assertTrue("a - x = b 末态要左右对调", p1.flipSides)
+            val mv = p1.actions.filter { it.type == EqActionType.MOVE }
+            assertEquals("a - x 的第一步必须先把 -x 整块搬走", "x", mv[0].value)
+            assertEquals(EqOp.SUB, mv[0].fromOp)
+            assertEquals(EqOp.ADD, mv[0].toOp)
+            // 第二步里那个数原本是首项（屏幕上不写符号）—— 换位显形之后才搬
+            assertEquals("第二步之前先同侧换位显形", EqActionType.SWAP, p1.actions[1].type)
+            assertEquals("换位后它已经写上符号了", EqOp.ADD, mv[1].srcOp)
+            assertEquals(EqOp.ADD, mv[1].fromOp)
+            assertEquals(EqOp.SUB, mv[1].toOp)
+
+            val p2 = generateEqProblem(MoveKind.DIVIDE_VAR, rnd)
+            assertEquals("a ÷ x = b 要搬两次", 2, p2.actions.count { it.type == EqActionType.MOVE })
+            assertTrue("a ÷ x = b 末态要左右对调", p2.flipSides)
+            val dv = p2.actions.filter { it.type == EqActionType.MOVE }
+            assertEquals("a ÷ x 的第一步必须先把 ÷x 整块搬走", "x", dv[0].value)
+            assertEquals(EqOp.DIV, dv[0].fromOp)
+            assertEquals(EqOp.MUL, dv[0].toOp)
+            assertEquals(EqActionType.SWAP, p2.actions[1].type)
+            assertEquals("换位后它已经写上「×」了", EqOp.MUL, dv[1].srcOp)
+            assertEquals(EqOp.MUL, dv[1].fromOp)
+            assertEquals(EqOp.DIV, dv[1].toOp)
+
+            val p3 = generateEqProblem(MoveKind.PLUS, rnd)
+            assertEquals("x + a = b 只需搬一次", 1, p3.actions.size)
+            assertTrue("x + a = b 不需要对调", !p3.flipSides)
+        }
+    }
+
+    @Test
+    fun crossMoveAlwaysFlipsWithinItsOwnFamily() {
+        for (i in 1..200) {
+            fun movesOf(k: MoveKind) = generateEqProblem(k).actions.filter { it.type == EqActionType.MOVE }
+            assertEquals("加数过去必须变减", EqOp.SUB, movesOf(MoveKind.PLUS)[0].toOp)
+            assertEquals("减数过去必须变加", EqOp.ADD, movesOf(MoveKind.MINUS)[0].toOp)
+            assertEquals("乘数过去必须变除", EqOp.DIV, movesOf(MoveKind.TIMES)[0].toOp)
+            assertEquals("除数过去必须变乘", EqOp.MUL, movesOf(MoveKind.DIVIDE)[0].toOp)
+            assertEquals("显形后的加数过去变减", EqOp.SUB, movesOf(MoveKind.REVEAL_PLUS)[0].toOp)
+            assertEquals("显形后的因数过去变除", EqOp.DIV, movesOf(MoveKind.REVEAL_TIMES)[0].toOp)
+        }
+    }
+
+    // ── 文本 ──────────────────────────────────────────────────
+
+    @Test
+    fun textOutputMatchesOriginalSemantics() {
+        for (kind in ALL_KINDS) {
+            val p = generateEqProblem(kind)
+            val txt = eqToText(p.initial)
+            assertTrue("$kind：等式文本缺等号", txt.contains("="))
+            // 文本里 x 的个数与原式里的未知数项一致（`5x` 也算一个）
+            assertEquals(
+                "$kind：x 个数对不上 —— $txt",
+                p.initial.left.count { it.isVar } + p.initial.right.count { it.isVar },
+                txt.count { it == 'x' },
+            )
+        }
+        val p = generateEqProblem(MoveKind.PLUS)
+        assertTrue("解答应是「x = a - b = c」形式", Regex("^x = \\d+ - \\d+ = \\d+$").matches(eqSolutionText(p)))
+        // 系数要写进文本：3x ⇒ "3x"，1x ⇒ "x"
+        assertEquals("3x", eqSideToText(listOf(term(null, "3x", true))))
+        assertEquals("x", eqSideToText(listOf(term(null, "x", true))))
+        // 代入 x 时系数必须算进去（否则验算会静默错）
+        assertEquals("12", eqSideToText(listOf(term(null, "3x", true)), 4))
     }
 
     // ── 教材范围的数值上限 ─────────────────────────────────────
@@ -248,13 +589,15 @@ class EqMoveTest {
     @Test
     fun numbersStayInPrimarySchoolRange() {
         val rnd = Random(77)
-        repeat(500) {
+        repeat(800) {
             val p = generateEqProblem(null, rnd)
             for (side in listOf(p.initial.left, p.initial.right)) {
                 for (t in side) {
                     if (t.isVar) continue
                     val n = t.value.toInt()
-                    if (p.kind == MoveKind.TIMES || p.kind == MoveKind.DIVIDE || p.kind == MoveKind.DIVIDE_VAR) {
+                    val mul = p.kind == MoveKind.TIMES || p.kind == MoveKind.DIVIDE ||
+                        p.kind == MoveKind.DIVIDE_VAR || p.kind == MoveKind.REVEAL_TIMES
+                    if (mul) {
                         assertTrue("${p.kind}：$n 超出表内乘法范围（<= 81）", n <= 81)
                     } else {
                         assertTrue("${p.kind}：$n 超出 20 以内范围", n <= 20)
@@ -264,63 +607,111 @@ class EqMoveTest {
         }
     }
 
-    // ── 随机练习（5 道）────────────────────────────────────────
+    // ── 随机练习（默认 6 道）──────────────────────────────────
 
     @Test
-    fun drillIsFiveItemsAndAllAnswersAreFlipped() {
-        val rnd = Random(41)
-        repeat(300) {
-            val items = generateEqDrill(5, rnd)
-            assertEquals("默认应生成 5 道", 5, items.size)
+    fun drillIsSixItemsAndAnswersFollowTheRule() {
+        for (round in 1..300) {
+            val items = generateEqDrill(6)
+            assertEquals("默认应生成 6 道", 6, items.size)
             for (it2 in items) {
-                assertEquals(
-                    "${it2.before}：把「${it2.sym.sym}」搬过等号应变成「${it2.sym.flip.sym}」",
-                    eqFlipOp(it2.sym), it2.answer,
-                )
+                if (it2.ask == EqPracticeAsk.SAME_SIDE) {
+                    assertEquals("${it2.before}：同侧换位，符号应当不变", EqPracticeAnswer.Same, it2.answer)
+                } else {
+                    assertEquals(
+                        "${it2.before}：把「${it2.sym.sym}」搬过等号应变成「${it2.sym.flip.sym}」",
+                        EqPracticeAnswer.Op(eqFlipOp(it2.sym)),
+                        it2.answer,
+                    )
+                }
             }
         }
     }
 
     @Test
     fun drillAlwaysCoversFourBasicRules() {
-        val rnd = Random(11)
-        repeat(300) {
-            val syms = generateEqDrill(5, rnd).map { it.sym }.toSet()
+        for (round in 1..300) {
+            val syms = generateEqDrill(6).map { it.sym }.toSet()
             for (s in EqOp.values()) {
-                assertTrue("缺少「${s.sym}」这一类题", syms.contains(s))
+                assertTrue("第 $round 轮缺少「${s.sym}」这一类题", syms.contains(s))
             }
         }
     }
 
     @Test
+    fun drillAlwaysHasOneStepItemAndOneSameSideItem() {
+        val stepKinds = listOf(
+            EqPracticeKind.MINUS_VAR, EqPracticeKind.DIVIDE_VAR,
+            EqPracticeKind.REVEAL_PLUS, EqPracticeKind.REVEAL_TIMES,
+        )
+        for (round in 1..300) {
+            val kinds = generateEqDrill(6).map { it.kind }
+            assertTrue(
+                "第 $round 轮缺「要搬两次 / 首项显形」的进阶题",
+                kinds.any { it != null && stepKinds.contains(it) },
+            )
+            assertEquals(
+                "第 $round 轮「同侧不变号」反例应当正好 1 道",
+                1,
+                kinds.count { it == EqPracticeKind.SAME_SIDE },
+            )
+            // 四条基本规律各一道，且不多不少
+            for (k in listOf(
+                EqPracticeKind.PLUS, EqPracticeKind.MINUS,
+                EqPracticeKind.TIMES, EqPracticeKind.DIVIDE,
+            )) {
+                assertEquals("第 $round 轮「$k」应当正好 1 道", 1, kinds.count { it == k })
+            }
+            assertEquals(6, kinds.size)
+        }
+    }
+
+    @Test
     fun drillAnswersVerifiedBySecondEvaluator() {
-        val rnd = Random(7)
         val twoStep = Regex("^(\\d+) ([+×÷-]) x = (\\d+)$")
-        repeat(300) {
-            for (it2 in generateEqDrill(5, rnd)) {
+        for (round in 1..300) {
+            for (it2 in generateEqDrill(6)) {
+                // ① 原式把解代进去必须成立（用文本裁判，不复用引擎的判据）
+                val parts = it2.before.split(" = ")
+                assertEquals("${it2.before} 格式异常", 2, parts.size)
+                assertEquals(
+                    "${it2.before} 代入 x=${it2.x} 不成立",
+                    evalNumExpr(parts[0].replace("x", it2.x.toString())),
+                    evalNumExpr(parts[1].replace("x", it2.x.toString())),
+                )
+
+                // ② 换位 / 移项之后另算一遍，必须正好等于解
+                if (it2.ask == EqPracticeAsk.SAME_SIDE) {
+                    // 同侧换位：a + x = b ⇒ x + a = b —— 交换律，左边求值不变
+                    val a = parts[0].split(" ")[0].toInt()
+                    val b = parts[1].toInt()
+                    assertEquals("${it2.before}：同侧换位式 x + $a = $b 不成立", b, it2.x + a)
+                    continue
+                }
+
                 val m = twoStep.find(it2.before)
                 if (m != null) {
-                    // 两步型 a - x = b / a ÷ x = b：移项后 b 与 x 组合应还原出 a
+                    // a (<op>) x = b 这类：先把 a 换到后面（不变号），再跨线变号
                     val a = m.groupValues[1].toInt()
                     val b = m.groupValues[3].toInt()
-                    val txt = "$b ${it2.answer.sym} ${it2.x}"
+                    val txt = "$b ${eqFlipOp(it2.sym).sym} ${it2.x}"
                     assertEquals("${it2.before}：移项后 $txt 应等于 $a", a, evalTwoTermText(txt))
                 } else {
-                    // 基本型 x op a = b：移项后 b 与 a 组合应等于解
                     val b = it2.before.substringAfter("= ").trim().toInt()
-                    val txt = "$b ${it2.answer.sym} ${it2.num}"
+                    val txt = "$b ${eqFlipOp(it2.sym).sym} ${it2.num}"
                     assertEquals("${it2.before}：移项后 $txt 应等于解 ${it2.x}", it2.x, evalTwoTermText(txt))
                 }
-                assertTrue("${it2.before} 的 result 应含最终答案 ${it2.x}", it2.result.contains("= ${it2.x}"))
+
+                // ③ 结果文案里要对得上最终答案
+                assertTrue("「${it2.before}」结果串应含最终答案 ${it2.x}", it2.result.contains("= ${it2.x}"))
             }
         }
     }
 
     @Test
     fun drillNumbersInPrimaryRange() {
-        val rnd = Random(13)
-        repeat(300) {
-            for (it2 in generateEqDrill(5, rnd)) {
+        for (round in 1..300) {
+            for (it2 in generateEqDrill(6)) {
                 val b = it2.before.substringAfter("= ").trim().toInt()
                 assertTrue("${it2.before}：等号右侧 $b 越界", b in 2..81)
                 assertTrue("${it2.before}：被搬的数是 ${it2.num}，超出 2..9", it2.num in 2..9)
@@ -331,42 +722,75 @@ class EqMoveTest {
 
     @Test
     fun drillDiffersBetweenRounds() {
-        val rnd = Random(2026)
         val seen = mutableSetOf<String>()
-        repeat(40) { seen.add(generateEqDrill(5, rnd).joinToString(" | ") { it.before }) }
+        repeat(40) { seen.add(generateEqDrill(6).joinToString(" | ") { it.before }) }
         assertTrue("40 轮只出现 ${seen.size} 种题组 —— 随机性不足", seen.size > 5)
+    }
+
+    @Test
+    fun drillCountParameterDegradesGracefully() {
+        for (round in 1..100) {
+            for (n in listOf(1, 2, 4, 5, 6, 8, 12)) {
+                val items = generateEqDrill(n)
+                assertEquals("n=$n 时应当正好生成 $n 道", n, items.size)
+                if (n >= 4) {
+                    val syms = items.map { it.sym }.toSet()
+                    for (s in EqOp.values()) assertTrue("n=$n 缺 ${s.sym}", syms.contains(s))
+                }
+            }
+        }
     }
 
     // ── 静态资料 ──────────────────────────────────────────────
 
     @Test
     fun staticTeachingDataIsComplete() {
-        assertEquals("口诀应有三张卡", 3, EQ_RULES.size)
+        assertTrue("口诀至少要四块（新增多步方程）", EQ_RULES.size >= 4)
         for (r in EQ_RULES) {
             assertTrue("口诀卡缺标题", r.title.isNotBlank())
             assertTrue("口诀卡「${r.title}」没有内容行", r.lines.isNotEmpty())
             for (l in r.lines) assertTrue("口诀卡「${r.title}」有空白行", l.isNotBlank())
         }
+        // 首项显形这条规律必须写进口诀里
+        assertTrue(
+            "口诀里要讲清「首项不写符号」这件事",
+            EQ_RULES.any { r -> r.lines.any { it.contains("不写符号") } },
+        )
 
-        assertEquals("易错卡应有三张", 3, EQ_MISTAKE_CASES.size)
+        assertTrue("易错卡至少 5 张（新增了首项显形与合并同类项两张）", EQ_MISTAKE_CASES.size >= 5)
         for (m in EQ_MISTAKE_CASES) {
-            assertTrue("易错卡缺字段：${m.title}", m.title.isNotBlank() && m.wrong.isNotBlank() &&
-                m.right.isNotBlank() && m.why.isNotBlank() && m.tip.isNotBlank())
-            assertTrue("易错卡「${m.title}」的错式与对式不能相同", m.wrong != m.right)
+            assertTrue(
+                "易错卡缺字段：${m.title}",
+                m.title.isNotBlank() && m.wrong.isNotBlank() && m.right.isNotBlank() &&
+                    m.why.isNotBlank() && m.tip.isNotBlank(),
+            )
+            assertNotEquals("易错卡「${m.title}」的错式与对式不能相同", m.right, m.wrong)
+            assertTrue("易错卡「${m.title}」应含推导箭头", m.wrong.contains("⇒") && m.right.contains("⇒"))
         }
 
         assertEquals("教材对比练习应有 4 道", 4, EQ_PRACTICE.size)
+        for (item in EQ_PRACTICE) {
+            assertEquals("练习「${item.before}」的答案符号不对", EqPracticeAnswer.Op(eqFlipOp(item.sym)), item.answer)
+            assertTrue("练习「${item.before}」的 result 应含被搬的数", item.result.contains(item.num.toString()))
+        }
     }
 
     @Test
     fun practiceCardsAreArithmeticallyTrue() {
-        for (it2 in EQ_PRACTICE) {
-            assertEquals("${it2.before}：答案应为被搬符号取反", eqFlipOp(it2.sym), it2.answer)
-            val b = it2.before.substringAfter("= ").trim().toInt()
-            val txt = "$b ${it2.answer.sym} ${it2.num}"
+        val expected = listOf(
+            Triple("x + 8 = 14", 6, 14),
+            Triple("x - 8 = 14", 22, 14),
+            Triple("x × 8 = 16", 2, 16),
+            Triple("x ÷ 8 = 16", 128, 16),
+        )
+        EQ_PRACTICE.forEachIndexed { i, item ->
+            assertEquals(expected[i].first, item.before)
+            assertEquals("练习「${item.before}」的解应为 ${expected[i].second}", expected[i].second, item.x)
             // ★ 用裁判 B 独立算一遍：移项后的算式必须正好等于卡片上写的解
-            assertEquals("${it2.before}：移项后 $txt 应等于解 ${it2.x}", it2.x, evalTwoTermText(txt))
-            assertTrue("${it2.before} 的 result 应含最终答案 ${it2.x}", it2.result.contains("= ${it2.x}"))
+            val b = item.before.substringAfter("= ").trim().toInt()
+            val txt = "$b ${eqFlipOp(item.sym).sym} ${item.num}"
+            assertEquals("${item.before}：移项后 $txt 应等于解 ${item.x}", item.x, evalTwoTermText(txt))
+            assertTrue("${item.before} 的 result 应含最终答案 ${item.x}", item.result.contains("= ${item.x}"))
         }
     }
 
@@ -375,21 +799,51 @@ class EqMoveTest {
         // 把正确解代回**错误**变形式，必须真的不成立（否则这张卡在教错东西）
         // ① 2 + x = 8 ⇒ 解 6；错式 x - 2 = 8
         assertEquals(8, 2 + 6)
-        assertTrue("2 + 6 = 8，原式的解就是 6；而 6 - 2 = 4 != 8 ⇒ 错式确实错了", 6 - 2 != 8)
+        assertNotEquals("2 + 6 = 8，原式的解就是 6；而 6 - 2 = 4 != 8 ⇒ 错式确实错了", 8, 6 - 2)
         assertEquals("正确变形 x + 2 = 8 应成立", 8, 6 + 2)
 
         // ② x - 6 = 10 ⇒ 解 16；错式误算成 10 - 6
         assertEquals(10, 16 - 6)
-        assertTrue("把错解 4 代回原式：4 - 6 = -2 != 10 ⇒ 错式确实错了", 4 - 6 != 10)
+        assertNotEquals("把错解 4 代回原式：4 - 6 = -2 != 10 ⇒ 错式确实错了", 10, 4 - 6)
 
         // ③ 10 - x = 3 ⇒ 解 7；错式误算成 3 - 10
         assertEquals(3, 10 - 7)
-        assertTrue("把错解 -7 代回原式：10 - (-7) = 17 != 3 ⇒ 错式确实错了", 10 - (3 - 10) != 3)
+        assertNotEquals("把错解 -7 代回原式：10 - (-7) = 17 != 3 ⇒ 错式确实错了", 3, 10 - (3 - 10))
         assertEquals("正确变形 x = 10 - 3 算出 7", 7, 10 - 3)
+
+        // ④ 5 + x = 12 ⇒ 解 7；错式误算出 12 + 5 = 17（首项其实带着 +）
+        assertEquals(12, 5 + 7)
+        assertNotEquals("12 + 5 = 17 != 7 ⇒ 确实错了", 7, 12 + 5)
+        assertEquals("对式「x = 12 - 5」算出 7", 7, 12 - 5)
+
+        // ⑤ 5x = 3x + 6 ⇒ x = 3；错式 5x + 3x 会算出 8x
+        assertEquals(3 * 3 + 6, 5 * 3)
+        assertNotEquals("5*3 + 3*3 = 24 != 6 ⇒ 确实错了", 6, 5 * 3 + 3 * 3)
+        assertEquals("对式「5x - 3x = 6」成立", 6, 5 * 3 - 3 * 3)
 
         // 文案对照
         assertTrue(EQ_MISTAKE_CASES[0].wrong.contains("x - 2 = 8"))
         assertTrue(EQ_MISTAKE_CASES[1].right.contains("10 + 6"))
         assertTrue(EQ_MISTAKE_CASES[2].right.contains("10 - 3"))
+        assertTrue(EQ_MISTAKE_CASES[3].right.contains("12 - 5"))
+        assertTrue(EQ_MISTAKE_CASES[4].right.contains("5x - 3x = 6"))
     }
+}
+
+private fun term(op: EqOp?, value: String, isVar: Boolean = false) = EqTerm(op, value, isVar)
+
+/**
+ * 每一项的「**语义**符号 + 值」—— 与显示形态无关，供同侧交换比对用。
+ *
+ * ⚠️ 不能直接拿 `t.op?.sym ?: ""` 拼串比：**首项不写符号是显示约定**，不代表它没符号。
+ *    `5 + x` 的项是 [(null,"5"), (+,"x")]、`x + 5` 是 [(null,"x"), (+,"5")] ——
+ *    两边符号其实都是「+」，但按显示形态拼串会得到 ["5","+x"] vs ["x","+5"]，排序后永远不等。
+ *    这里独立复算一遍「首项没写符号时它到底带的是 + 还是 ×」（与引擎的 eqEffectiveOp 各写一份）。
+ */
+private fun signedTerms(side: EqSideList): List<String> = side.mapIndexed { i, t ->
+    val op = t.op ?: run {
+        val next = side.getOrNull(i + 1)
+        if (next != null && (next.op == EqOp.MUL || next.op == EqOp.DIV)) EqOp.MUL else EqOp.ADD
+    }
+    "${op.sym}${t.value}"
 }

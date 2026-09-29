@@ -328,21 +328,24 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 
 ### 批次 C 收官后新增：等式变变变（动画学数学 第 2 页｜2026-09-29）
 
+> **2026-09-29 追加（本批次）**：出题引擎扩到 **13 题型**、动作模型扩到 **4 种**（move / swap / combine / flip），新增「首项显形」动画与 5 选项练习卡，单测 16 → **27 例**。web 侧同一批改动已重建并 CF 上线（入口 `index-B-L1pf7k.js`）。
+
 **等式变变变**（`/module/math_equation_move`）—— **零后端**：`web/src/lib/equationMove.ts` → `data/math/EqMove.kt`，`web/src/pages/EquationMovePage.tsx` → `ui/eqmove/`（VM + Screen）。NavKey `EqMove`，首页「🧮 动画学数学」小节第 2 张卡。
 
-教学法「找 → 飞 → 落 → 算」：① 要搬走的那一整块脉动高亮 → ② ★ 越过**等号分界线**（上下两段虚线 + 「等号 = 分界」标签），**跨线那一瞬符号翻牌** + 竖线闪光 → ③ 落在对侧末尾、源侧原位**只变灰划掉不删除** → ④ 算出结果并把答案**代回原式**验算 ✓。两条支线：**同侧交换反例**（滑动换位，符号不动）、**两步搬运**（`a - x` / `a ÷ x`）。
+教学法「找 → 飞 → 落 → 算」：① 要搬走的那一整块脉动高亮 → ② ★ 越过**等号分界线**（上下两段虚线 + 「等号 = 分界」标签），**跨线那一瞬符号翻牌** + 竖线闪光 → ③ 落在对侧末尾、源侧原位**只变灰划掉不删除** → ④ 算出结果并把答案**代回原式**验算 ✓。★ **四条动作线**：**move**（跨线搬运、必翻符号）、**swap**（同侧换位、符号一点不动）、**combine**（同侧合并同类项）、**flip**（两边整体对调）。🔴 **只有 move 有「落位槽」**，另外三种**一个字节都不跨等号线** ⇒ 必须走 FLIP 那条路，绝不能进幽灵飞越（否则「同侧换位不变号」会被画成「整块飞过等号」，**教学上正好教反**）。
 
 | 层 | 文件 | 说明 |
 |---|---|---|
-| 引擎 | `data/math/EqMove.kt` | 纯 Kotlin：7 题型 + 加权池随机 + 随机 5 题练习生成 + 静态口诀/易错/对比练习资料 |
-| VM | `ui/eqmove/EqMoveViewModel.kt` | `EqPhase`（IDLE/FIND/FLY/LAND/SLIDE/SOLVE/DONE）+ 确定性事件表（`T_FIND/T_FLY/T_LAND/T_SOLVE/T_SLIDE`，Screen 同源取用）；随机 5 题与计分也在这里 |
+| 引擎 | `data/math/EqMove.kt` | 纯 Kotlin：**13 题型**（基础 7 + 首项显形 / 未知数在右 / 一边三项 / 两边都有 x / 两步）+ **4 种动作模型**（`move` / `swap` / `combine` / `flip`）+ 加权池随机 + **随机 6 题**练习生成 + 静态口诀/易错/对比练习资料 |
+| VM | `ui/eqmove/EqMoveViewModel.kt` | `EqPhase`（IDLE/FIND/FLY/LAND/SLIDE/SOLVE/DONE）+ 确定性事件表（`T_FIND/T_FLY/T_LAND/T_SOLVE/T_SLIDE`，Screen 同源取用）；随机 6 题与计分也在这里 |
 | Screen | `ui/eqmove/EqMoveScreen.kt` | 单 `LazyColumn`；幽灵飞越翻牌 / 等号分界线 / 落位槽 / 同侧滑动 FLIP / 练习区 |
 
-- **引擎单测 16 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **460 用例 / 0 失败 / 35 类**（此前 444 / 34）。★ 两个**互相独立**的裁判：逐项序列求值 ↔ **渲染成文本再解析求值**。
+- **引擎单测 27 例（新增 1 类）`EqMoveTest`** ⇒ 全量 **471 用例 / 0 失败 / 35 类**（此前 444 / 34）。★ 两个**互相独立**的裁判：逐项序列求值 ↔ **渲染成文本再解析求值**。★ `checkProblem` 按 `a.type` 分支校验四种动作各自的守恒律（MOVE 翻符号 / SWAP 不动符号 / COMBINE 项数 −1 / FLIP 左右对调）。
 - 🔴 **顶层命名必须加 `Eq` / `eq` / `EQ_` 前缀**：与 `CompoundExpr.kt`、`Precedence.kt` **同包**（`com.example.ai.data.math`），Kotlin 顶层声明同包不能重名；那边已有 `KIND_LABEL` / `RULES` / `MISTAKE_CASES` / `rndInclusive` / `generateProblem`。`Precedence.kt` 用 `P` / `Pr` / `PR_` 前缀避让，本页沿用同一惯例。
 - ⚠️ **同侧交换的断言别按「显示形态」拼串比较**：首项不写符号是显示约定。`5 + x` 是 `[(null,"5"),(+, "x")]`、`x + 5` 是 `[(null,"x"),(+, "5")]`，用 `"${op?.sym ?: ""}${value}"` 排序后会得到两个不同的列表。正确口径：整体求值不变 + 第二项符号仍是 `+` + 逐项「语义符号 + 值」比较。
 - ★ **翻牌时刻不能写死**：幽灵在哪个进度跨过等号线取决于**实测几何**（源项中心 ↔ 等号线 ↔ 落位槽）⇒ 由 Screen 在飞行动画跑到 `cross` 时回调 `viewModel.onGhostCrossed()`（VM 只管状态，Screen 管几何与动画）。
-- 与 web 逐条对齐：落位槽**从动画一开始就 alpha 0 占位**（宽度不变 ⇒ 落点像素级准确）、源侧项**变灰 + 划掉但不删除**、同侧交换用 **FLIP 且上下错开**（否则两项半路叠成一个「x5」）。
+- 与 web 逐条对齐：落位槽**从动画一开始就 alpha 0 占位**（宽度不变 ⇒ 落点像素级准确）、源侧项**变灰 + 划掉但不删除**、同侧交换用 **FLIP 且上下错开**（否则两项半路叠成一个「x5」）。★ **combine 后文本变了**（`3x`/`-2x` → `x`）⇒ 找不到旧位就安静收场、只留紫色高亮，**与 web 同款行为**（`EquationMovePage.tsx:361`）。
+- 🔴 **FLIP 的位置上报 key 必须带侧别前缀**：`geom.report("$valuePrefix${term.value}")` 存的是 `lval-8`，查表若写成 `prevSide[term.value]`（少前缀）⇒ **全部落空**、`?: return@forEachIndexed` **静默提前返回**，同侧滑动「看着实现了、其实从未动过」（本轮真实 bug）。web 侧靠 `.eq-side-${side}` 选择器把查询限定在一侧内，文本 key 才敢不带前缀（`EquationMovePage.tsx:348-361`）—— Compose 没有 DOM 选择器可依托，前缀必须落在 key 上。
 
 #### 等式变变变的已知差异（有意为之，非遗漏）
 - **动画未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「APK 构建通过 + 全量单测绿」，观感由实机验证补。
@@ -382,7 +385,7 @@ export JAVA_HOME="C:/Program Files/Java/jdk-21.0.11"
 ./gradlew :app:testDebugUnitTest --console=plain      # 全量单测
 ```
 
-- **最近一次门禁（2026-09-29）**：`assembleDebug` ✅；全量单测 **460 用例 / 0 失败 / 0 错误 / 0 跳过，35 个测试类**（`app/build/test-results/testDebugUnitTest/*.xml` 汇总）。
+- **最近一次门禁（2026-09-29，13 题型 / 4 动作批次）**：`assembleDebug` ✅；全量单测 **471 用例 / 0 失败 / 0 错误 / 0 跳过，35 个测试类**（`app/build/test-results/testDebugUnitTest/*.xml` 汇总）。
 - 只跑新增模块的引擎单测可提速：`./gradlew :app:testDebugUnitTest --tests "com.example.ai.data.math.EqMoveTest"` ⇒ **算法文件先配单测跑通再写 UI**，别把错误带进 Screen（Screen 报错定位成本远高于引擎）。
 - 本机无设备/模拟器 ⇒ 安装与动画观感由用户手机验证。
 - 每批完成提交一次（`AiPhonix` 仓库，**只 `git add app/ docs/ PROJECT_MEMORY.md`**，绝不 `git add -A`）。

@@ -28,10 +28,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -45,13 +48,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ai.data.math.EQ_KIND_GROUPS
 import com.example.ai.data.math.EQ_KIND_LABEL
 import com.example.ai.data.math.EQ_KIND_TIP
 import com.example.ai.data.math.EQ_MISTAKE_CASES
 import com.example.ai.data.math.EQ_PRACTICE
 import com.example.ai.data.math.EQ_RULES
+import com.example.ai.data.math.EqActionType
 import com.example.ai.data.math.EqMistakeCase
 import com.example.ai.data.math.EqOp
+import com.example.ai.data.math.EqPracticeAnswer
+import com.example.ai.data.math.EqPracticeAsk
 import com.example.ai.data.math.EqPracticeItem
 import com.example.ai.data.math.EqSide
 import com.example.ai.data.math.EqSideList
@@ -96,6 +103,8 @@ private val Faint = Color(0xFF94A3B8)
 private val MdColor = Color(0xFF2563EB)
 private val AsColor = Color(0xFFEA580C)
 private val LitAmber = Color(0xFFFDE68A)
+/** 合并同类项的结果高亮（紫）—— 与移项的橙 / 蓝刻意区分开，学生一眼看出「这一步不是移项」 */
+private val MergedBg = Color(0xFFEDE9FE)
 private val OkColor = Color(0xFF16A34A)
 private val BadColor = Color(0xFFDC2626)
 private val BorderColor = Color(0xFFCBD5E1)
@@ -217,7 +226,7 @@ fun EqMoveScreen(
                     color = Black0,
                 )
                 Text(
-                    "先自己想一想，再点选答案 —— 四个选项正好是四种符号。",
+                    "先自己想一想，再点选答案 —— 选项里那四个是「变号」，最后一个「不变」是专门用来迷惑你的。",
                     fontSize = 12.sp,
                     color = Grey,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -346,36 +355,44 @@ private fun RulesCard() {
     }
 }
 
-/** 题型选择：7 种题型排成三行，避免窄屏溢出（web 是 flex-wrap） */
+/** 题型选择：13 种按引擎的 [EQ_KIND_GROUPS] 分四组，每组三列 —— **别在这里手写清单**。
+ *  ⚠️ 上一版就是因为页面里硬编码了 7 种，引擎加了新题型页面却一个都不显示。 */
 @Composable
 private fun KindRows(current: MoveKind, onPick: (MoveKind) -> Unit) {
-    val rows = listOf(
-        listOf(MoveKind.PLUS, MoveKind.MINUS, MoveKind.TIMES),
-        listOf(MoveKind.DIVIDE, MoveKind.MINUS_VAR, MoveKind.DIVIDE_VAR),
-        listOf(MoveKind.SAME_SIDE),
-    )
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-        rows.forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { k ->
-                    val on = k == current
-                    Text(
-                        EQ_KIND_LABEL[k].orEmpty(),
-                        fontSize = 12.sp,
-                        fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-                        color = if (on) Color.White else Black0,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(if (on) MdColor else Color(0xFFF1F5F9))
-                            .border(1.dp, if (on) MdColor else Color(0xFFCBD5E1), RoundedCornerShape(999.dp))
-                            .clickableNoRipple { onPick(k) }
-                            .padding(vertical = 7.dp),
-                    )
+        EQ_KIND_GROUPS.forEach { group ->
+            Text(
+                group.title,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = Grey,
+                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+            )
+            group.kinds.chunked(3).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    row.forEach { k ->
+                        val on = k == current
+                        Text(
+                            EQ_KIND_LABEL[k].orEmpty(),
+                            fontSize = 11.sp,
+                            fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+                            color = if (on) Color.White else Black0,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(if (on) MdColor else Color(0xFFF1F5F9))
+                                .border(1.dp, if (on) MdColor else Color(0xFFCBD5E1), RoundedCornerShape(999.dp))
+                                .clickableNoRipple { onPick(k) }
+                                .padding(vertical = 7.dp),
+                        )
+                    }
+                    // 最后一行不满 3 个时补空位，免得按钮被拉宽（要跟别行等宽）
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
+                Spacer(Modifier.height(6.dp))
             }
-            Spacer(Modifier.height(6.dp))
         }
     }
 }
@@ -575,24 +592,36 @@ private fun EqStage(
         borderHit.animateTo(0f, tween(900, easing = CubicBezierEasing(0f, 0f, 0.58f, 1f)))
     }
 
-    // ── 同侧交换：FLIP（先量旧位 → 换序 → 倒推回旧位 → 滑到新位）──
-    var prevLeft by remember { mutableStateOf<Map<String, Rect>>(emptyMap()) }
+    // ── 同侧换位 / 合并 / 两边对调：FLIP（先量旧位 → 切 state → 倒推回旧位 → 滑到新位）──
+    //   ★ 这三类动作**都不跨等号线**，所以绝不能让它们走「幽灵飞越」那条路 ——
+    //     否则会把「同侧换位、符号不变」画成「整块飞过等号」，教学上正好教反。
+    var prevSide by remember { mutableStateOf<Map<String, Rect>>(emptyMap()) }
+    var slideSide by remember { mutableStateOf(EqSide.LEFT) }
     var slidePlan by remember { mutableStateOf<List<Pair<Int, Float>>>(emptyList()) }
 
     LaunchedEffect(state.phase, state.runToken) {
-        if (reduced || state.phase != EqPhase.SLIDE || !problem.isSameSide) return@LaunchedEffect
-        // ① 此刻渲染的还是「未换序」的形态 —— 先把旧位量下来
-        prevLeft = geom.snapshot("lval-")
+        if (reduced || state.phase != EqPhase.SLIDE) return@LaunchedEffect
+        val a = state.curAction
+        if (a == null || a.type == EqActionType.MOVE) return@LaunchedEffect
+        // ① 此刻渲染的还是「换位前 / 合并前」的形态 —— 先把那一侧的旧位置量下来
+        slideSide = a.from
+        prevSide = geom.snapshot(if (a.from == EqSide.LEFT) "lval-" else "rval-")
         onSwapped(true)
     }
 
     LaunchedEffect(state.swapped, state.runToken) {
-        if (reduced || !state.swapped || !problem.isSameSide) return@LaunchedEffect
+        if (reduced || !state.swapped) return@LaunchedEffect
+        val a = state.curAction
+        if (a == null || a.type == EqActionType.MOVE) return@LaunchedEffect
+        val own = if (a.from == EqSide.LEFT) view.left else view.right
+        val prefix = if (a.from == EqSide.LEFT) "lval-" else "rval-"
         repeat(2) { withFrameNanos { } } // 等换序后的布局落定
         val plan = mutableListOf<Pair<Int, Float>>()
-        view.left.forEachIndexed { i, term ->
-            val prev = prevLeft[term.value] ?: return@forEachIndexed
-            val now = geom.abs("lval-${term.value}") ?: return@forEachIndexed
+        own.forEachIndexed { i, term ->
+            // ⚠️ snapshot 的 key 是**带前缀的完整 key**（"lval-8"），不能拿 term.value 去查
+            //    —— 旧代码就是漏了前缀，导致同侧滑动压根没动过。
+            val prev = prevSide["$prefix${term.value}"] ?: return@forEachIndexed
+            val now = geom.abs("$prefix${term.value}") ?: return@forEachIndexed
             val dx = prev.left - now.left
             if (abs(dx) < 0.5f) return@forEachIndexed // 位置没动（比如中间那个「+」）就别动它
             plan.add(i to dx)
@@ -626,7 +655,7 @@ private fun EqStage(
                 act = act,
                 state = state,
                 geom = geom,
-                slidePlan = slidePlan,
+                slidePlan = if (slideSide == EqSide.LEFT) slidePlan else emptyList(),
                 slideT = slide.value,
                 valuePrefix = "lval-",
                 modifier = Modifier.weight(1f),
@@ -646,8 +675,8 @@ private fun EqStage(
                 act = act,
                 state = state,
                 geom = geom,
-                slidePlan = emptyList(),
-                slideT = 1f,
+                slidePlan = if (slideSide == EqSide.RIGHT) slidePlan else emptyList(),
+                slideT = slide.value,
                 valuePrefix = "rval-",
                 modifier = Modifier.weight(1f),
             )
@@ -799,13 +828,23 @@ private fun EqSideContent(
     valuePrefix: String,
     modifier: Modifier = Modifier,
 ) {
+    val isSrc = act != null && act.from == which
+    val move = act?.type == EqActionType.MOVE
+    val idx = act?.index ?: -1
+    val idx2 = act?.index2 ?: -1
     Box(modifier, contentAlignment = Alignment.Center) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             side.forEachIndexed { i, term ->
-                val taking = act != null && act.from == which && i == act.index
+                // move：只动 index 那 1 项 · swap / combine：index 与 index2 两项都参与
+                val taking = move && isSrc && i == idx
+                // 换位的**另一项**也要一起亮起来 —— 只亮一半会让学生以为只有它在动
+                val involved = isSrc && (i == idx || i == idx2) && !taking &&
+                    (state.phase == EqPhase.FIND || state.phase == EqPhase.SLIDE)
+                // 合并完成后，活下来的那一项亮一下 —— 它就是「两块合起来的结果」
+                val merged = act?.type == EqActionType.COMBINE && state.swapped && isSrc && i == idx
                 val plan = slidePlan.firstOrNull { it.first == i }
                 val slideOff = if (plan != null && slideT < 1f) slidePose(slideT, plan.second) else null
                 EqToken(
@@ -815,6 +854,8 @@ private fun EqSideContent(
                     taking = taking,
                     lit = taking && state.phase == EqPhase.FIND && !state.stepDone,
                     taken = taking && state.stepDone,
+                    involved = involved,
+                    merged = merged,
                     modifier = Modifier
                         .then(
                             if (taking && !state.stepDone) Modifier.posReporter { geom.report("src", it) }
@@ -830,8 +871,9 @@ private fun EqSideContent(
                     valueModifier = Modifier.posReporter { geom.report("$valuePrefix${term.value}", it) },
                 )
             }
-            // 落位槽：隐形占位（落位后才显形，落点与幽灵终点重合 ⇒ 交接无接缝）
-            if (act != null && act.from != which) {
+            // ★ 落位槽**只有 move 才该有**。swap / combine / flip 根本不跨线 ——
+            //   给它们凭空加一个槽，动画就会把「同侧换位」画成「整块飞过等号」，教学上正好相反。
+            if (move && act.from != which) {
                 EqToken(
                     op = act.toOp,
                     value = act.value,
@@ -856,11 +898,15 @@ private fun EqToken(
     taking: Boolean = false,
     lit: Boolean = false,
     taken: Boolean = false,
+    /** swap / combine 里「参与的另一项」也一起亮 —— 只亮一半会让学生以为只有它在动 */
+    involved: Boolean = false,
+    /** 合并完成后，活下来的那一项亮紫色（与移项的橙 / 蓝区分） */
+    merged: Boolean = false,
     slot: Boolean = false,
     slotOn: Boolean = false,
 ) {
-    // 「找」：要搬走的这一整块脉动高亮
-    val pulse = if (lit) {
+    // 「找」：要搬走（或要换位）的这一整块脉动高亮
+    val pulse = if (lit || involved) {
         val tr = rememberInfiniteTransition(label = "eq-lit")
         tr.animateFloat(
             initialValue = 1f,
@@ -884,7 +930,18 @@ private fun EqToken(
                 this.alpha = alpha
             }
             .clip(RoundedCornerShape(9.dp))
-            .background(if (taking && !taken) LitAmber else Color.Transparent)
+            .background(
+                when {
+                    merged -> MergedBg
+                    // 只有「正在找 / 正在滑」这几拍才亮 —— 未播放（IDLE）与落位后都不该亮
+                    // （web 侧同理：只有 phase==="find" 才加 eq-lit）
+                    lit || involved -> LitAmber
+                    else -> Color.Transparent
+                },
+            )
+            .then(
+                if (merged) Modifier.border(2.dp, Color(0x478B5CF6), RoundedCornerShape(9.dp)) else Modifier,
+            )
             .padding(horizontal = 6.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1129,7 +1186,7 @@ private fun DrillSection(
     Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "🎯 随机 5 题 · 专练移项变号",
+                "🎯 随机 6 题 · 专练移项变号",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Black0,
@@ -1151,7 +1208,8 @@ private fun DrillSection(
             )
         }
         Text(
-            "每轮都把四条规律练到（+ ↔ -、× ↔ ÷）—— 先看清它有没有跨过等号，再点答案。",
+            "每轮六种情形全练到：加变减 · 减变加 · 乘变除 · 除变乘 · 要搬两次（含首项显形）· 同侧换位不变号。" +
+                "先看清它到底跨没跨过等号，再点答案。",
             fontSize = 12.sp,
             color = Grey,
             modifier = Modifier.padding(top = 4.dp, bottom = 6.dp),
@@ -1188,8 +1246,23 @@ private fun DrillSection(
     }
 }
 
-/** 四个选项正好是四种符号（顺序与 web 的 OPS 一致） */
-private val OPS: List<EqOp> = listOf(EqOp.ADD, EqOp.SUB, EqOp.MUL, EqOp.DIV)
+/** 五个选项：四个「变号」+ 一个「不变」—— 后者是「同侧换位」反例题的正确答案（顺序与 web 的 OPS 一致） */
+private val OPS: List<EqPracticeAnswer> = listOf(
+    EqPracticeAnswer.Op(EqOp.ADD),
+    EqPracticeAnswer.Op(EqOp.SUB),
+    EqPracticeAnswer.Op(EqOp.MUL),
+    EqPracticeAnswer.Op(EqOp.DIV),
+    EqPracticeAnswer.Same,
+)
+
+/** 选项上显示的文字（[EqPracticeAnswer.Same] ⇒ 「不变」，且后面不跟 x / 8） */
+private fun opText(a: EqPracticeAnswer): String = when (a) {
+    is EqPracticeAnswer.Op -> a.op.sym
+    EqPracticeAnswer.Same -> "不变"
+}
+
+/** 第 5 个「不变」选项的字色（灰）—— 它跟四个「变号」选项不是一类 */
+private val SameFg = Color(0xFF64748B)
 
 /**
  * 练习卡：先猜符号，再揭晓。
@@ -1202,9 +1275,11 @@ private fun PracticeCard(
     index: Int? = null,
     onGraded: ((Boolean) -> Unit)? = null,
 ) {
-    var picked by remember { mutableStateOf<EqOp?>(null) }
+    var picked by remember { mutableStateOf<EqPracticeAnswer?>(null) }
     val ok = picked == item.answer
-    /** 被搬走那一块的显示文本：普通题是「+8」，两步型是「-x」 */
+    /** 「同侧换位」反例题：问法、选项、反馈都跟「跨线题」不一样 —— 答案是「不变」 */
+    val sameSide = item.ask == EqPracticeAsk.SAME_SIDE
+    /** 被搬走（或换位）那一块的显示文本：普通题是「+8」，两步型是「-x」 */
     val moved = item.movedLabel ?: "${item.sym.sym}${item.num}"
     /** 选项里跟的数：两步型搬的是 x 本身，选项就该显示「+x」而不是「+8」 */
     val valLabel = if (item.movedLabel != null) "x" else item.num.toString()
@@ -1247,28 +1322,42 @@ private fun PracticeCard(
                 )
             }
             Spacer(Modifier.height(6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("把 ", fontSize = 13.sp, color = Slate)
-                Text(moved, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AsColor)
-                Text(" 挪到等号右边，它该变成什么？", fontSize = 13.sp, color = Slate)
+            // 问法：跨线题问「变成什么」；同侧反例题问「符号该怎么变」
+            if (sameSide) {
+                Text(
+                    "它没有跨过等号，只是在等号同一边换了个位置 —— 符号该怎么变？",
+                    fontSize = 13.sp,
+                    color = Slate,
+                )
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("把 ", fontSize = 13.sp, color = Slate)
+                    Text(moved, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = AsColor)
+                    Text(" 挪到等号右边，它该变成什么？", fontSize = 13.sp, color = Slate)
+                }
             }
             Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 OPS.forEach { o ->
                     val chosen = picked == o
+                    val isSame = o == EqPracticeAnswer.Same
                     val fg = when {
-                        chosen && ok -> Color.White
-                        chosen && !ok -> Color.White
-                        else -> if (o == EqOp.MUL || o == EqOp.DIV) MdColor else AsColor
+                        chosen -> Color.White
+                        isSame -> SameFg
+                        else -> when ((o as? EqPracticeAnswer.Op)?.op) {
+                            EqOp.MUL, EqOp.DIV -> MdColor
+                            else -> AsColor
+                        }
                     }
                     val bg = when {
                         chosen && ok -> OkColor
                         chosen && !ok -> BadColor
+                        isSame -> Color.Transparent // 「不变」不透底，靠虚线框跟四个「变号」区分
                         else -> Color(0xFFF8FAFC)
                     }
                     Text(
-                        text = "${o.sym}$valLabel",
-                        fontSize = 15.sp,
+                        text = if (isSame) opText(o) else "${opText(o)}$valLabel",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = fg,
                         textAlign = TextAlign.Center,
@@ -1276,7 +1365,27 @@ private fun PracticeCard(
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(bg)
-                            .border(1.dp, if (chosen) bg else Color(0xFFCBD5E1), RoundedCornerShape(10.dp))
+                            .then(
+                                // 「不变」在未作答时用**虚线**灰框 —— 一眼看出它跟那四个不是一类
+                                if (isSame && picked == null) {
+                                    Modifier.drawBehind {
+                                        drawRoundRect(
+                                            color = BorderColor,
+                                            cornerRadius = CornerRadius(10.dp.toPx()),
+                                            style = Stroke(
+                                                width = 2f,
+                                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
+                                            ),
+                                        )
+                                    }
+                                } else {
+                                    Modifier.border(
+                                        1.dp,
+                                        if (chosen) bg else BorderColor,
+                                        RoundedCornerShape(10.dp),
+                                    )
+                                },
+                            )
                             .clickableNoRipple {
                                 // 每题只在**首次**点选时计分
                                 if (picked == null) onGraded?.invoke(o == item.answer)
@@ -1298,7 +1407,12 @@ private fun PracticeCard(
                     Text(item.result, fontSize = 13.sp, color = Slate, modifier = Modifier.padding(top = 2.dp))
                 } else {
                     Text(
-                        "❌ 再想想 —— 它跨过了等号，符号必须变相反：「${item.sym.sym}」要变成「${eqFlipOp(item.sym).sym}」。",
+                        if (sameSide) {
+                            "❌ 再想想 —— 它压根没跨过等号，只是在同一侧换了个位置：符号一点不用动，该选「不变」。"
+                        } else {
+                            "❌ 再想想 —— 它跨过了等号，符号必须变相反：" +
+                                "「${item.sym.sym}」要变成「${eqFlipOp(item.sym).sym}」。"
+                        },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = BadColor,
