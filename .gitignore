@@ -401,3 +401,14 @@ server_ts/_seed/
 # local _pr_* verification artifacts (same family as _ce_*)
 web/_pr_*
 server_cf/_deploy_pr.log
+
+# 等式变变变 / 动画学数学 抓帧探针（本地可复用，不入库）
+web/_em_*.mjs
+web/_em_shots/
+web/_eq_*.mjs
+web/_eq_*.ts
+web/_eq_shots/
+web/_eq_solve_shots/
+web/_eq_*.log
+web/_build.log
+server_cf/_deploy_*.log

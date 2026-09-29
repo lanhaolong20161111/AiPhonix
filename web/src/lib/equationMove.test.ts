@@ -25,12 +25,14 @@ import {
   RULES,
   MISTAKE_CASES,
   PRACTICE,
-  generatePracticeItems,
+  buildSolveItem,
+  generateSolveItems,
   type EqState,
   type MoveKind,
   type MoveProblem,
   type Op,
   type Side,
+  type SolveStep,
   type Term,
 } from "./equationMove"
 
@@ -617,138 +619,247 @@ test("★ 教材范围：加减法结果 ≤ 20，乘法都在表内（≤ 81）
 })
 
 // ────────────────────────────────────────────────────────────
-// 随机练习（默认 6 道）：专练「跨过等号 ⇒ 符号变相反」
+// 分步解方程练习（默认 6 道）：每一步都必须是一次**等价变形**
 // ────────────────────────────────────────────────────────────
 
-/** 把练习题原式拼成 JS 表达式并把 x 代进去（裁判 ②：交给 JS 引擎，不复用引擎自己的算术） */
-function practiceHolds(before: string, x: number): boolean {
-  const js = before.replace(/×/g, "*").replace(/÷/g, "/").replace(/=/g, "===")
-  const fn = new Function("x", `return ${js}`) as (v: number) => boolean
-  return fn(x)
+/** 把「等式文本」拼成 JS 表达式并代 x 进去（裁判 ② 的快捷版；`5x` 要写成 `5*x`） */
+function holdsAt(expr: string, xVal: number): boolean {
+  const js = expr
+    .replace(/(\d)x/g, "$1*x")
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/=/g, "===")
+  // eslint-disable-next-line no-new-func
+  return (new Function("x", `"use strict"; return ${js};`) as (v: number) => boolean)(xVal)
 }
 
-/** 交给 JS 引擎算一个纯数字算式（`×`/`÷` 转成 `*`/`/`） */
-function evalNum(expr: string): number {
-  const js = expr.replace(/×/g, "*").replace(/÷/g, "/")
-  return (new Function(`return ${js}`) as () => number)()
+/** 一个状态在 x 处必须仍是**真等式**（左右两边求值相等）—— 返回两侧的值 */
+function stateHolds(st: EqState, xVal: number, label: string): [number, number] {
+  assert.ok(st.left.length > 0 && st.right.length > 0, `${label}: 两侧都不该被搬空`)
+  const l = bothAgree(st.left, xVal, `${label} 左边`)
+  const r = bothAgree(st.right, xVal, `${label} 右边`)
+  assert.equal(l, r, `${label}: 等式不成立（${l} ≠ ${r}）`)
+  return [l, r]
 }
 
-test("★ 随机练习：默认 6 道，且每道都满足「跨线题答案 == 符号取反 / 同侧题答案 == 不变」", () => {
-  for (let round = 0; round < 300; round++) {
-    const items = generatePracticeItems()
+/** ★★ 全页最核心的判据 —— 四种动作在数值上分成两类：
+ *   · move（跨等号）：**两侧的值都会变**（这正是「搬运」的含义），但等式照样成立
+ *   · swap / combine / flip（同侧）：**两侧的值一分不动**，只有写法变了
+ *  换句话说：学生只要用「数值变没变」就能替我们判「这一步到底跨没跨等号线」。 */
+function stepKeepsValue(step: SolveStep, xVal: number, label: string) {
+  const before = stateHolds(step.before, xVal, `${label} 变形前`)
+  const after = stateHolds(step.after, xVal, `${label} 变形后`)
+  if (step.type === "move") {
+    assert.notDeepEqual(after, before, `${label}: 搬运之后两侧的数值应当都变了（否则等于没搬）`)
+  } else {
+    assert.deepEqual(after, before, `${label}: 同侧动作（换位/合并/对调）不许改变任何一侧的数值`)
+  }
+}
+
+/** 逐条校验一步的全部字段（选项、答案、文案、与动作类型的一致性） */
+function checkStep(it: { kindLabel: string }, step: SolveStep, k: number) {
+  const label = `${it.kindLabel} 第 ${k + 1} 步(${step.type})`
+  assert.ok(step.ask.length > 0, `${label}: 缺问法`)
+  assert.ok(step.why.length > 0, `${label}: 缺「为什么」`)
+  assert.ok(step.wrongTip.length > 0, `${label}: 缺答错提示`)
+  assert.ok(step.options.length >= 2, `${label}: 选项太少`)
+  assert.equal(new Set(step.options).size, step.options.length, `${label}: 选项有重复`)
+  assert.ok(step.options.includes(step.answer), `${label}: 正确答案「${step.answer}」不在选项里`)
+
+  if (step.type === "move") {
+    const a = step.action
+    assert.ok(a, `${label}: 搬运步必须带上原始动作（卡片要照着它演动画）`)
+    assert.equal(a.type, "move")
+    assert.equal(a.toOp, flipOp(a.fromOp), `${label}: 跨线必须翻符号`)
+    assert.notEqual(step.answer, "不变", `${label}: 跨线步的答案不能是「不变」`)
+    assert.equal(step.answer, `${a.toOp}${a.value}`, `${label}: 答案文本与动作不符`)
+  } else if (step.type === "solve") {
+    assert.ok(step.options.every((o) => /^\d+$/.test(o)), `${label}: 「算出来」的选项应当是纯数字`)
+    if (step.trapAnswer) {
+      assert.ok(step.options.includes(step.trapAnswer), `${label}: 「忘变号」陷阱项必须在选项里`)
+      assert.ok(step.trapTip, `${label}: 有陷阱项就该有对应的点破话术`)
+    }
+  } else {
+    // swap / combine / flip：一个字节都不跨等号线 ⇒ 答案必须是「不变」
+    assert.equal(step.answer, "不变", `${label}: 同侧动作不能变号`)
+    assert.ok(step.options.includes("不变"), `${label}: 同侧动作的选项里必须有「不变」`)
+    if (step.type === "swap") assert.equal(step.action?.type, "swap")
+  }
+}
+
+/** 四个「变号」+ 一个「不变」—— 卡片上按这个顺序渲染 */
+const OP_OPTIONS = ["+", "-", "×", "÷", "不变"]
+
+test("★ 分步练习：一步步首尾相接 —— 第一步就是原式，最后一步落回 final", () => {
+  for (let round = 0; round < 200; round++) {
+    const items = generateSolveItems()
     assert.equal(items.length, 6, "默认应生成 6 道")
     for (const it of items) {
-      if (it.ask === "sameSide") {
-        assert.equal(it.answer, "same", `${it.before}：同侧换位，符号应当不变`)
-      } else {
-        assert.equal(
-          it.answer,
-          flipOp(it.sym),
-          `${it.before}：把「${it.sym}」搬过等号应变成「${flipOp(it.sym)}」`,
+      assert.ok(it.steps.length >= 1, `${it.kindLabel}: 至少要有一问`)
+      assert.deepEqual(it.steps[0].before, it.initial, `${it.kindLabel}: 第一步不是从原式开始`)
+      assert.deepEqual(
+        it.steps[it.steps.length - 1].after,
+        it.final,
+        `${it.kindLabel}: 最后一步没落回最终形态`,
+      )
+      // 首尾相接：第 k 步做完的样子，必须**逐字段等于**第 k+1 步开始的样子
+      for (let k = 0; k + 1 < it.steps.length; k++) {
+        assert.deepEqual(
+          it.steps[k].after,
+          it.steps[k + 1].before,
+          `${it.kindLabel}: 第 ${k + 2} 步接不上第 ${k + 1} 步`,
+        )
+      }
+      // 「算出来」只该出现在最后，且与 solved 一致
+      const solveAt = it.steps.map((s, i) => (s.type === "solve" ? i : -1)).filter((i) => i >= 0)
+      assert.equal(solveAt.length, it.solved ? 1 : 0, `${it.kindLabel}: 「算出来」的步数与 solved 不符`)
+      if (solveAt.length) {
+        assert.equal(solveAt[0], it.steps.length - 1, `${it.kindLabel}: 「算出来」必须是最后一步`)
+      }
+    }
+  }
+})
+
+test("★ 分步练习：每一步都是等价变形 + 每一步的答案都跟「跨没跨等号线」严格一致", () => {
+  // ★ 13 种题型逐个扫（确定性地覆盖到 threeTerms / bothSides / multiStep 这些结构题型）
+  for (const kind of Object.keys(KIND_LABEL) as MoveKind[]) {
+    for (let i = 0; i < 40; i++) {
+      const it = buildSolveItem(kind)
+      assert.equal(it.kind, kind)
+      for (const [k, step] of it.steps.entries()) {
+        stepKeepsValue(step, it.x, `${kind} 第 ${k + 1} 步(${step.type})`)
+        checkStep(it, step, k)
+      }
+    }
+  }
+  // 随机练习组同样逐条扫
+  for (let round = 0; round < 120; round++) {
+    for (const it of generateSolveItems()) {
+      for (const [k, step] of it.steps.entries()) {
+        stepKeepsValue(step, it.x, `${it.kindLabel} 第 ${k + 1} 步(${step.type})`)
+        checkStep(it, step, k)
+      }
+      // 符号步的选项顺序固定：四个变号 + 一个「不变」
+      for (const step of it.steps) {
+        if (step.type === "solve") continue
+        assert.deepEqual(
+          step.options.map((o) => (o === "不变" ? "不变" : o[0])),
+          OP_OPTIONS,
+          `${it.kindLabel}: 符号步的选项应当是「+ - × ÷ 不变」`,
         )
       }
     }
   }
 })
 
-test("★ 随机练习：4 条基本变号规律每轮都必出现（+↔-、×↔÷ 都练到）", () => {
-  for (let round = 0; round < 300; round++) {
-    const moved = new Set(generatePracticeItems().map((it) => it.sym))
-    for (const s of ["+", "-", "×", "÷"] as Op[]) {
-      assert.ok(moved.has(s), `第 ${round} 轮缺少「${s}」这一类题`)
+test("★ 分步练习：4 条基本规律每轮必出、多步题必出、同侧反例必出", () => {
+  const STEP_KINDS: MoveKind[] = [
+    "minusVar",
+    "divideVar",
+    "revealPlus",
+    "revealTimes",
+    "xRight",
+    "threeTerms",
+    "bothSides",
+    "multiStep",
+  ]
+  for (let round = 0; round < 200; round++) {
+    const kinds = generateSolveItems().map((it) => it.kind)
+    for (const k of ["plus", "minus", "times", "divide"] as MoveKind[]) {
+      assert.equal(kinds.filter((x) => x === k).length, 1, `第 ${round} 轮「${k}」应当正好 1 道`)
     }
-  }
-})
-
-test("★ 随机练习：两步型必出一道、同侧反例必出一道（六种情形每轮都练到）", () => {
-  const STEP_KINDS = ["minusVar", "divideVar", "revealPlus", "revealTimes"]
-  for (let round = 0; round < 300; round++) {
-    const kinds = generatePracticeItems().map((it) => it.kind)
-    assert.ok(
-      kinds.some((k) => STEP_KINDS.includes(k!)),
-      `第 ${round} 轮缺「要搬两次 / 首项显形」的进阶题`,
-    )
+    assert.ok(kinds.some((k) => STEP_KINDS.includes(k)), `第 ${round} 轮缺「要多步才解得完」的题`)
     assert.equal(
       kinds.filter((k) => k === "sameSide").length,
       1,
       `第 ${round} 轮「同侧不变号」反例应当正好 1 道`,
     )
-    // 四条基本规律各一道，且不多不少
-    for (const k of ["plus", "minus", "times", "divide"]) {
-      assert.equal(kinds.filter((x) => x === k).length, 1, `第 ${round} 轮「${k}」应当正好 1 道`)
-    }
     assert.equal(kinds.length, 6)
   }
 })
 
-test("★ 随机练习：每题都用独立的第二套算式验算（原式成立 + 移项式正好等于解）", () => {
-  for (let round = 0; round < 300; round++) {
-    for (const it of generatePracticeItems()) {
-      // ① 原式把解代进去必须成立
-      assert.ok(practiceHolds(it.before, it.x), `${it.before} 代入 x=${it.x} 不成立`)
+test("★ 分步练习：同侧反例题只演一步、不解方程", () => {
+  for (let i = 0; i < 60; i++) {
+    const it = buildSolveItem("sameSide")
+    assert.equal(it.solved, false, "同侧反例题不该声称解出了 x")
+    assert.equal(it.steps.length, 1, "同侧反例题只演一步")
+    assert.equal(it.steps[0].type, "swap")
+    assert.equal(it.steps[0].answer, "不变")
+    assert.ok(it.finalNote.includes("同一侧"), "收尾文案要点明「同一侧换位不变号」")
+    // 它确实**没有**把 x 解出来 —— 末态的 x 不孤单，还得再跨一次线
+    assert.ok(
+      it.final.left.length + it.final.right.length > 1,
+      "同侧反例题的末态不该已经只剩「x = 一个数」",
+    )
+  }
+})
 
-      // ② 换位/移项之后用 JS 引擎另算一遍，必须正好等于解
-      if (it.ask === "sameSide") {
-        // 同侧换位：a + x = b ⇒ x + a = b —— 交换律，左边求值不变
-        const a = Number(it.before.split(" ")[0])
-        const b = Number(it.before.split("=")[1])
-        assert.equal(it.x + a, b, `${it.before}：同侧换位式 x + ${a} = ${b} 不成立`)
-        continue
+test("★ 分步练习：把答案代回原式成立（两个独立裁判各算一遍）", () => {
+  const check = (it: ReturnType<typeof buildSolveItem>) => {
+    // 裁判 ①：按 term 序列自己算
+    const [l1, r1] = evalState(it.initial, it.answer)
+    assert.equal(l1, r1, `${it.kindLabel}: x=${it.answer} 代回原式不成立（自己算：${l1} ≠ ${r1}）`)
+    // 裁判 ②：拼成 JS 表达式交给 JS 引擎
+    assert.ok(
+      holdsAt(eqToText(it.initial), it.answer),
+      `${it.kindLabel}: x=${it.answer} 代回原式不成立（JS 裁判）`,
+    )
+    if (it.solved) {
+      assert.equal(it.final.left.length, 1, `${it.kindLabel}: 解出来后左边应当只剩 x`)
+      assert.ok(it.final.left[0].isVar, `${it.kindLabel}: 解出来后左边的幸存项应当就是 x`)
+      assert.equal(it.solution, `x = ${sideToText(it.final.right)} = ${it.answer}`)
+      assert.equal(it.steps[it.steps.length - 1].answer, String(it.answer))
+    }
+  }
+  for (const kind of Object.keys(KIND_LABEL) as MoveKind[]) {
+    for (let i = 0; i < 40; i++) check(buildSolveItem(kind))
+  }
+  for (let round = 0; round < 120; round++) for (const it of generateSolveItems()) check(it)
+})
+
+test("★ 分步练习：数值都在小学口算范围内（加减 ≤ 20、乘除 ≤ 81）", () => {
+  const MAX: Partial<Record<MoveKind, number>> = {
+    times: 81,
+    divide: 81,
+    divideVar: 81,
+    revealTimes: 81,
+  }
+  for (let round = 0; round < 200; round++) {
+    for (const it of generateSolveItems()) {
+      const cap = MAX[it.kind] ?? 20
+      for (const side of [it.initial.left, it.initial.right, it.final.left, it.final.right]) {
+        for (const t of side) {
+          if (t.isVar) continue
+          assert.ok(
+            Number(t.value) <= cap,
+            `${it.kindLabel}: ${t.value} 超出「${cap} 以内」范围`,
+          )
+        }
       }
-
-      const twoStep = /^(\d+) ([+×÷-]) x = (\d+)$/.exec(it.before)
-      if (twoStep) {
-        // a + x = b 这类：先把 a 换到后面（不变号），再跨线变号
-        const a = Number(twoStep[1])
-        const b = Number(twoStep[3])
-        assert.equal(
-          evalNum(`${b} ${flipOp(it.sym)} ${it.x}`),
-          a,
-          `${it.before}：移项后 ${b} ${flipOp(it.sym)} ${it.x} 应等于 ${a}`,
-        )
-      } else {
-        const b = Number(it.before.split("=")[1])
-        assert.equal(
-          evalNum(`${b} ${flipOp(it.sym)} ${it.num}`),
-          it.x,
-          `${it.before}：移项后 ${b} ${flipOp(it.sym)} ${it.num} 应等于 ${it.x}`,
-        )
-      }
-
-      // ③ 结果文案里要对得上最终答案
-      assert.ok(it.result.includes(`= ${it.x}`), `「${it.before}」结果串应含最终答案 ${it.x}`)
+      assert.ok(it.answer >= 2 && it.answer <= 81, `${it.kindLabel}: 解 ${it.answer} 越界`)
+      assert.ok(Number.isInteger(it.answer), `${it.kindLabel}: 解必须是整数`)
     }
   }
 })
 
-test("★ 随机练习：数值都在小学口算范围内（加减 ≤ 20、乘除 ≤ 81、被搬的数是 2~9）", () => {
-  for (let round = 0; round < 300; round++) {
-    for (const it of generatePracticeItems()) {
-      const b = Number(it.before.split("=")[1])
-      assert.ok(b >= 2 && b <= 81, `${it.before}：等号右侧 ${b} 越界`)
-      assert.ok(it.num >= 2 && it.num <= 9, `${it.before}：被搬的数是 ${it.num}，超出 2~9`)
-      assert.ok(it.x >= 2 && it.x <= 81, `${it.before}：解 ${it.x} 越界`)
-    }
-  }
-})
-
-test("★ 随机练习：换一组会真的换（不是每次都同一套）", () => {
+test("★ 分步练习：换一组会真的换（不是每次都同一套）", () => {
   const seen = new Set<string>()
   for (let i = 0; i < 40; i++) {
-    seen.add(generatePracticeItems().map((it) => it.before).join(" | "))
+    seen.add(generateSolveItems().map((it) => eqToText(it.initial)).join(" | "))
   }
   assert.ok(seen.size > 5, `40 轮只出现 ${seen.size} 种题组 —— 随机性不足`)
 })
 
-test("★ 题目数量参数：n < 6 时按顺序退让，不会越界或重复占位", () => {
+test("★ 分步练习：题目数量参数 n < 6 时按顺序退让，不会越界", () => {
   for (let round = 0; round < 100; round++) {
     for (const n of [1, 2, 4, 5, 6, 8, 12]) {
-      const items = generatePracticeItems(n)
+      const items = generateSolveItems(n)
       assert.equal(items.length, n, `n=${n} 时应当正好生成 ${n} 道`)
-      // n ≥ 4：四条基本规律必齐
       if (n >= 4) {
-        const syms = new Set(items.map((it) => it.sym))
-        for (const s of ["+", "-", "×", "÷"] as Op[]) assert.ok(syms.has(s), `n=${n} 缺 ${s}`)
+        const kinds = new Set(items.map((it) => it.kind))
+        for (const k of ["plus", "minus", "times", "divide"] as MoveKind[]) {
+          assert.ok(kinds.has(k), `n=${n} 缺 ${k}`)
+        }
       }
     }
   }

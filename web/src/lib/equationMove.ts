@@ -929,6 +929,9 @@ export const MISTAKE_CASES: MistakeCase[] = [
   },
 ]
 
+/** 跨线后符号变成什么；"same" 表示同侧换位、符号不变（分步练习的选项也用同一套文字） */
+export type PracticeAnswer = Op | "same"
+
 export interface PracticeItem {
   /** 原式 */
   before: string
@@ -946,8 +949,6 @@ export interface PracticeItem {
   movedLabel?: string
   /** 问法：cross = 跨过等号变成什么（默认）；sameSide = 同侧换位，符号怎么变 */
   ask?: "cross" | "sameSide"
-  /** 出题来源的题型 —— 随机练习带上它，断言「哪几类必出」时才有确切依据 */
-  kind?: PracticeKind
 }
 
 export const PRACTICE: PracticeItem[] = [
@@ -990,158 +991,301 @@ export const PRACTICE: PracticeItem[] = [
 ]
 
 // ────────────────────────────────────────────────────────────
-// 随机练习：默认 6 道，把「移项变号」的六种情形全练到
+// 分步解方程练习：把整道题拆成「一步一填」，一路填到解出 x
 // ────────────────────────────────────────────────────────────
+//
+// ★ 为什么另起一套，而不是给上面的 PracticeItem 加字段：
+//   PracticeItem 是「一道题只问一次」的平面结构 —— 学生要做的只是**认出符号**。
+//   分步练习要的是**跟着动画把整道题解完**：每一步都有「问什么 / 选什么 / 为什么 /
+//   错了错在哪」，而且必须与主舞台的 actions **严格对齐**。
+//
+// 🔴 这里的每一条数据都**从 BUILDERS 生成的 MoveProblem 派生**，绝不自己另算一遍数学 ——
+//    否则迟早会出现「练习说跨线变号、主舞台演的却是同侧换位」这种自相矛盾。
 
-/** 跨线后符号变成什么；"same" 表示同侧换位、符号不变 */
-export type PracticeAnswer = Op | "same"
+/** 分步练习里的一步：学生答一个问题，卡片就把这一步的动画演给他看 */
+export interface SolveStep {
+  /** 这一步开始时等式的样子（卡片小舞台渲染它） */
+  before: EqState
+  /** 这一步做完的样子 —— 下一步的 before 必定等于它 */
+  after: EqState
+  /** 动作类型；"solve" = 最后一步「把右边的数算出来」 */
+  type: ActionType | "solve"
+  /** 步骤小标签：跨线变号 / 同侧换位 / 同侧合并 / 两边对调 / 算出来 */
+  label: string
+  /** 问法 */
+  ask: string
+  /** 选项文本（按钮上原样显示） */
+  options: string[]
+  /** 正确答案 —— 必定是 options 里的一个 */
+  answer: string
+  /** 答对后点明的道理 */
+  why: string
+  /** 答错时的通用提示 */
+  wrongTip: string
+  /** ★ 这一步底下的原始动作 —— 卡片照着它演动画（「算出来」与补出来的「两边对调」没有） */
+  action?: MoveAction
+  /** 「算出来」专用：忘了变号会算出的那个数（选项里的经典陷阱） */
+  trapAnswer?: string
+  /** 「算出来」专用：选到陷阱项时点破的那句话 */
+  trapTip?: string
+}
 
-/** 随机练习题型 */
-export type PracticeKind =
-  | "plus"
-  | "minus"
-  | "times"
-  | "divide"
-  | "minusVar"
-  | "divideVar"
-  | "revealPlus"
-  | "revealTimes"
-  | "sameSide"
+export interface SolveItem {
+  kind: MoveKind
+  kindLabel: string
+  /** 原式 */
+  initial: EqState
+  /** 解完的规范形态（同侧反例题就是「换完位置」的形态） */
+  final: EqState
+  /** 一步一步要填的步骤：actions 各一步（x 落在右边再补一次对调）＋ 最后「算出来」 */
+  steps: SolveStep[]
+  x: number
+  answer: number
+  /** 一行解答：x = 14 - 8 = 6 */
+  solution: string
+  /** 是否真的把 x 解出来了（同侧反例题只演示一步，不解） */
+  solved: boolean
+  /** 收尾文案 */
+  finalNote: string
+}
 
-/** 4 种基本题型：每轮练习各来一道，保证四条变号规律全练到 */
-const DRILL_BASIC: PracticeKind[] = ["plus", "minus", "times", "divide"]
+const SOLVE_LABEL: Record<ActionType | "solve", string> = {
+  move: "跨线变号",
+  swap: "同侧换位",
+  combine: "同侧合并",
+  flip: "两边对调",
+  solve: "算出来",
+}
 
-/** 「要搬两次」的进阶型：每轮**必出**一道（含首项显形的两种） */
-const DRILL_STEP: PracticeKind[] = ["minusVar", "divideVar", "revealPlus", "revealTimes"]
+const SOLVE_SIDE = (s: "left" | "right") => (s === "left" ? "左边" : "右边")
 
-/** 全部题型池（补齐名额时从这里随机，含「同侧不变号」这个反例） */
-const DRILL_POOL: PracticeKind[] = [...DRILL_BASIC, ...DRILL_STEP, "sameSide"]
+/** 一步「符号该变成什么」的选项：四个变号 + 一个「不变」（后者正是同侧动作的正确答案） */
+function opOptions(value: string): string[] {
+  return [`+${value}`, `-${value}`, `×${value}`, `÷${value}`, "不变"]
+}
 
-/** 造一道练习题：先定 x 与操作数 → 反推等式另一端，保证恒成立且答案是非负整数 */
-function buildPracticeItem(kind: PracticeKind): PracticeItem {
-  switch (kind) {
-    case "plus": {
-      const x = rnd(2, 9)
-      const a = rnd(2, 9)
-      const b = x + a
-      return {
-        before: `x + ${a} = ${b}`,
-        sym: "+", num: a, answer: "-", x,
-        result: `x = ${b} - ${a} = ${x}`,
-        why: "加号跨过等号 ⇒ 变成减号。",
-      }
+/** 选项里跟在符号后面的那个「量」：
+ *  搬运 = 被搬项本身 · 合并 = 合并后的结果 · 对调 = x（对调没有具体的被搬项） */
+function stepValue(a: MoveAction): string {
+  if (a.type === "flip") return "x"
+  if (a.type === "combine") return a.combined ?? a.value
+  return a.value
+}
+
+/** 一侧在给定 x 下的数值（**只给练习选项用**：算「忘了变号会得到几」） */
+function sideValueAt(side: Side, xVal: number): number {
+  let acc = termValueAt(side[0], xVal)
+  if (side[0].op === "-") acc = -acc
+  for (let i = 1; i < side.length; i++) {
+    const t = side[i]
+    const v = termValueAt(t, xVal)
+    switch (t.op) {
+      case "+":
+        acc += v
+        break
+      case "-":
+        acc -= v
+        break
+      case "×":
+        acc *= v
+        break
+      case "÷":
+        acc /= v
+        break
+      default:
+        return NaN
     }
-    case "minus": {
-      const x = rnd(11, 20)
-      const a = rnd(2, 9)
-      const b = x - a
-      return {
-        before: `x - ${a} = ${b}`,
-        sym: "-", num: a, answer: "+", x,
-        result: `x = ${b} + ${a} = ${x}`,
-        why: "减号跨过等号 ⇒ 变成加号。",
-      }
+  }
+  return acc
+}
+
+/** 洗牌（**返回新数组**，不动入参） */
+function shuffled<T>(arr: T[]): T[] {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = rnd(0, i)
+    const tmp = a[i]
+    a[i] = a[j]
+    a[j] = tmp
+  }
+  return a
+}
+
+/** 把一个动作变成「学生要填的那一步」 */
+function stepOfAction(a: MoveAction): SolveStep {
+  // ── 搬运：全页唯一跨等号的动作 ⇒ 唯一要变号的 ──
+  if (a.type === "move") {
+    const shown = a.srcOp === null ? a.value : `${a.srcOp}${a.value}`
+    return {
+      before: a.before,
+      after: a.after,
+      type: "move",
+      label: SOLVE_LABEL.move,
+      action: a,
+      ask:
+        a.srcOp === null
+          ? `「${a.value}」站在最前面、前面不写符号 —— 它其实带着一个看不见的「${a.fromOp}」。把它挪到等号另一边，符号该变成什么？`
+          : `把「${shown}」挪到等号另一边，符号该变成什么？`,
+      options: opOptions(stepValue(a)),
+      answer: `${a.toOp}${a.value}`,
+      why: `它跨过了等号 ——「${a.fromOp}」必须变成「${a.toOp}」。`,
+      wrongTip: `它跨过了等号，符号一定要变相反：「${a.fromOp}」要变成「${a.toOp}」。`,
     }
-    case "times": {
-      const x = rnd(2, 9)
-      const a = rnd(2, 9)
-      const b = x * a
-      return {
-        before: `x × ${a} = ${b}`,
-        sym: "×", num: a, answer: "÷", x,
-        result: `x = ${b} ÷ ${a} = ${x}`,
-        why: "乘号跨过等号 ⇒ 变成除号（因子到对面变倒数）。",
-      }
+  }
+
+  // ── 同侧重排三兄弟：一个字节都不跨等号线 ⇒ 符号一点不动 ──
+  const where = SOLVE_SIDE(a.from)
+  if (a.type === "swap") {
+    return {
+      before: a.before,
+      after: a.after,
+      type: "swap",
+      label: SOLVE_LABEL.swap,
+      action: a,
+      ask: `这一步只是在${where}内部把两项换个位置 —— 它跨过等号了吗？符号该变成什么？`,
+      options: opOptions(stepValue(a)),
+      answer: "不变",
+      why: "它没跨过等号，只是在同一侧换了个位置 —— 符号一点不用动。",
+      wrongTip: "这一步压根没碰那条等号线。只有「从等号一边搬到另一边」才变号。",
     }
-    case "divide": {
-      const a = rnd(2, 9)
-      const b = rnd(2, 9)
-      const x = a * b
-      return {
-        before: `x ÷ ${a} = ${b}`,
-        sym: "÷", num: a, answer: "×", x,
-        result: `x = ${b} × ${a} = ${x}`,
-        why: "除号跨过等号 ⇒ 变成乘号（因子到对面变倒数）。",
-      }
+  }
+  if (a.type === "combine") {
+    return {
+      before: a.before,
+      after: a.after,
+      type: "combine",
+      label: SOLVE_LABEL.combine,
+      action: a,
+      ask: `这一步是把${where}的两个同类项合起来（${a.value} 并进旁边那一项，结果是 ${
+        a.combined ?? a.value
+      }）—— 合并跨过等号了吗？符号该变成什么？`,
+      options: opOptions(stepValue(a)),
+      answer: "不变",
+      why: "合并是同一侧内部的事，不跨等号线 —— 求值一分没变，只是写法变短了。",
+      wrongTip: "合并就像把同一个篮子里的东西倒在一起，压根没跨等号线 ⇒ 符号不用变。",
     }
-    case "minusVar": {
-      const a = rnd(11, 20)
-      const x = rnd(2, 9)
-      const b = a - x
-      return {
-        before: `${a} - x = ${b}`,
-        sym: "-", num: x, answer: "+", x, movedLabel: "-x",
-        result: `${a} = ${b} + x　⇒　x = ${a} - ${b} = ${x}`,
-        why: "「-x」是一整块 —— 跨过等号，「-」变成「+」。",
-      }
-    }
-    case "divideVar": {
-      const b = rnd(2, 9)
-      const x = rnd(2, 9)
-      const a = b * x
-      return {
-        before: `${a} ÷ x = ${b}`,
-        sym: "÷", num: x, answer: "×", x, movedLabel: "÷x",
-        result: `${a} = ${b} × x　⇒　x = ${a} ÷ ${b} = ${x}`,
-        why: "「÷x」是一整块 —— 跨过等号，「÷」变成「×」。",
-      }
-    }
-    case "revealPlus": {
-      const a = rnd(2, 9)
-      const x = rnd(2, 9)
-      const b = a + x
-      return {
-        before: `${a} + x = ${b}`,
-        sym: "+", num: a, answer: "-", x,
-        result: `${a} + x = ${b}　⇒　x + ${a} = ${b}　⇒　x = ${b} - ${a} = ${x}`,
-        why: `${a} 站在最前面没写符号 —— 先跟 x 换个位置（不变号），露出「+」，跨过等号才变成「-」。`,
-      }
-    }
-    case "revealTimes": {
-      const a = rnd(2, 9)
-      const x = rnd(2, 9)
-      const b = a * x
-      return {
-        before: `${a} × x = ${b}`,
-        sym: "×", num: a, answer: "÷", x,
-        result: `${a} × x = ${b}　⇒　x × ${a} = ${b}　⇒　x = ${b} ÷ ${a} = ${x}`,
-        why: `${a} 站在最前面没写符号 —— 先跟 x 换个位置（不变号），露出「×」，跨过等号才变成「÷」。`,
-      }
-    }
-    case "sameSide": {
-      const a = rnd(2, 9)
-      const x = rnd(2, 9)
-      const b = a + x
-      return {
-        before: `${a} + x = ${b}`,
-        sym: "+", num: a, answer: "same", x, ask: "sameSide",
-        result: `${a} + x = ${b}　⇒　x + ${a} = ${b}`,
-        why: `${a} 只是和 x 换了位置，压根没跨过等号 —— 同一边交换，符号一点不用动。`,
-      }
-    }
+  }
+  return {
+    before: a.before,
+    after: a.after,
+    type: "flip",
+    label: SOLVE_LABEL.flip,
+    action: a,
+    ask: "这一步是把等号两边整体对调 —— 对调之后，x 的符号该变成什么？",
+    options: opOptions(stepValue(a)),
+    answer: "不变",
+    why: "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
+    wrongTip: "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
+  }
+}
+
+/** 收尾那一步：把右边的数算出来。
+ *  ★ 选项里**必定含着「忘了变号」会算出的那个数** —— 那正是这一页要防的错。 */
+function solveStepOf(p: MoveProblem): SolveStep {
+  const right = sideToText(p.final.right)
+  // 忘变号：把末态右侧除首项以外的运算符全部翻回去再求值
+  // （x 此时已单独在左边 ⇒ 右侧不含未知数，代 0 即得常数）
+  const noFlip = sideValueAt(
+    p.final.right.map((t, i) => (i === 0 || t.op === null ? t : { ...t, op: flipOp(t.op) })),
+    0,
+  )
+  const wrongs: number[] = []
+  const push = (c: number) => {
+    if (!Number.isInteger(c) || c < 0 || c === p.answer || wrongs.includes(c) || wrongs.length >= 3) return
+    wrongs.push(c)
+  }
+  push(noFlip) // ← 经典陷阱：移项没变号
+  push(p.answer + 1)
+  push(p.answer - 1)
+  push(p.answer * 2)
+  push(p.answer + 3)
+  const trap = Number.isInteger(noFlip) && noFlip !== p.answer && noFlip >= 0 ? String(noFlip) : undefined
+  return {
+    before: p.final,
+    after: p.final,
+    type: "solve",
+    label: SOLVE_LABEL.solve,
+    ask: `最后一步：把右边的 ${right} 算出来，x 等于几？`,
+    options: shuffled([String(p.answer), ...wrongs.map(String)]),
+    answer: String(p.answer),
+    why: `x = ${right} = ${p.answer}。把 ${p.answer} 代回原式，等号两边一样。`,
+    wrongTip: `再算一遍：${right}。`,
+    trapAnswer: trap,
+    trapTip: "这正是「移项忘了变号」会算出来的数 —— 前面跨过等号时符号已经变过一次，别再翻回去。",
+  }
+}
+
+/** flipSides 的题（a - x = b 这类）搬完后 x 单独落在**等号右边** —— 再对调一次才写成 x = … */
+function flipBackStep(from: EqState, to: EqState): SolveStep {
+  return {
+    before: from,
+    after: to,
+    type: "flip",
+    label: SOLVE_LABEL.flip,
+    ask: "x 已经单独待在等号右边了 —— 把两边整体对调一下，每一项的符号该变成什么？",
+    options: opOptions("x"),
+    answer: "不变",
+    why: "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
+    wrongTip: "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
   }
 }
 
 /**
- * 生成一组随机练习题（默认 **6** 道）。
- * ★ 组合策略：**4 条基本变号规律各一道**（顺序打乱）＋ **1 道「要搬两次」的进阶型**（必出）
- *   ＋ **1 道「同侧换位不变号」反例**（必出）——
- *   只要 n ≥ 6，「加变减 / 减变加 / 乘变除 / 除变乘 / 同侧不变 / 搬两次」六种情形每轮都被练到。
- *
- * ⚠️ 为什么是 6 而不是 5：5 道只够「4 条基本 + 1 道进阶」，塞不下「两步型」和「同侧不变号」
- *    两类，必然有一类练不到。多一道刚好把六种情形占满。
+ * 把一道题拆成「一步一填」的练习题。
+ * ★ 步骤 = 每个动作一步 ＋（x 落在等号右边时）补一次两边对调 ＋ 最后「算出来」一步。
+ * ⚠️ 同侧反例题（sameSide）**没有**「算出来」那一步 —— 它只演示「同侧换位不变号」，
+ *    压根没打算求解，硬凑一步会把「这一步不用解」这个教学点抹掉。
  */
-export function generatePracticeItems(n = 6): PracticeItem[] {
-  const kinds: PracticeKind[] = [...DRILL_BASIC]
-  if (n > DRILL_BASIC.length) kinds.push(DRILL_STEP[rnd(0, DRILL_STEP.length - 1)])
-  if (n > DRILL_BASIC.length + 1) kinds.push("sameSide")
-  while (kinds.length < n) kinds.push(DRILL_POOL[rnd(0, DRILL_POOL.length - 1)])
-  // Fisher–Yates 打乱，避免每轮都是「+ - × ÷」同一个次序
-  for (let i = kinds.length - 1; i > 0; i--) {
-    const j = rnd(0, i)
-    const tmp = kinds[i]
-    kinds[i] = kinds[j]
-    kinds[j] = tmp
+export function buildSolveItem(kind: MoveKind): SolveItem {
+  const p = BUILDERS[kind]()
+  const steps = p.actions.map(stepOfAction)
+  if (p.flipSides) steps.push(flipBackStep(p.actions[p.actions.length - 1].after, p.final))
+  if (!p.isSameSide) steps.push(solveStepOf(p))
+  return {
+    kind,
+    kindLabel: p.kindLabel,
+    initial: p.initial,
+    final: p.final,
+    steps,
+    x: p.x,
+    answer: p.answer,
+    solution: solutionText(p),
+    solved: !p.isSameSide,
+    finalNote: p.isSameSide
+      ? "这道题只演一步：同一侧换个位置，符号一点没变。要把 x 单独留下来，下一步就得让最前面那个数跨过等号 —— 那时候才变号。"
+      : `解出来了：x = ${p.answer}。把 ${p.answer} 代回原式 ${eqToText(p.initial)}，等号两边一样。`,
   }
-  return kinds.slice(0, n).map((k) => ({ ...buildPracticeItem(k), kind: k }))
+}
+
+/** 4 条基本变号规律：每轮各一道 */
+const SOLVE_BASIC: MoveKind[] = ["plus", "minus", "times", "divide"]
+
+/** 「要多步才解得完」的进阶型：每轮**必出**一道（首项显形 / 两边都有 x / 多项多步…） */
+const SOLVE_STEP: MoveKind[] = [
+  "minusVar",
+  "divideVar",
+  "revealPlus",
+  "revealTimes",
+  "xRight",
+  "threeTerms",
+  "bothSides",
+  "multiStep",
+]
+
+/** 补齐名额时的题型池（含「同侧不变号」这个反例） */
+const SOLVE_POOL: MoveKind[] = [...SOLVE_BASIC, ...SOLVE_STEP, "sameSide"]
+
+/**
+ * 生成一组分步解方程练习（默认 **6** 道）。
+ * ★ 组合策略与「六种情形全练到」一致：**4 条基本变号规律各一道** ＋ **1 道多步题（必出）**
+ *   ＋ **1 道「同侧换位不变号」反例（必出）**，整体打乱后取前 n 道。
+ */
+export function generateSolveItems(n = 6): SolveItem[] {
+  const kinds: MoveKind[] = [...SOLVE_BASIC]
+  if (n > SOLVE_BASIC.length) kinds.push(SOLVE_STEP[rnd(0, SOLVE_STEP.length - 1)])
+  if (n > SOLVE_BASIC.length + 1) kinds.push("sameSide")
+  while (kinds.length < n) kinds.push(SOLVE_POOL[rnd(0, SOLVE_POOL.length - 1)])
+  return shuffled(kinds)
+    .slice(0, n)
+    .map(buildSolveItem)
 }

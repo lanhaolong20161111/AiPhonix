@@ -9225,3 +9225,145 @@ button.btn-mode-off {
   vertical-align: 2px;
 }
 
+/* ── 分步解方程卡：一步一填，答完就把这一步的动画演出来 ── */
+.eq-solve { padding-bottom: 12px; }
+.eq-solve-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.eq-solve-expr {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+.eq-solve-prog {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 已填过的步骤：一行一条，攒起来就是整道题的解题过程 */
+.eq-solve-trail { display: flex; flex-direction: column; gap: 4px; margin-bottom: 9px; }
+.eq-solve-chip {
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.eq-solve-chip b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 10px;
+  vertical-align: 1px;
+}
+
+/* 卡片内的小舞台：**相对定位** —— 幽灵用舞台自己的绝对坐标，绝不飞出卡片去盖隔壁 */
+.eq-solve-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 10px 15px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.eq-solve-stage .eq-side { font-size: 20px; gap: 6px; }
+.eq-solve-stage .eq-eq { font-size: 21px; }
+.eq-solve-stage .eq-tok { padding: 1px 4px; border-radius: 7px; }
+
+/* 卡片内幽灵：跟主舞台同款，但绝对定位在卡片舞台里 */
+.eq-ghost.eq-ghost-in {
+  position: absolute;
+  padding: 1px 4px;
+  border-radius: 7px;
+  font-size: 20px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16), 0 0 0 2px rgba(251, 191, 36, 0.45);
+}
+
+/* flip（两边整体对调）：左右**擦身而过**。
+   ⚠️ 这里刻意不做 FLIP 测量：对调时两侧的项会换边，「按文本找旧位」本来就不成立，
+      纯 CSS 反而更稳（也不会因为找不到旧位而静默不动）。 */
+.eq-solve-stage.eq-flipping .eq-side-left { animation: eq-swap-left 0.44s cubic-bezier(0.4, 0, 0.6, 1); }
+.eq-solve-stage.eq-flipping .eq-side-right { animation: eq-swap-right 0.44s cubic-bezier(0.4, 0, 0.6, 1); }
+@keyframes eq-swap-left {
+  0% { transform: translateX(16px); opacity: 0.25; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes eq-swap-right {
+  0% { transform: translateX(-16px); opacity: 0.25; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* 问法：步骤标签 + 问题 */
+.eq-solve-label {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.eq-solve-ask { margin: 0 0 10px; font-size: 13px; line-height: 1.7; color: #475569; }
+
+/* 5 个选项挤在一张卡里：允许换行，字号收回一点 */
+.eq-solve .eq-pcard-opts { flex-wrap: wrap; }
+.eq-solve .eq-opt { padding: 9px 4px; font-size: 17px; }
+.eq-opt.eq-opt-num { color: #0f172a; letter-spacing: -0.01em; }
+
+/* 「下一步」：这一步填完了才出现 */
+.eq-btn.eq-solve-next {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+.eq-btn.eq-solve-next:active { background: #1d4ed8; }
+
+/* 全题填完 */
+.eq-solve-done {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+.eq-solve-done b { font-size: 23px; }
+.eq-solve-note {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-solve-stage.eq-flipping .eq-side-left,
+  .eq-solve-stage.eq-flipping .eq-side-right { animation: none; }
+}

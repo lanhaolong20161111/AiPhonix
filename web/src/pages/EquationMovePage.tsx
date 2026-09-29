@@ -32,7 +32,8 @@ import {
   RULES,
   MISTAKE_CASES,
   PRACTICE,
-  generatePracticeItems,
+  eqToText,
+  generateSolveItems,
   KIND_GROUPS,
   KIND_LABEL,
   KIND_TIP,
@@ -44,6 +45,8 @@ import {
   type PracticeAnswer,
   type PracticeItem,
   type Side,
+  type SolveItem,
+  type SolveStep,
 } from "../lib/equationMove"
 
 // ────────────────────────────────────────────────────────────
@@ -149,16 +152,18 @@ export function EquationMovePage() {
   const prevRectsRef = useRef<Map<string, DOMRect>>(new Map())
   /** FLIP 这一拍要重排的是**哪一侧** —— swap/combine 可能发生在等号右边，不能写死 .eq-side-left */
   const slideSideRef = useRef<"left" | "right">("left")
-  /** 随机练习：当前这一组的 6 道题 */
-  const [drill, setDrill] = useState<PracticeItem[]>(() => generatePracticeItems(6))
+  /** 分步解方程练习：当前这一组的 6 道题 */
+  const [drill, setDrill] = useState<SolveItem[]>(() => generateSolveItems(6))
   /** 换一组时 +1，用作 key 让每道题重新挂载（清掉上一组的作答状态） */
   const [drillRound, setDrillRound] = useState(0)
-  /** 随机练习作答统计（每题只在首次点选时计一次） */
+  /** 分步练习的统计：单位是**步**（不是题）—— 每一步只在首次点选时记一次成绩 */
   const [drillStat, setDrillStat] = useState({ answered: 0, correct: 0 })
+  /** 这一组一共要填多少步（每道题的步数都不一样，不能拿题数当分母） */
+  const drillSteps = useMemo(() => drill.reduce((n, it) => n + it.steps.length, 0), [drill])
 
-  /** 换一组：重新随机 6 道（四条基本变号规律各一道 + 一道两步型 + 一道同侧不变号反例） */
+  /** 换一组：重新随机 6 道（四条基本变号规律各一道 + 一道多步题 + 一道同侧不变号反例） */
   const reshuffleDrill = useCallback(() => {
-    setDrill(generatePracticeItems(6))
+    setDrill(generateSolveItems(6))
     setDrillRound((r) => r + 1)
     setDrillStat({ answered: 0, correct: 0 })
   }, [])
@@ -749,34 +754,29 @@ export function EquationMovePage() {
         ))}
       </div>
 
-      {/* ── 随机练习：6 道，可换一组 ── */}
+      {/* ── 分步解方程练习：一步一填，答完就演这一步的动画，填到最后把 x 解出来 ── */}
       <div className="eq-practice eq-drill">
         <div className="eq-drill-head">
-          <p className="eq-sec-title">🎯 随机 6 题 · 专练移项变号</p>
+          <p className="eq-sec-title">🧩 分步解方程 · 6 题</p>
           <button type="button" className="eq-btn eq-btn-sm" onClick={reshuffleDrill}>
             🔄 换一组
           </button>
         </div>
         <p className="eq-sec-sub">
-          每轮六种情形全练到：加变减 · 减变加 · 乘变除 · 除变乘 · 要搬两次（含首项显形）· 同侧换位不变号。
-          先看清它到底跨没跨过等号，再点答案。
+          每道题都拆成一小步一小步：先看清这一步跨没跨过等号，点选答案 —— 卡片马上把这一步的动画演给你看，
+          一路填到把 x 解出来。每轮六种情形全练到：加变减 · 减变加 · 乘变除 · 除变乘 · 要多步才解得完（含首项显形）· 同侧换位不变号。
         </p>
         <p className="eq-drill-score" aria-live="polite">
-          已答 <b>{drillStat.answered}</b> / {drill.length}　·　答对 <b>{drillStat.correct}</b> 道
-          {drillStat.answered >= drill.length &&
-            (drillStat.correct === drill.length ? (
-              <span className="eq-drill-perfect">　🎉 全对！这条规律你已经拿下了</span>
+          已填 <b>{drillStat.answered}</b> / {drillSteps} 步　·　一次答对 <b>{drillStat.correct}</b> 步
+          {drillStat.answered >= drillSteps &&
+            (drillStat.correct === drillSteps ? (
+              <span className="eq-drill-perfect">　🎉 每一步都对！这条规律你已经拿下了</span>
             ) : (
               <span>　再点「换一组」接着练</span>
             ))}
         </p>
         {drill.map((it, i) => (
-          <PracticeCard
-            key={`${drillRound}-${i}`}
-            item={it}
-            index={i + 1}
-            onGraded={gradeDrill}
-          />
+          <SolveCard key={`${drillRound}-${i}`} item={it} index={i + 1} onGraded={gradeDrill} />
         ))}
       </div>
 
@@ -1005,6 +1005,492 @@ function PracticeCard({
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────
+// 分步解方程卡：一步一填 —— 答完这一步，卡片就把这一步的动画演出来，直到解出 x
+// ────────────────────────────────────────────────────────────
+//
+// ★ 为什么卡片内自带一套小舞台，而不是复用主舞台那套「幽灵 + FLIP」：
+//   主舞台的幽灵是 position: fixed（视口坐标），一屏只有一道题；这里一屏 6 张卡同时存在，
+//   用 fixed 幽灵会飞出卡片、盖到隔壁卡上。所以卡片内用**同一个构思、绝对定位**重做一遍
+//   （坐标全部相对卡片舞台）。数学与动作类型仍然**全部来自引擎**（step.action / act.type），
+//   卡片只负责演 —— 它自己一步都不算。
+
+/** 卡片内动画的时间轴（都比主舞台短一截：卡片小、一次 6 张，节奏拖长了整页会闹） */
+const S_FIND = 560
+const S_FLY = 780
+const S_SLIDE = 700
+const S_LAND = 820
+
+type SolvePhase = "ask" | "find" | "fly" | "slide" | "land" | "settled"
+
+/** 卡片内幽灵：坐标一律**相对卡片舞台**（position: absolute）⇒ 再快也不会飞出卡片 */
+interface MiniGhost {
+  cx: number
+  cy: number
+  tx: number
+  ty: number
+  cross: number
+  srcOp: Op | null
+  fromOp: Op
+  toOp: Op
+  value: string
+}
+
+/** 选项按钮的配色：乘除蓝 / 加减橙 / 「不变」灰虚线 / 纯数字 */
+function optCls(o: string): string {
+  if (o === "不变") return "eq-opt eq-opt-same"
+  if (o[0] === "×" || o[0] === "÷") return "eq-opt eq-opt-md"
+  if (o[0] === "+" || o[0] === "-") return "eq-opt eq-opt-as"
+  return "eq-opt eq-opt-num"
+}
+
+/** 选项按钮的内容：把「+8」拆成符号位 + 数值位，跟题干里的算式同一套配色 */
+function OptText({ o }: { o: string }) {
+  if (o === "不变") return <span className="eq-opt-sym">{o}</span>
+  const c = o[0]
+  if (c === "+" || c === "-" || c === "×" || c === "÷") {
+    return (
+      <>
+        <span className="eq-opt-sym">{c}</span>
+        {o.slice(1)}
+      </>
+    )
+  }
+  return <>{o}</>
+}
+
+function SolveCard({
+  item,
+  index,
+  onGraded,
+}: {
+  item: SolveItem
+  /** 题号 */
+  index?: number
+  /** 每一步只在**第一次**点选时上报对错 —— 答错可以再试，但成绩只认第一次 */
+  onGraded?: (ok: boolean) => void
+}) {
+  const reduced = useReducedMotion()
+  const [stepIndex, setStepIndex] = useState(0)
+  const [phase, setPhase] = useState<SolvePhase>("ask")
+  /** 这一步已经点错过的选项（留在红框里，别让它偷偷变回正常） */
+  const [tried, setTried] = useState<string[]>([])
+  /** 同侧重排（swap / combine）：是否已换过序 —— 只有它俩用得上 */
+  const [swapped, setSwapped] = useState(false)
+  const [flipped, setFlipped] = useState(false)
+  const [ghost, setGhost] = useState<MiniGhost | null>(null)
+  const [border, setBorder] = useState<Border | null>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const ghostRef = useRef<HTMLSpanElement>(null)
+  const timerRef = useRef<number[]>([])
+  const prevRectsRef = useRef<Map<string, DOMRect>>(new Map())
+  const slideSideRef = useRef<"left" | "right">("left")
+
+  const step: SolveStep | undefined = item.steps[stepIndex]
+  const act = step?.action
+  /** ★ 只有搬运才跨等号线 —— 换位/合并/对调只在同一侧重排（与主舞台同一条铁律） */
+  const move = act?.type === "move"
+  /** 这一步已经填完了（答对之后） */
+  const filled = phase === "land" || phase === "settled"
+  /** 两边整体对调那一拍（纯 CSS 擦身而过，不做 FLIP） */
+  const flipping = step?.type === "flip" && phase === "slide"
+
+  const later = useCallback((fn: () => void, ms: number) => {
+    timerRef.current.push(window.setTimeout(fn, ms))
+  }, [])
+  const clearTimers = useCallback(() => {
+    for (const t of timerRef.current) window.clearTimeout(t)
+    timerRef.current = []
+  }, [])
+  useEffect(() => clearTimers, [clearTimers])
+
+  /**
+   * 卡片上此刻渲染的两侧。
+   *  · move —— 全程停在 before：源项变灰留着、目标侧由隐形落位槽占位 ⇒ 飞越期间布局零重排
+   *  · swap / combine —— 到点切 after，再靠 FLIP 补差值动画
+   *  · flip（含 flipSides 补出来的那次对调）/「算出来」—— 到点直接切 after
+   */
+  const view = useMemo<EqState | null>(() => {
+    if (!step) return null
+    if (act?.type === "move") return step.before
+    if (act?.type === "swap" || act?.type === "combine") return swapped ? step.after : step.before
+    return phase === "ask" || phase === "find" ? step.before : step.after
+  }, [step, act, phase, swapped])
+
+  // ── 等号分界线：位置随内容重算（卡片里只画竖线，不挂「等号 = 分界」的标签，省地方）──
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    if (!stage) {
+      setBorder(null)
+      return
+    }
+    const eq = stage.querySelector<HTMLElement>('[data-eq="eq"]')
+    if (!eq) {
+      setBorder(null)
+      return
+    }
+    const s = stage.getBoundingClientRect()
+    const q = eq.getBoundingClientRect()
+    setBorder({
+      x: q.left + q.width / 2 - s.left,
+      topH: Math.max(0, q.top - s.top - 5),
+      botTop: q.bottom - s.top + 5,
+      botH: Math.max(0, s.bottom - q.bottom - 7),
+    })
+  }, [view])
+
+  /** 量出「源项 → 落位槽」的相对坐标（全部相对卡片舞台） */
+  const measure = useCallback(() => {
+    const stage = stageRef.current
+    if (!stage) return null
+    const src = stage.querySelector<HTMLElement>('[data-eq="src"]')
+    const slot = stage.querySelector<HTMLElement>('[data-eq="slot"]')
+    const eq = stage.querySelector<HTMLElement>('[data-eq="eq"]')
+    if (!src || !slot || !eq) return null
+    const s = src.getBoundingClientRect()
+    const d = slot.getBoundingClientRect()
+    const q = eq.getBoundingClientRect()
+    if (s.width === 0 || d.width === 0) return null
+    const base = stage.getBoundingClientRect()
+    return {
+      cx: s.left + s.width / 2 - base.left,
+      cy: s.top + s.height / 2 - base.top,
+      tx: d.left + d.width / 2 - base.left,
+      ty: d.top + d.height / 2 - base.top,
+      eqX: q.left + q.width / 2 - base.left,
+    }
+  }, [])
+
+  // ── ② 飞：造一块幽灵停在源项位置，随后由 WAAPI 飞向落位槽
+  //    ⚠️ 只有 move 才「飞」。swap / combine / flip 不跨等号线，绝不能落进这里 ——
+  //       否则会把它画成「整块飞过等号」，正好把「同侧换位不变号」教成反的。
+  useEffect(() => {
+    if (reduced || phase !== "fly" || act?.type !== "move") return
+    const m = measure()
+    if (!m) return
+    const span = m.tx - m.cx
+    let cross = Math.abs(span) < 1 ? 0.5 : (m.eqX - m.cx) / span
+    cross = Math.max(0.3, Math.min(0.8, cross))
+    setGhost({
+      cx: m.cx,
+      cy: m.cy,
+      tx: m.tx,
+      ty: m.ty,
+      cross,
+      srcOp: act.srcOp,
+      fromOp: act.fromOp,
+      toOp: act.toOp,
+      value: act.value,
+    })
+    // ★ 跨线那一刻：符号翻牌
+    later(() => setFlipped(true), S_FLY * cross)
+  }, [phase, act, reduced, measure, later])
+
+  useEffect(() => {
+    const el = ghostRef.current
+    if (!el || !ghost || reduced) return
+    const { cx, cy, tx, ty, cross } = ghost
+    const gx = tx - cx
+    const gy = ty - cy
+    // ⚠️ keyframe 里的位移必须是**相对起点**的：幽灵的 left/top 已经内联在起点上了，
+    //    这里再写绝对坐标会叠成两倍偏移（从主舞台那版学来的教训）
+    const t = (rx: number, ry: number, s: number) => `translate(${rx}px, ${ry}px) translate(-50%, -50%) scale(${s})`
+    const keys = [
+      { transform: t(0, 0, 0.86), opacity: 0, offset: 0 },
+      { transform: t(-4, -10, 1), opacity: 1, offset: 0.16, easing: "cubic-bezier(.34,1.56,.64,1)" },
+      { transform: t(gx * cross, gy * cross - 20, 1.12), opacity: 1, offset: cross },
+      { transform: t(gx, gy, 1), opacity: 1, offset: 1 },
+    ]
+    const safe = [...keys].sort((a, b) => a.offset - b.offset)
+    const anim = el.animate(safe, { duration: S_FLY, easing: "cubic-bezier(.45,.05,.35,1)", fill: "forwards" })
+    return () => anim.cancel()
+  }, [ghost, reduced])
+
+  // ── 同侧重排：FLIP（先量旧位 → 换 state → 倒推回旧位 → 动画滑到新位）──
+  //    查询范围就是**这张卡自己的舞台**，所以文本 key 不必再加侧前缀
+  //    （主舞台同理，靠 .eq-side-* 把范围框住；Android 那边没有选择器，就必须加前缀）
+  useEffect(() => {
+    if (reduced || phase !== "slide") return
+    const a = act
+    if (!a || (a.type !== "swap" && a.type !== "combine") || !stageRef.current) return
+    slideSideRef.current = a.from
+    const m = new Map<string, DOMRect>()
+    stageRef.current.querySelectorAll<HTMLElement>(`.eq-side-${a.from} [data-eq="val"]`).forEach((el) => {
+      m.set(el.textContent ?? "", el.getBoundingClientRect())
+    })
+    prevRectsRef.current = m
+    setSwapped(true)
+  }, [phase, act, reduced])
+
+  useLayoutEffect(() => {
+    if (!swapped) return
+    const a = act
+    if (!a || (a.type !== "swap" && a.type !== "combine")) return
+    const stage = stageRef.current
+    if (!stage) return
+    stage.querySelectorAll<HTMLElement>(`.eq-side-${slideSideRef.current} [data-eq="val"]`).forEach((el) => {
+      const prev = prevRectsRef.current.get(el.textContent ?? "")
+      if (!prev) return // 找不到同名的旧位（比如 combine 后文本变了）⇒ 这一项不做位移，安静收场
+      const now = el.getBoundingClientRect()
+      const dx = prev.left - now.left
+      if (Math.abs(dx) < 0.5) return // 位置没动（比如中间那个「+」）就别动它
+      // 上下错开：向右走的抬上去、向左走的沉下来，免得半路正面叠在一起
+      const lift = dx > 0 ? -14 : 14
+      el.style.zIndex = dx > 0 ? "3" : "2"
+      el.animate(
+        [
+          { transform: `translate(${dx}px, 0px)` },
+          { transform: `translate(${dx * 0.5}px, ${lift}px)`, offset: 0.5 },
+          { transform: "translate(0px, 0px)" },
+        ],
+        { duration: S_SLIDE, easing: "cubic-bezier(.34,1.16,.64,1)" },
+      )
+    })
+  }, [swapped, act])
+
+  /** 点选项：错了可以再试（每一步都得真填对），对了就把这一拍的动画演出来 */
+  const pick = (o: string) => {
+    if (!step || phase !== "ask") return
+    const right = o === step.answer
+    if (tried.length === 0) onGraded?.(right) // 成绩只记第一次点选
+    if (!right) {
+      setTried((t) => [...t, o])
+      return
+    }
+    if (reduced) {
+      setSwapped(true)
+      setPhase("settled")
+      return
+    }
+    clearTimers()
+    setFlipped(false)
+    setGhost(null)
+    if (step.type === "solve") {
+      // 「算出来」没有可演的动作 —— 直接亮结果
+      setPhase("settled")
+      return
+    }
+    setPhase("find")
+    if (move) {
+      later(() => setPhase("fly"), S_FIND)
+      // 落位那一刻：幽灵退场、落位槽显形（同一批更新 ⇒ 位置重合，看不出接缝）
+      later(() => {
+        setGhost(null)
+        setFlipped(false)
+        setPhase("land")
+      }, S_FIND + S_FLY)
+      later(() => setPhase("settled"), S_FIND + S_FLY + S_LAND)
+    } else {
+      later(() => setPhase("slide"), S_FIND)
+      later(() => setPhase("land"), S_FIND + S_SLIDE)
+      later(() => setPhase("settled"), S_FIND + S_SLIDE + S_LAND)
+    }
+  }
+
+  const nextStep = () => {
+    clearTimers()
+    setPhase("ask")
+    setTried([])
+    setSwapped(false)
+    setFlipped(false)
+    setGhost(null)
+    setStepIndex((i) => i + 1)
+  }
+
+  /** 渲染一侧：move 时源项变灰占位、目标侧预留隐形落位槽 */
+  const renderSide = (side: Side, key: "left" | "right"): ReactNode[] => {
+    const a = act
+    const isSrc = !!a && a.from === key
+    const nodes: ReactNode[] = side.map((t, i) => {
+      const taking = !!a && a.type === "move" && isSrc && i === a.index
+      // swap / combine：参与的那两项一起亮 —— 只亮一半会让学生以为只有它在动
+      const involved = !!a && isSrc && (i === a.index || (a.index2 !== undefined && i === a.index2))
+      // 合并完成后，活下来的那一项亮一下 —— 它就是「两块合起来的结果」
+      const merged = !!a && a.type === "combine" && swapped && isSrc && i === a.index
+      const cls = ["eq-tok"]
+      if (taking) {
+        cls.push("eq-src")
+        if (filled) cls.push("eq-taken")
+        else if (phase === "find") cls.push("eq-lit")
+      } else if (involved && (phase === "find" || phase === "slide")) {
+        cls.push("eq-lit")
+      }
+      if (merged) cls.push("eq-merged")
+      return (
+        <span key={i} className={cls.join(" ")} data-eq={taking && !filled ? "src" : undefined}>
+          {t.op && <span className={opCls(t.op)}>{t.op}</span>}
+          <span className={`eq-val${t.isVar ? " eq-var" : ""}`} data-eq="val">
+            {t.value}
+          </span>
+        </span>
+      )
+    })
+    // ★ 落位槽只有搬运才该有。swap / combine / flip 根本不跨线 ——
+    //   给它们凭空加一个槽，动画就会把「同侧换位」画成「整块飞过等号」，教学上正好相反。
+    if (a && a.type === "move" && !isSrc) {
+      nodes.push(
+        <span
+          key="slot"
+          className={`eq-tok eq-slot${filled ? " eq-slot-on" : ""}`}
+          data-eq="slot"
+          aria-hidden={!filled}
+        >
+          <span className={opCls(a.toOp)}>{a.toOp}</span>
+          <span className="eq-val">{a.value}</span>
+        </span>,
+      )
+    }
+    return nodes
+  }
+
+  // ── 整道题已经填完了 ──
+  if (!step || !view) return <SolveDone item={item} index={index} />
+
+  return (
+    <div className={`card eq-pcard eq-solve${filled ? " eq-pcard-ok" : tried.length > 0 ? " eq-pcard-bad" : ""}`}>
+      <div className="eq-solve-head">
+        {index !== undefined && <span className="eq-pcard-no">{index}</span>}
+        <span className="eq-solve-expr">{eqToText(item.initial)}</span>
+        <span className="eq-solve-prog">
+          {stepIndex + 1} / {item.steps.length}
+        </span>
+      </div>
+
+      {/* 已经填过的步骤：一行一条，攒起来就是完整的解题过程 */}
+      {stepIndex > 0 && (
+        <div className="eq-solve-trail">
+          {item.steps.slice(0, stepIndex).map((s, i) => (
+            <span key={i} className="eq-solve-chip">
+              <b>{i + 1}</b> {s.label} → {eqToText(s.after)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* ── 当前这一步的小舞台 ── */}
+      <div className={`eq-solve-stage${flipping ? " eq-flipping" : ""}`} ref={stageRef}>
+        <div className="eq-side eq-side-left">{renderSide(view.left, "left")}</div>
+        <span className="eq-eq" data-eq="eq">
+          =
+        </span>
+        <div className="eq-side eq-side-right">{renderSide(view.right, "right")}</div>
+
+        {border && (
+          <div className="eq-border" aria-hidden>
+            {border.topH > 2 && (
+              <span className="eq-border-seg" style={{ left: border.x, top: 0, height: border.topH }} />
+            )}
+            <span className="eq-border-seg" style={{ left: border.x, top: border.botTop, height: border.botH }} />
+          </div>
+        )}
+
+        {ghost && (
+          <span
+            ref={ghostRef}
+            className="eq-ghost eq-ghost-in"
+            /* ⚠️ 起始位置与初始形态必须**内联**：WAAPI 挂上之前还有一帧 */
+            style={{
+              left: ghost.cx,
+              top: ghost.cy,
+              transform: "translate(-50%, -50%) scale(0.86)",
+              opacity: 0,
+            }}
+            aria-hidden
+          >
+            {flipped ? (
+              <span className={`eq-flipwrap ${ghost.toOp === "×" || ghost.toOp === "÷" ? "eq-op-md" : "eq-op-as"}`}>
+                <span className={`eq-fw-old${ghost.srcOp === null ? " eq-fw-invisible" : ""}`}>
+                  {ghost.srcOp ?? ghost.fromOp}
+                </span>
+                <span className="eq-fw-new">{ghost.toOp}</span>
+              </span>
+            ) : (
+              <span className={`${opCls(ghost.srcOp ?? ghost.fromOp)}${ghost.srcOp === null ? " eq-op-off" : ""}`}>
+                {ghost.srcOp ?? ghost.fromOp}
+              </span>
+            )}
+            <span className="eq-val">{ghost.value}</span>
+          </span>
+        )}
+      </div>
+
+      {/* ── 问 + 选项 ── */}
+      <p className="eq-solve-ask">
+        <span className="eq-solve-label">
+          第 {stepIndex + 1} 步 · {step.label}
+        </span>
+        {step.ask}
+      </p>
+      <div className="eq-pcard-opts">
+        {step.options.map((o) => {
+          const cls = [
+            optCls(o),
+            phase !== "ask" && o === step.answer ? "eq-opt-right" : "",
+            tried.includes(o) ? "eq-opt-wrong" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")
+          return (
+            <button key={o} type="button" className={cls} onClick={() => pick(o)} disabled={phase !== "ask"}>
+              <OptText o={o} />
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── 反馈 ── */}
+      {phase === "ask" && tried.length > 0 && (
+        <div className="eq-pcard-fb eq-fb-bad">
+          <span className="eq-fb-head">
+            ❌ 再想想 —— {tried[tried.length - 1] === step.trapAnswer ? step.trapTip : step.wrongTip}
+          </span>
+        </div>
+      )}
+      {filled && (
+        <div className="eq-pcard-fb eq-fb-ok">
+          <span className="eq-fb-head">✅ 对了！{step.why}</span>
+          <span className="eq-fb-res">这一步做完：{eqToText(step.after)}</span>
+        </div>
+      )}
+
+      {phase === "settled" && (
+        <button type="button" className="eq-btn eq-btn-sm eq-solve-next" onClick={nextStep}>
+          {stepIndex + 1 < item.steps.length ? "下一步 ▶" : "看结果 🎉"}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/** 一道分步题全部填完之后的样子：把走过的每一步连起来，就是完整的解题过程 */
+function SolveDone({ item, index }: { item: SolveItem; index?: number }) {
+  return (
+    <div className={`card eq-pcard eq-solve${item.solved ? " eq-pcard-ok" : ""}`}>
+      <div className="eq-solve-head">
+        {index !== undefined && <span className="eq-pcard-no">{index}</span>}
+        <span className="eq-solve-expr">{eqToText(item.initial)}</span>
+      </div>
+      <div className="eq-solve-trail">
+        {item.steps.map((s, i) => (
+          <span key={i} className="eq-solve-chip">
+            <b>{i + 1}</b> {s.label} → {eqToText(s.after)}
+          </span>
+        ))}
+      </div>
+      <p className="eq-solve-done">
+        {item.solved ? (
+          <>
+            🎉 解出来了：x = <b>{item.answer}</b>
+          </>
+        ) : (
+          <>🧩 这一步填完了</>
+        )}
+      </p>
+      <p className="eq-solve-note">{item.finalNote}</p>
     </div>
   )
 }
