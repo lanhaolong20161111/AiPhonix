@@ -72,6 +72,7 @@ const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
     entries: [
       { to: "/module/math_compound_expr", emoji: "🧮", title: "三年级上综合算式动画", subtitle: "动画演示「找→换→查」合并两个算式 · 何时必须加括号 + 易错警示" },
       { to: "/module/math_equation_move", emoji: "⚖️", title: "等式变变变", subtitle: "动画演示移项变号：跨过等号加减互换、乘除互换 · 同侧换位置符号不变" },
+      { to: "/module/math_units", emoji: "📏", title: "长度与质量单位", subtitle: "毫米/厘米/分米/米/千米 · 克/千克/吨 —— 切开拼合看懂方向，参照物建立量感" },
     ],
   },
   {

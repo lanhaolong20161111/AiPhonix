@@ -9367,3 +9367,774 @@ button.btn-mode-off {
   .eq-solve-stage.eq-flipping .eq-side-left,
   .eq-solve-stage.eq-flipping .eq-side-right { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   长度与质量单位换算页（/module/math_units）
+   前缀统一 uc-（unit convert）
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.uc-page {
+  --uc-len: #2563eb;
+  --uc-mass: #ea580c;
+  --uc-ok: #16a34a;
+  --uc-bad: #dc2626;
+  --uc-lit: #fde68a;
+  --uc-split: #2563eb;
+  --uc-merge: #7c3aed;
+}
+
+.uc-sub {
+  font-size: 13px;
+  line-height: 1.75;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+.uc-sub b { color: #374151; }
+
+.uc-sec-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 5px;
+}
+.uc-sec-sub {
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+.uc-sec-sub b { color: #374151; }
+
+/* ── 规律卡 ── */
+.uc-rules { display: grid; gap: 9px; margin-bottom: 12px; }
+.uc-rule {
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border-left: 3px solid #93c5fd;
+}
+.uc-rule-title { font-size: 13px; font-weight: 800; color: #1e3a8a; }
+.uc-rule-body { font-size: 12.5px; line-height: 1.75; color: #475569; }
+
+/* ── 按钮（⚠️ 全局 button{width:100%} ⇒ 一律显式 width:auto）── */
+.uc-btn {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.uc-btn:active { background: #f1f5f9; }
+.uc-btn:disabled { opacity: 0.45; cursor: default; }
+.uc-btn-sm { padding: 6px 11px; font-size: 12.5px; }
+.uc-btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.uc-btn-primary:active { background: #1d4ed8; }
+.uc-btn-primary:disabled { background: #93c5fd; border-color: #93c5fd; }
+.uc-btn-on {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #fff;
+}
+
+/* ── chip ── */
+.uc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 10px;
+}
+.uc-kindrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.uc-dirrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.uc-chip {
+  width: auto;
+  flex: 0 0 auto;
+  display: grid;
+  gap: 1px;
+  text-align: left;
+  padding: 7px 11px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.uc-chip b { font-size: 13px; font-weight: 800; color: #334155; }
+.uc-chip span { font-size: 11px; color: #94a3b8; }
+.uc-chip-tight { padding: 6px 10px; }
+.uc-chip-on { border-color: #2563eb; background: #eff6ff; }
+.uc-chip-on b { color: #1d4ed8; }
+.uc-chip-on span { color: #3b82f6; }
+
+/* ── 主舞台 ── */
+.uc-stage { margin-top: 4px; }
+
+.uc-question {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 2px 0 12px;
+  font-variant-numeric: tabular-nums;
+}
+.uc-q-unit { font-size: 16px; color: #475569; }
+.uc-q-eq { color: #94a3b8; }
+.uc-q-ans {
+  display: inline-block;
+  min-width: 56px;
+  text-align: center;
+  color: #cbd5e1;
+}
+.uc-q-ans-ok {
+  color: #16a34a;
+  animation: uc-answer-in 0.45s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes uc-answer-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* 棋盘：高度恒定（份数再多也不跳版），格子靠 grid 拉伸自适应 */
+.uc-board {
+  position: relative;
+  height: 200px;
+  margin: 0 0 12px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+}
+.uc-grid {
+  display: grid;
+  gap: 3px;
+  height: 100%;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+}
+.uc-cell {
+  border-radius: 4px;
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  min-width: 0;
+  min-height: 0;
+}
+.uc-grid-merge .uc-cell {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+}
+.uc-cell-solo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #bfdbfe;
+  border-color: #60a5fa;
+}
+.uc-grid-merge .uc-cell-solo { background: #ddd6fe; border-color: #a78bfa; }
+.uc-cell-solo b { font-size: 15px; font-weight: 800; color: #1e3a8a; }
+.uc-grid-merge .uc-cell-solo b { color: #5b21b6; }
+
+/* 份数不多时把「每份是多少」直接写在格子上 */
+.uc-cell-labeled {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  overflow: hidden;
+}
+.uc-cell-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+.uc-grid-merge .uc-cell-tag { color: #5b21b6; }
+
+/* 切开：刀口脉动 */
+.uc-cell-cut {
+  outline: 2px dashed #f59e0b;
+  outline-offset: -2px;
+  animation: uc-cut-pulse 0.56s ease-in-out;
+}
+@keyframes uc-cut-pulse {
+  0% { outline-color: #f59e0b; }
+  50% { outline-color: #fcd34d; }
+  100% { outline-color: #f59e0b; }
+}
+/* 新裂出来的小块：错开弹出，看起来是"被切开的" */
+.uc-cell-pop { animation: uc-pop 0.42s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+@keyframes uc-pop {
+  from { transform: scale(0.2); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.uc-knife {
+  position: absolute;
+  right: 10px;
+  top: 6px;
+  font-size: 22px;
+  animation: uc-knife-in 0.56s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes uc-knife-in {
+  from { transform: translateY(-18px) rotate(-24deg); opacity: 0; }
+  to { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
+/* 报数区 */
+.uc-tally {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+.uc-tally-item { display: grid; justify-items: center; gap: 0; }
+.uc-tally-num { font-size: 22px; font-weight: 800; color: #1d4ed8; line-height: 1.1; }
+.uc-tally-piece { font-size: 16px; font-weight: 800; color: #5b21b6; line-height: 1.35; }
+.uc-tally-cap { font-size: 11px; color: #94a3b8; }
+.uc-tally-sep { font-size: 15px; color: #cbd5e1; padding-bottom: 6px; }
+
+.uc-say {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #475569;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border-left: 3px solid #fcd34d;
+}
+.uc-say-done { background: #f0fdf4; border-left-color: #86efac; color: #166534; font-weight: 700; }
+
+.uc-stage-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.uc-conclusion {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.uc-conclusion-eq {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+.uc-conclusion-eq b { font-size: 21px; }
+.uc-conclusion-why {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+}
+.uc-conclusion-why code {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #dcfce7;
+  font-size: 13px;
+  font-weight: 800;
+  color: #14532d;
+}
+.uc-conclusion-tip {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.uc-hint-sm {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #94a3b8;
+}
+.uc-link {
+  width: auto;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── 数一数：米尺 ── */
+.uc-ruler-wrap {
+  overflow-x: auto;
+  /* ★ 「出血」：把左边距吃掉卡片的 16px 内边距，让容器从 366px 变成 398px。
+     真实 10 厘米尺子要 380px（content-box 378 + 左右各 1px 边框），卡片内容区只有 366px
+     —— 不出血就必然横向溢出 42px，「10 厘米」刻度永远在视口外，而这段的用法恰恰是
+     「拿真尺子贴上去量」，看不到头就没法校准。`.page` 是 max-width:480px + padding:16px
+     且卡片无边框，所以负外边距最多吃掉页面自己的内边距，不会溢到卡片外面去。 */
+  margin-inline: -16px;
+  padding: 4px 6px 2px;
+  margin-bottom: 6px;
+}
+.uc-ruler {
+  position: relative;
+  /* ★ 必须 content-box：全局是 border-box，那样内联宽度 378px 会被 2px 边框吃掉 ⇒
+     内容区只剩 376px，尺子「100 毫米」实画 376px，学生拿真尺子对量会差 0.5%。
+     同时绝对定位子项的百分比是相对 **padding box** 解析的，content-box + 无 padding
+     ⇒ padding box === content box ⇒ `left: 100%` 正好落在尺子的右边缘。 */
+  box-sizing: content-box;
+  height: 74px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+/* ★ 刻度与数字共用同一个 `i/100` 网格：两行都 position:relative，
+   子项一律 `position:absolute + left: i% + translateX(-50%)`，对齐由构造保证。
+   踩过的坑：红刻度用 justify-content:space-between、数字用 translateX(-50%)、
+   黑刻度用 flex 均分 —— 三套网格各算各的，实测红刻度与大刻度错开 1~3px、
+   数字间距只有 36.6px（应 37.8px），"10" 落在 352 而不是 378。 */
+.uc-ruler-marks {
+  position: relative;
+  height: 26px;
+}
+.uc-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 8px;
+  background: #d97706;
+  transform: translateX(-50%);
+}
+.uc-tick-mid { height: 14px; }
+.uc-tick-cm { width: 2px; height: 22px; background: #ef4444; }
+.uc-ruler-nums {
+  position: relative;
+  height: 17px;
+}
+.uc-ruler-num {
+  position: absolute;
+  top: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #92400e;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.uc-ruler-cap {
+  position: absolute;
+  left: 6px;
+  bottom: 3px;
+  font-size: 10.5px;
+  color: #92400e;
+}
+
+.uc-calib {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.uc-calib-label { font-size: 11.5px; color: #475569; flex: 1 1 200px; line-height: 1.6; }
+.uc-calib input[type="range"] { flex: 1 1 140px; width: auto; min-width: 120px; }
+.uc-calib-val { font-size: 11.5px; color: #64748b; font-variant-numeric: tabular-nums; }
+
+.uc-hundred { margin-bottom: 12px; }
+.uc-hundred-label { font-size: 12.5px; color: #374151; margin-bottom: 6px; }
+.uc-hundred-label b { color: #5b21b6; font-size: 14px; }
+.uc-hundred-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 2px;
+  max-width: 300px;
+  margin-bottom: 6px;
+}
+.uc-hundred-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: #ede9fe;
+  border: 1px solid #c4b5fd;
+}
+.uc-hundred-note { margin: 0; font-size: 12px; line-height: 1.7; color: #6b7280; }
+
+.uc-facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.uc-fact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+.uc-fact-eq {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e3a8a;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.uc-fact-note { font-size: 11.5px; color: #64748b; flex: 1 1 150px; line-height: 1.6; }
+
+/* ── 参照物墙 ── */
+/* ★ `minmax(0, 1fr)` + `min-width: 0`：网格项默认 min-width:auto，
+   而卡里那条**真实尺寸**的色条是固定像素宽（1分米 = 100mm ≈ 378px）
+   ⇒ 卡片的 min-content 高达 403.8px，直接把文档撑到 436px（手机整页能横向晃）。
+   必须让卡片能被压缩，超出的部分交给条子自己滚。 */
+.uc-sense-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.uc-sense-card {
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+.uc-sense-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.uc-sense-name { font-size: 16px; font-weight: 800; color: #111827; }
+.uc-sense-sym {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #f1f5f9;
+}
+.uc-real { margin-bottom: 9px; display: grid; gap: 4px; }
+/* ★ 真实尺寸条**自己横向滚动**，绝不撑破卡片：1分米 = 100mm ≈ 378px，
+   比卡片内容区（366px）还宽，任何手机都放不下 —— 但它是「真实大小」的，
+   又不能改小（改小就不是真实大小了）。所以让条子滚，说明文字留在滚动区外。 */
+.uc-real-scroll { overflow-x: auto; max-width: 100%; }
+.uc-real-bar {
+  /* ★ 必须 display:block（或 inline-block）：条子是 span，默认 inline，
+     而 inline 元素**不接受 width/height** ⇒ 一旦它不再直接当 grid 子项
+     （比如被 .uc-real-scroll 包了一层），尺寸会静默塌成边框厚度（约 2px），
+     肉眼像是「短了一点点」，其实是「真实尺寸」这个卖点整个失效。 */
+  display: block;
+  height: 24px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(45deg, #bfdbfe, #bfdbfe 6px, #93c5fd 6px, #93c5fd 12px);
+  border: 1px solid #60a5fa;
+}
+.uc-real-slab {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  border-radius: 3px;
+  background: #93c5fd;
+  border: 1px solid #60a5fa;
+}
+.uc-real-cap { font-size: 10.5px; color: #94a3b8; }
+.uc-real-off {
+  margin: 0 0 9px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #94a3b8;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.uc-sense-refs { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 5px; }
+.uc-sense-refs li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.uc-ref-emoji { flex: 0 0 auto; }
+.uc-ref-name { color: #334155; flex: 1 1 auto; }
+.uc-ref-detail {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #eff6ff;
+}
+.uc-sense-hand {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #6b7280;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+/* ── 换算工作台 ── */
+.uc-bench-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+.uc-input {
+  width: 78px;
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border-radius: 9px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+.uc-select {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 7px 8px;
+  border-radius: 9px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #334155;
+}
+.uc-arrow { font-size: 16px; color: #94a3b8; }
+.uc-bench-bad { margin: 0; font-size: 12.5px; color: #b45309; }
+.uc-bench-out {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 800;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+.uc-bench-out b { font-size: 24px; }
+.uc-bench-calc { margin: 0 0 8px; display: grid; gap: 5px; }
+.uc-bench-calc code {
+  justify-self: start;
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: #dcfce7;
+  font-size: 14px;
+  font-weight: 800;
+  color: #14532d;
+  font-variant-numeric: tabular-nums;
+}
+.uc-bench-why { font-size: 12.5px; line-height: 1.75; color: #475569; }
+.uc-bench-steps {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.uc-bench-steps li {
+  font-size: 12.5px;
+  color: #475569;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-variant-numeric: tabular-nums;
+}
+.uc-bench-steps b { color: #1d4ed8; }
+.uc-bench-note { margin: 0; font-size: 11.5px; line-height: 1.7; color: #94a3b8; }
+.uc-bench-mm { margin-left: 4px; }
+
+/* ── 易错警示 ── */
+.uc-mistake-list { display: grid; gap: 10px; }
+.uc-mistake-card {
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #fecaca;
+}
+.uc-mistake-card.uc-revealed { border-color: #bbf7d0; background: #f7fef9; }
+.uc-mistake-wrong {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #b91c1c;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 7px;
+}
+.uc-mk { margin-right: 3px; }
+.uc-shake { animation: uc-shake 0.5s ease-in-out; }
+@keyframes uc-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.uc-mistake-right {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #15803d;
+  font-variant-numeric: tabular-nums;
+  animation: uc-reveal 0.35s ease-out;
+}
+@keyframes uc-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.uc-mistake-why {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #475569;
+}
+.uc-mistake-tip {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.75;
+  color: #166534;
+}
+.uc-reveal { margin-top: 2px; }
+
+/* ── 练习 ── */
+.uc-groups { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.uc-stat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 11px;
+  border-radius: 10px;
+  background: #eff6ff;
+  font-size: 12.5px;
+  color: #1e3a8a;
+  font-variant-numeric: tabular-nums;
+}
+.uc-stat b { font-size: 15px; }
+
+.uc-pgrid { display: grid; gap: 10px; }
+.uc-pcard {
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+.uc-pcard-done { border-color: #bbf7d0; background: #f7fef9; }
+.uc-pcard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.uc-pcard-no { font-size: 11px; font-weight: 700; color: #94a3b8; flex: 0 0 auto; }
+.uc-pcard-q {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+.uc-pcard-prog { display: flex; gap: 5px; margin-bottom: 9px; }
+.uc-pdot {
+  width: 22px;
+  height: 4px;
+  border-radius: 3px;
+  background: #e2e8f0;
+}
+.uc-pdot-done { background: #86efac; }
+.uc-pdot-cur { background: #2563eb; }
+.uc-pcard-step {
+  margin: 0 0 3px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #2563eb;
+}
+.uc-pcard-ask {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #334155;
+}
+.uc-pcard-opts { display: flex; flex-wrap: wrap; gap: 7px; }
+.uc-opt {
+  width: auto;
+  flex: 0 0 auto;
+  min-width: 54px;
+  padding: 8px 13px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  color: #334155;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.uc-opt:active { background: #f1f5f9; }
+.uc-opt-ok { border-color: #16a34a; background: #dcfce7; color: #14532d; }
+.uc-opt-bad { border-color: #dc2626; background: #fee2e2; color: #991b1b; }
+.uc-opt-dim { opacity: 0.42; }
+.uc-opt:disabled { cursor: default; }
+
+.uc-pcard-tip {
+  margin: 9px 0 0;
+  font-size: 12.5px;
+  line-height: 1.8;
+  padding: 8px 10px;
+  border-radius: 9px;
+}
+.uc-tip-ok { background: #f0fdf4; color: #166534; }
+.uc-tip-bad { background: #fef2f2; color: #991b1b; }
+.uc-pcard-next { margin-top: 9px; }
+
+.uc-pcard-final { animation: uc-reveal 0.35s ease-out; }
+.uc-pcard-ans {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+.uc-pcard-ans b { font-size: 21px; }
+.uc-pcard-note { margin: 0 0 6px; font-size: 12.5px; line-height: 1.75; color: #475569; }
+.uc-pcard-trap {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #b45309;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-cell-pop, .uc-cell-cut, .uc-knife, .uc-shake,
+  .uc-q-ans-ok, .uc-mistake-right, .uc-pcard-final { animation: none; }
+}
+

@@ -68,50 +68,50 @@ server/cache/
 # Temp scripts
 scripts/
 
-# ×ÖÄ¸ÊéÐ´²Î¿¼ÊÓÆµ£¨´óÎÄ¼þ£¬²»Ìá½»£©
+# ï¿½ï¿½Ä¸ï¿½ï¿½Ð´ï¿½Î¿ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½
 **/assets/letter_writing.mp4
 **/assets/letter_clips/
 
-# sherpa-onnx ÀëÏß ASR Ä£ÐÍÓë JNI ¿â£¨³¬ GitHub 100MB ÏÞÖÆ£¬²»Ìá½»£©
+# sherpa-onnx ï¿½ï¿½ï¿½ï¿½ ASR Ä£ï¿½ï¿½ï¿½ï¿½ JNI ï¿½â£¨ï¿½ï¿½ GitHub 100MB ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½
 app/src/main/assets/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20/
 app/src/main/jniLibs/
 
-# ´óÊÓÆµ×ÊÔ´
+# ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½Ô´
 english_24_letters.mp4
 letter_videos/*.mp4
 
-# Êý¾Ý¿âÓë LLM µ÷ÓÃÈÕÖ¾£¨º¬ÓÃ»§ÄÚÈÝ£¬²»Ìá½»£©
+# ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ LLM ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½á½»ï¿½ï¿½
 *.db
 server_py/data/llm_call_logs.json
 /data/
 letter_videos/data/
 
-# ÁÙÊ±/±¸·Ý²úÎï
+# ï¿½ï¿½Ê±/ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½
 *.bak*
 *_bak*/
 char_images_bak_*/
 letter_videos/_*/
 /_*.png
 
-# IPA Æ´½ÓÁÙÊ±ÎÄ¼þ
+# IPA Æ´ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½
 app/src/main/assets/ipa/temp_*.wav
 app/src/main/assets/ipa/concat_list.txt
 
-# ÁÙÊ±ÈÕÖ¾Óë²úÎï
+# ï¿½ï¿½Ê±ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½
 build_out.txt
 gradle_err.txt
 gradle_out.txt
 ui_final.xml
 test_essays.ps1
 
-# Í¼Æ¬ÅúÁ¿Éú³ÉÁÙÊ±½Å±¾£¨ÏÂ»®Ïß¿ªÍ·£©
+# Í¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Å±ï¿½ï¿½ï¿½ï¿½Â»ï¿½ï¿½ß¿ï¿½Í·ï¿½ï¿½
 letter_videos/_*
 server_py/_*.py
 
-# ·þÎñ¶ËÔËÐÐÊ±×´Ì¬
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±×´Ì¬
 server_py/data/llm_budget.json
 
-# aié™ªæˆ‘ç»? LangGraph checkpointerï¼ˆè¿è¡Œæ—¶çŠ¶æ€ï¼Œä¸æäº¤ï¼‰
+# aié™ªæˆ‘ï¿½? LangGraph checkpointerï¼ˆè¿è¡Œæ—¶çŠ¶æ€ï¼Œä¸æäº¤ï¼‰
 server_py/data/ai_practice_checkpoints.sqlite*
 server_py/data/quiz_cache_*.json
 server_py/data/_*.json
@@ -124,7 +124,7 @@ ph_out.txt
 *.verify.png
 server_py/data/ai_practice_store.sqlite*
 
-# â”€â”€ æœåŠ¡ç«¯æ ¹ç›®å½•æ¸…ç†ï¼?2026-08-20 æž¶æž„è¯„å®¡ï¼‰â”€â”€
+# â”€â”€ æœåŠ¡ç«¯æ ¹ç›®å½•æ¸…ç†ï¿½?2026-08-20 æž¶æž„è¯„å®¡ï¼‰â”€â”€
 server_py/app.db
 server_py/*.db
 server_py/.mypy_cache/
@@ -135,31 +135,31 @@ server_py/_tencent_sdk_temp/
 server_py/static/letter_clips/
 server_py/static/videos/
 
-# ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
-# AiPhonix ºó¶ËÔ´ÂëÈë¿â¼Ó¹Ì£¨2026-09 ¼Ü¹¹ÆÀÉó P0-1£©
-# Ä¿±ê£ºÈÃ server_cf / server_ts / web Ô´Âë¿É°²È«ÄÉÈë git£¬
-# ¶øÃ÷ÎÄÃÜÔ¿ÓëÔËÐÐÊ±´óÎÄ¼þ¾ø²»Èë¿â£¨±ÜÃâ `git add .` °Ñ config.yaml / 4GB Êý¾Ý´øÈëÀúÊ·£©¡£
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+# AiPhonix ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½Ó¹Ì£ï¿½2026-09 ï¿½Ü¹ï¿½ï¿½ï¿½ï¿½ï¿½ P0-1ï¿½ï¿½
+# Ä¿ï¿½ê£ºï¿½ï¿½ server_cf / server_ts / web Ô´ï¿½ï¿½É°ï¿½È«ï¿½ï¿½ï¿½ï¿½ gitï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¨ï¿½ï¿½ï¿½ï¿½ `git add .` ï¿½ï¿½ config.yaml / 4GB ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½
 
-# Ã÷ÎÄÃÜÔ¿£¨shared/config.yaml º¬ 6 ×éÕæÊµÃÜÔ¿£¬¾ø²»Èë¿â£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½shared/config.yaml ï¿½ï¿½ 6 ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 shared/config.yaml
 *.key
 .dev.vars
 *.local
 
-# ÃÜÔ¿¿ÉÄÜËæ»á»°µ¼³öÎÄ¼þÐ¹Â¶£¬ÎðÈë¿â
+# ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á»°ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ð¹Â¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 memory-export-*.md
 session-export-*.md
 
-# ÔËÐÐÊ±´óÎÄ¼þ£¨shared/data ~4GB Ã½Ìå/¿â£»shared/static 435MB Ã½Ìå£©
+# ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½shared/data ~4GB Ã½ï¿½ï¿½/ï¿½â£»shared/static 435MB Ã½ï¿½å£©
 shared/data/
 shared/static/
 
-# ¹¹½¨²úÎï£¨Ç°¶Ë dist / server_cf ¾²Ì¬×ÊÔ´ / ÎÛÈ¾±¸·ÝÄ¿Â¼£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï£¨Ç°ï¿½ï¿½ dist / server_cf ï¿½ï¿½Ì¬ï¿½ï¿½Ô´ / ï¿½ï¿½È¾ï¿½ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½
 server_cf/static_assets/web/
 server_cf/static_assets/web_bak*/
-# Ô¤Éú³É TTS ÒôÆµ¿â£¨7712 ¸ö mp3 / 113MB£¬ÓÉ scripts/upload_tts_cache.mjs ²ú³ö£¬²»Èë¿â£©
+# Ô¤ï¿½ï¿½ï¿½ï¿½ TTS ï¿½ï¿½Æµï¿½â£¨7712 ï¿½ï¿½ mp3 / 113MBï¿½ï¿½ï¿½ï¿½ scripts/upload_tts_cache.mjs ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 server_cf/static_assets/tts-cache/
-# ÇåÀí dist ÎÛÈ¾Ê±ÁÙÊ±ÒÆ³öµÄÔà×Ê²úÄ¿Â¼
+# ï¿½ï¿½ï¿½ï¿½ dist ï¿½ï¿½È¾Ê±ï¿½ï¿½Ê±ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê²ï¿½Ä¿Â¼
 server_cf/web_dirty_*/
 web/dist*/
 .wrangler/
@@ -172,54 +172,54 @@ web/.devserver.pid
 web/_shot_*.cjs
 server_ts/subcap_out.txt
 
-# È¡ÏûºöÂÔ server_cf ²¿Êð½Å±¾£¨±»ÉÏÃæ scripts/ ¹æÔòÎóÉË£¬Ó¦Èë¿âÒÔ¹©Éó¼Æ£©
+# È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ server_cf ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ scripts/ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Ô¹ï¿½ï¿½ï¿½Æ£ï¿½
 !server_cf/scripts/
 models/
 
-# ²Ö¿âÕûÀí£¨2026-09-10£©£º¹¹½¨²úÎï / ±¸·Ý / Ò»´ÎÐÔµ÷ÊÔ²úÎï²»Èë¿â
-# Ä¿±ê£ºgit status Ö»·´Ó³ÕæÊµÔ´Âë¸Ä¶¯
+# ï¿½Ö¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½2026-09-10ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / ï¿½ï¿½ï¿½ï¿½ / Ò»ï¿½ï¿½ï¿½Ôµï¿½ï¿½Ô²ï¿½ï¿½ï²»ï¿½ï¿½ï¿½
+# Ä¿ï¿½ê£ºgit status Ö»ï¿½ï¿½Ó³ï¿½ï¿½ÊµÔ´ï¿½ï¿½Ä¶ï¿½
 
-# ²¿Êð»»Ô´Ê±²úÉúµÄ¾É web ²úÎï±¸·Ý£¨¸ùÄ¿Â¼Óë server_cf ÏÂ¶¼ÓÐ£¬¸÷ 100MB+£©
+# ï¿½ï¿½ï¿½ï¿½Ô´Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ web ï¿½ï¿½ï¿½ï±¸ï¿½Ý£ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ server_cf ï¿½Â¶ï¿½ï¿½Ð£ï¿½ï¿½ï¿½ 100MB+ï¿½ï¿½
 _web_backups/
 
-# ÁÙÊ±·¢²¼/ÊµÑéÄ¿Â¼£¨²»Èë¿â£¬µ«±£ÁôÔÚ´ÅÅÌ£©
+# ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½/Êµï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Ì£ï¿½
 _proddist/
 overlay_tool/
 server_go/
 
-# ±¾µØ×ÔÆô¶¯/¿´ÃÅ¹·±¸·ÝÓë¹¤¾ß×´Ì¬
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½Å¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¹¤ï¿½ï¿½×´Ì¬
 autostart_backup_*/
 autostart_disabled_*/
 .codebuddy/
 
-# ¹¹½¨Óë²âÊÔÈÕÖ¾×ª´¢£¨¸ùÄ¿Â¼¼¸Ê®¸ö build_*_out.txt£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½Ê®ï¿½ï¿½ build_*_out.txtï¿½ï¿½
 build_*_out.txt
 build_test*.txt
 auc_run.err
 
-# Ò»´ÎÐÔÉ¾³ýÇåµ¥
+# Ò»ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½åµ¥
 server_cf/_del_ids.txt
 
-# ¸ùÄ¿Â¼É¢ÂäµÄµ÷ÊÔ½ØÍ¼
+# ï¿½ï¿½Ä¿Â¼É¢ï¿½ï¿½Äµï¿½ï¿½Ô½ï¿½Í¼
 /_*.jpg
 /_*.jpeg
 /_*.webp
 /*_verify.png
 /bili_embed_fake.png
 
-# web ÏÂµÄµ÷ÊÔ½ØÍ¼ÓëÒ»´ÎÐÔ e2e ½Å±¾
+# web ï¿½ÂµÄµï¿½ï¿½Ô½ï¿½Í¼ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ e2e ï¿½Å±ï¿½
 /web/recog_*.png
 /web/_poem_fix.png
 /web/_home_grid_mobile.png
 /web/_home_shot.mjs
 /web/_e2e_recog.*
 
-# Ò»´ÎÐÔÊµÑé/µ÷ÊÔ½Å±¾£¨ÏÂ»®Ïß¿ªÍ·£¬ÎðÈë¿â£©
+# Ò»ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½/ï¿½ï¿½ï¿½Ô½Å±ï¿½ï¿½ï¿½ï¿½Â»ï¿½ï¿½ß¿ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 /_*.ps1
 seedasr_auc_demo.ts
 server_cf/scripts/_tmp_chunk.js
 
-# server_py£¨ÒÑÍËÒÛ£©ÔËÐÐÊ±²úÎï
+# server_pyï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û£ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
 server_py/backend.err
 server_py/_*
 server_py/data/_*
@@ -234,7 +234,7 @@ server_py/data/uploads/
 server_py/routes/data/
 server_py/bench_*
 
-# ±¾µØ dev ÈÕÖ¾£¨²»Èë¿â£»ÀúÊ·ÒÑ¸ú×ÙµÄÄÇ·ÝÐèµ¥¶À´¦Àí£©
+# ï¿½ï¿½ï¿½ï¿½ dev ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£»ï¿½ï¿½Ê·ï¿½Ñ¸ï¿½ï¿½Ùµï¿½ï¿½Ç·ï¿½ï¿½èµ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 server_cf/local_dev_log.txt
 
 # æŽ’ç‰ˆ e2e è¯Šæ–­å·¥å…·ä¸Žäº§ç‰©ï¼ˆæœ¬åœ°å¯å¤ç”¨ï¼Œä¸å…¥åº“ï¼‰
@@ -265,14 +265,14 @@ web/_envocab_*.png
 
 web/_en_*.png
 
-# è¯¯å»ºç›®å½•æŠ¤æ ï¼šæ—©å‰? `curl -o /c/...` æ‰“åäº§ç”Ÿ server_cf/c/Users/...ï¼?2026-09-15 å·²æ¸…ç†ï¼‰
+# è¯¯å»ºç›®å½•æŠ¤æ ï¼šæ—©ï¿½? `curl -o /c/...` æ‰“åäº§ç”Ÿ server_cf/c/Users/...ï¿½?2026-09-15 å·²æ¸…ç†ï¼‰
 /server_cf/c/
 
-# è·Ÿè¯»æ¨¡å¼ e2eï¼ˆæœ¬åœ°å¯å¤ç”¨ï¼Œä¸å…¥åº“ï¼?
+# è·Ÿè¯»æ¨¡å¼ e2eï¼ˆæœ¬åœ°å¯å¤ç”¨ï¼Œä¸å…¥åº“ï¿½?
 web/_e2e_echo.cjs
 web/_echo_*.png
 
-# æ‹¼è¯»ç€è‰? e2eï¼ˆæœ¬åœ°å¯å¤ç”¨ï¼Œä¸å…¥åº“ï¼?
+# æ‹¼è¯»ç€ï¿½? e2eï¼ˆæœ¬åœ°å¯å¤ç”¨ï¼Œä¸å…¥åº“ï¿½?
 web/_e2e_phonics.cjs
 web/_phonics_*.png
 
@@ -292,7 +292,7 @@ web/_phonics_eval.txt
 web/_cmudict.json
 web/_common10k.txt
 
-# æ‹¼è¯»è§„åˆ™ä½“æ£€çš„è¾…åŠ©è„šæœ¬ï¼ˆæœ¬åœ°è¯„ä¼°ï¼Œä¸å…¥åº“ï¼?
+# æ‹¼è¯»è§„åˆ™ä½“æ£€çš„è¾…åŠ©è„šæœ¬ï¼ˆæœ¬åœ°è¯„ä¼°ï¼Œä¸å…¥åº“ï¿½?
 web/_ph_probe.ts
 web/_ph_shape.ts
 web/_ph_bank.ts
@@ -311,21 +311,21 @@ web/_multiphoto*.png
 web/_multiphoto*.log
 web/_tok.env
 
-# Ã¿ÈÕÓ¢ÓïÆÀ²âÃ÷Ï¸ e2e + ½ØÍ¼£¨±¾µØÃ°ÑÌ£¬²»Èë¿â£©
+# Ã¿ï¿½ï¿½Ó¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ e2e + ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 web/_e2e_soe_detail.cjs
 web/_e2e_soe_detail_prod.cjs
 web/_soe_detail.png
 web/_soe_detail_prod.png
 
-# µÍ·ÖÒôËØ¡¸·¢ÒôÒªÁì¡¹e2e + ½ØÍ¼£¨±¾µØÃ°ÑÌ£¬²»Èë¿â£»LLM ×ß mock£©
+# ï¿½Í·ï¿½ï¿½ï¿½ï¿½Ø¡ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ì¡¹e2e + ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½â£»LLM ï¿½ï¿½ mockï¿½ï¿½
 web/_e2e_soe_tips.cjs
 web/_soe_tips.png
 web/_soe_tips_llm.png
 web/_soe_tips_*.png
 
-# ·¢ÒôÒªÁì¡¸À®°ÈÀÊ¶Á¡¹e2e + TTS ¶Á·¨Ì½Õë£¨±¾µØÃ°ÑÌ£¬²»Èë¿â£©
-# _probe_tip_tts.cjs ´òÉú²úºÏ³ÉºòÑ¡¶Á·¨ -> web/_tip_tts/*.mp3
-# _asr_roundtrip.sh °ÑºÏ³ÉÒôÆµ»Ø¹à ASR£¬¿Í¹ÛÑéÖ¤°Ù¶È TTS Êµ¼Ê¶Á·¨
+# ï¿½ï¿½ï¿½ï¿½Òªï¿½ì¡¸ï¿½ï¿½ï¿½ï¿½ï¿½Ê¶ï¿½ï¿½ï¿½e2e + TTS ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ë£¨ï¿½ï¿½ï¿½ï¿½Ã°ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½â£©
+# _probe_tip_tts.cjs ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï³Éºï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ -> web/_tip_tts/*.mp3
+# _asr_roundtrip.sh ï¿½ÑºÏ³ï¿½ï¿½ï¿½Æµï¿½Ø¹ï¿½ ASRï¿½ï¿½ï¿½Í¹ï¿½ï¿½ï¿½Ö¤ï¿½Ù¶ï¿½ TTS Êµï¿½Ê¶ï¿½ï¿½ï¿½
 web/_e2e_soe_tip_speak.cjs
 web/_soe_tip_speak.png
 web/_probe_tip_tts.cjs
@@ -333,7 +333,7 @@ web/_asr_roundtrip.sh
 web/_asr_roundtrip.cjs
 web/_tip_tts/
 
-# ¡¸ÈýÄê¼¶ÉÏ×ÛºÏËãÊ½¶¯»­¡¹ÊÓ¾õÑéÖ¤ / Éú²úÃ°ÑÌ£¨±¾µØ½Å±¾Óë²úÎï£¬²»Èë¿â£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ê¼¶ï¿½ï¿½ï¿½Ûºï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¾ï¿½ï¿½ï¿½Ö¤ / ï¿½ï¿½ï¿½ï¿½Ã°ï¿½Ì£ï¿½ï¿½ï¿½ï¿½Ø½Å±ï¿½ï¿½ï¿½ï¿½ï¿½ï£¬ï¿½ï¿½ï¿½ï¿½â£©
 web/_ce_shot.mjs
 web/_ce_probe.mjs
 web/_ce_smoke_prod.mjs
@@ -348,7 +348,7 @@ web/_ce_fly/
 web/_ce_prod2/
 web/_ce_tok2.json
 web/_ce_tok2.env
-# ¡¸²é¢Ú À¨ºÅ·ÉÈë¡¹×¨Ïî×¥Ö¡ + Î»ÖÃ±È¶Ô£¨º¬ÖðÖ¡¹ì¼£²ÉÑù£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å·ï¿½ï¿½ë¡¹×¨ï¿½ï¿½×¥Ö¡ + Î»ï¿½Ã±È¶Ô£ï¿½ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½ì¼£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 web/_ce_paren.mjs
 web/_ce_paren_noneed.mjs
 web/_ce_diag.mjs
@@ -364,7 +364,7 @@ web/_outdir.txt
 web/_outdir.txt
 web/_build_ce.log
 
-# ©¤©¤©¤ CloudBase Ç¨ÒÆÁÙÊ±²úÎï£¨?? º¬ÕæÊµÃÜÔ¿ÓëÉú²úÊý¾Ý£¬¾ø²»Èë¿â£©©¤©¤©¤
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CloudBase Ç¨ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï£¨?? ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 /_cloudbase_stage/
 /_d1_export.sql
 /_d1_export.log
@@ -375,34 +375,34 @@ server_ts/_d1_to_sqlite.cjs
 server_ts/_asr_ws_local.cjs
 server_ts/_baidu_asr_direct.cjs
 
-# CloudRun ÈÝÆ÷»¯£ºÖÖ×ÓÄ¿Â¼£¨º¬Éú²ú app.db ÓëÕæÊµÃÜÔ¿µÄ config.yaml Ô­ÑùÀ´Ô´£¬¾ø²»Èë¿â£©
+# CloudRun ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ app.db ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½Ô¿ï¿½ï¿½ config.yaml Ô­ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 server_ts/_seed/
-# EnvParam ÔØºÉ£¨ÕæÊµÃÜÔ¿Ã÷ÎÄ£©
+# EnvParam ï¿½ØºÉ£ï¿½ï¿½ï¿½Êµï¿½ï¿½Ô¿ï¿½ï¿½ï¿½Ä£ï¿½
 /_cloudbase_envparam.json
-# Ò»´ÎÐÔ¹¤¾ß½Å±¾Óë²¿ÊðÈÕÖ¾
+# Ò»ï¿½ï¿½ï¿½Ô¹ï¿½ï¿½ß½Å±ï¿½ï¿½ë²¿ï¿½ï¿½ï¿½ï¿½Ö¾
 /_cb_seedgen.cjs
 /_cfgstruct.cjs
 /_tcb_deploy*.log
 
-# ©¤©¤©¤ cf °æÔÆÍÐ¹Ü£¨cloudbase/£©£ºÅÜ server_cf Ô­°æÔ´ÂëµÄ Node Íâ¿Ç ©¤©¤©¤
-# ¹¹½¨ÉÏÏÂÎÄ£¨º¬ D1 ¿ìÕÕÓë 84MB ·¢Òô¿â£¬Ã¿´ÎÓÉ _ctxgen.cjs ÖØÐÂ×°Åä£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ cf ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹Ü£ï¿½cloudbase/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ server_cf Ô­ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ Node ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+# ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ D1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 84MB ï¿½ï¿½ï¿½ï¿½ï¿½â£¬Ã¿ï¿½ï¿½ï¿½ï¿½ _ctxgen.cjs ï¿½ï¿½ï¿½ï¿½×°ï¿½ä£©
 /cloudbase/_ctx/
-# EnvParam ÔØºÉ£¨ÕæÊµÃÜÔ¿Ã÷ÎÄ£©
+# EnvParam ï¿½ØºÉ£ï¿½ï¿½ï¿½Êµï¿½ï¿½Ô¿ï¿½ï¿½ï¿½Ä£ï¿½
 /cloudbase/_envparam.json
-# tsc ²úÎïÓë±¾»ú node_modules
+# tsc ï¿½ï¿½ï¿½ï¿½ï¿½ë±¾ï¿½ï¿½ node_modules
 /cloudbase/dist/
 /cloudbase/node_modules/
 /cloudbase/_*.log
-# ä¯ÀÀÆ÷Ì½²â½ØÍ¼£¨_browser_probe.cjs / _retry_verify.cjs µÄ²úÎï£©
+# ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½_browser_probe.cjs / _retry_verify.cjs ï¿½Ä²ï¿½ï¿½ï£©
 /cloudbase/_browser_probe.png
 /cloudbase/_retry_verify.png
-# ¿Õ¾í·ÂÕæÁÙÊ±¸ù£¨_volume_sim.sh ×Ô½¨×ÔÇå£¬Áô¸ö¶µµ×£©
+# ï¿½Õ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½_volume_sim.sh ï¿½Ô½ï¿½ï¿½ï¿½ï¿½å£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×£ï¿½
 /cloudbase/_sim_tmp/
 # local _pr_* verification artifacts (same family as _ce_*)
 web/_pr_*
 server_cf/_deploy_pr.log
 
-# µÈÊ½±ä±ä±ä / ¶¯»­Ñ§ÊýÑ§ ×¥Ö¡Ì½Õë£¨±¾µØ¿É¸´ÓÃ£¬²»Èë¿â£©
+# ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ / ï¿½ï¿½ï¿½ï¿½Ñ§ï¿½ï¿½Ñ§ ×¥Ö¡Ì½ï¿½ë£¨ï¿½ï¿½ï¿½Ø¿É¸ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½â£©
 web/_em_*.mjs
 web/_em_shots/
 web/_eq_*.mjs
@@ -412,3 +412,7 @@ web/_eq_solve_shots/
 web/_eq_*.log
 web/_build.log
 server_cf/_deploy_*.log
+# local _uc_* verification artifacts (unit-conversion page: _uc_shot.mjs gate + _uc_probe.mjs)
+web/_uc_probe.mjs
+web/_uc_shot.mjs
+web/_uc_shots/
