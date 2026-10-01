@@ -7945,7 +7945,18 @@ button.btn-mode-off {
 /* ── 口诀卡 ── */
 .ce-rules { padding: 12px 14px; }
 
+/* ★ 「左图右文」：图标 30px 一列，文字一列 —— 一幅图顶一条口诀（两端同一份图元数据） */
+.ce-rule-block {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
 .ce-rule-block + .ce-rule-block { margin-top: 12px; }
+
+.ce-rule-icon { color: #0f766e; margin-top: 1px; }
+.ce-rule-text { min-width: 0; }
 
 .ce-rule-title {
   margin: 0 0 5px;
@@ -7972,6 +7983,8 @@ button.btn-mode-off {
   gap: 8px;
   margin: 4px 0 10px;
 }
+
+.ce-kind-icon { color: #0f766e; }
 
 .ce-kind-tag {
   font-size: 12px;
@@ -8379,11 +8392,16 @@ button.btn-mode-off {
 .ce-mistake { padding: 13px 14px; }
 
 .ce-mistake-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin: 0 0 10px;
   font-size: 14px;
   font-weight: 800;
   color: #b45309;
 }
+
+.ce-mistake-icon { color: #b45309; }
 
 .ce-mistake-row {
   display: flex;

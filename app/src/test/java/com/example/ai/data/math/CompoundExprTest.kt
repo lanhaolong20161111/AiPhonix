@@ -1,7 +1,9 @@
 package com.example.ai.data.math
 
+import com.example.ai.ui.icon.MathIcons
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.random.Random
@@ -208,6 +210,8 @@ class CompoundExprTest {
             assertNotEquals("${m.title} 错误与正确列式一模一样", m.wrong, m.right)
             assertTrue("${m.title} 缺原因说明", m.why.length >= 8)
             assertTrue("${m.title} 缺口诀", m.tip.length >= 6)
+            // ★ 卡片配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+            assertNotNull("易错卡「${m.title}」的配图「${m.icon}」不在 MathIcons 里", MathIcons[m.icon])
         }
     }
 
@@ -215,8 +219,24 @@ class CompoundExprTest {
     fun `题型中文名齐全`() {
         for (k in CompoundKind.entries) {
             assertTrue("缺题型名 $k", KIND_LABEL[k]?.isNotEmpty() == true)
+            // ★ 题型行左边那个图标 —— 名字打错会静默变成空白
+            assertNotNull(
+                "$k 的配图「${KIND_ICON[k]}」不在 MathIcons 里",
+                MathIcons[KIND_ICON[k].orEmpty()],
+            )
         }
         eq(4, KIND_LABEL.size, "题型名条数与题型数不符")
+    }
+
+    @Test
+    fun `口诀卡 每张都有标题内容行与配图`() {
+        assertTrue("口诀卡太少（找→换→查 + 括号判据，至少 4 张）", RULES.size >= 4)
+        for (r in RULES) {
+            assertTrue("口诀卡缺标题", r.title.isNotBlank())
+            assertTrue("口诀卡「${r.title}」没有内容行", r.lines.isNotEmpty())
+            for (l in r.lines) assertTrue("口诀卡「${r.title}」有空白行", l.isNotBlank())
+            assertNotNull("口诀卡「${r.title}」的配图「${r.icon}」不在 MathIcons 里", MathIcons[r.icon])
+        }
     }
 
     @Test

@@ -46,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ai.data.math.CompoundProblem
 import com.example.ai.data.math.ExprToken
+import com.example.ai.data.math.KIND_ICON
 import com.example.ai.data.math.KIND_LABEL
 import com.example.ai.data.math.MISTAKE_CASES
 import com.example.ai.data.math.MistakeCase
@@ -54,6 +55,7 @@ import com.example.ai.data.math.RULES
 import com.example.ai.data.math.StepLine
 import com.example.ai.data.math.TokenType
 import com.example.ai.data.math.bareText
+import com.example.ai.ui.icon.MathIcon
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -90,6 +92,9 @@ private val FromFirstBg = Color(0xFFE2E8F0)
 private val HugBg = Color(0xFFDDD6FE)
 private val HugBorder = Color(0xFFA78BFA)
 private val TakenColor = Color(0x4D000000)
+/** 口诀卡 / 题型行的配图颜色（与 web 的 .ce-rule-icon / .ce-kind-icon 同色） */
+private val CeRuleIcon = Color(0xFF0F766E)
+private val CeKindIcon = Color(0xFF0F766E)
 
 private val N_FONT = 22.sp
 
@@ -252,14 +257,20 @@ private fun RulesCard() {
     ) {
         Column(Modifier.padding(14.dp)) {
             RULES.forEach { block ->
-                Text(block.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black)
-                block.lines.forEach { line ->
-                    Text(
-                        "· $line",
-                        fontSize = 13.sp,
-                        color = Slate,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
+                Row(Modifier.fillMaxWidth()) {
+                    MathIcon(name = block.icon, size = 30.dp, tint = CeRuleIcon)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(block.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black)
+                        block.lines.forEach { line ->
+                            Text(
+                                "· $line",
+                                fontSize = 13.sp,
+                                color = Slate,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -274,6 +285,7 @@ private fun KindRow(problem: CompoundProblem, needParen: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        MathIcon(name = KIND_ICON[problem.kind].orEmpty(), size = 20.dp, tint = CeKindIcon)
         Text(
             KIND_LABEL[problem.kind].orEmpty(),
             fontSize = 12.sp,
@@ -1067,7 +1079,11 @@ private fun MistakeCard(m: MistakeCase) {
         colors = CardDefaults.cardColors(containerColor = Color.White),
     ) {
         Column(Modifier.padding(14.dp)) {
-            Text("⚠️ ${m.title}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MathIcon(name = m.icon, size = 20.dp, tint = WarnColor)
+                Spacer(Modifier.width(7.dp))
+                Text(m.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black)
+            }
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Tag("❌ 错", Color(0xFFFEE2E2), WarnColor)

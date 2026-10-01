@@ -220,26 +220,26 @@ export function OpPrecedenceDemo() {
   const hint = useMemo(() => {
     switch (phase) {
       case "idle":
-        return "点「演一遍」，看看这两个运算符到底谁先算。"
+        return "点「演一遍」，看谁先算。"
       case "intro":
-        return "算式摆好了 —— 先别急着从左往右，得先比一比谁有资格先算。"
+        return "摆好了 —— 别急着从左往右，先比一比谁先算。"
       case "judge":
       case "pick": {
         if (!step) return ""
         if (step.why === "higher") {
-          return `看高度：乘除「${step.op}」站得高一级，加减「${step.siblings.join("、")}」在下面。高一级的先算 —— 哪怕「${step.siblings.join("、")}」写在最左边，也得等一等。`
+          return `乘除「${step.op}」高一级，先算；加减「${step.siblings.join("、")}」再靠左也得等。`
         }
         if (step.why === "same-level") {
-          if (step.siblings.length === 0) return `现在只剩一个运算符「${step.op}」了，直接算它。`
-          return `「${step.op}」和「${step.siblings.join("、")}」是同一个级别，谁也不能插队 —— 那就从左往右数，先碰到谁先算。`
+          if (step.siblings.length === 0) return `只剩「${step.op}」一个运算符了，算它。`
+          return `「${step.op}」和「${step.siblings.join("、")}」同级，谁也不能插队 ⇒ 从左往右，先碰到谁先算。`
         }
         return step.siblings.length === 0
-          ? `括号里先算。括号里还是那句老规矩：先乘除、后加减。`
-          : `括号里先算 —— 而且括号里的规矩不变：先乘除「${step.op}」、后加减「${step.siblings.join("、")}」。`
+          ? `括号里先算，规矩一样：先乘除、后加减。`
+          : `括号里先算，规矩不变：先乘除「${step.op}」、后加减「${step.siblings.join("、")}」。`
       }
       case "join":
         return joining
-          ? `第 ${cursor + 1} 步：先算 ${joining.left} ${joining.op} ${joining.right} = ${joining.value} —— 这三个块并成一个数，算式就短一段。`
+          ? `第 ${cursor + 1} 步：${joining.left} ${joining.op} ${joining.right} = ${joining.value} —— 三个块并成一个数。`
           : ""
       case "settle":
         return `化简一步之后：${tokens.map((t) => t.text).join(" ")}`
@@ -320,9 +320,9 @@ export function OpPrecedenceDemo() {
       </div>
 
       <p className="pr-note">
-        三条规矩：有小括号先算括号里 · 没有括号先乘除、后加减 · 同级从左往右，一个一个来。
+        有小括号先算括号里 · 没有括号，先乘除后加减 · 同级从左往右。
         <br />
-        算式里<span className="pr-legend">绿底</span>的数，就是前面已经算出来的。
+        算式里<span className="pr-legend">绿底</span>的数，是前面算出来的。
       </p>
     </div>
   )

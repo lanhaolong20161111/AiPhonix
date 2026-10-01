@@ -5,7 +5,7 @@ package com.example.ai.ui.icon
 //        ./web/node_modules/.bin/tsx web/_gen_math_icons.ts
 //    两端共用同一份图形数据，保证 web 与 Android 画出来逐字一致。
 
-/** 全部图标（37 个）。键与 web 端 MATH_ICONS 一一对应。 */
+/** 全部图标（43 个）。键与 web 端 MATH_ICONS 一一对应。 */
 internal object MathIcons {
 
     val card: List<IconPrim> = listOf(
@@ -289,6 +289,43 @@ internal object MathIcons {
         IconPrim.L(82f, 64f, 68f, 78f, 4.5f),
     )
 
+    val paren: List<IconPrim> = listOf(
+        IconPrim.P(floatArrayOf(38f, 10f, 30f, 18f, 26f, 30f, 23f, 50f, 26f, 70f, 30f, 82f, 38f, 90f), false),
+        IconPrim.P(floatArrayOf(62f, 10f, 70f, 18f, 74f, 30f, 77f, 50f, 74f, 70f, 70f, 82f, 62f, 90f), false),
+    )
+
+    val parenSlash: List<IconPrim> = listOf(
+        IconPrim.P(floatArrayOf(40f, 16f, 33f, 24f, 29f, 36f, 26f, 52f, 29f, 68f, 33f, 80f, 40f, 88f), false),
+        IconPrim.P(floatArrayOf(60f, 16f, 67f, 24f, 71f, 36f, 74f, 52f, 71f, 68f, 67f, 80f, 60f, 88f), false),
+        IconPrim.L(16f, 84f, 84f, 16f, 5f),
+    )
+
+    val lookup: List<IconPrim> = listOf(
+        IconPrim.C(40f, 38f, 24f, outline = true),
+        IconPrim.C(40f, 38f, 8f),
+        IconPrim.L(58f, 56f, 84f, 82f, 8f),
+    )
+
+    val substitute: List<IconPrim> = listOf(
+        IconPrim.Rr(8f, 40f, 46f, 34f, 6f, outline = true),
+        IconPrim.Rr(54f, 8f, 32f, 22f, 5f),
+        IconPrim.L(70f, 34f, 36f, 54f, 3.5f),
+        IconPrim.L(46f, 46f, 36f, 54f, 2.5f),
+        IconPrim.L(44f, 58f, 36f, 54f, 2.5f),
+    )
+
+    val checkMark: List<IconPrim> = listOf(
+        IconPrim.P(floatArrayOf(18f, 54f, 40f, 76f, 82f, 22f), false),
+    )
+
+    val ltrSteps: List<IconPrim> = listOf(
+        IconPrim.C(22f, 32f, 11f),
+        IconPrim.C(50f, 32f, 11f),
+        IconPrim.C(78f, 32f, 11f),
+        IconPrim.L(12f, 62f, 78f, 62f, 5f),
+        IconPrim.P(floatArrayOf(88f, 62f, 74f, 53f, 74f, 71f), true),
+    )
+
     val ALL: Map<String, List<IconPrim>> = linkedMapOf(
         "card" to card,
         "coin" to coin,
@@ -327,6 +364,12 @@ internal object MathIcons {
         "mergeTerms" to mergeTerms,
         "plusMinus" to plusMinus,
         "timesDiv" to timesDiv,
+        "paren" to paren,
+        "parenSlash" to parenSlash,
+        "lookup" to lookup,
+        "substitute" to substitute,
+        "checkMark" to checkMark,
+        "ltrSteps" to ltrSteps,
     )
 
     /** 名字打错时返回 null —— 渲染件会退化成不画，而不是崩。 */

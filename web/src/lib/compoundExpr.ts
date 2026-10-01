@@ -116,6 +116,8 @@ export interface MistakeCase {
   why: string
   /** 怎么避免（口诀） */
   tip: string
+  /** ★ 卡片配图（mathIcons.ts 的键）—— 一幅图顶一句解释 */
+  icon: string
 }
 
 // ────────────────────────────────────────────────────────────
@@ -197,7 +199,7 @@ function genAddSubThenMulDiv(): CompoundProblem | null {
       ],
       needParen: true,
       value: total,
-      hint: "乘除会抢在加减前面算！要用小括号把加减括起来，让它先算。",
+      hint: "乘除会抢在加减前算！得用小括号把加减括起来。",
     })
   } else {
     const k = rnd(2, 9)
@@ -212,7 +214,7 @@ function genAddSubThenMulDiv(): CompoundProblem | null {
       ],
       needParen: true,
       value: k,
-      hint: "被除数是一个算式时，一定要用小括号把它括起来，不然就变成先除后算了。",
+      hint: "被除数是算式时，必须括起来，否则变成先除后算。",
     })
   }
 }
@@ -256,7 +258,7 @@ function genMulDivThenAddSub(): CompoundProblem | null {
     ],
     needParen: false,
     value: total,
-    hint: "乘除本来就比加减先算，直接代进去就好，小括号是多余的。",
+    hint: "乘除本来就先算，直接代进去，括号多余。",
   })
 }
 
@@ -294,7 +296,7 @@ function genAsSubtrahend(): CompoundProblem | null {
     ],
     needParen: true,
     value: k,
-    hint: "减号后面是一个算式，必须加小括号先算它，否则就从左往右算错了。",
+    hint: "减号后面是算式，必须括起来先算，否则从左往右算错。",
   })
 }
 
@@ -332,7 +334,7 @@ function genAsDividend(): CompoundProblem | null {
     ],
     needParen: true,
     value: k,
-    hint: "被除数是一个加减算式时，用小括号先算出它，再去除。",
+    hint: "被除数是加减算式时，先括起来算出它，再去除。",
   })
 }
 
@@ -464,8 +466,8 @@ function buildProblem(kind: CompoundKind, steps: StepLine[], spec: BuildSpec): C
       check: {
         needParen: spec.needParen,
         reason: spec.needParen
-          ? "按顺序会先算乘除/先算后面那步，而原来要先算前面这步 ⇒ 必须补小括号"
-          : "乘除本来就先算，与原来的先后顺序一致 ⇒ 不用加括号",
+          ? "按规矩先轮到的不是原来那步 ⇒ 必须补小括号"
+          : "按规矩先轮到的正是原来那步 ⇒ 不用加括号",
       },
     },
     hint: spec.hint,
@@ -556,58 +558,65 @@ export const MISTAKE_CASES: MistakeCase[] = [
   {
     kind: "missing_paren",
     title: "漏加括号（最常见）",
+    icon: "paren",
     wrong: "20 - 15 × 6 = 20 - 90 = -70",
     right: "(20 - 15) × 6 = 5 × 6 = 30",
-    why: "原式要先算 20 - 15，可一写成综合算式，乘除会抢在前面算，答案就全错了。",
-    tip: "先算加减、后算乘除 ⇒ 小括号不能省！",
+    why: "原式要先算 20 - 15，写成综合算式后乘除会抢在前头，答案全错。",
+    tip: "先加减、后乘除 ⇒ 括号不能省！",
   },
   {
     kind: "missing_paren",
     title: "减号后面漏括号",
+    icon: "paren",
     wrong: "83 - 27 ÷ 8 = 83 - 27 ÷ 8（除不尽，做不下去）",
     right: "(83 - 27) ÷ 8 = 56 ÷ 8 = 7",
-    why: "27 是被减数 83 减出来的，它要整体参与除法。不加括号，就变成 83 减去 27÷8 了。",
-    tip: "减号/除号后面跟着一个算式 ⇒ 加括号。",
+    why: "27 是 83 减出来的，要整体参与除法；不括起来就变成 83 减 27÷8。",
+    tip: "减号 / 除号后面是算式 ⇒ 加括号。",
   },
   {
     kind: "extra_paren",
     title: "多加括号（也扣分）",
+    icon: "parenSlash",
     wrong: "5 × (63 ÷ 7) = 45（虽然答案对，但没必要）",
     right: "5 × 63 ÷ 7 = 5 × 9 = 45",
-    why: "乘和除是同级运算，从左往右算本来就先算 63 ÷ 7，括号是多余的。",
-    tip: "同级运算从左往右 ⇒ 不用加括号。",
+    why: "乘除同级，从左往右本来就先算 63 ÷ 7 —— 括号多余。",
+    tip: "同级运算从左往右 ⇒ 不加括号。",
   },
   {
     kind: "extra_paren",
     title: "把乘除顺序搞反",
+    icon: "parenSlash",
     wrong: "(5 × 63) ÷ 7 = 315 ÷ 7 = 45",
     right: "5 × 63 ÷ 7 = 45",
-    why: "虽然巧合答案一样，但 (5×63) 改变了运算顺序，已经不是题目要求的「先算 63÷7」了。",
-    tip: "该先算哪个，就把它放对位置，别乱加括号。",
+    why: "答案碰巧一样，但 (5×63) 改了运算顺序，不是题目要的「先算 63÷7」。",
+    tip: "该先算哪个就放对位置，别乱加括号。",
   },
   {
     kind: "left_to_right",
     title: "同级运算跳步抢算",
+    icon: "ltrSteps",
     wrong: "24 - 13 + 18 误算成 24 - (13 + 18) = -7",
     right: "24 - 13 + 18 = 11 + 18 = 29",
-    why: "加减是同级，要从左往右依次算，不能挑着先算后一个。",
+    why: "加减同级，要从左往右挨着算，不能挑后面的先算。",
     tip: "同级运算：从左往右，一个一个来。",
   },
   {
     kind: "wrong_order",
     title: "异级顺序弄反",
+    icon: "timesDiv",
     wrong: "4 + 6 × 3 误算成 (4 + 6) × 3 = 30",
     right: "4 + 6 × 3 = 4 + 18 = 22",
-    why: "有乘除又有加减，要先算乘除，题目没给括号就不能自己加。",
-    tip: "先乘除、后加减；想改变顺序才用小括号。",
+    why: "有乘除又有加减，要先算乘除；题里没括号就不能自己加。",
+    tip: "先乘除、后加减；想改顺序才用小括号。",
   },
   {
     kind: "left_to_right",
     title: "括号里也要看优先级",
+    icon: "ltrSteps",
     wrong: "(12 + 8 × 3) ÷ 4 误算成 (20 × 3) ÷ 4 = 15",
     right: "(12 + 8 × 3) ÷ 4 = (12 + 24) ÷ 4 = 9",
-    why: "括号里也还是「先乘除后加减」，8×3 要先算，不能一路从左往右。",
-    tip: "括号只改变里外顺序，括号里的规矩不变。",
+    why: "括号里照样「先乘除后加减」，8×3 要先算，不能一路从左往右。",
+    tip: "括号只改里外顺序，括号里的规矩不变。",
   },
 ]
 
@@ -620,22 +629,26 @@ export function mistakeCasesOf(kind: MistakeKind): MistakeCase[] {
 // 口诀 / 常考点
 // ────────────────────────────────────────────────────────────
 
-export const RULES = [
+export const RULES: { title: string; icon: string; lines: string[] }[] = [
   {
-    title: "找 → 换 → 查",
-    lines: [
-      "① 找：两个算式里相同的那个数（通常就是第一步的得数）",
-      "② 换：把第二步里的这个数，换成第一步的整个算式",
-      "③ 查：比一比运算顺序变没变 —— 变了就补小括号",
-    ],
+    title: "① 找 —— 找相同的那个数",
+    icon: "lookup",
+    lines: ["两个算式里相同的数，就是第一步的得数"],
   },
   {
-    title: "要不要加括号？（一句话判据）",
-    lines: [
-      "先算的是加减、后算的是乘除 ⇒ 要加括号",
-      "先算的是乘除、后算的是加减 ⇒ 不用加括号",
-      "被除数 / 减数是一个算式 ⇒ 要加括号",
-    ],
+    title: "② 换 —— 把得数换成整段算式",
+    icon: "substitute",
+    lines: ["第二步里那个数，换成第一步的整个算式"],
+  },
+  {
+    title: "③ 查 —— 比一比运算顺序",
+    icon: "checkMark",
+    lines: ["顺序变了就补小括号"],
+  },
+  {
+    title: "要不要加括号？",
+    icon: "paren",
+    lines: ["先加减、后乘除 ⇒ 加括号", "得数做被除数 / 减数 ⇒ 加括号", "其余 ⇒ 不加"],
   },
 ]
 
@@ -645,4 +658,12 @@ export const KIND_LABEL: Record<CompoundKind, string> = {
   muldiv_then_addsub: "先乘除，后加减",
   as_dividend: "得数做被除数",
   as_subtrahend: "得数做减数",
+}
+
+/** ★ 题型图标（mathIcons.ts 的键）—— 提示行左边画一个，一幅图顶一句话 */
+export const KIND_ICON: Record<CompoundKind, string> = {
+  addsub_then_muldiv: "paren",
+  muldiv_then_addsub: "parenSlash",
+  as_dividend: "paren",
+  as_subtrahend: "paren",
 }

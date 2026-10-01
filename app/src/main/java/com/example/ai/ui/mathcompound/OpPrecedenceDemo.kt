@@ -298,8 +298,8 @@ fun OpPrecedenceDemo() {
             }
 
             Text(
-                "三条规矩：有小括号先算括号里 · 没有括号先乘除、后加减 · 同级从左往右，一个一个来。\n" +
-                    "算式里绿底的数，就是前面已经算出来的。",
+                "有小括号先算括号里 · 没有括号，先乘除后加减 · 同级从左往右。\n" +
+                    "算式里绿底的数，是前面算出来的。",
                 fontSize = 12.sp,
                 color = Slate,
                 modifier = Modifier.padding(top = 10.dp),
@@ -436,29 +436,28 @@ private fun hintOf(
     tokens: List<PToken>,
     trace: List<PStep>,
 ): String = when (phase) {
-    PrPhase.IDLE -> "点「演一遍」，看看这两个运算符到底谁先算。"
-    PrPhase.INTRO -> "算式摆好了 —— 先别急着从左往右，得先比一比谁有资格先算。"
+    PrPhase.IDLE -> "点「演一遍」，看谁先算。"
+    PrPhase.INTRO -> "摆好了 —— 别急着从左往右，先比一比谁先算。"
     PrPhase.JUDGE, PrPhase.PICK -> {
         val s = step
         when {
             s == null -> ""
             s.why == PWhy.HIGHER ->
-                "看高度：乘除「${s.op}」站得高一级，加减「${s.siblings.joinToString("、")}」在下面。" +
-                    "高一级的先算 —— 哪怕「${s.siblings.joinToString("、")}」写在最左边，也得等一等。"
+                "乘除「${s.op}」高一级，先算；加减「${s.siblings.joinToString("、")}」再靠左也得等。"
             s.why == PWhy.SAME_LEVEL ->
                 if (s.siblings.isEmpty()) {
-                    "现在只剩一个运算符「${s.op}」了，直接算它。"
+                    "只剩「${s.op}」一个运算符了，算它。"
                 } else {
-                    "「${s.op}」和「${s.siblings.joinToString("、")}」是同一个级别，谁也不能插队 —— " +
-                        "那就从左往右数，先碰到谁先算。"
+                    "「${s.op}」和「${s.siblings.joinToString("、")}」同级，谁也不能插队 ⇒ " +
+                        "从左往右，先碰到谁先算。"
                 }
-            s.siblings.isEmpty() -> "括号里先算。括号里还是那句老规矩：先乘除、后加减。"
+            s.siblings.isEmpty() -> "括号里先算，规矩一样：先乘除、后加减。"
             else ->
-                "括号里先算 —— 而且括号里的规矩不变：先乘除「${s.op}」、后加减「${s.siblings.joinToString("、")}」。"
+                "括号里先算，规矩不变：先乘除「${s.op}」、后加减「${s.siblings.joinToString("、")}」。"
         }
     }
     PrPhase.JOIN -> joining?.let {
-        "第 ${cursor + 1} 步：先算 ${it.left} ${it.op} ${it.right} = ${it.value} —— 这三个块并成一个数，算式就短一段。"
+        "第 ${cursor + 1} 步：${it.left} ${it.op} ${it.right} = ${it.value} —— 三个块并成一个数。"
     }.orEmpty()
     PrPhase.SETTLE -> "化简一步之后：${tokens.joinToString(" ") { it.text }}"
     PrPhase.DONE -> "一路算下来：${trace.joinToString("，然后 ") { "${it.left} ${it.op} ${it.right} = ${it.value}" }}。"

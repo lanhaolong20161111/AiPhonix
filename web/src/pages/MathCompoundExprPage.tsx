@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import MathIcon from "../components/MathIcon"
 import {
   generateProblem,
   tokensToText,
@@ -27,6 +28,7 @@ import {
   MISTAKE_CASES,
   RULES,
   KIND_LABEL,
+  KIND_ICON,
   type CompoundProblem,
   type MistakeCase,
   type StepLine,
@@ -652,24 +654,24 @@ export function MathCompoundExprPage() {
     if (!problem) return ""
     switch (phase) {
       case "find":
-        return `两个式子里都有 ${problem.steps[0].result} —— 它就是第一步算出来的得数。`
+        return `两个式子里都有 ${problem.steps[0].result} —— 它就是第一步的得数。`
       case "substitute":
         return landed
-          ? `看，② 里原来的 ${problem.steps[0].result} 已经被「${step0Text}」顶掉了 —— 算式站到了数字原来的位置上。因为 ${problem.steps[0].result} 本来就是 ${step0Text} 算出来的，换进去得数不变；至于顺序会不会变，下一步再查。`
-          : `把 ① 的得数 ${problem.steps[0].result} 换成整段「${step0Text}」—— 它正从 ① 的得数那儿飞过去，占住 ② 里 ${problem.steps[0].result} 的位置。`
+          ? `② 里原来的 ${problem.steps[0].result} 被「${step0Text}」顶掉了 —— 得数不变，顺序变没变下一步再查。`
+          : `把 ① 的得数换成整段「${step0Text}」—— 它正飞过去占住 ② 里 ${problem.steps[0].result} 的位置。`
       case "check":
         if (checkSub === 0) {
           return needParen
-            ? `先别急着加括号 —— 按规矩「从左往右、先乘除后加减」，第一个轮到的会是这个「${warnOpText}」。可原题要先算 ①「${step0Text}」呀，顺序被换掉了！`
-            : `按规矩「从左往右、先乘除后加减」，第一个轮到的正是这个「${warnOpText}」—— 原题也是先算它，顺序没变。`
+            ? `先别急着加括号 —— 按规矩第一个轮到的是「${warnOpText}」，可原题要先算 ①「${step0Text}」，顺序被换掉了！`
+            : `按规矩第一个轮到的正是「${warnOpText}」—— 原题也先算它，顺序没变。`
         }
         if (checkSub === 1) {
           return needParen
             ? `看 —— 两个小括号正从算式两边飞进来，把 ①「${step0Text}」整个抱住。`
-            : `把括号加进去试试 —— 可这里顺序本来就没变，括号抱不住谁，被弹回去了。直接写下来就好。`
+            : `把括号加进去试试 —— 顺序本来就没变，括号抱不住谁，被弹回去了。`
         }
         return needParen
-          ? `括号一加，第一个被算的换成了 ①「${step0Text}」—— 顺序对上了，答案才一致。`
+          ? `括号一加，第一个被算的换成 ①「${step0Text}」—— 顺序对上，答案才一致。`
           : `顺序没变，答案也已经一致了。`
       case "done":
         return `合并成功：${tokensToText(problem.merged.tokens)} = ${problem.answer}`
@@ -706,12 +708,16 @@ export function MathCompoundExprPage() {
         <div className="card ce-rules">
           {RULES.map((r) => (
             <div key={r.title} className="ce-rule-block">
-              <p className="ce-rule-title">{r.title}</p>
-              <ul>
-                {r.lines.map((l) => (
-                  <li key={l}>{l}</li>
-                ))}
-              </ul>
+              {/* 一幅图顶一句口诀：图标与 web/Android 两侧同源（mathIcons.ts） */}
+              <MathIcon name={r.icon} size={30} className="ce-rule-icon" />
+              <div className="ce-rule-text">
+                <p className="ce-rule-title">{r.title}</p>
+                <ul>
+                  {r.lines.map((l) => (
+                    <li key={l}>{l}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ))}
         </div>
@@ -729,6 +735,7 @@ export function MathCompoundExprPage() {
         <>
           {/* ── 题型标签 ── */}
           <div className="ce-kind-row">
+            <MathIcon name={KIND_ICON[problem.kind]} size={20} className="ce-kind-icon" />
             <span className="ce-kind-tag">{KIND_LABEL[problem.kind]}</span>
             <span className={`ce-kind-hint ${needParen ? "ce-need" : "ce-noneed"}`}>
               {needParen ? "这题要加小括号" : "这题不用加括号"}
@@ -873,7 +880,10 @@ function MistakeCard({ m }: { m: MistakeCase }) {
 
   return (
     <div className="card ce-mistake" ref={ref}>
-      <p className="ce-mistake-title">⚠️ {m.title}</p>
+      <p className="ce-mistake-title">
+        <MathIcon name={m.icon} size={20} className="ce-mistake-icon" />
+        {m.title}
+      </p>
       <div className="ce-mistake-row ce-wrong">
         <span className="ce-mistake-tag">❌ 错</span>
         <span className="ce-mistake-expr ce-shake">{m.wrong}</span>

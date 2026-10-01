@@ -276,7 +276,7 @@ export const PR_DEMO_CASES: PrDemoCase[] = [
     tokens: [numTok(4), opTok("+"), numTok(6), opTok("×"), numTok(3)],
     answer: 22,
     wrong: "(4 + 6) × 3 = 30",
-    wrongWhy: "加号写在左边就先算它？不行 —— 只要旁边有乘除，加减就得让路。",
+    wrongWhy: "加号在左边就先算？旁边有乘除，加减得让路。",
   },
   {
     key: "same",
@@ -285,6 +285,6 @@ export const PR_DEMO_CASES: PrDemoCase[] = [
     tokens: [numTok(24), opTok("-"), numTok(13), opTok("+"), numTok(18)],
     answer: 29,
     wrong: "24 - (13 + 18) = -7",
-    wrongWhy: "减法不比加法厉害，加减是一家人；同级就按从左到右的顺序来。",
+    wrongWhy: "加减是一家，不比谁厉害；同级就从左到右算。",
   },
 ]

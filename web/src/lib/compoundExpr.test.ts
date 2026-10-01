@@ -12,9 +12,12 @@ import {
   tokensToText,
   MISTAKE_CASES,
   KIND_LABEL,
+  KIND_ICON,
+  RULES,
   type CompoundProblem,
   type Token,
 } from "./compoundExpr"
+import { mathIcon } from "./mathIcons"
 
 /** 按 token 序列求值（支持 + - × ÷ 与括号，遵循标准优先级） */
 function evalTokens(tokens: Token[]): number {
@@ -156,12 +159,24 @@ test("易错示例：每条都必须「错误列式 ≠ 正确列式」（否则
     assert.notEqual(m.wrong, m.right, `${m.title} 错误与正确列式一模一样`)
     assert.ok(m.why.length >= 8, `${m.title} 缺原因说明`)
     assert.ok(m.tip.length >= 6, `${m.title} 缺口诀`)
+    // ★ 配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+    assert.ok(mathIcon(m.icon), `易错卡「${m.title}」的配图「${m.icon}」不在 mathIcons 里`)
   }
 })
 
 test("题型中文名齐全", () => {
   for (const k of ["addsub_then_muldiv", "muldiv_then_addsub", "as_dividend", "as_subtrahend"] as const) {
     assert.ok(KIND_LABEL[k]?.length > 0, `缺题型名 ${k}`)
+    // ★ 题型标签左边的那个图标
+    assert.ok(mathIcon(KIND_ICON[k]), `题型 ${k} 的配图「${KIND_ICON[k]}」不在 mathIcons 里`)
+  }
+})
+
+test("口诀卡：每张都有标题 / 内容 / 存在的配图", () => {
+  assert.ok(RULES.length >= 3, "口诀至少要三张（找 / 换 / 查）")
+  for (const r of RULES) {
+    assert.ok(r.title.length > 0 && r.lines.length > 0, `口诀卡「${r.title}」不完整`)
+    assert.ok(mathIcon(r.icon), `口诀卡「${r.title}」的配图「${r.icon}」不在 mathIcons 里`)
   }
 })
 
