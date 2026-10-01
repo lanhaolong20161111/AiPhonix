@@ -5,6 +5,67 @@
 
 ---
 
+## 0.7 🆕 2026-10-01 四个数学页「降文字密度」：一套图元数据、两端各自渲染
+
+用户反馈：「长度与质量单位设计太多文字，最近设计的几个数学页面文字都太多了，
+尽量用动画和图标演示，文字尽可能少，比如一毫米参照物用物品的图画显示在旁边」。
+经确认：**范围＝四个数学页共 8 个渲染文件**（web + app）——units / mulOne / eqmove / compoundExpr；
+**图画做法＝手绘矢量简笔画**（不用 AI 生成实物插画、不用精选 emoji）。
+
+提交：`6662b3c`（基础设施 + units）、`64adc3c`（mulOne）、`a2b78c2`（eqmove）、
+`7a83ce1`（compoundExpr）。**只改 `app/` + `web/src/`**，`server_cf/static_assets/web` 未入库（每次重新构建同步）。
+
+### ★ 图标库（本轮最重要的可复用件）
+- 唯一真源 **`web/src/lib/mathIcons.ts`**；坐标统一 **0..100 正方形** viewBox。
+- 图元只有 5 种，**绝不使用 SVG path 的 `d` 字符串**（Android 没有 path 解析器）：
+  `["c",cx,cy,r]` 圆 · `["r",x,y,w,h]` 矩形 · `["rr",x,y,w,h,rad]` 圆角矩形 ·
+  `["l",x1,y1,x2,y2,w?]` 线段（`w` 默认 3）· `["p",[x,y,…],closed]` 多边形/折线。
+  数组**末尾可带 `"o"`**（outline）＝只描边不填充，用来「挖空」。
+- 生成链（**生成物必须提交**）：`mathIcons.ts` → `./web/node_modules/.bin/tsx web/_gen_math_icons.ts`
+  → `app/src/main/java/com/example/ai/ui/icon/MathIcons.kt`；本轮 **37 → 43 个图标**。
+  离线包围盒自检 `./web/node_modules/.bin/tsx web/_check_icons.ts`（门槛 30×30 且不越界）。
+- 渲染件 `components/MathIcon.tsx` / `ui/icon/MathIcon.kt`（`MathIcon(name, size, tint)`）——
+  **名字打错会安静地什么都不画** ⇒ 两端单测都加了「配图键必须存在」的断言。
+- ★ **「左图右文」规格**：web `display:grid; grid-template-columns:30px minmax(0,1fr); gap:10px;`
+  （`minmax(0,1fr)` 不能省，否则长文案撑破网格）；Android `Row` + `Column(Modifier.weight(1f))`，
+  图标 30.dp（题型行/易错卡标题 20.dp），主色 `0xFF0F766E` / 易错 `0xFFB45309`。
+
+### ★ 中文文案量化口径（`web/_shrink_zh_count.py`、`web/_dump_zh.py`，两文件同构）
+只数**用户看得见的文案**：字符串字面量（`"` `'` `` ` `` 三种；模板字面量要**递归解析 `${}` 里嵌套的字符串**）
+＋ JSX/Compose 裸文本 `>([^<>{}]{1,400})<`；注释一律不计。
+⚠️ 必须在**剔掉字符串的代码**上**再剔一次注释**，才跑 JSX 正则（否则 `=>` 与 `<div>` 之间整段注释被当裸文本）。
+⚠️ 只认 `"`/`'` 的旧版 `_dump_zh.py` 会把**模板字面量全漏掉**（`equationMove.ts` 少报 766 汉字）——已重写齐平。
+「长句」＝**连续 ≥10 个汉字**（`[\u4e00-\u9fff]{10,}`，标点/数字/字母都截断）⇒ 「拆句加逗号」是合法降长手段。
+
+### 结果（汉字 / 长句）
+web：`equationMove.ts` 2100/42→**1211/8**、`EquationMovePage.tsx` 1074/24→**808/8**、
+`compoundExpr.ts` 692/17→**583/7**、`MathCompoundExprPage.tsx` 389/8→**309/6**、
+`OpPrecedenceDemo.tsx` 272/5→**194/0**。
+app：`EqMove.kt` 2100/40→**1211/8**、`CompoundExpr.kt` 696/17→**587/7**、
+`OpPrecedenceDemo.kt` 270/5→**192/0**、`EqMoveViewModel.kt` 626→489、`MathCompoundExprViewModel.kt` 297→217。
+
+结构性改动：新增 `KIND_ICON`（题型 → 图标键，两端同名）让「提示行左边一幅图」顶掉一整句话；
+`RULES`/口诀卡从长卡改为「一句话 + icon」；`MistakeCase` 增加 `icon` 字段。
+**两端数据逐句同文**（Android 是从 web 逐句移植的）⇒ 改文案要同时改 `_shrink_*.py` 与 `_shrink_*_kt.py`。
+
+门禁：web `tsc -b` 0 错、`tsx --test` **330/330**；Android **540 用例 / 38 类 / 0 失败 / 0 错误**、APK 38,027,767 bytes。
+
+### 批量替换脚本的三条铁律（血泪）
+1. **`old` 只匹配那一行本身，别把缩进写进去**——缩进差 2 个空格就命中 0 次；跨两行的串要含两行、
+   且注意**字符串可能以 `"。` 结尾而不是 `",`**。
+2. **Kotlin 文案里的引号是 `“”`（U+201C/U+201D），不是 `「」`**——写 old 前先看真实字节。
+3. 统一模式：**先把所有 `(old,new)` 在原文里数一遍命中次数，只要有一条 ≠ 1 就整份文件都不写**，
+   然后才逐条 `replace(old,new,1)`。这样不会写出半改的文件。
+
+### 视觉核验（`web/_em_*.mjs`，已 gitignore）
+本地 dev server 是 **https 且 base 是 `/web/`**：`https://127.0.0.1:5199/web/module/<路由键>`，
+需 `ignoreHTTPSErrors:true` + `serviceWorkers:"block"`（`http://` 探活得 `000`）；
+先 `goto(BASE)` 注入假 session（localStorage 键 `ai_phonix_web_auth`，形状 `{state:{session:{…}},version:0}`）
+再进模块，并断言 `page.url()` 含模块键（`RequireAuth` 是纯客户端守卫）。
+⚠️ 数学动画页路由键在 `web/src/routes.tsx` 且**不带前导斜杠**。
+
+---
+
 ## 0.6 🆕 2026-09-22 Web 数学「解析高亮」改用数学专用 analyze
 
 ### 问题
