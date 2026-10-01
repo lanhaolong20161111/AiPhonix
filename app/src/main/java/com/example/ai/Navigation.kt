@@ -120,6 +120,8 @@ import com.example.ai.ui.englishtalk.EnglishTalkScreen
 import com.example.ai.ui.englishtalk.EnglishTalkViewModel
 import com.example.ai.ui.eqmove.EqMoveScreen
 import com.example.ai.ui.mathcompound.MathCompoundExprScreen
+import com.example.ai.ui.mulone.MulOneScreen
+import com.example.ai.ui.units.UnitsScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureViewModel
 import com.example.ai.data.dailyzh.DailyZhRepository
@@ -197,6 +199,8 @@ fun MainNavigation(container: AppContainer) {
             onOpenAiEnglishTalk = { backStack.add(AiEnglishTalk) },
             onOpenMathCompoundExpr = { backStack.add(MathCompoundExpr) },
             onOpenEqMove = { backStack.add(EqMove) },
+            onOpenMathUnits = { backStack.add(MathUnits) },
+            onOpenMathMulOne = { backStack.add(MathMulOne) },
             onOpenSubtitleCapture = { backStack.add(SubtitleCapture) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
@@ -357,6 +361,21 @@ fun MainNavigation(container: AppContainer) {
         entry<EqMove> {
           // 同上：整页是单个 LazyColumn，内边距由各 item 管，这里只给安全区
           EqMoveScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
+          )
+        }
+        entry<MathUnits> {
+          // 同上：整页是单个 LazyColumn，内边距由各 item 管，这里只给安全区。
+          // ★ 校准倍率（真实尺寸米尺用）由 Screen 自己从 SharedPreferences 读写 ——
+          //   这里不注入任何依赖，所以 Navigation 上只传 onBack。
+          UnitsScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
+          )
+        }
+        entry<MathMulOne> {
+          MulOneScreen(
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding(),
           )

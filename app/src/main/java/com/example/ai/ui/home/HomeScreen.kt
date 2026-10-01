@@ -63,6 +63,8 @@ fun HomeScreen(
     onOpenAiEnglishTalk: () -> Unit = {},
     onOpenMathCompoundExpr: () -> Unit = {},
     onOpenEqMove: () -> Unit = {},
+    onOpenMathUnits: () -> Unit = {},
+    onOpenMathMulOne: () -> Unit = {},
     onOpenSubtitleCapture: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
@@ -340,6 +342,28 @@ fun HomeScreen(
             containerColor = Color(0xFFFFF7ED),
             arrowColor = Color(0xFFEA580C),
             onClick = onOpenEqMove,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 长度与质量单位（切开/拼合动画 + 真实尺寸米尺 + 参照物墙）
+        ToolCard(
+            emoji = "📏",
+            title = "长度与质量单位",
+            subtitle = "毫米/厘米/分米/米/千米 · 克/千克/吨 —— 切开拼合看懂方向，参照物建立量感",
+            containerColor = Color(0xFFE3F2FD),
+            arrowColor = Color(0xFF1565C0),
+            onClick = onOpenMathUnits,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 多位数乘一位数（竖式逐位四拍 + 位值点阵）
+        ToolCard(
+            emoji = "✏️",
+            title = "多位数乘一位数",
+            subtitle = "竖式逐位四拍：乘 → 加进位 → 写 → 进 · 位值点阵看懂为什么从个位乘起",
+            containerColor = Color(0xFFF3E5F5),
+            arrowColor = Color(0xFF6A1B9A),
+            onClick = onOpenMathMulOne,
         )
         Spacer(Modifier.height(12.dp))
 

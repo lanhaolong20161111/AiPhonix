@@ -419,3 +419,6 @@ web/_uc_shots/
 # local _mo_* verification artifacts (multi-digit x 1-digit page: _mo_shot.mjs gate + _mo_probe.mjs)
 web/_mo_*.mjs
 web/_mo_shots/
+# local probes/leftovers for the units page (web/_mo_units_expect.ts prints engine expectations for the Kotlin tests)
+web/_mo_units_expect.ts
+web/_last_outdir.txt

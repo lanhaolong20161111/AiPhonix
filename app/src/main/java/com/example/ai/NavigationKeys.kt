@@ -122,6 +122,8 @@ import kotlinx.serialization.Serializable
 // ── 动画学数学 ──
 @Serializable data object MathCompoundExpr : NavKey                     // 三年级上综合算式动画（找→换→查，带飞入/位移教学动画）
 @Serializable data object EqMove : NavKey                               // 等式变变变（移项变号：幽灵飞越等号线 + 跨线翻牌 + 随机 5 题）
+@Serializable data object MathUnits : NavKey                            // 长度与质量单位（切开/拼合动画 + 真实尺寸米尺 + 参照物墙 + 换算法 + 分步练习）
+@Serializable data object MathMulOne : NavKey                           // 多位数乘一位数（竖式逐位四拍：乘→加进位→写→进 + 位值点阵 + 一步一填）
 
 // ── 视频 ──
 @Serializable data object SubtitleCapture : NavKey                      // 字幕采集（框选影片字幕区 → 截屏存盘带时间戳 + 识图翻译纠错）

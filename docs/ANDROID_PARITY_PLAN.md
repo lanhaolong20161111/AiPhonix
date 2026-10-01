@@ -376,6 +376,37 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 - 易错卡「滚到才揭晓」用 LazyColumn 天然实现（等效 web 的 `IntersectionObserver`）。
 - 题型选择排成 3 行 / chips 排成 2 行（web 是 flex-wrap，窄屏 320 会顶出横向滚动）。
 
+### 批次 C 收官后新增：长度与质量单位 + 多位数乘一位数（动画学数学 第 3/4 页｜2026-10-01）
+
+| 模块 | 路由键（`web/src/routes.tsx`） | 引擎（纯 Kotlin，零后端） | 页面 |
+|---|---|---|---|
+| 长度与质量单位 | `module/math_units`（:123） | `data/units/Units.kt` | `ui/units/` |
+| 多位数乘一位数 | `module/math_mul_one`（:124） | `data/math/MulOne.kt` | `ui/mulone/` |
+
+**引擎移植的三条硬约束**
+- `Random` 必须**注入**（默认 `Random.Default`），否则单测不可复现；
+- ★ **JS `rnd(min,max)` 跨度 ≤ 0 返回 `min`，Kotlin `nextInt` 抛异常** ⇒ `unitRndInclusive` / `moRndInclusive`（各配单测）；
+- ★ units 的 `number` 是双精度 ⇒ Kotlin **一律 `Double`**，**严禁 Int**（`1毫米→厘米` 静默截断成 0）。
+
+★ **`MulOne.kt` 与 `CompoundExpr.kt`/`EqMove.kt`/`Precedence.kt` 同包** ⇒ 顶层名字**必须**加前缀（`Mo`/`mo`/`MO_`）：
+`MistakeCase` / `RULES` / `MISTAKE_CASES` / `planSteps` / `rndInclusive` / `generateProblem` 全部已被占用，
+重名时报错是 `Overload resolution ambiguity` / `Conflicting declarations`，**位置在调用点、看不出是命名问题**。
+
+**单测 54 例（新增 2 类）**：`UnitsTest` 23 + `MulOneTest` 31，期望值来自 `npx tsx` 跑 web 真实现。
+★ **四条期望值是我写错的，引擎是对的**（详见 `PROJECT_MEMORY.md` §0.5 同名小节）：
+`280×3` 连段 0→1、`38×3` 的 `resultCells[3]`→`.last()`、
+**「方向错答必须进选项」是我想当然的假设**（web 把它放在 `p.trap` 里事后点破）、`onScreenReal` 少算/多算。
+
+#### 这两个页面的已知差异（有意为之，非遗漏）
+- ★ **真实尺寸改用 `DisplayMetrics.xdpi`**：web 靠 CSS `1in = 96px` + 10mm 探针；Compose 无 DOM。
+  换算为 `xdpi / 25.4 / density.density` dp/毫米，并**保留 web 的校准滑块**（存 SharedPreferences）——
+  逐机型 `xdpi` 可能不准，**校准是必需项不是可选项**。
+- **米尺横向滚动、绝不缩放**：真实 10 厘米 ≈ 610dp 宽于手机屏。`分米` 的真实条多数装不下 ⇒ 沿用 web「不画、改去指米尺」文案。
+- **>100 格走 Canvas**：1000 个 Compose 元素 + 逐格动画会掉帧；`≤100` 仍是 Compose 格子（保留逐格显形）。
+- **点阵每行固定 10 个**（十格框）：比 web 的 flex-wrap 更容易看出「满 10 扎 1 捆」。
+- **未做逐帧核验**：本机无设备/模拟器 ⇒ 只到「`assembleDebug` 通过 + 全量单测绿（526/37/0）」，观感由实机验证补。
+- `prefers-reduced-motion` 一律换成系统动画缩放（`ANIMATOR_DURATION_SCALE == 0` ⇒ 直接跳完成态）。
+
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
 - ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。

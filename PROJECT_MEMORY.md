@@ -273,6 +273,58 @@
 - 唯一显示差异（有意）：三路全失败时显示「⚠️ 统计数据加载失败（断网）」，web 则显示一片 0（避免家长误以为孩子这周没练）。
 - 单测 **21 例（新增 1 类）`ParentReportLogicTest`**，期望值来自 web 原逻辑的 node 探针（含空集场景）。
 
+### 已完成（数学动画 · 第 3/4 个模块｜2026-10-01）—— 长度与质量单位 + 多位数乘一位数 ✅
+
+两个模块一次做完，都是**零后端**：引擎从 web `src/lib/*.ts` 整份移植为纯 Kotlin，页面各自 VM + Screen。
+
+| 模块 | 路由键（`web/src/routes.tsx`） | 引擎 | 页面 |
+|---|---|---|---|
+| 长度与质量单位 | `module/math_units`（:123） | `data/units/Units.kt` | `ui/units/`（UnitsViewModel + UnitsScreen） |
+| 多位数乘一位数 | `module/math_mul_one`（:124） | `data/math/MulOne.kt`（**前缀 `Mo`/`mo`/`MO_`**） | `ui/mulone/`（MulOneViewModel + MulOneScreen） |
+
+★ **命名前提（老坑重演风险）**：`MulOne.kt` 与 `CompoundExpr.kt`/`EqMove.kt`/`Precedence.kt` **同处 `com.example.ai.data.math`**，
+而 `MistakeCase` / `RULES` / `MISTAKE_CASES` / `planSteps` / `rndInclusive` / `generateProblem` **全部已被占用** ⇒
+本文件**一律**加 `Mo`/`mo`/`MO_` 前缀（`MoStep`/`MoPlan`/`moViewOf`/`MO_RULES`…）。`Units.kt` 落在**新包** `data/units`，无冲突。
+
+**两个引擎的三条移植差异**（都写进了 KDoc）
+1. web `Math.random()` ⇒ Kotlin **注入 `Random`（默认 `Random.Default`）**，否则单测无法复现；
+2. ★ **`rnd(min,max)` 跨度 ≤ 0 时 JS 返回 `min`、Kotlin `nextInt` 会抛** ⇒ 自建 `unitRndInclusive` / `moRndInclusive`（各配一条单测）；
+3. ★ units 里 **web 的 `number` 是双精度** ⇒ Kotlin **一律显式 `Double`**，**严禁 Int**（`1毫米→厘米` 会静默截断成 0）。
+
+**单测 54 例（新增 2 类）**：`UnitsTest` **23 例**、`MulOneTest` **31 例**；期望值全部由 `npx tsx` 跑
+**web 真实现**打印（`web/_mo_units_expect.ts`，用完即删），**不是**自己推导。关键护栏：
+units 的**守恒断言**（每轮 `count × pieceBase === value × from.base`，≥200 样本）+ 两条独立换算路径**全量对拍**（基准单位法 vs 沿链逐级法）；
+mulOne 的**四裁判对拍**（`value*factor` / 展开法 / 轨迹拼回 / 逐步累加）+ ★**时间轴合法性**（`add`/`carry` 只在真进/真写时出现、
+`place` 单调不减、每位必以 MUL 开头且有 WRITE）+ ★**高亮永远指向存在的格子**（`hl.write` 指向的 `resultCells[i]` 必须非 null
+—— 发在空气上的高亮，截图根本看不出来）。
+
+★ **本轮踩到并修掉的 4 条「测试期望值」错误**（**引擎全对**，是我手算 / 想当然写错的）
+1. `280 × 3` 的最长进位连段：手算写 0，实为 **1**（十位 `8×3=24` 进 2 ⇒ 那一位自成一个连段）；
+2. `38 × 3` 的「积新长出来那一格」：写成 `resultCells[3]`，但 `cols = max(digits.size, resultDigits.size) = 3` ⇒ 下标只到 2，改 `resultCells.last()`；
+3. ★ **别把「乘除方向搞反的错答必须进选项」当成设计约束** —— web 第三步的干扰项来自 {加错值、按错进率算}，
+   **方向错答是单独放在 `p.trap` 里、等学生做完再点破的**（实测 `90厘米=?分米`：选项 `[9, 100]`，`flipped = 900` 不在其中）。
+   已把测试改成「进选项**或**落在 `trap`」，并把引擎里那条**误导性注释**（"方向用错"）改正；
+4. units 的 `onScreenReal` 只有 **毫米/厘米/分米** 三个为 true（`1米 ≈ 3779 px` 放不下），我原先多写了「米」。
+
+**Screen 侧的 4 条有意差异**（非遗漏）
+- ★ **真实尺寸**：web 靠 CSS `1in = 96px` + 量一个 10mm 探针；Android **没有 DOM** ⇒ 改用 `DisplayMetrics.xdpi`
+  （**物理**每英寸像素）**÷ `density.density`** 得 dp/毫米，并**保留 web 那条「拿真尺子校准」的滑块**
+  （倍率存 SharedPreferences `aiphonix_units` / key `uc_calib`）。逐机型 `xdpi` 可能报不准，所以校准滑块是**必需**而非可选。
+- **米尺横向滚动**：真实 10 厘米 ≈ 610dp，比手机屏宽 ⇒ 套 `horizontalScroll`，**绝不缩放**
+  （缩放就不是真实大小，整段量感教学的前提就没了）。同理 `分米` 的真实条在手机上多数装不下 ⇒ 走 web 同款「**不画**、改去指上面那把米尺」文案。
+- **>100 格改 Canvas**：`1米→毫米` 要摆 1000 个格子，1000 个 Compose 元素 + 逐格动画会明显掉帧 ⇒
+  `≤100` 用 Compose 格子（保留逐格「扫出来」），`>100` 用 Canvas 一次画完、用同一个 0→1 进度扫过。
+- 点阵改成**每行固定 10 个**（十格框），一眼看出「满十成捆」—— web 是 flex-wrap，行宽随容器变，数捆反而费劲。
+
+**接线四处**：`NavigationKeys`（`MathUnits` / `MathMulOne`）、`Navigation.kt`（import + `entry<>` + 首页两个回调）、
+`HomeScreen.kt`（两个 `ToolCard`，顺序与 web 首页一致：综合算式 → 等式变变变 → **长度与质量单位** → **多位数乘一位数**）。
+**未改 `AppContainer`**（两页都不需要注入依赖；校准值由 Screen 自己读写 SharedPreferences —— 这也符合「VM 不持 Context」）。
+
+**门禁**：`export JAVA_HOME="C:/Program Files/Java/jdk-21.0.11"` → `:app:compileDebugKotlin` ✅ →
+`:app:testDebugUnitTest` + `:app:assembleDebug` ✅ —— **526 用例 / 37 类 / 0 失败**（基线 472/35，正好 **+54 例 / +2 类**），
+APK ≈35.8MB。★ 本机**无设备/模拟器** ⇒ 止于「构建通过 + 单测绿」，
+**实机观感（真实尺寸量得准不准、点阵挤不挤、竖式高亮跟不跟得上）由用户补验**。
+
 ### 拍照 OCR 自动填入（设置面板自动填入｜2026-09-22 收官后新增）
 
 三处设置面板移植 web 的「拍照 OCR 自动填入」：每日语文（**多图框选 + 拼音清洗**）、每日英语（**单图整页**）、AI 英语对话（**整页识词抽句 → 勾选导入**）。AI 对话学语文**故意不做**（web `SpeechComposePage` 本就无 OCR）。
