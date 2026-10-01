@@ -444,19 +444,36 @@ val EQ_KIND_LABEL: Map<MoveKind, String> = mapOf(
 )
 
 val EQ_KIND_TIP: Map<MoveKind, String> = mapOf(
-    MoveKind.PLUS to "加数跨过等号 ⇒ 变减",
-    MoveKind.MINUS to "减数跨过等号 ⇒ 变加",
-    MoveKind.TIMES to "乘数跨过等号 ⇒ 变除",
-    MoveKind.DIVIDE to "除数跨过等号 ⇒ 变乘",
-    MoveKind.MINUS_VAR to "x 前面是减号 —— 要搬两次",
-    MoveKind.DIVIDE_VAR to "x 在除数位置 —— 要搬两次",
-    MoveKind.REVEAL_PLUS to "最前面的数没写符号 ⇒ 先换位显形，再跨线",
-    MoveKind.REVEAL_TIMES to "最前面的因数是隐藏的「×」⇒ 先换位显形，再跨线",
-    MoveKind.X_RIGHT to "x 在等号右边 ⇒ 两边对调回来，再搬",
-    MoveKind.THREE_TERMS to "同一边有好几个数 ⇒ 一个一个有顺序地搬",
-    MoveKind.BOTH_SIDES to "两边都有 x ⇒ 先把 x 都搬到一边，再合并",
-    MoveKind.MULTI_STEP to "多项多步 ⇒ 先搬常数，再移 x，最后合并",
+    MoveKind.PLUS to "加数跨线 ⇒ 变减",
+    MoveKind.MINUS to "减数跨线 ⇒ 变加",
+    MoveKind.TIMES to "乘数跨线 ⇒ 变除",
+    MoveKind.DIVIDE to "除数跨线 ⇒ 变乘",
+    MoveKind.MINUS_VAR to "x 前面是减号：搬两次",
+    MoveKind.DIVIDE_VAR to "x 在除数位：搬两次",
+    MoveKind.REVEAL_PLUS to "首项没写符号：先换位显形",
+    MoveKind.REVEAL_TIMES to "首项藏着「×」：先换位显形",
+    MoveKind.X_RIGHT to "x 在右边：先对调再搬",
+    MoveKind.THREE_TERMS to "几个数：一个一个搬",
+    MoveKind.BOTH_SIDES to "两边都有 x：先归边再合并",
+    MoveKind.MULTI_STEP to "先搬常数，再移 x，最后合并",
     MoveKind.SAME_SIDE to "没跨等号 ⇒ 符号不动",
+)
+
+/** ★ 题型图标（MathIcons 的键）—— 提示行左边画一个，一幅图顶一句话 */
+val EQ_KIND_ICON: Map<MoveKind, String> = mapOf(
+    MoveKind.PLUS to "plusMinus",
+    MoveKind.MINUS to "plusMinus",
+    MoveKind.TIMES to "timesDiv",
+    MoveKind.DIVIDE to "timesDiv",
+    MoveKind.MINUS_VAR to "plusMinus",
+    MoveKind.DIVIDE_VAR to "timesDiv",
+    MoveKind.REVEAL_PLUS to "sameSideSwap",
+    MoveKind.REVEAL_TIMES to "sameSideSwap",
+    MoveKind.X_RIGHT to "balance",
+    MoveKind.THREE_TERMS to "crossLineEq",
+    MoveKind.BOTH_SIDES to "crossLineEq",
+    MoveKind.MULTI_STEP to "mergeTerms",
+    MoveKind.SAME_SIDE to "sameSideSwap",
 )
 
 /** x + a = b ⇒ x = b - a */
@@ -467,7 +484,7 @@ private fun buildPlus(random: Random): MoveProblem {
     val initial = EqState(listOf(xv(), nu(a, EqOp.ADD)), listOf(nu(b)))
     val act = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "把 +$a 搬到等号右边 —— 跨过等号，「+」就要变成「-」。",
+        "把 +$a 搬到右边 —— 跨线「+」变「-」。",
     )
     return MoveProblem(
         kind = MoveKind.PLUS,
@@ -492,7 +509,7 @@ private fun buildMinus(random: Random): MoveProblem {
     val initial = EqState(listOf(xv(), nu(a, EqOp.SUB)), listOf(nu(b)))
     val act = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "要搬的是连在一起的「-$a」这一整块 —— 跨过等号，「-」变成「+」。",
+        "搬的是「-$a」整块 —— 跨线「-」变「+」。",
     )
     return MoveProblem(
         kind = MoveKind.MINUS,
@@ -517,7 +534,7 @@ private fun buildTimes(random: Random): MoveProblem {
     val initial = EqState(listOf(xv(), nu(a, EqOp.MUL)), listOf(nu(b)))
     val act = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "把 ×$a 搬到等号右边 —— 乘的因子跨过等号，就变成「除以 $a」。",
+        "把 ×$a 搬到右边 —— 因子跨线「×」变「÷」。",
     )
     return MoveProblem(
         kind = MoveKind.TIMES,
@@ -542,7 +559,7 @@ private fun buildDivide(random: Random): MoveProblem {
     val initial = EqState(listOf(xv(), nu(a, EqOp.DIV)), listOf(nu(b)))
     val act = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "把 ÷$a 搬到等号右边 —— 除的因子跨过等号，就变成「乘以 $a」。",
+        "把 ÷$a 搬到右边 —— 因子跨线「÷」变「×」。",
     )
     return MoveProblem(
         kind = MoveKind.DIVIDE,
@@ -570,15 +587,15 @@ private fun buildMinusVar(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(a), xv(EqOp.SUB)), listOf(nu(b)))
     val s1 = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "「-x」是一整块 —— 先把它整个搬到等号右边：「-」跨过等号变成「+」，得到 $a = $b + x。",
+        "「-x」整块搬到右边：「-」变「+」⇒ $a = $b + x。",
     )
     val swap = eqBuildSwap(
         s1.after, EqSide.RIGHT, 0,
-        "$b 站在右边最前面，前面不写符号 —— 先把它和 x 换个位置：同一边换位置符号不变，得到 $a = x + $b。",
+        "$b 是首项（不写符号）—— 先同侧换位显形 ⇒ $a = x + $b。",
     )
     val s2 = eqBuildAction(
         swap.after, EqSide.RIGHT, 1,
-        "现在看得见它是「+$b」了 —— 跨过等号搬到左边，「+」变成「-」，得到 $a - $b = x。",
+        "「+$b」显形了 —— 跨线变「-」⇒ $a - $b = x。",
     )
     return MoveProblem(
         kind = MoveKind.MINUS_VAR,
@@ -606,15 +623,15 @@ private fun buildDivideVar(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(a), xv(EqOp.DIV)), listOf(nu(b)))
     val s1 = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "「÷x」是一整块 —— 先把它整个搬到等号右边：「÷」跨过等号变成「×」，得到 $a = $b × x。",
+        "「÷x」整块搬到右边：「÷」变「×」⇒ $a = $b × x。",
     )
     val swap = eqBuildSwap(
         s1.after, EqSide.RIGHT, 0,
-        "$b 站在右边最前面，前面不写符号 —— 先把它和 x 换个位置：同一边换位置符号不变，得到 $a = x × $b。",
+        "$b 是首项（不写符号）—— 先同侧换位显形 ⇒ $a = x × $b。",
     )
     val s2 = eqBuildAction(
         swap.after, EqSide.RIGHT, 1,
-        "$b 在这里是「乘的因子」—— 跨过等号搬到左边，「×」变成「÷」，得到 $a ÷ $b = x。",
+        "$b 是乘的因子 —— 跨线「×」变「÷」⇒ $a ÷ $b = x。",
     )
     return MoveProblem(
         kind = MoveKind.DIVIDE_VAR,
@@ -642,11 +659,11 @@ private fun buildRevealPlus(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(a), xv(EqOp.ADD)), listOf(nu(b)))
     val swap = eqBuildSwap(
         initial, EqSide.LEFT, 0,
-        "$a 站在最前面，前面不写符号 —— 先把它和 x 换个位置：同一边换位置，符号一点不用动，得到 x + $a = $b。",
+        "$a 是首项（不写符号）—— 同侧换位显形，符号不动 ⇒ x + $a = $b。",
     )
     val act = eqBuildAction(
         swap.after, EqSide.LEFT, 1,
-        "现在能看见它是「+$a」了 —— 跨过等号，「+」变成「-」，得到 x = $b - $a。",
+        "「+$a」显形了 —— 跨线变「-」⇒ x = $b - $a。",
     )
     return MoveProblem(
         kind = MoveKind.REVEAL_PLUS,
@@ -671,11 +688,11 @@ private fun buildRevealTimes(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(a), xv(EqOp.MUL)), listOf(nu(b)))
     val swap = eqBuildSwap(
         initial, EqSide.LEFT, 0,
-        "$a 站在最前面，前面不写符号 —— 先把它和 x 换个位置：同一边换位置，符号一点不用动，得到 x × $a = $b。",
+        "$a 是首项（不写符号）—— 同侧换位显形，符号不动 ⇒ x × $a = $b。",
     )
     val act = eqBuildAction(
         swap.after, EqSide.LEFT, 1,
-        "现在能看见它是「×$a」了 —— 跨过等号，「×」变成「÷」，得到 x = $b ÷ $a。",
+        "「×$a」显形了 —— 跨线变「÷」⇒ x = $b ÷ $a。",
     )
     return MoveProblem(
         kind = MoveKind.REVEAL_TIMES,
@@ -700,11 +717,11 @@ private fun buildXRight(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(b)), listOf(xv(), nu(a, EqOp.ADD)))
     val flip = eqBuildFlip(
         initial,
-        "x 跑到等号右边去了 —— 等式两边可以整个对调：$b = x + $a 就是 x + $a = $b。",
+        "x 跑到右边了 —— 两边整体对调 ⇒ x + $a = $b。",
     )
     val act = eqBuildAction(
         flip.after, EqSide.LEFT, 1,
-        "回到熟悉的写法了 —— 把 +$a 跨过等号搬走，「+」变成「-」，得到 x = $b - $a。",
+        "熟悉了 —— 搬走 +$a，「+」变「-」⇒ x = $b - $a。",
     )
     return MoveProblem(
         kind = MoveKind.X_RIGHT,
@@ -733,11 +750,11 @@ private fun buildThreeTerms(random: Random): MoveProblem {
     val initial = EqState(listOf(xv(), nu(a, EqOp.ADD), nu(c, EqOp.ADD)), listOf(nu(b)))
     val s1 = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "同一边有好几个数，一个一个来 —— 先把 +$a 搬过去，「+」变成「-」，得到 x + $c = $b - $a。",
+        "好几个数，一个一个搬 —— +$a 变「-」⇒ x + $c = $b - $a。",
     )
     val s2 = eqBuildAction(
         s1.after, EqSide.LEFT, 1,
-        "再把 +$c 搬过去 —— 同样「+」变成「-」，得到 x = $b - $a - $c。",
+        "再搬 +$c —— 「+」变「-」⇒ x = $b - $a - $c。",
     )
     return MoveProblem(
         kind = MoveKind.THREE_TERMS,
@@ -768,15 +785,15 @@ private fun buildBothSides(random: Random): MoveProblem {
     val initial = EqState(listOf(kv(k)), listOf(kv(m), nu(c, EqOp.ADD)))
     val swap = eqBuildSwap(
         initial, EqSide.RIGHT, 0,
-        "$mx 站在右边最前面，前面不写符号 —— 先把它和 $c 换个位置：同一边换位置符号不变，得到 $kx = $c + $mx。",
+        "$mx 是首项（不写符号）—— 同侧换位显形 ⇒ $kx = $c + $mx。",
     )
     val act = eqBuildAction(
         swap.after, EqSide.RIGHT, 1,
-        "现在看得见它是「+$mx」了 —— 把 x 项都搬到等号左边：「+」变成「-」，得到 $kx - $mx = $c。",
+        "「+$mx」显形了 —— x 项都搬到左边 ⇒ $kx - $mx = $c。",
     )
     val comb = eqBuildCombine(
         act.after, EqSide.LEFT, 0,
-        "$kx 和 $mx 都带 x，是一类 —— 合起来：$k - $m 个 x，也就是 x。",
+        "$kx 和 $mx 同类 —— 合并：$k - $m 个 x ⇒ x。",
     )
     return MoveProblem(
         kind = MoveKind.BOTH_SIDES,
@@ -805,19 +822,19 @@ private fun buildMultiStep(random: Random): MoveProblem {
     val initial = EqState(listOf(kv(k), nu(a, EqOp.ADD)), listOf(kv(m), nu(c, EqOp.ADD)))
     val s1 = eqBuildAction(
         initial, EqSide.LEFT, 1,
-        "先把左边的常数 +$a 搬到右边 —— 「+」变成「-」，得到 $kx = $mx + $c - $a。",
+        "先搬常数 +$a —— 「+」变「-」⇒ $kx = $mx + $c - $a。",
     )
     val swap = eqBuildSwap(
         s1.after, EqSide.RIGHT, 0,
-        "$mx 在右边最前面，前面不写符号 —— 先把它和 $c 换个位置：符号不变，得到 $kx = $c + $mx - $a。",
+        "$mx 是首项（不写符号）—— 同侧换位显形 ⇒ $kx = $c + $mx - $a。",
     )
     val s2 = eqBuildAction(
         swap.after, EqSide.RIGHT, 1,
-        "把 $mx 也搬到左边来 —— 「+」变成「-」，得到 $kx - $mx = $c - $a。",
+        "把 $mx 也搬到左边 —— 「+」变「-」⇒ $kx - $mx = $c - $a。",
     )
     val comb = eqBuildCombine(
         s2.after, EqSide.LEFT, 0,
-        "$kx 和 $mx 合并：$k - $m 个 x，也就是 x。",
+        "$kx 和 $mx 合并：$k - $m 个 x ⇒ x。",
     )
     return MoveProblem(
         kind = MoveKind.MULTI_STEP,
@@ -842,7 +859,7 @@ private fun buildSameSide(random: Random): MoveProblem {
     val initial = EqState(listOf(nu(a), xv(EqOp.ADD)), listOf(nu(b)))
     val swap = eqBuildSwap(
         initial, EqSide.LEFT, 0,
-        "$a 没跨过等号，只是和 x 换了位置 —— 同一边换位置，符号一点不用调。",
+        "$a 没跨等号，只和 x 换了位置 ⇒ 符号一点不用调。",
     )
     return MoveProblem(
         kind = MoveKind.SAME_SIDE,
@@ -855,7 +872,7 @@ private fun buildSameSide(random: Random): MoveProblem {
         x = x,
         answer = x,
         isSameSide = true,
-        hint = "$a + x = $b　⇒　x + $a = $b　（同一侧换位置，符号一点没变）",
+        hint = "$a + x = $b　⇒　x + $a = $b　（同侧换位，符号没变）",
     )
 }
 
@@ -1080,14 +1097,14 @@ private fun eqStepOfAction(a: MoveAction): EqSolveStep {
             label = eqStepLabel(EqStepType.MOVE),
             action = a,
             ask = if (a.srcOp == null) {
-                "「${a.value}」站在最前面、前面不写符号 —— 它其实带着一个看不见的「${a.fromOp.sym}」。把它挪到等号另一边，符号该变成什么？"
+                "「${a.value}」前面不写符号 —— 它其实带着「${a.fromOp.sym}」。跨过等号后变成什么？"
             } else {
-                "把「$shown」挪到等号另一边，符号该变成什么？"
+                "把「$shown」挪到另一边，符号变成什么？"
             },
             options = eqOpOptions(eqStepValue(a)),
             answer = "${a.toOp.sym}${a.value}",
-            why = "它跨过了等号 ——「${a.fromOp.sym}」必须变成「${a.toOp.sym}」。",
-            wrongTip = "它跨过了等号，符号一定要变相反：「${a.fromOp.sym}」要变成「${a.toOp.sym}」。",
+            why = "跨了等号：「${a.fromOp.sym}」要变成「${a.toOp.sym}」。",
+            wrongTip = "跨过等号必须变相反：「${a.fromOp.sym}」→「${a.toOp.sym}」。",
         )
     }
 
@@ -1100,11 +1117,11 @@ private fun eqStepOfAction(a: MoveAction): EqSolveStep {
             type = EqStepType.SWAP,
             label = eqStepLabel(EqStepType.SWAP),
             action = a,
-            ask = "这一步只是在${where}内部把两项换个位置 —— 它跨过等号了吗？符号该变成什么？",
+            ask = "只是${where}内部换位置 —— 跨过等号了吗？符号变不变？",
             options = eqOpOptions(eqStepValue(a)),
             answer = "不变",
-            why = "它没跨过等号，只是在同一侧换了个位置 —— 符号一点不用动。",
-            wrongTip = "这一步压根没碰那条等号线。只有「从等号一边搬到另一边」才变号。",
+            why = "没跨过等号，同侧换位 ⇒ 符号一点不动。",
+            wrongTip = "压根没碰那条等号线 —— 只有跨过等号才变号。",
         )
     }
     if (a.type == EqActionType.COMBINE) {
@@ -1115,12 +1132,11 @@ private fun eqStepOfAction(a: MoveAction): EqSolveStep {
             type = EqStepType.COMBINE,
             label = eqStepLabel(EqStepType.COMBINE),
             action = a,
-            ask = "这一步是把${where}的两个同类项合起来（${a.value} 并进旁边那一项，结果是 ${merged}）" +
-                "—— 合并跨过等号了吗？符号该变成什么？",
+            ask = "把${where}两个同类项合起来（${a.value} 并进旁边一项 ⇒ $merged）—— 跨过等号了吗？",
             options = eqOpOptions(eqStepValue(a)),
             answer = "不变",
-            why = "合并是同一侧内部的事，不跨等号线 —— 求值一分没变，只是写法变短了。",
-            wrongTip = "合并就像把同一个篮子里的东西倒在一起，压根没跨等号线 ⇒ 符号不用变。",
+            why = "合并是同一侧的事，不跨等号线 —— 值没变，只是写法变短。",
+            wrongTip = "同一个篮子里倒在一起，压根没跨线 ⇒ 符号不变。",
         )
     }
     return EqSolveStep(
@@ -1129,11 +1145,11 @@ private fun eqStepOfAction(a: MoveAction): EqSolveStep {
         type = EqStepType.FLIP,
         label = eqStepLabel(EqStepType.FLIP),
         action = a,
-        ask = "这一步是把等号两边整体对调 —— 对调之后，x 的符号该变成什么？",
+        ask = "把等号两边整体对调 —— x 的符号变不变？",
         options = eqOpOptions(eqStepValue(a)),
         answer = "不变",
-        why = "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
-        wrongTip = "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
+        why = "两边本来就一样多，谁在左边都一样 ⇒ 符号不变。",
+        wrongTip = "对调只是左右换个位置写，每一项都还在原处 ⇒ 符号不变。",
     )
 }
 
@@ -1174,13 +1190,13 @@ private fun eqSolveStepOf(p: MoveProblem, random: Random): EqSolveStep {
         after = p.final,
         type = EqStepType.SOLVE,
         label = eqStepLabel(EqStepType.SOLVE),
-        ask = "最后一步：把右边的 $right 算出来，x 等于几？",
+        ask = "最后一步：右边的 $right 算出来，x = ?",
         options = eqShuffled(listOf(p.answer.toString()) + wrongs.map { it.toString() }, random),
         answer = p.answer.toString(),
-        why = "x = $right = ${p.answer}。把 ${p.answer} 代回原式，等号两边一样。",
+        why = "x = $right = ${p.answer}。代回原式，两边一样。",
         wrongTip = "再算一遍：$right。",
         trapAnswer = trap,
-        trapTip = "这正是「移项忘了变号」会算出来的数 —— 前面跨过等号时符号已经变过一次，别再翻回去。",
+        trapTip = "这正是「移项忘变号」算出来的 —— 别再翻回去。",
     )
 }
 
@@ -1190,11 +1206,11 @@ private fun eqFlipBackStep(from: EqState, to: EqState): EqSolveStep = EqSolveSte
     after = to,
     type = EqStepType.FLIP,
     label = eqStepLabel(EqStepType.FLIP),
-    ask = "x 已经单独待在等号右边了 —— 把两边整体对调一下，每一项的符号该变成什么？",
+    ask = "x 已经单独在右边了 —— 两边整体对调，符号变不变？",
     options = eqOpOptions("x"),
     answer = "不变",
-    why = "等号两边本来就一样多，谁在左边谁在右边都行 —— 对调不改变任何一项的符号。",
-    wrongTip = "对调只是把左右两边换个位置写，每一项都还待在原来那个算式里 ⇒ 符号不用变。",
+    why = "两边本来就一样多，谁在左边都一样 ⇒ 符号不变。",
+    wrongTip = "对调只是左右换个位置写，每一项都还在原处 ⇒ 符号不变。",
 )
 
 /**
@@ -1220,10 +1236,9 @@ fun eqBuildSolveItem(kind: MoveKind, random: Random = Random.Default): EqSolveIt
         solution = eqSolutionText(p),
         solved = !p.isSameSide,
         finalNote = if (p.isSameSide) {
-            "这道题只演一步：同一侧换个位置，符号一点没变。要把 x 单独留下来，" +
-                "下一步就得让最前面那个数跨过等号 —— 那时候才变号。"
+            "这道题只演一步：同一侧换位，符号没变。要单独留下 x，下一步得让首项跨过等号 —— 那时才变号。"
         } else {
-            "解出来了：x = ${p.answer}。把 ${p.answer} 代回原式 ${eqToText(p.initial)}，等号两边一样。"
+            "解出来了：x = ${p.answer}。代回原式 ${eqToText(p.initial)}，两边一样。"
         },
     )
 }
@@ -1269,42 +1284,33 @@ fun eqGenerateSolveItems(n: Int = 6, random: Random = Random.Default): List<EqSo
 // ────────────────────────────────────────────────────────────
 
 /** 口诀卡 */
-data class EqRuleCard(val title: String, val lines: List<String>)
+data class EqRuleCard(val title: String, val icon: String, val lines: List<String>)
 
 val EQ_RULES: List<EqRuleCard> = listOf(
     EqRuleCard(
         title = "一句话规律（背下来）",
-        lines = listOf(
-            "等式两边移动数，跨过等号才变号；",
-            "加变减，减变加，乘变除，除变乘。",
-            "等号同侧换顺序，符号一点不用调。",
-        ),
+        icon = "crossLineEq",
+        lines = listOf("跨过等号才变号：加 ↔ 减，乘 ↔ 除；", "同侧换顺序，符号不用调。"),
     ),
     EqRuleCard(
-        title = "加减法口诀",
-        lines = listOf(
-            "同一边，随便换，符号不变；跨过等号，加减互换。",
-            "移的是「加减法里的项」⇒ 移项变号（+ 变 -，- 变 +）。",
-            "要搬走的，是「整个数字连同它前面的符号」—— 例：搬的是「-6」，不是「-」也不是「6」。",
-            "站在最前面的那个数**不写符号**，但它其实带着一个隐藏的「+」（或「×」）。" +
-                "看不出来就先跟后面换个位置，符号才露出来 —— 换位置不改符号。",
-        ),
+        title = "加减互换",
+        icon = "plusMinus",
+        lines = listOf("跨线：+ 变 -，- 变 +", "搬走的是整块「-6」，不是「6」"),
     ),
     EqRuleCard(
-        title = "乘除法口诀",
-        lines = listOf(
-            "同一边，随便换，符号不变；跨过等号，乘除互换。",
-            "移的是「乘除法里的因子」⇒ 移到对面变成倒数（× 变 ÷，÷ 变 ×）。",
-            "x 在除数位置上（如 24 ÷ x = 4）时，先把「÷x」整块搬过去，再搬第二个数。",
-        ),
+        title = "乘除互换",
+        icon = "timesDiv",
+        lines = listOf("跨线：× 变 ÷，÷ 变 ×", "因子到对面变倒数"),
     ),
     EqRuleCard(
-        title = "多步方程的口诀",
-        lines = listOf(
-            "先看哪边有 x：把 x 都搬到同一边去（搬的时候照旧变号）。",
-            "再把同一边的 x 项合起来（3 个 x 减 2 个 x，就是 1 个 x）—— 合并是**同一边**的事，不用变号。",
-            "最后把剩下的常数搬到另一边，x 就单独留下了。",
-        ),
+        title = "首项不写符号",
+        icon = "sameSideSwap",
+        lines = listOf("首项不写符号 ⇒ 先同侧换位显形，再跨线"),
+    ),
+    EqRuleCard(
+        title = "多步方程",
+        icon = "mergeTerms",
+        lines = listOf("x 归边 → 同类项合并 → 常数搬走"),
     ),
 )
 
@@ -1322,36 +1328,35 @@ val EQ_MISTAKE_CASES: List<EqMistakeCase> = listOf(
         title = "没跨等号，却也把符号改了",
         wrong = "2 + x = 8　⇒　x - 2 = 8",
         right = "2 + x = 8　⇒　x + 2 = 8",
-        why = "2 只是从等号左边挪到了 x 的后面，它压根没跨过等号 —— 同一边换位置，符号一点不用动。",
+        why = "2 只挪到了 x 的后面，压根没跨过等号 —— 同侧换位不变号。",
         tip = "只有跨过等号，才变号。",
     ),
     EqMistakeCase(
         title = "移项时把「前面的符号」弄丢了",
         wrong = "x - 6 = 10　⇒　x = 10 - 6",
         right = "x - 6 = 10　⇒　x = 10 + 6",
-        why = "要搬走的是连在一起的「-6」这一整块。6 前面是减号，跨过等号就得变成加号；只搬「6」就等于把那个减号丢了。",
-        tip = "移项是「整个数字连同它前面的符号」一起搬。",
+        why = "搬的是连在一起的「-6」整块：跨线后 - 变 +。只搬「6」就把减号丢了。",
+        tip = "移项搬的是「数字连同它前面的符号」。",
     ),
     EqMistakeCase(
         title = "把 x 前面的减号当成了 x 自己的",
         wrong = "10 - x = 3　⇒　x = 3 - 10",
         right = "10 - x = 3　⇒　x = 10 - 3",
-        why = "x 本身没有「负号」，那个减号是它「前面的运算符」，管的是「10 减掉 x」。把 -x 整块搬过去、两边再同时变号，才对。",
-        tip = "负号不是数字自带的，是它前面的运算符。",
+        why = "那个减号是它前面的运算符，不是 x 自带的负号 —— 要把 -x 整块搬。",
+        tip = "负号是前面的运算符，不是数字自带的。",
     ),
     EqMistakeCase(
         title = "首项没写符号，就以为它「没有符号」",
         wrong = "5 + x = 12　⇒　x = 12 + 5",
         right = "5 + x = 12　⇒　x = 12 - 5",
-        why = "5 站在最前面才不写符号 —— 它其实是「+5」。看不出来就先跟 x 换个位置写成 x + 5 = 12（换位置不变号），" +
-            "这下「+」露出来了，跨过等号自然要变成「-」。",
+        why = "首项不写符号，其实是「+5」。先跟 x 换个位置显形，跨线才看得见要变「-」。",
         tip = "首项不写符号 ≠ 没有符号；换到后面就看得见。",
     ),
     EqMistakeCase(
         title = "合并同类项时也去变号",
         wrong = "5x = 3x + 6　⇒　5x + 3x = 6",
         right = "5x = 3x + 6　⇒　5x - 3x = 6　⇒　2x = 6",
-        why = "先把 3x 从右边搬到左边，这一步跨了等号 ⇒ 必须变号；而后面「5x 减 3x 合成 2x」是**同一边**的合并，不用变号。两步别混。",
+        why = "搬 3x 跨了等号 ⇒ 变号；「5x 减 3x」是同侧合并 ⇒ 不变号。两步别混。",
         tip = "跨等号的要变号，同一边合并的不用变。",
     ),
 )
@@ -1362,24 +1367,24 @@ val EQ_PRACTICE: List<EqPracticeItem> = listOf(
         before = "x + 8 = 14",
         sym = EqOp.ADD, num = 8, answer = EqPracticeAnswer.Op(EqOp.SUB), x = 6,
         result = "x = 14 - 8 = 6",
-        why = "加号跨过等号 ⇒ 变成减号。",
+        why = "加号跨线 ⇒ 变减号。",
     ),
     EqPracticeItem(
         before = "x - 8 = 14",
         sym = EqOp.SUB, num = 8, answer = EqPracticeAnswer.Op(EqOp.ADD), x = 22,
         result = "x = 14 + 8 = 22",
-        why = "减号跨过等号 ⇒ 变成加号。",
+        why = "减号跨线 ⇒ 变加号。",
     ),
     EqPracticeItem(
         before = "x × 8 = 16",
         sym = EqOp.MUL, num = 8, answer = EqPracticeAnswer.Op(EqOp.DIV), x = 2,
         result = "x = 16 ÷ 8 = 2",
-        why = "乘号跨过等号 ⇒ 变成除号（因子到对面变倒数）。",
+        why = "乘号跨线 ⇒ 变除号。",
     ),
     EqPracticeItem(
         before = "x ÷ 8 = 16",
         sym = EqOp.DIV, num = 8, answer = EqPracticeAnswer.Op(EqOp.MUL), x = 128,
         result = "x = 16 × 8 = 128",
-        why = "除号跨过等号 ⇒ 变成乘号（因子到对面变倒数）。",
+        why = "除号跨线 ⇒ 变乘号。",
     ),
 )

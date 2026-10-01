@@ -67,6 +67,12 @@ class MathIconsTest {
                 "zeroTail" -> MathIcons.zeroTail
                 "zeroMid" -> MathIcons.zeroMid
                 "plusHead" -> MathIcons.plusHead
+                "balance" -> MathIcons.balance
+                "crossLineEq" -> MathIcons.crossLineEq
+                "sameSideSwap" -> MathIcons.sameSideSwap
+                "mergeTerms" -> MathIcons.mergeTerms
+                "plusMinus" -> MathIcons.plusMinus
+                "timesDiv" -> MathIcons.timesDiv
                 else -> error("$name 是 ALL 里的键，但没有对应的 val 属性 —— 生成脚本漏了？")
             }
             assertEquals("$name 的 val 与 ALL 条目不一致", byProp, prims)
@@ -82,13 +88,22 @@ class MathIconsTest {
         for (n in length + mass) {
             assertNotNull("缺少图标 $n", MathIcons[n])
         }
-        assertEquals("图标总数与预期不符（新增/删除图标时请同步这里与 web 端）", 31, all.size)
+        assertEquals("图标总数与预期不符（新增/删除图标时请同步这里与 web 端）", 37, all.size)
     }
 
     @Test
     fun `mulOne 页要用的图标一个都不能少`() {
         // 题型卡 + 规律卡：小棒 / 捆 / 向左箭头 / 0 / 头顶进位
         val names = listOf("rowSticks", "bundle", "bundleChain", "arrowLeft", "zeroTail", "zeroMid", "plusHead")
+        for (n in names) {
+            assertNotNull("缺少图标 $n", MathIcons[n])
+        }
+    }
+
+    @Test
+    fun `eqmove 页要用的图标一个都不能少`() {
+        // 天平 / 跨等号线 / 同侧对调 / 合并 / +变- / ×变÷
+        val names = listOf("balance", "crossLineEq", "sameSideSwap", "mergeTerms", "plusMinus", "timesDiv")
         for (n in names) {
             assertNotNull("缺少图标 $n", MathIcons[n])
         }

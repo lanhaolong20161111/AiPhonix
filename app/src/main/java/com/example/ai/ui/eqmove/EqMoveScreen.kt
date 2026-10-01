@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ai.data.math.EQ_KIND_GROUPS
+import com.example.ai.data.math.EQ_KIND_ICON
 import com.example.ai.data.math.EQ_KIND_LABEL
 import com.example.ai.data.math.EQ_KIND_TIP
 import com.example.ai.data.math.EQ_MISTAKE_CASES
@@ -76,6 +77,7 @@ import com.example.ai.data.math.MoveProblem
 import com.example.ai.data.math.eqFlipOp
 import com.example.ai.data.math.eqSideToText
 import com.example.ai.data.math.eqToText
+import com.example.ai.ui.icon.MathIcon
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -187,12 +189,24 @@ fun EqMoveScreen(
             item(key = "empty") { StatusText("生成题目失败，点「换一题」再试一次。") }
         } else {
             item(key = "kind-tip") {
-                Text(
-                    EQ_KIND_TIP[problem.kind].orEmpty(),
-                    fontSize = 13.sp,
-                    color = Black0,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-                )
+                // ★ 左图右文：图标 20dp + 一行短提示（图元数据与 web 同源）
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MathIcon(
+                        name = EQ_KIND_ICON[problem.kind].orEmpty(),
+                        size = 20.dp,
+                        tint = Color(0xFF0F766E),
+                    )
+                    Spacer(Modifier.width(7.dp))
+                    Text(
+                        EQ_KIND_TIP[problem.kind].orEmpty(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Grey,
+                    )
+                }
             }
             item(key = "stage") {
                 EqStage(
@@ -235,7 +249,7 @@ fun EqMoveScreen(
                     color = Black0,
                 )
                 Text(
-                    "先自己想一想，再点选答案 —— 选项里那四个是「变号」，最后一个「不变」是专门用来迷惑你的。",
+                    "先想一想再点选 —— 最后一个「不变」是专门用来迷惑你的。",
                     fontSize = 12.sp,
                     color = Grey,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -349,14 +363,21 @@ private fun RulesCard() {
     ) {
         Column(Modifier.padding(14.dp)) {
             EQ_RULES.forEach { block ->
-                Text(block.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black0)
-                block.lines.forEach { line ->
-                    Text(
-                        "· $line",
-                        fontSize = 13.sp,
-                        color = Slate,
-                        modifier = Modifier.padding(top = 2.dp),
-                    )
+                // ★ 左图右文：图标一列（30dp）+ 文字一列 —— 一幅图顶一条口诀
+                Row(Modifier.fillMaxWidth()) {
+                    MathIcon(name = block.icon, size = 30.dp, tint = AsColor)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(block.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Black0)
+                        block.lines.forEach { line ->
+                            Text(
+                                "· $line",
+                                fontSize = 13.sp,
+                                color = Slate,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -1075,12 +1096,16 @@ private fun WhyMoveDemo(reduced: Boolean) {
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
     ) {
         Column(Modifier.padding(14.dp)) {
-            Text(
-                "🔍 为什么能「挪过去」？因为等号两边像天平 —— 两边做同样的事，天平还是平的。",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = Black0,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MathIcon(name = "balance", size = 22.dp, tint = Color(0xFF0F766E))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "两边同时做同一件事，天平还是平的",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Black0,
+                )
+            }
             Spacer(Modifier.height(10.dp))
             Row(
                 Modifier.fillMaxWidth(),
@@ -1104,9 +1129,9 @@ private fun WhyMoveDemo(reduced: Boolean) {
             Text(
                 when {
                     step < 1 -> "看 —— 两边同时「减去 $a」……"
-                    step < 2 -> "左边加了 +$a 又减去 $a，正好抵消；右边老老实实减掉 $a。"
+                    step < 2 -> "左边 +$a 又 -$a，抵消了；右边实打实减掉 $a。"
                     step < 3 -> "一抵消，左边就只剩 x 了。"
-                    else -> "所以 x = $b - $a = ${b - a}，这和「把 +$a 挪过去变 -$a」结果完全一样 —— 移项变号就是这条捷径。"
+                    else -> "所以 x = $b - $a = ${b - a} —— 跟「把 +$a 挪过去变 -$a」一样，移项变号就是这条捷径。"
                 },
                 fontSize = 13.sp,
                 color = Slate,
@@ -1236,8 +1261,7 @@ private fun DrillSection(
             )
         }
         Text(
-            "一道题拆成好几步：答对一步，卡片就把它演给你看，再填下一步 —— 一路填到把 x 解出来。" +
-                "每一步都先问自己：它跨过等号线了吗？",
+            "一步一填：这一步跨没跨过等号？选完答案，就看这一拍的动画。",
             fontSize = 12.sp,
             color = Grey,
             modifier = Modifier.padding(top = 4.dp, bottom = 6.dp),
@@ -1436,10 +1460,9 @@ private fun PracticeCard(
                 } else {
                     Text(
                         if (sameSide) {
-                            "❌ 再想想 —— 它压根没跨过等号，只是在同一侧换了个位置：符号一点不用动，该选「不变」。"
+                            "❌ 再想想 —— 没跨等号，只是同侧换位，该选「不变」。"
                         } else {
-                            "❌ 再想想 —— 它跨过了等号，符号必须变相反：" +
-                                "「${item.sym.sym}」要变成「${eqFlipOp(item.sym).sym}」。"
+                            "❌ 再想想 —— 它跨过了等号：「${item.sym.sym}」要变成「${eqFlipOp(item.sym).sym}」。"
                         },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,

@@ -115,11 +115,10 @@ data class EqMoveUiState(
                 val a = p.initial.left[0].value
                 val b = eqSideToText(p.initial.right)
                 return when (phase) {
-                    EqPhase.FIND -> "要挪走的是 $a —— 它现在待在 x 的前面。"
+                    EqPhase.FIND -> "要挪走的是 $a —— 它现在待在 x 前面。"
                     // ⚠️ 这里是纯文本渲染，别写 markdown 的 ** —— 星号会原样显示出来
                     EqPhase.SLIDE ->
-                        "看：$a 从 x 的前面挪到了后面。它可没跨过那条竖线 —— 所以「+」还是「+」，一点没变。" +
-                            "这就是「同一边随便换，符号不用调」。"
+                        "$a 从 x 前面挪到后面，没跨过那条竖线 ⇒「+」还是「+」—— 同侧随便换，符号不用调。"
                     EqPhase.DONE -> "换好了：${eqSideToText(p.final.left)} = $b　符号一个都没动 ✓"
                     else -> "点「播放动画」，看把数挪到 x 后面时，符号会不会变。"
                 }
@@ -135,7 +134,7 @@ data class EqMoveUiState(
             val tailText = when (phase) {
                 EqPhase.DONE -> "解出来啦：${eqSolutionText(p)}"
                 EqPhase.IDLE -> "点「播放动画」。"
-                else -> "这一拍完成了，看看等号两边多了什么、少了什么。"
+                else -> "这一拍完成了，看看两边多了什么、少了什么。"
             }
 
             // ★ swap / combine / flip 的提示语跟 move 完全不是一回事 —— 它们都不跨等号线，
@@ -143,18 +142,16 @@ data class EqMoveUiState(
             if (act.type == EqActionType.SWAP) {
                 return when (phase) {
                     EqPhase.FIND ->
-                        "第 ${stepIndex + 1} 步：${sideName}最前面那一项，前面什么都没写 —— " +
-                            "它其实带着一个看不见的「${act.fromOp.sym}」。先把它和后面那项换个位置。"
+                        "第 ${stepIndex + 1} 步：${sideName}首项没写符号，其实带着「${act.fromOp.sym}」。先跟后面那项换位。"
                     EqPhase.SLIDE ->
-                        "看：两项在${sideName}内部擦身而过，谁都没碰那条竖线 ⇒ " +
-                            "符号「${act.fromOp.sym}」一点没动。现在它写在后面，符号露出来了！"
+                        "两项在${sideName}擦身而过，没碰那条竖线 ⇒「${act.fromOp.sym}」一点没动，写在后面就露出来了！"
                     EqPhase.LAND ->
-                        "换好了。接着再让它跨过等号 —— 到那时「${act.fromOp.sym}」才要变成「${eqFlipOp(act.fromOp).sym}」。"
+                        "换好了。等它跨过等号，「${act.fromOp.sym}」才变「${eqFlipOp(act.fromOp).sym}」。"
                     else ->
                         if (phase == EqPhase.DONE) {
                             "解出来啦：${eqSolutionText(p)}"
                         } else {
-                            "同一边换位置，符号不用调 —— 记住这一拍，再看它跨线时才变号。"
+                            "同侧换位不用变号 —— 记住这一拍，看它跨线时才变号。"
                         }
                 }
             }
@@ -162,19 +159,19 @@ data class EqMoveUiState(
             if (act.type == EqActionType.COMBINE) {
                 return when (phase) {
                     EqPhase.FIND ->
-                        "第 ${stepIndex + 1} 步：这一侧有两个同类项，「${act.value}」要和紧挨着的那一项合起来。"
+                        "第 ${stepIndex + 1} 步：这一侧有两个同类项，「${act.value}」要和紧挨着那项合起来。"
                     EqPhase.SLIDE ->
-                        "看：同类项合起来，数量相加减，写法变短了。通通在等号同一侧完成 ⇒ 跟「变号」一点关系都没有。"
-                    EqPhase.LAND -> "合完了。这一侧的值一分没变，只是从两小块写成了一小块。"
+                        "同类项合并：数量相加减、写法变短 —— 全在同侧完成 ⇒ 跟「变号」无关。"
+                    EqPhase.LAND -> "合完了：这一侧的值一分没变，只是写法短了。"
                     else -> tailText
                 }
             }
 
             if (act.type == EqActionType.FLIP) {
                 return when (phase) {
-                    EqPhase.FIND -> "第 ${stepIndex + 1} 步：x 落在等号右边了 —— 先把等号两边整体对调一下。"
-                    EqPhase.SLIDE -> "看：左右一换，等式照样成立 —— 等号两边本来就一样多，谁在左边谁在右边都行。"
-                    EqPhase.LAND -> "对调完成，x 回到了左边。接着照常搬 —— 还是那条规矩：跨过等号才变号。"
+                    EqPhase.FIND -> "第 ${stepIndex + 1} 步：x 落在等号右边了 —— 先把两边整体对调。"
+                    EqPhase.SLIDE -> "左右一换，等式照样成立 —— 两边本来就一样多。"
+                    EqPhase.LAND -> "对调完成，x 回到左边。接着照常搬 —— 跨过等号才变号。"
                     else -> tailText
                 }
             }
@@ -184,29 +181,29 @@ data class EqMoveUiState(
                 EqPhase.FIND ->
                     "第 ${stepIndex + 1} 步：要搬走的是「$from」这一整块。" +
                         if (act.srcOp == null) {
-                            "它写在最前面、没带符号，其实等效于「${act.fromOp.sym}${act.value}」" +
-                                "—— 跨过等号就要变成「${act.toOp.sym}」。"
+                            "它写在最前面、没带符号，等效于「${act.fromOp.sym}${act.value}」" +
+                                "⇒ 跨线变「${act.toOp.sym}」。"
                         } else {
                             "它跨过等号，符号必须变相反。"
                         }
                 EqPhase.FLY -> if (symFlipped) {
-                    "正好跨过等号线 ——「${act.fromOp.sym}」翻成了「${act.toOp.sym}」！这条竖线就是变号的分界。"
+                    "正好跨过等号线 ——「${act.fromOp.sym}」翻成「${act.toOp.sym}」！这条竖线就是变号分界。"
                 } else {
                     "「$from」正整块飞向等号另一侧……"
                 }
                 EqPhase.LAND ->
                     if (act.from == EqSide.LEFT) {
-                        "落位了：右边多出「${act.toOp.sym} ${act.value}」。左边刚才那个位置已经变灰 —— 它是从这儿搬走的。"
+                        "落位了：右边多出「${act.toOp.sym} ${act.value}」，左边原位置变灰（它从这儿搬走）。"
                     } else {
-                        "落位了：左边多出「${act.toOp.sym} ${act.value}」。右边刚才那个位置已经变灰 —— 它是从这儿搬走的。"
+                        "落位了：左边多出「${act.toOp.sym} ${act.value}」，右边原位置变灰（它从这儿搬走）。"
                     }
                 EqPhase.SOLVE -> if (p.flipSides) {
-                    "现在 x 单独在等号右边了。等号两边可以互换位置 ⇒ x = ${eqSideToText(p.final.right)}。"
+                    "x 单独在右边了。两边可以互换位置 ⇒ x = ${eqSideToText(p.final.right)}。"
                 } else {
                     "x 已经单独留在等号左边了 —— 右边就是答案。"
                 }
-                EqPhase.DONE -> "解出来啦：${eqSolutionText(p)}　（把答案代回原式，两边一样 ✓）"
-                else -> "点「播放动画」，看这个数怎样从等号一边跑到另一边。"
+                EqPhase.DONE -> "解出来啦：${eqSolutionText(p)}　（代回原式，照样相等 ✓）"
+                else -> "点「播放动画」，看它怎样从等号一边跑到另一边。"
             }
         }
 }

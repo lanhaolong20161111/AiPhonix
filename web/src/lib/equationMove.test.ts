@@ -21,6 +21,7 @@ import {
   solutionText,
   KIND_LABEL,
   KIND_TIP,
+  KIND_ICON,
   KIND_GROUPS,
   RULES,
   MISTAKE_CASES,
@@ -35,6 +36,7 @@ import {
   type SolveStep,
   type Term,
 } from "./equationMove"
+import { mathIcon } from "./mathIcons"
 
 // ────────────────────────────────────────────────────────────
 // 裁判 ①：自己按 term 序列求值（给定 x）
@@ -340,6 +342,8 @@ test("题型标签 / 提示 / 分组齐全且不重不漏", () => {
   for (const kind of ALL_KINDS) {
     assert.ok(KIND_LABEL[kind]?.length > 0, `${kind} 缺 label`)
     assert.ok(KIND_TIP[kind]?.length > 0, `${kind} 缺 tip`)
+    // ★ 题型提示行左边的那个图标 —— 名字打错会安静地什么都不画
+    assert.ok(mathIcon(KIND_ICON[kind]), `${kind} 的配图「${KIND_ICON[kind]}」不在 mathIcons 里`)
   }
   const grouped = KIND_GROUPS.flatMap((g) => g.kinds)
   assert.equal(new Set(grouped).size, grouped.length, "分组里出现重复题型")
@@ -531,6 +535,8 @@ test("静态资料：口诀 / 易错卡 / 对比练习都齐且自洽", () => {
   assert.ok(RULES.length >= 3, "口诀至少要三块")
   for (const r of RULES) {
     assert.ok(r.title.length > 0 && r.lines.length > 0)
+    // ★ 配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+    assert.ok(mathIcon(r.icon), `口诀「${r.title}」的配图「${r.icon}」不在 mathIcons 里`)
   }
   // 首项显形这条规律必须写进口诀里
   assert.ok(

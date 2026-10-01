@@ -24,6 +24,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
+import MathIcon from "../components/MathIcon"
 import {
   generateProblem,
   flipOp,
@@ -37,6 +38,7 @@ import {
   KIND_GROUPS,
   KIND_LABEL,
   KIND_TIP,
+  KIND_ICON,
   type EqState,
   type MoveAction,
   type MoveKind,
@@ -507,10 +509,10 @@ export function EquationMovePage() {
       const b = sideToText(problem.initial.right)
       switch (phase) {
         case "find":
-          return `要挪走的是 ${a} —— 它现在待在 x 的前面。`
+          return `要挪走的是 ${a} —— 它现在待在 x 前面。`
         case "slide":
           // ⚠️ 这里是纯文本渲染，别写 markdown 的 ** —— 星号会原样显示出来
-          return `看：${a} 从 x 的前面挪到了后面。它可没跨过那条竖线 —— 所以「+」还是「+」，一点没变。这就是「同一边随便换，符号不用调」。`
+          return `${a} 从 x 前面挪到后面，没跨过那条竖线 ⇒「+」还是「+」—— 同侧随便换，符号不用调。`
         case "done":
           return `换好了：${sideToText(problem.final.left)} = ${b}　符号一个都没动 ✓`
         default:
@@ -530,7 +532,7 @@ export function EquationMovePage() {
         ? `解出来啦：${solutionText(problem)}`
         : phase === "idle"
           ? "点「播放动画」。"
-          : "这一拍完成了，看看等号两边多了什么、少了什么。"
+          : "这一拍完成了，看看两边多了什么、少了什么。"
 
     // ★ swap / combine / flip 的提示语跟 move 完全不是一回事 —— 它们都不跨等号线，
     //   绝不能复用「飞过去、符号翻转」那套话术，否则等于在教反的。
@@ -538,26 +540,26 @@ export function EquationMovePage() {
       const where = sideName(act.from)
       switch (phase) {
         case "find":
-          return `第 ${stepIndex + 1} 步：${where}最前面那一项，前面什么都没写 —— 它其实带着一个看不见的「${act.fromOp}」。先把它和后面那项换个位置。`
+          return `第 ${stepIndex + 1} 步：${where}首项没写符号，其实带着「${act.fromOp}」。先跟后面那项换位。`
         case "slide":
-          return `看：两项在${where}内部擦身而过，谁都没碰那条竖线 ⇒ 符号「${act.fromOp}」一点没动。现在它写在后面，符号露出来了！`
+          return `两项在${where}擦身而过，没碰那条竖线 ⇒「${act.fromOp}」一点没动，写在后面就露出来了！`
         case "land":
-          return `换好了。接着再让它跨过等号 —— 到那时「${act.fromOp}」才要变成「${flipOp(act.fromOp)}」。`
+          return `换好了。等它跨过等号，「${act.fromOp}」才变「${flipOp(act.fromOp)}」。`
         default:
           return phase === "done"
             ? `解出来啦：${solutionText(problem)}`
-            : `同一边换位置，符号不用调 —— 记住这一拍，再看它跨线时才变号。`
+            : `同侧换位不用变号 —— 记住这一拍，看它跨线时才变号。`
       }
     }
 
     if (act.type === "combine") {
       switch (phase) {
         case "find":
-          return `第 ${stepIndex + 1} 步：这一侧有两个同类项，「${act.value}」要和紧挨着的那一项合起来。`
+          return `第 ${stepIndex + 1} 步：这一侧有两个同类项，「${act.value}」要和紧挨着那项合起来。`
         case "slide":
-          return `看：同类项合起来，数量相加减，写法变短了。通通在等号同一侧完成 ⇒ 跟「变号」一点关系都没有。`
+          return `同类项合并：数量相加减、写法变短 —— 全在同侧完成 ⇒ 跟「变号」无关。`
         case "land":
-          return `合完了。这一侧的值一分没变，只是从两小块写成了一小块。`
+          return `合完了：这一侧的值一分没变，只是写法短了。`
         default:
           return tailText
       }
@@ -566,11 +568,11 @@ export function EquationMovePage() {
     if (act.type === "flip") {
       switch (phase) {
         case "find":
-          return `第 ${stepIndex + 1} 步：x 落在等号右边了 —— 先把等号两边整体对调一下。`
+          return `第 ${stepIndex + 1} 步：x 落在等号右边了 —— 先把两边整体对调。`
         case "slide":
-          return `看：左右一换，等式照样成立 —— 等号两边本来就一样多，谁在左边谁在右边都行。`
+          return `左右一换，等式照样成立 —— 两边本来就一样多。`
         case "land":
-          return `对调完成，x 回到了左边。接着照常搬 —— 还是那条规矩：跨过等号才变号。`
+          return `对调完成，x 回到左边。接着照常搬 —— 跨过等号才变号。`
         default:
           return tailText
       }
@@ -582,25 +584,25 @@ export function EquationMovePage() {
         return (
           `第 ${stepIndex + 1} 步：要搬走的是「${from}」这一整块。` +
           (act.srcOp === null
-            ? `它写在最前面、没带符号，其实等效于「${act.fromOp}${act.value}」—— 跨过等号就要变成「${act.toOp}」。`
+            ? `它写在最前面、没带符号，等效于「${act.fromOp}${act.value}」⇒ 跨线变「${act.toOp}」。`
             : `它跨过等号，符号必须变相反。`)
         )
       case "fly":
         return symFlipped
-          ? `正好跨过等号线 ——「${act.fromOp}」翻成了「${act.toOp}」！这条竖线就是变号的分界。`
+          ? `正好跨过等号线 ——「${act.fromOp}」翻成「${act.toOp}」！这条竖线就是变号分界。`
           : `「${from}」正整块飞向等号另一侧……`
       case "land":
         return act.from === "left"
-          ? `落位了：右边多出「${act.toOp} ${act.value}」。左边刚才那个位置已经变灰 —— 它是从这儿搬走的。`
-          : `落位了：左边多出「${act.toOp} ${act.value}」。右边刚才那个位置已经变灰 —— 它是从这儿搬走的。`
+          ? `落位了：右边多出「${act.toOp} ${act.value}」，左边原位置变灰（它从这儿搬走）。`
+          : `落位了：左边多出「${act.toOp} ${act.value}」，右边原位置变灰（它从这儿搬走）。`
       case "solve":
         return problem.flipSides
-          ? `现在 x 单独在等号右边了。等号两边可以互换位置 ⇒ x = ${sideToText(problem.final.right)}。`
-          : `x 已经单独留在等号左边了 —— 右边就是答案。`
+          ? `x 单独在右边了。两边可以互换位置 ⇒ x = ${sideToText(problem.final.right)}。`
+          : `x 已经单独留在左边了 —— 右边就是答案。`
       case "done":
-        return `解出来啦：${solutionText(problem)}　（把答案代回原式，两边一样 ✓）`
+        return `解出来啦：${solutionText(problem)}　（代回原式，照样相等 ✓）`
       default:
-        return "点「播放动画」，看这个数怎样从等号一边跑到另一边。"
+        return "点「播放动画」，看它怎样从等号一边跑到另一边。"
     }
   }, [problem, phase, stepIndex, symFlipped])
 
@@ -633,12 +635,16 @@ export function EquationMovePage() {
         <div className="card eq-rules">
           {RULES.map((r) => (
             <div key={r.title} className="eq-rule-block">
-              <p className="eq-rule-title">{r.title}</p>
-              <ul>
-                {r.lines.map((l) => (
-                  <li key={l}>{l}</li>
-                ))}
-              </ul>
+              {/* 一幅图顶一句口诀：图标走 MathIcon（两端同一份图元数据） */}
+              <MathIcon name={r.icon} size={30} className="eq-rule-icon" />
+              <div className="eq-rule-text">
+                <p className="eq-rule-title">{r.title}</p>
+                <ul>
+                  {r.lines.map((l) => (
+                    <li key={l}>{l}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           ))}
         </div>
@@ -679,7 +685,10 @@ export function EquationMovePage() {
 
       {problem && (
         <>
-          <p className="eq-kind-tip">{KIND_TIP[problem.kind]}</p>
+          <p className="eq-kind-tip">
+            <MathIcon name={KIND_ICON[problem.kind]} size={20} className="eq-kind-tip-icon" />
+            {KIND_TIP[problem.kind]}
+          </p>
 
           {/* ── 舞台 ── */}
           <div className="eq-stage" ref={stageRef}>
@@ -746,9 +755,7 @@ export function EquationMovePage() {
       {/* ── 对比练习 ── */}
       <div className="eq-practice">
         <p className="eq-sec-title">✍️ 一组对比练习：跨过等号，符号该变成什么？</p>
-        <p className="eq-sec-sub">
-          先自己想一想，再点选答案 —— 选项里那四个是「变号」，最后一个「不变」是专门用来迷惑你的。
-        </p>
+        <p className="eq-sec-sub">先想一想再点选 —— 最后一个「不变」是专门用来迷惑你的。</p>
         {PRACTICE.map((it) => (
           <PracticeCard key={it.before} item={it} />
         ))}
@@ -762,10 +769,7 @@ export function EquationMovePage() {
             🔄 换一组
           </button>
         </div>
-        <p className="eq-sec-sub">
-          每道题都拆成一小步一小步：先看清这一步跨没跨过等号，点选答案 —— 卡片马上把这一步的动画演给你看，
-          一路填到把 x 解出来。每轮六种情形全练到：加变减 · 减变加 · 乘变除 · 除变乘 · 要多步才解得完（含首项显形）· 同侧换位不变号。
-        </p>
+        <p className="eq-sec-sub">一步一填：这一步跨没跨过等号？选完答案，就看这一拍的动画。</p>
         <p className="eq-drill-score" aria-live="polite">
           已填 <b>{drillStat.answered}</b> / {drillSteps} 步　·　一次答对 <b>{drillStat.correct}</b> 步
           {drillStat.answered >= drillSteps &&
@@ -838,7 +842,10 @@ function WhyMoveDemo() {
 
   return (
     <div className="card eq-why">
-      <p className="eq-why-title">🔍 为什么能「挪过去」？因为等号两边像天平 —— 两边做同样的事，天平还是平的。</p>
+      <p className="eq-why-title">
+        <MathIcon name="balance" size={22} className="eq-why-icon" />
+        两边同时做同一件事，天平还是平的
+      </p>
       <div className="eq-why-row">
         <span className="eq-why-line">
           <span className="eq-var">x</span>
@@ -867,12 +874,12 @@ function WhyMoveDemo() {
       </div>
       <p className="eq-why-note">
         {step < 1
-          ? "看 —— 两边同时「减去 5」……"
+          ? `看 —— 两边同时「减去 ${A}」……`
           : step < 2
-            ? "左边加了 +5 又减去 5，正好抵消；右边老老实实减掉 5。"
+            ? `左边 +${A} 又 -${A}，抵消了；右边实打实减掉 ${A}。`
             : step < 3
               ? "一抵消，左边就只剩 x 了。"
-              : `所以 x = ${B} - ${A} = ${B - A}，这和「把 +${A} 挪过去变 -${A}」结果完全一样 —— 移项变号就是这条捷径。`}
+              : `所以 x = ${B} - ${A} = ${B - A} —— 跟「把 +${A} 挪过去变 -${A}」一样，移项变号就是这条捷径。`}
       </p>
     </div>
   )
@@ -999,8 +1006,8 @@ function PracticeCard({
           ) : (
             <span className="eq-fb-head">
               {sameSide
-                ? "❌ 再想想 —— 它压根没跨过等号，只是在同一侧换了个位置：符号一点不用动，该选「不变」。"
-                : `❌ 再想想 —— 它跨过了等号，符号必须变相反：「${item.sym}」要变成「${flipOp(item.sym)}」。`}
+                ? "❌ 再想想 —— 没跨等号，只是同侧换位，该选「不变」。"
+                : `❌ 再想想 —— 它跨过了等号：「${item.sym}」要变成「${flipOp(item.sym)}」。`}
             </span>
           )}
         </div>

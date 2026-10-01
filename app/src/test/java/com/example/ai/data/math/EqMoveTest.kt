@@ -1,7 +1,9 @@
 package com.example.ai.data.math
 
+import com.example.ai.ui.icon.MathIcons
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.random.Random
@@ -453,6 +455,11 @@ class EqMoveTest {
         for (kind in ALL_KINDS) {
             assertTrue("$kind 缺 label", !EQ_KIND_LABEL[kind].isNullOrEmpty())
             assertTrue("$kind 缺 tip", !EQ_KIND_TIP[kind].isNullOrEmpty())
+            // ★ 题型提示行左边的那个图标 —— 名字打错渲染件会安静地什么都不画
+            assertNotNull(
+                "$kind 的配图「${EQ_KIND_ICON[kind]}」不在 MathIcons 里",
+                MathIcons[EQ_KIND_ICON[kind].orEmpty()],
+            )
         }
         val grouped = EQ_KIND_GROUPS.flatMap { it.kinds }
         assertEquals("分组里出现重复题型", grouped.size, grouped.toSet().size)
@@ -866,6 +873,8 @@ class EqMoveTest {
             assertTrue("口诀卡缺标题", r.title.isNotBlank())
             assertTrue("口诀卡「${r.title}」没有内容行", r.lines.isNotEmpty())
             for (l in r.lines) assertTrue("口诀卡「${r.title}」有空白行", l.isNotBlank())
+            // ★ 配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+            assertNotNull("口诀卡「${r.title}」的配图「${r.icon}」不在 MathIcons 里", MathIcons[r.icon])
         }
         // 首项显形这条规律必须写进口诀里
         assertTrue(

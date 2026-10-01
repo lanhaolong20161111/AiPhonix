@@ -8743,19 +8743,37 @@ button.btn-mode-off {
 }
 
 /* ── 口诀 ── */
+/* ★ 「左图右文」：图标 30px 一列，文字一列 —— 一幅图顶一条口诀（图标两端同一份数据） */
 .eq-rules { margin-bottom: 14px; }
+.eq-rule-block {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
 .eq-rule-block + .eq-rule-block {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed #e2e8f0;
 }
+.eq-rule-icon { color: #b45309; margin-top: 1px; }
+.eq-rule-text { min-width: 0; }
 .eq-rule-title { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: #0f172a; }
 .eq-rules ul { margin: 0; padding-left: 18px; }
 .eq-rules li { font-size: 13px; line-height: 1.75; color: #475569; }
 
 /* ── 「为什么能移项」 ── */
 .eq-why { margin-bottom: 14px; }
-.eq-why-title { margin: 0 0 12px; font-size: 13px; line-height: 1.6; color: #334155; }
+.eq-why-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #334155;
+}
+.eq-why-icon { color: #0f766e; }
 .eq-why-row {
   display: flex;
   align-items: center;
@@ -8797,7 +8815,17 @@ button.btn-mode-off {
   cursor: pointer;
 }
 .eq-kind.eq-kind-on { background: #1e293b; border-color: #1e293b; color: #fff; }
-.eq-kind-tip { margin: 0 0 10px; font-size: 12px; color: #94a3b8; }
+/* 题型提示行：左边一个图标（一幅图顶一句话），右边一行短提示 */
+.eq-kind-tip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+.eq-kind-tip-icon { color: #0f766e; }
 
 /* ── 舞台 ── */
 .eq-stage {
