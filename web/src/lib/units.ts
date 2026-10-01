@@ -39,10 +39,17 @@ export type UnitId = "mm" | "cm" | "dm" | "m" | "km" | "g" | "kg" | "t"
 
 /** 一个生活参照物。`real` 为真时页面会按**真实物理尺寸**画出来供学生拿尺子核对 */
 export interface UnitRef {
-  emoji: string
+  /**
+   * mathIcons.ts 里的图标键。
+   * ★ 用图画而不是 emoji：emoji 表达不了「厚度 / 大小」这类关系（🪪 看不出卡有多薄），
+   *   而且同一个 emoji 在 Android / iOS / Windows 上长得都不一样。
+   */
+  icon: string
+  /** 物品名。参照物卡上就这么显示，所以**越短越好**（控制在 6 字以内） */
   name: string
+  /** 数值，如 "1 毫米" —— 只保留数字和单位，不要句子 */
   detail: string
-  /** 真实尺寸示意：length = 画一根这么长的条；thickness = 画一个这么厚的截面 */
+  /** 真实尺寸示意：画一根这么长的条 / 一块这么厚的截面（只有毫米/厘米/分米有） */
   draw?: { form: "bar" | "slab"; baseAmount: number }
 }
 
@@ -140,12 +147,12 @@ export const UNITS: UnitDef[] = [
     name: "毫米",
     symbol: "mm",
     base: 1,
-    sense: "用拇指和食指轻轻夹住一张银行卡，抽出卡片后两指间的缝隙大约是 1 毫米",
+    sense: "两指夹卡的缝",
     refs: [
-      { emoji: "🪪", name: "身份证的厚度", detail: "约 1 毫米", draw: { form: "slab", baseAmount: 1 } },
-      { emoji: "🪙", name: "1 分硬币的厚度", detail: "约 1 毫米" },
-      { emoji: "📄", name: "10 张纸的厚度", detail: "约 1 毫米" },
-      { emoji: "📏", name: "尺子上 1 厘米里的一小格", detail: "就是 1 毫米" },
+      { icon: "card", name: "银行卡", detail: "1 毫米", draw: { form: "slab", baseAmount: 1 } },
+      { icon: "coin", name: "1 分硬币", detail: "1 毫米" },
+      { icon: "papers", name: "10 张纸", detail: "1 毫米" },
+      { icon: "ruler", name: "尺子一小格", detail: "1 毫米" },
     ],
     onScreenReal: true,
   },
@@ -155,11 +162,11 @@ export const UNITS: UnitDef[] = [
     name: "厘米",
     symbol: "cm",
     base: 10,
-    sense: "食指指甲盖的宽度，大约就是 1 厘米",
+    sense: "食指指甲盖",
     refs: [
-      { emoji: "💅", name: "食指指甲盖的宽度", detail: "约 1 厘米", draw: { form: "bar", baseAmount: 10 } },
-      { emoji: "🔠", name: "田字格一个方格的边长", detail: "约 1 厘米" },
-      { emoji: "📌", name: "一个图钉的长度", detail: "约 1 厘米" },
+      { icon: "nail", name: "指甲盖", detail: "1 厘米", draw: { form: "bar", baseAmount: 10 } },
+      { icon: "grid", name: "田字格边长", detail: "1 厘米" },
+      { icon: "pin", name: "图钉", detail: "1 厘米" },
     ],
     onScreenReal: true,
   },
@@ -169,11 +176,11 @@ export const UNITS: UnitDef[] = [
     name: "分米",
     symbol: "dm",
     base: 100,
-    sense: "手掌张开，拇指尖到中指指尖（一拃），大约是 1 分米",
+    sense: "张开手，一拃",
     refs: [
-      { emoji: "🖐️", name: "一拃（拇指尖到中指指尖）", detail: "约 1 分米", draw: { form: "bar", baseAmount: 100 } },
-      { emoji: "🔲", name: "墙壁开关面板的边长", detail: "约 1 分米" },
-      { emoji: "✋", name: "大人手掌的宽度", detail: "约 1 分米" },
+      { icon: "hand", name: "一拃", detail: "1 分米", draw: { form: "bar", baseAmount: 100 } },
+      { icon: "switch", name: "开关面板", detail: "1 分米" },
+      { icon: "hand", name: "手掌宽", detail: "1 分米" },
     ],
     onScreenReal: true,
   },
@@ -183,12 +190,12 @@ export const UNITS: UnitDef[] = [
     name: "米",
     symbol: "m",
     base: 1000,
-    sense: "把两臂平平伸开，左右手指尖之间的距离大约是 1 米",
+    sense: "两臂平伸",
     refs: [
-      { emoji: "🚪", name: "教室门的宽度", detail: "约 1 米" },
-      { emoji: "🧒", name: "小朋友双臂平伸的长度", detail: "约 1 米" },
-      { emoji: "🪑", name: "讲台桌的高度", detail: "约 1 米" },
-      { emoji: "🛏️", name: "课桌的高度", detail: "约 70 厘米，比 1 米矮一点" },
+      { icon: "door", name: "教室门宽", detail: "1 米" },
+      { icon: "childArms", name: "双臂平伸", detail: "1 米" },
+      { icon: "podium", name: "讲台桌高", detail: "1 米" },
+      { icon: "desk", name: "课桌高", detail: "70 厘米" },
     ],
     onScreenReal: false,
   },
@@ -198,11 +205,11 @@ export const UNITS: UnitDef[] = [
     name: "千米",
     symbol: "km",
     base: 1_000_000,
-    sense: "跑道上跑 2 圈半（400 米一圈），或者一直走大约 15 分钟",
+    sense: "走 15 分钟",
     refs: [
-      { emoji: "🏃", name: "400 米跑道跑 2 圈半", detail: "正好 1000 米" },
-      { emoji: "🚶", name: "不停走大约 15 分钟", detail: "约 1 千米" },
-      { emoji: "🚌", name: "公交车大约坐 1 站", detail: "约 1 千米" },
+      { icon: "track", name: "跑道 2 圈半", detail: "1 千米" },
+      { icon: "walk", name: "走 15 分钟", detail: "1 千米" },
+      { icon: "bus", name: "公交 1 站", detail: "1 千米" },
     ],
     onScreenReal: false,
   },
@@ -214,12 +221,12 @@ export const UNITS: UnitDef[] = [
     name: "克",
     symbol: "g",
     base: 1,
-    sense: "把一粒花生米放在手心，几乎感觉不到重量 —— 那大约就是 1 克",
+    sense: "一粒花生米",
     refs: [
-      { emoji: "🪙", name: "1 枚 2 分硬币", detail: "约 1 克" },
-      { emoji: "📎", name: "1 个回形针", detail: "约 1 克" },
-      { emoji: "🥜", name: "两三粒花生米", detail: "约 1 克" },
-      { emoji: "🍚", name: "五六颗黄豆", detail: "约 1 克" },
+      { icon: "coin", name: "2 分硬币", detail: "1 克" },
+      { icon: "clip", name: "回形针", detail: "1 克" },
+      { icon: "peanut", name: "两三粒花生", detail: "1 克" },
+      { icon: "bean", name: "五六颗黄豆", detail: "1 克" },
     ],
     onScreenReal: false,
   },
@@ -229,12 +236,12 @@ export const UNITS: UnitDef[] = [
     name: "千克",
     symbol: "kg",
     base: 1000,
-    sense: "一只手提两瓶 500 毫升的矿泉水 —— 差不多就是 1 千克",
+    sense: "两瓶矿泉水",
     refs: [
-      { emoji: "🧂", name: "两袋 500 克的盐", detail: "正好 1 千克" },
-      { emoji: "💧", name: "两瓶 500 毫升的矿泉水", detail: "约 1 千克" },
-      { emoji: "🍎", name: "5 个中等个头的苹果", detail: "约 1 千克" },
-      { emoji: "🧒", name: "三年级小朋友的体重", detail: "约 25 千克" },
+      { icon: "sack", name: "两袋盐", detail: "1 千克" },
+      { icon: "bottle", name: "两瓶矿泉水", detail: "1 千克" },
+      { icon: "apple", name: "5 个苹果", detail: "1 千克" },
+      { icon: "kid", name: "三年级小朋友", detail: "25 千克" },
     ],
     onScreenReal: false,
   },
@@ -244,12 +251,12 @@ export const UNITS: UnitDef[] = [
     name: "吨",
     symbol: "t",
     base: 1_000_000,
-    sense: "吨没法用手掂，只能用数量堆出来 —— 要 40 个小朋友加起来才有 1 吨",
+    sense: "40 个小朋友",
     refs: [
-      { emoji: "🧒", name: "40 个小朋友（每人 25 千克）", detail: "正好 1 吨" },
-      { emoji: "🍚", name: "10 袋 100 千克的大米", detail: "正好 1 吨" },
-      { emoji: "🚗", name: "一辆小轿车", detail: "约 1 吨" },
-      { emoji: "💧", name: "2000 瓶 500 克的水", detail: "正好 1 吨" },
+      { icon: "kid", name: "40 个小朋友", detail: "1 吨" },
+      { icon: "sack", name: "10 袋大米", detail: "1 吨" },
+      { icon: "car", name: "一辆小轿车", detail: "1 吨" },
+      { icon: "bottle", name: "2000 瓶水", detail: "1 吨" },
     ],
     onScreenReal: false,
   },
@@ -447,22 +454,15 @@ export interface Rule {
 export const RULES: Rule[] = [
   {
     title: "先看清是「切开」还是「拼合」",
-    body:
-      "单位变小了（米 → 分米），就要把一个大的切开成很多小的，份数变多 ⇒ 用乘。" +
-      "单位变大了（分米 → 米），就要把很多小的拼成一个大的，份数变少 ⇒ 用除。" +
-      "口诀只有一句：单位变小数变大，单位变大树变小。",
+    body: "切开 ⇒ 份数变多 ⇒ 乘　｜　拼合 ⇒ 份数变少 ⇒ 除",
   },
   {
     title: "进率不用背，数一数是几个 10",
-    body:
-      "长度单位里，毫米、厘米、分米、米每相邻两个都是 10，所以 1 米 = 10×10×10 = 1000 毫米。" +
-      "但米和千米之间是 1000，不是 10 —— 这一对单独记。质量单位克、千克、吨相邻两个都是 1000。",
+    body: "长度相邻都是 10（米↔千米例外，是 1000）；质量相邻都是 1000",
   },
   {
     title: "换算前先想「它有多大」",
-    body:
-      "一个西瓜重 5 千克，不是 5 克；一个小朋友重 25 千克，不是 25 克。" +
-      "拿不准单位的时候，先在心里掂一掂、比一比，再动笔算。",
+    body: "西瓜 5 千克不是 5 克。先掂一掂，再动笔",
   },
 ]
 
@@ -474,44 +474,44 @@ export const MISTAKE_CASES: MistakeCase[] = [
   {
     wrong: "5米 = 500分米",
     right: "5米 = 50分米",
-    why: "把「米 → 厘米」的进率 100 用在了「米 → 分米」上。米和分米是**相邻**单位，进率是 10。",
-    tip: "米 → 分米：切开一轮，5×10 = 50。要乘 100 那是换成厘米。",
+    why: "米和分米是相邻单位，进率 10",
+    tip: "乘 100 那是换成厘米",
   },
   {
     wrong: "1千米 = 100米",
     right: "1千米 = 1000米",
-    why: "米和千米的进率是整个长度单位里的例外 —— 它不是 10，而是 1000。",
-    tip: "400 米的跑道跑 2 圈半才到 1 千米，怎么可能只有 100 米。",
+    why: "米和千米是唯一的例外：进率 1000",
+    tip: "跑道 2 圈半才 1 千米",
   },
   {
     wrong: "3000克 = 300千克",
     right: "3000克 = 3千克",
-    why: "克 → 千克的进率是 1000，不是 10，所以是除以 1000。",
-    tip: "1000 克才是 1 千克，3000 克里正好有 3 个 1000。",
+    why: "克→千克进率是 1000，不是 10",
+    tip: "1000 克才是 1 千克",
   },
   {
     wrong: "4吨 = 400千克",
     right: "4吨 = 4000千克",
-    why: "吨 → 千克要乘 1000。写成 400 相当于只乘了 100。",
-    tip: "1 吨就是 10 袋 100 千克的大米，4 吨就是 40 袋。",
+    why: "吨→千克要乘 1000",
+    tip: "1 吨 = 10 袋 100 千克的米",
   },
   {
     wrong: "20毫米 = 2米",
     right: "20毫米 = 2厘米",
-    why: "毫米换成米要跨过厘米、分米两道，进率是 1000；换成厘米只需一步，进率是 10。",
-    tip: "20 毫米还没有一根手指宽，怎么可能是 2 米（比门还高）。",
+    why: "毫米→米要跨两道，进率 1000",
+    tip: "20 毫米还没一根手指宽",
   },
   {
     wrong: "一个西瓜重5克",
     right: "一个西瓜重5千克",
-    why: "5 克大约只有一粒花生米那么重。错在单位选错，不在算错。",
-    tip: "拿不准的时候先掂一掂：两瓶矿泉水就是 1 千克，西瓜比它重得多。",
+    why: "5 克只有一粒花生米重",
+    tip: "两瓶矿泉水就是 1 千克",
   },
   {
     wrong: "3米 + 50厘米 = 53米",
     right: "3米 + 50厘米 = 350厘米（也就是 3米50厘米）",
-    why: "单位不同不能直接相加，要先把 3 米化成 300 厘米再算。",
-    tip: "不同单位的数相加相减之前，第一步永远是「单位对齐」。",
+    why: "单位不同不能直接相加",
+    tip: "先化成 300 厘米再算",
   },
 ]
 
@@ -619,14 +619,14 @@ export function genProblem(groupKey: ProblemGroupKey): UnitProblem {
   const op: "×" | "÷" = split ? "×" : "÷"
   const rounds = roundsOf(from, to)
 
-  const cutWord = split ? "切开" : "拼合"
+  // ★ 文案刻意压短：一屏里每句话都长，学生就不看了 —— 能交给动画/图示的就不写句子。
   const opTip = split
-    ? `「${from.name}」比「${to.name}」大。把 1 个${from.name}${cutWord}成很多个${to.name}，份数变多 ⇒ 用乘。`
-    : `「${from.name}」比「${to.name}」小。要把很多个${from.name}${cutWord}成 1 个${to.name}，份数变少 ⇒ 用除。`
+    ? `「${from.name}」大、要切开 ⇒ 份数变多 ⇒ 用乘`
+    : `「${from.name}」小、要拼合 ⇒ 份数变少 ⇒ 用除`
 
-  const rateTip =
-    `${from.name} 和 ${to.name} ${rounds === 1 ? "是相邻单位，进率是 10" : `之间隔着 ${rounds - 1} 个单位，进率是 10 乘 ${rounds} 次`}` +
-    `，所以进率是 ${ratio}。`
+  const rateTip = rounds === 1
+    ? `相邻单位，进率就是 ${ratio}`
+    : `中间隔着 ${rounds - 1} 个单位：${Array.from({ length: rounds }, () => "10").join(" × ")} ⇒ ${ratio}`
 
   // 第 3 步的干扰项：把乘当加（3×10 ⇒ 13）、进率用错、方向用错
   const trapSet = new Set<number>()
@@ -658,7 +658,7 @@ export function genProblem(groupKey: ProblemGroupKey): UnitProblem {
       ask: `${value} ${op} ${ratio} = ?`,
       options: calcOptions,
       answer: String(result),
-      tip: `${value}${op === "×" ? "×" : "÷"}${ratio} = ${result}。所以 ${qty(value, from)} = ${qty(result, to)}。`,
+      tip: `${value} ${op} ${ratio} = ${result} ⇒ ${qty(value, from)} = ${qty(result, to)}`,
     },
   ]
 
@@ -666,10 +666,7 @@ export function genProblem(groupKey: ProblemGroupKey): UnitProblem {
   const flipped = split ? value / ratio : value * ratio
   const trap = Number.isInteger(flipped) && flipped > 0 ? flipped : null
 
-  const cutDesc =
-    rounds === 1
-      ? `只需切 1 轮：10 份`
-      : `要切 ${rounds} 轮：${Array.from({ length: rounds }, () => 10).join(" × ")} = ${ratio} 份`
+  const cutDesc = rounds === 1 ? "切 1 轮" : `切 ${rounds} 轮`
 
   return {
     groupKey,
@@ -682,7 +679,7 @@ export function genProblem(groupKey: ProblemGroupKey): UnitProblem {
     rounds,
     fullText: `${qty(value, from)} = ?${to.name}`,
     steps,
-    finalNote: `${qty(value, from)} = ${qty(result, to)}。${cutDesc}。`,
+    finalNote: `${qty(value, from)} = ${qty(result, to)}（${cutDesc}）`,
     trap,
   }
 }

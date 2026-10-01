@@ -9867,15 +9867,16 @@ button.btn-mode-off {
   background: #f8fafc;
 }
 
-.uc-sense-refs { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 5px; }
+.uc-sense-refs { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 7px; }
 .uc-sense-refs li {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
-.uc-ref-emoji { flex: 0 0 auto; }
+/* 参照物的「图画」（取代原来的 emoji —— emoji 看不出厚度/大小，且跨平台长得不一样） */
+.uc-ref-icon { flex: 0 0 auto; color: #475569; }
 .uc-ref-name { color: #334155; flex: 1 1 auto; }
 .uc-ref-detail {
   flex: 0 0 auto;

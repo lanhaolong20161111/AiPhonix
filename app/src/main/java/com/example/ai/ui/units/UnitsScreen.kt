@@ -76,6 +76,7 @@ import com.example.ai.data.units.UNIT_MISTAKE_CASES
 import com.example.ai.data.units.UNIT_RULES
 import com.example.ai.data.units.qty
 import com.example.ai.data.units.unitNumStr
+import com.example.ai.ui.icon.MathIcon
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -188,11 +189,7 @@ fun UnitsScreen(
         item(key = "main") {
             SectionCard {
                 SectionTitle("✂️ 切开与拼合：为什么该乘、该除？")
-                SectionSub(
-                    "不要背「大化小乘、小化大除」。看动画：把一个大的切开成很多小的，份数就变多，所以是乘；" +
-                        "把很多小的拼起来成一个大的，份数就变少，所以是除。" +
-                        "进率里有几个 10，就切几轮 —— 10 切 1 轮、100 切 2 轮、1000 切 3 轮。",
-                )
+                SectionSub("不用背口诀 —— 看动画自己推。切几轮 = 进率里有几个 10。")
                 Spacer(Modifier.height(10.dp))
 
                 KindChips(current = state.kind, onPick = viewModel::pickKind)
@@ -262,7 +259,6 @@ fun UnitsScreen(
             item(key = "mistake-title") {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text("⚠️ 最容易错的 7 个地方", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-                    SectionSub("先看红色的错例，想一想哪里不对，再看绿色的正确写法。")
                 }
             }
             items(UNIT_MISTAKE_CASES.size, key = { "mk|${UNIT_MISTAKE_CASES[it].wrong}" }) { i ->
@@ -759,11 +755,7 @@ private fun CountSection(
 ) {
     SectionCard {
         SectionTitle("📐 数一数，不靠背")
-        SectionSub(
-            "进率不用背 —— 在同一把尺子上数一数就出来了。下面这把尺子是按**真实物理尺寸**画的，" +
-                "可以拿你手边的尺子对着屏幕比一比；如果不一样，拖一下校准条。" +
-                "（真实尺寸依赖机型上报的屏幕 DPI，所以一定要允许校准。）",
-        )
+        SectionSub("拿你的尺子比一比，不一样就拖校准条。")
 
         if (kind == UnitKind.LENGTH) {
             Spacer(Modifier.height(10.dp))
@@ -996,16 +988,23 @@ private fun UnitSenseCard(u: UnitDef, dpPerMm: Float, availDp: androidx.compose.
 
         Spacer(Modifier.height(8.dp))
         u.refs.forEach { r ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.Top) {
-                Text(r.emoji, fontSize = 13.sp, modifier = Modifier.padding(end = 6.dp))
-                Column {
-                    Text(r.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = InkColor)
-                    Text(r.detail, fontSize = 11.sp, color = Grey)
-                }
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // 参照物用「图画」而不是 emoji：emoji 看不出厚度/大小，且各平台长得不一样
+                MathIcon(
+                    name = r.icon,
+                    size = 30.dp,
+                    tint = InkColor.copy(alpha = 0.82f),
+                    modifier = Modifier.padding(end = 8.dp),
+                )
+                Text(r.name, fontSize = 13.sp, color = InkColor, modifier = Modifier.weight(1f))
+                Text(r.detail, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MdColor)
             }
         }
         Spacer(Modifier.height(6.dp))
-        Text("🖐️ ${u.sense}", fontSize = 12.sp, color = InkColor)
+        Text(u.sense, fontSize = 12.sp, color = Grey)
     }
 }
 
@@ -1023,7 +1022,6 @@ private fun BenchSection(
 ) {
     SectionCard {
         SectionTitle("🔢 换算工作台")
-        SectionSub("填一个数、挑两个单位，马上看到怎么算、为什么这么算。")
         Spacer(Modifier.height(10.dp))
 
         OutlinedTextField(
@@ -1185,10 +1183,7 @@ private fun PracticeSection(
 ) {
     SectionCard {
         SectionTitle("✍️ 练一练：一步一步来")
-        SectionSub(
-            "每道题都拆成三步 —— 先判方向、再找进率、最后算结果。" +
-                "学生最容易混的就是前两步，所以千万不要一步算完。",
-        )
+        SectionSub("每道题都拆成三步，别一步算完。")
         Spacer(Modifier.height(10.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

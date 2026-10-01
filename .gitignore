@@ -422,3 +422,11 @@ web/_mo_shots/
 # local probes/leftovers for the units page (web/_mo_units_expect.ts prints engine expectations for the Kotlin tests)
 web/_mo_units_expect.ts
 web/_last_outdir.txt
+# 数学页图标库的一次性工具（生成/预览/批量改文案），本地可复用，不入库
+web/_icon_*
+web/_gen_math_icons.ts
+web/_shrink*.py
+# Kotlin 编译产物目录
+.kotlin/
+# 图标包围盒离线检查脚本
+web/_check_icons.ts

@@ -1,7 +1,9 @@
 package com.example.ai.data.units
 
+import com.example.ai.ui.icon.MathIcons
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.random.Random
@@ -511,7 +513,9 @@ class UnitsTest {
             assertTrue("${u.name} 的 sense 不能空", u.sense.isNotBlank())
             for (r in u.refs) {
                 assertTrue("${u.name} 的参照物缺少名字/细节", r.name.isNotBlank() && r.detail.isNotBlank())
-                assertTrue("${u.name} 的参照物缺少 emoji", r.emoji.isNotBlank())
+                assertTrue("${u.name} 的参照物缺少图标键", r.icon.isNotBlank())
+                // ★ 图标键必须真的存在 —— 拼错了在页面上只表现为「这个参照物没图」，肉眼很难发现
+                assertNotNull("${u.name} 的参照物图标「${r.icon}」不在 MathIcons 里", MathIcons[r.icon])
             }
         }
         // 能按真实尺寸画的只有毫米/厘米/分米 ——「1米 = 1000 毫米 ≈ 3779 像素，放不下」

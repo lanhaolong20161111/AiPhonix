@@ -23,6 +23,8 @@
  */
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+
+import MathIcon from "../components/MathIcon"
 import { useNavigate } from "react-router-dom"
 import {
   ADJACENT_PAIRS,
@@ -253,14 +255,11 @@ function CutStage({ plan, mmPx }: { plan: UnitPlan; mmPx: number }) {
           </p>
           <p className="uc-conclusion-why">
             {plan.direction === "split"
-              ? `「${plan.from.name}」大、「${plan.to.name}」小 —— 把 1${plan.from.name} 连切 ${plan.rounds} 轮（每轮切 10 份），就是 ${plan.ratio}${plan.to.name}，份数变多 ⇒ 用乘：`
-              : `「${plan.from.name}」小、「${plan.to.name}」大 —— ${plan.ratio} 个${plan.from.name}拼起来才够 1${plan.to.name}，份数变少 ⇒ 用除：`}
+              ? `「${plan.from.name}」大 ⇒ 切开 ${plan.rounds} 轮 ⇒ 份数变多 ⇒ 用乘：`
+              : `「${plan.from.name}」小 ⇒ 拼合 ⇒ 份数变少 ⇒ 用除：`}
             <code>
               {plan.value} {plan.op} {plan.ratio} = {plan.result}
             </code>
-          </p>
-          <p className="uc-conclusion-tip">
-            单位变小数变大，单位变大树变小 —— 这句话能替你记一辈子。
           </p>
         </div>
       )}
@@ -345,7 +344,7 @@ function Ruler({ mmPx }: { mmPx: number }) {
           </span>
         ))}
       </div>
-      <div className="uc-ruler-cap">厘米（每 1 小格 = 1 毫米，10 小格 = 1 厘米）</div>
+      <div className="uc-ruler-cap">厘米（10 小格 = 1 厘米）</div>
     </div>
   )
 }
@@ -362,9 +361,7 @@ function HundredGrid() {
           <span key={i} className="uc-hundred-cell" />
         ))}
       </div>
-      <p className="uc-hundred-note">
-        10 行 × 10 列 = 100 格。而 1 米 = 10 个这样的方块 ⇒ 10 × 100 = 1000 毫米。
-      </p>
+      <p className="uc-hundred-note">10 × 10 = 100 格；1 米 = 10 块 ⇒ 1000 毫米</p>
     </div>
   )
 }
@@ -379,10 +376,7 @@ function CountSection({ kind, mmPx, onCalib, calib }: {
   return (
     <section className="card uc-count" id="uc-count">
       <h2 className="uc-sec-title">📐 数一数，不靠背</h2>
-      <p className="uc-sec-sub">
-        进率不用背 —— 在同一把尺子上**数一数**就出来了。下面这把尺子是**真实尺寸**画的，
-        可以拿你手边的尺子对着屏幕比一比；如果不一样，拖一下下面的校准条。
-      </p>
+      <p className="uc-sec-sub">拿你的尺子比一比，不一样就拖校准条。</p>
 
       {kind === "length" && (
         <>
@@ -513,11 +507,7 @@ function SenseSection({ kind, mmPx }: { kind: UnitKind; mmPx: number }) {
 
   return (
     <section className="card uc-sense" id="uc-sense">
-      <h2 className="uc-sec-title">👀 1{list[0].name}到底有多大？</h2>
-      <p className="uc-sec-sub">
-        单位不是两个长得不一样的字，它是有大小的。先把「1 个单位」的样子装进脑子里，
-        填空和换算就不会离谱。
-      </p>
+      <h2 className="uc-sec-title">👀 1{list[0].name}有多大</h2>
       <div className="uc-sense-grid" ref={gridRef}>
         {list.map((u) => (
           <div key={u.id} className="uc-sense-card">
@@ -529,13 +519,13 @@ function SenseSection({ kind, mmPx }: { kind: UnitKind; mmPx: number }) {
             <ul className="uc-sense-refs">
               {u.refs.map((r) => (
                 <li key={r.name}>
-                  <span className="uc-ref-emoji">{r.emoji}</span>
+                  <MathIcon name={r.icon} size={38} className="uc-ref-icon" />
                   <span className="uc-ref-name">{r.name}</span>
                   <span className="uc-ref-detail">{r.detail}</span>
                 </li>
               ))}
             </ul>
-            <p className="uc-sense-hand">🖐️ {u.sense}</p>
+            <p className="uc-sense-hand">{u.sense}</p>
           </div>
         ))}
       </div>
@@ -573,7 +563,6 @@ function Bench({ mmPx }: { mmPx: number }) {
   return (
     <section className="card uc-bench">
       <h2 className="uc-sec-title">🔢 换算工作台</h2>
-      <p className="uc-sec-sub">填一个数、挑两个单位，马上看到怎么算、为什么这么算。</p>
 
       <div className="uc-bench-row">
         <input
@@ -686,7 +675,6 @@ function MistakeSection() {
   return (
     <section className="card uc-mistake" ref={ref}>
       <h2 className="uc-sec-title">⚠️ 最容易错的 7 个地方</h2>
-      <p className="uc-sec-sub">先看红色的错例，想一想哪里不对，再看绿色的正确写法。</p>
       <div className="uc-mistake-list">
         {MISTAKE_CASES.map((c, i) => (
           <MistakeCard key={c.wrong} c={c} shake={shown.has(i)} />
@@ -877,10 +865,7 @@ function PracticeSection() {
   return (
     <section className="card uc-practice">
       <h2 className="uc-sec-title">✍️ 练一练：一步一步来</h2>
-      <p className="uc-sec-sub">
-        每道题都拆成三步 —— <b>先判方向、再找进率、最后算结果</b>。
-        学生最容易混的就是前两步，所以千万不要一步算完。
-      </p>
+      <p className="uc-sec-sub">每道题都拆成三步，别一步算完。</p>
 
       <div className="uc-groups">
         {PROBLEM_GROUPS.map((g) => (
@@ -1006,8 +991,7 @@ export function MathUnitsPage() {
 
       {/* ⚠️ .module-header 是 flex ⇒ 副标题必须放 header **外面**，否则 h1 被挤成省略号 */}
       <p className="uc-sub">
-        毫米 · 厘米 · 分米 · 米 · 千米 ｜ 克 · 千克 · 吨 ——
-        <b>切开 / 拼合</b>看懂方向，<b>数一数</b>数出进率，<b>参照物</b>建立量感。
+        毫米 · 厘米 · 分米 · 米 · 千米 ｜ 克 · 千克 · 吨
       </p>
 
       {/* ── 规律卡 ── */}
@@ -1023,11 +1007,7 @@ export function MathUnitsPage() {
       {/* ── 主舞台 ── */}
       <section className="card uc-main">
         <h2 className="uc-sec-title">✂️ 切开与拼合：为什么该乘、该除？</h2>
-        <p className="uc-sec-sub">
-          不要背「大化小乘、小化大除」。看动画：把一个大的<b>切开</b>成很多小的，份数就变多，所以是<b>乘</b>；
-          把很多小的<b>拼起来</b>成一个大的，份数就变少，所以是<b>除</b>。
-          进率里有几个 10，就切几轮 —— 10 切 1 轮、100 切 2 轮、1000 切 3 轮。
-        </p>
+        <p className="uc-sec-sub">不用背口诀 —— 看动画自己推。切几轮 = 进率里有几个 10。</p>
 
         <div className="uc-kindrow">
           <button
