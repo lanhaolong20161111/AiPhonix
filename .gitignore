@@ -416,3 +416,6 @@ server_cf/_deploy_*.log
 web/_uc_probe.mjs
 web/_uc_shot.mjs
 web/_uc_shots/
+# local _mo_* verification artifacts (multi-digit x 1-digit page: _mo_shot.mjs gate + _mo_probe.mjs)
+web/_mo_*.mjs
+web/_mo_shots/

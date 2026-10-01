@@ -54,6 +54,7 @@ const MemoryJoyPage = lazy(() => import("./pages/MemoryJoyPage").then((m) => ({ 
 const MathCompoundExprPage = lazy(() => import("./pages/MathCompoundExprPage").then((m) => ({ default: m.MathCompoundExprPage })))
 const EquationMovePage = lazy(() => import("./pages/EquationMovePage").then((m) => ({ default: m.EquationMovePage })))
 const MathUnitsPage = lazy(() => import("./pages/MathUnitsPage").then((m) => ({ default: m.MathUnitsPage })))
+const MathMulOnePage = lazy(() => import("./pages/MathMulOnePage").then((m) => ({ default: m.MathMulOnePage })))
 
 /** 懒加载分片加载中的占位（居中轻量提示，避免白屏闪烁） */
 function PageFallback() {
@@ -120,6 +121,7 @@ export const router = createBrowserRouter(
         { path: "module/math_compound_expr", element: <MathCompoundExprPage /> },
         { path: "module/math_equation_move", element: <EquationMovePage /> },
         { path: "module/math_units", element: <MathUnitsPage /> },
+        { path: "module/math_mul_one", element: <MathMulOnePage /> },
         { path: "module/sentence_practice", element: <SentencePracticePage /> },
         { path: "module/char_map", element: <CharMapPage /> },
         { path: "module/parent_report", element: <ParentReportPage /> },
