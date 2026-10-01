@@ -56,6 +56,7 @@ import com.example.ai.data.math.MoSolveStep
 import com.example.ai.data.math.MoTrap
 import com.example.ai.data.math.MoView
 import com.example.ai.data.math.moPlaceName
+import com.example.ai.ui.icon.MathIcon
 
 /**
  * 三年级上 · 多位数乘一位数 —— 「竖式逐位四拍」+「位值点阵」双机制演示页
@@ -116,8 +117,7 @@ fun MulOneScreen(
         item(key = "top") {
             TopBar(title = "✏️ 多位数乘一位数", onBack = onBack)
             Text(
-                "竖式逐位四拍：乘 → 加进位 → 写 → 进。每一次进位都单独演一遍，" +
-                    "再用位值点阵看懂「为什么要从个位乘起」。",
+                "逐位四拍：乘 → 加进位 → 写 → 进。点阵里满 10 扎 1 捆、往左送。",
                 fontSize = 13.sp,
                 color = Grey,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
@@ -128,12 +128,12 @@ fun MulOneScreen(
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChatChip(
-                        text = if (state.showRules) "收起规律" else "📌 一句话规律",
+                        text = if (state.showRules) "收起规律" else "📌 规律",
                         modifier = Modifier.weight(1f),
                         onClick = viewModel::toggleRules,
                     )
                     ChatChip(
-                        text = if (state.showWhy) "收起原理" else "🔎 为什么从个位乘起？",
+                        text = if (state.showWhy) "收起原理" else "🔎 为什么从个位乘起",
                         modifier = Modifier.weight(1f),
                         onClick = viewModel::toggleWhy,
                     )
@@ -141,7 +141,7 @@ fun MulOneScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChatChip(
-                        text = if (state.showMistakes) "收起易错" else "⚠️ 最容易错的 7 个地方",
+                        text = if (state.showMistakes) "收起易错" else "⚠️ 易错 7 例",
                         modifier = Modifier.weight(1f),
                         onClick = viewModel::toggleMistakes,
                     )
@@ -158,13 +158,7 @@ fun MulOneScreen(
         if (state.showMistakes) {
             item(key = "mistake-title") {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                    Text("⚠️ 最容易错的 7 个地方", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-                    Text(
-                        "先看红色的错例，想一想哪里不对，再看绿色的正确写法。",
-                        fontSize = 12.sp,
-                        color = Grey,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
+                    Text("易错 7 例", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
                 }
             }
             items(MO_MISTAKE_CASES.size, key = { "mk|${MO_MISTAKE_CASES[it].wrong}" }) { i ->
@@ -244,19 +238,30 @@ private fun SectionCard(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun ChatChip(text: String, modifier: Modifier = Modifier, on: Boolean = false, onClick: () -> Unit) {
-    Text(
-        text = text,
-        fontSize = 13.sp,
-        color = InkColor,
-        textAlign = TextAlign.Center,
+private fun ChatChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    on: Boolean = false,
+    /** ★ 题型卡的图（MathIcons 的键）。传了就画在文字左边 —— 一幅画顶一句描述 */
+    icon: String? = null,
+    onClick: () -> Unit,
+) {
+    Row(
         modifier = modifier
             .clip(RoundedCornerShape(999.dp))
             .background(if (on) HlTopBg else ChipBg)
             .border(if (on) 2.dp else 1.dp, if (on) MdColor else BorderColor, RoundedCornerShape(999.dp))
             .clickableNoRipple(onClick = onClick)
-            .padding(vertical = 8.dp, horizontal = 6.dp),
-    )
+            .padding(vertical = 8.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        if (icon != null) {
+            MathIcon(name = icon, size = 18.dp, tint = if (on) MdColor else Grey)
+            Spacer(Modifier.width(6.dp))
+        }
+        Text(text, fontSize = 13.sp, color = InkColor, textAlign = TextAlign.Center)
+    }
 }
 
 @Composable
@@ -290,9 +295,17 @@ private fun RulesCard() {
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             MO_RULES.forEach { r ->
-                Column {
-                    Text(r.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkColor)
-                    Text(r.body, fontSize = 12.sp, color = Grey, modifier = Modifier.padding(top = 2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MathIcon(
+                        name = r.icon,
+                        size = 30.dp,
+                        tint = Color(0xFFB45309),
+                        modifier = Modifier.padding(end = 10.dp),
+                    )
+                    Column {
+                        Text(r.title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkColor)
+                        Text(r.body, fontSize = 12.sp, color = Grey, modifier = Modifier.padding(top = 2.dp))
+                    }
                 }
             }
         }
@@ -317,13 +330,6 @@ private fun MainStage(
 
     SectionCard {
         Text("🧮 竖式逐位演一遍：${plan.value} × ${plan.factor}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-        Text(
-            "下面对应的四个动作：这一位乘出多少、要不要加进位、结果写在哪儿、进几到左边。" +
-                "高亮的那一块就是此刻在算的地方。",
-            fontSize = 12.sp,
-            color = Grey,
-            modifier = Modifier.padding(top = 4.dp),
-        )
         Spacer(Modifier.height(10.dp))
 
         // ── 题型 chips ──
@@ -332,9 +338,10 @@ private fun MainStage(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { g ->
                         ChatChip(
-                            text = "${g.emoji} ${g.title}\n${g.desc}",
+                            text = "${g.title}\n${g.desc}",
                             modifier = Modifier.weight(1f),
                             on = state.kind == g.key,
+                            icon = g.icon,
                             onClick = { onKind(g.key) },
                         )
                     }
@@ -354,7 +361,7 @@ private fun MainStage(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                "${state.group.title} · 积是 ${plan.resultDigits.size} 位数",
+                "${state.group.title} · 积 ${plan.resultDigits.size} 位",
                 fontSize = 11.sp,
                 color = Grey,
             )
@@ -420,7 +427,7 @@ private fun MainStage(
         // ── 图例 ──
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             LegendSwatch(LitAmber, "正在乘的这一位")
-            LegendSwatch(HlCarryBg, "进上来的数（写在头顶）")
+            LegendSwatch(HlCarryBg, "进上来的数")
             LegendSwatch(HlWriteBg, "刚写下的数")
         }
         Spacer(Modifier.height(10.dp))
@@ -467,13 +474,21 @@ private fun MainStage(
                     .border(1.dp, LitAmber, RoundedCornerShape(10.dp))
                     .padding(12.dp),
             ) {
-                Text("⚡ 末尾有 0：不用一位一位地乘，这样算更快", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkColor)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    MathIcon(
+                        name = "zeroTail",
+                        size = 22.dp,
+                        tint = Color(0xFFB45309),
+                        modifier = Modifier.padding(end = 8.dp),
+                    )
+                    Text("末尾有 0：这样算更快", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkColor)
+                }
                 Spacer(Modifier.height(8.dp))
-                TailStep("①", "先把末尾的 ${t.zeros} 个 0 放一边，算 ${t.core} × ${plan.factor} = ${t.coreProduct}")
-                TailStep("②", "数一数：${plan.value} 的末尾有 ${t.zeros} 个 0")
-                TailStep("③", "把 ${t.zeros} 个 0 补回去 ⇒ ${plan.value} × ${plan.factor} = ${plan.product}")
+                TailStep("①", "先算 ${t.core} × ${plan.factor} = ${t.coreProduct}")
+                TailStep("②", "末尾有 ${t.zeros} 个 0")
+                TailStep("③", "补 ${t.zeros} 个 0 ⇒ ${plan.value} × ${plan.factor} = ${plan.product}")
                 Text(
-                    "⚠️ 最容易漏的就是第 ③ 步。写完一定要回头数一数：被乘数末尾原来有几个 0。",
+                    "⚠️ 最容易漏第 ③ 步 —— 写完回头数一数有几个 0。",
                     fontSize = 12.sp,
                     color = BadColor,
                     modifier = Modifier.padding(top = 8.dp),
@@ -499,14 +514,14 @@ private fun MainStage(
                     color = OkColor,
                 )
                 Text(
-                    "共 ${plan.steps.size} 位、${state.carryCount} 次进位。" +
-                        if (plan.grewTop) "最高位还长出了一位，别忘了写。" else "积的位数和被乘数一样。",
+                    "${plan.steps.size} 位 · ${state.carryCount} 次进位" +
+                        if (plan.grewTop) " · 最前面还长出一位" else "",
                     fontSize = 12.sp,
                     color = InkColor,
                     modifier = Modifier.padding(top = 6.dp),
                 )
                 Text(
-                    "校验：把写下来的各位拼回去 = ${state.productFromPlan} ✓",
+                    "校验：各位拼回去 = ${state.productFromPlan} ✓",
                     fontSize = 12.sp,
                     color = Grey,
                     modifier = Modifier.padding(top = 4.dp),
@@ -709,9 +724,11 @@ private fun PlaceStage(plan: MoPlan, view: MoView) {
             .padding(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            MathIcon(name = "bundle", size = 20.dp, tint = MdColor)
+            Spacer(Modifier.width(8.dp))
             Text("位值点阵", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = InkColor)
             Spacer(Modifier.width(8.dp))
-            Text("用「点」看进位：满 10 个扎 1 捆，往左送", fontSize = 11.sp, color = Grey)
+            Text("满 10 扎 1 捆，往左送", fontSize = 11.sp, color = Grey)
         }
         Spacer(Modifier.height(8.dp))
 
@@ -775,18 +792,18 @@ private fun PlaceStage(plan: MoPlan, view: MoView) {
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 )
                 Text(
-                    "→ 送到${moPlaceName(place + 1)}（就是「进 ${s.carryOut}」）",
+                    "← 送 ${s.carryOut} 到${moPlaceName(place + 1)}",
                     fontSize = 12.sp,
                     color = AsColor,
                     modifier = Modifier.weight(1f),
                 )
-                Text("留下 ${s.write} 个", fontSize = 12.sp, color = OkColor)
+                Text("留 ${s.write} 个", fontSize = 12.sp, color = OkColor)
             }
         }
         if (!idle && (view.beat == MoBeat.CARRY || view.beat == MoBeat.WRITE) && s.carryOut == 0) {
             Spacer(Modifier.height(8.dp))
             Text(
-                "共 ${s.sum} 个 · 不满 10 个，扎不成捆 ⇒ 不用进位",
+                "共 ${s.sum} 个 · 不满 10，扎不成捆",
                 fontSize = 12.sp,
                 color = Grey,
             )
@@ -794,8 +811,8 @@ private fun PlaceStage(plan: MoPlan, view: MoView) {
 
         Spacer(Modifier.height(8.dp))
         Text(
-            "这一位一共有 ${s.sum} 个点，其中 $bundling 个要被扎成捆送到左边去。" +
-                if (place == 0 && s.carryOut > 0) "个位不先算完，十位就不知道要加几 —— 这就是「从个位乘起」的原因。" else "",
+            "${s.sum} 个点里有 $bundling 个扎捆送左边。" +
+                if (place == 0 && s.carryOut > 0) "个位不先算完，十位不知道加几。" else "",
             fontSize = 11.sp,
             color = Grey,
         )
@@ -810,18 +827,18 @@ private fun placeCaption(
     s: com.example.ai.data.math.MoStep,
     idle: Boolean,
 ): String = when (view.beat) {
-    MoBeat.IDLE -> "等一下要算${moPlaceName(place)}"
+    MoBeat.IDLE -> "等一下算${moPlaceName(place)}"
     MoBeat.MUL ->
-        "${moPlaceName(place)}上每一个都是 ${s.digit} 吗？不是 —— 这里是 ${s.digit} × ${plan.factor}，先把这些点画出来。"
+        "${s.digit} × ${plan.factor} ⇒ 先画 ${s.base} 个点"
     MoBeat.ADD ->
-        if (s.carryIn > 0) "右边送来的 ${s.carryIn} 个点也加进来（橙色那些），一共 ${s.sum} 个。"
-        else "${s.base} 个点就是全部，没有从右边送来的。"
+        if (s.carryIn > 0) "加上右边送来的 ${s.carryIn} 个（橙色）⇒ ${s.sum} 个"
+        else "右边没送来，一共 ${s.base} 个"
     MoBeat.WRITE ->
-        if (s.carryOut > 0) "每 10 个扎成一捆 —— 能扎出 ${s.carryOut} 捆，剩下 ${s.write} 个留在${moPlaceName(place)}。"
-        else "${s.sum} 个还不够扎一捆，全部留在${moPlaceName(place)}。"
+        if (s.carryOut > 0) "每 10 个扎 1 捆 ⇒ ${s.carryOut} 捆，留 ${s.write} 个"
+        else "${s.sum} 个不够扎一捆 ⇒ 全部留下"
     MoBeat.CARRY ->
-        if (s.carryOut > 0) "${s.carryOut} 捆往左送到${moPlaceName(place + 1)} —— 这就是「进 ${s.carryOut}」的来历。"
-        else "没有满 10，不用往左送。"
+        if (s.carryOut > 0) "${s.carryOut} 捆往左送到${moPlaceName(place + 1)} ⇒ 就是「进 ${s.carryOut}」"
+        else "不满 10，不用往左送"
     MoBeat.DONE -> "${plan.value} × ${plan.factor} = ${plan.product}"
 }
 
@@ -832,26 +849,21 @@ private fun placeCaption(
 @Composable
 private fun WhyOnes() {
     SectionCard {
-        Text("🔎 为什么一定要从个位乘起？", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-        Text(
-            "因为进位只能往左走。个位先攒够 10 个，才谈得上送 1 捆给十位；" +
-                "十位在个位算完之前，根本不知道自己要多加几。",
-            fontSize = 12.sp,
-            color = Grey,
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        Text("为什么从个位乘起", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
         Spacer(Modifier.height(10.dp))
+        // ★ 方框按竖式的顺序摆（百位在左、个位在右），箭头朝左 —— 与「进位往左走」一致
         Row(verticalAlignment = Alignment.CenterVertically) {
-            WhyBox("个位", MdColor)
-            Text("  ──→  ", fontSize = 14.sp, color = Grey)
-            WhyBox("十位", AsColor)
-            Text("  ──→  ", fontSize = 14.sp, color = Grey)
+            MathIcon(name = "arrowLeft", size = 28.dp, tint = MdColor)
+            Spacer(Modifier.width(4.dp))
             WhyBox("百位", OkColor)
+            Text("  ←  ", fontSize = 14.sp, color = Grey)
+            WhyBox("十位", AsColor)
+            Text("  ←  ", fontSize = 14.sp, color = Grey)
+            WhyBox("个位", MdColor)
         }
         Spacer(Modifier.height(10.dp))
         Text(
-            "进位只会顺着这个方向走，不会倒过来。所以顺序是被进位的方向逼出来的，不是老师规定的。" +
-                "从高位起也能算对，但每算一位都要回头改一次 —— 容易乱。",
+            "进位只能往左走：个位攒够 10 才送得出一捆，十位在个位算完前不知道该加几。",
             fontSize = 12.sp,
             color = InkColor,
         )
@@ -895,7 +907,7 @@ private fun MistakeCard(c: MoMistakeCase) {
             } else {
                 Spacer(Modifier.height(8.dp))
                 ActionButton(
-                    text = "想好了，看正确答案",
+                    text = "看正确答案",
                     modifier = Modifier.width(190.dp),
                     onClick = { revealed = true },
                 )
@@ -917,14 +929,7 @@ private fun PracticeSection(
     onFinished: () -> Unit,
 ) {
     SectionCard {
-        Text("✍️ 一步一填：跟着竖式的每一步填", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-        Text(
-            "每一道题都按竖式的顺序问：先算这一位的乘法，再问「写几、进几」。" +
-                "进位那一步是故意的 —— 它正是最容易漏的地方。",
-            fontSize = 12.sp,
-            color = Grey,
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        Text("✍️ 一步一填", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
         Spacer(Modifier.height(10.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -932,9 +937,10 @@ private fun PracticeSection(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { g ->
                         ChatChip(
-                            text = "${g.emoji} ${g.title}",
+                            text = g.title,
                             modifier = Modifier.weight(1f),
                             on = state.kind == g.key,
+                            icon = g.icon,
                             onClick = { onGroup(g.key) },
                         )
                     }
@@ -946,13 +952,13 @@ private fun PracticeSection(
 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "本次已答对 ${state.drillCorrect} / ${state.drillAnswered}" +
-                    if (state.drillDone) " · 这一组做完了 🎉" else "",
+                "答对 ${state.drillCorrect} / ${state.drillAnswered}" +
+                    if (state.drillDone) " · 本组完成 🎉" else "",
                 fontSize = 12.sp,
                 color = InkColor,
                 modifier = Modifier.weight(1f),
             )
-            ActionButton(text = "⟳ 再换一组题", onClick = onReshuffle)
+            ActionButton(text = "⟳ 换一组", onClick = onReshuffle)
         }
         Spacer(Modifier.height(10.dp))
 
@@ -997,12 +1003,12 @@ private fun SolveCard(p: MoProblem, onStep: (Boolean) -> Unit, onFinished: () ->
             Text(p.finalNote, fontSize = 12.sp, color = InkColor, modifier = Modifier.padding(top = 4.dp))
             if (p.traps.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
-                Text("这几个答案也常有人写 —— 看看错在哪：", fontSize = 12.sp, color = Grey)
+                Text("这几个答案也常有人写：", fontSize = 12.sp, color = Grey)
                 Spacer(Modifier.height(4.dp))
                 p.traps.forEach { TrapRow(it) }
             }
             Text(
-                "这一步一填答对 $rightCount / ${p.solveSteps.size}",
+                "答对 $rightCount / ${p.solveSteps.size}",
                 fontSize = 11.sp,
                 color = Grey,
                 modifier = Modifier.padding(top = 8.dp),

@@ -46,6 +46,7 @@ import {
   type MulKind,
   type MulPlan,
 } from "./mulOne"
+import { mathIcon } from "./mathIcons"
 
 const KINDS: MulKind[] = ["noCarry", "carry", "carryChain", "tailZero", "midZero"]
 const ACTIVE_BEATS: Exclude<Beat, "idle" | "done">[] = ["mul", "add", "write", "carry"]
@@ -680,15 +681,17 @@ test("易错案例里「漏加进位」与「只进 1」两个招牌错都要有
   )
 })
 
-test("规律卡：有内容、且不含 markdown 星号", () => {
+test("规律卡：有内容、配图真的存在、且不含 markdown 星号", () => {
   assert.ok(RULES.length >= 3)
   for (const r of RULES) {
     assert.ok(r.title.length > 0 && r.body.length > 0)
     assert.ok(!r.body.includes("**") && !r.title.includes("**"))
+    // ★ 配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+    assert.ok(mathIcon(r.icon), `规律卡「${r.title}」的配图「${r.icon}」不在 mathIcons 里`)
   }
 })
 
-test("题型清单是单一来源：五型齐全、键不重复、每型都有说明", () => {
+test("题型清单是单一来源：五型齐全、键不重复、每型都有说明与配图", () => {
   assert.equal(KIND_GROUPS.length, KINDS.length)
   assert.deepEqual(
     KIND_GROUPS.map((g) => g.key).sort(),
@@ -696,8 +699,9 @@ test("题型清单是单一来源：五型齐全、键不重复、每型都有�
     "KIND_GROUPS 必须覆盖全部题型（页面就靠它渲染按钮）",
   )
   for (const g of KIND_GROUPS) {
-    assert.ok(g.title.length > 0 && g.desc.length > 0 && g.emoji.length > 0)
+    assert.ok(g.title.length > 0 && g.desc.length > 0 && g.icon.length > 0)
     assert.ok(!g.desc.includes("**"))
+    assert.ok(mathIcon(g.icon), `题型「${g.title}」的配图「${g.icon}」不在 mathIcons 里`)
   }
 })
 

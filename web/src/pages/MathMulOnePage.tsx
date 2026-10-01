@@ -29,6 +29,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import MathIcon from "../components/MathIcon"
 import {
   BEAT_MS,
   KIND_GROUPS,
@@ -87,7 +88,7 @@ function beatEquation(plan: MulPlan, index: number): string {
       return s.carryOut > 0 ? `${s.sum} → 写 ${s.write}，留 ${s.carryOut}` : `${s.sum} → 直接写 ${s.write}`
     case "carry":
       return view.place === plan.steps.length - 1
-        ? `最前面写 ${s.carryOut} —— 积多一位`
+        ? `最前面写 ${s.carryOut} · 积多一位`
         : `送 ${s.carryOut} 给${placeName(view.place + 1)}`
     case "done":
       return `${plan.value} × ${plan.factor} = ${plan.product}`
@@ -216,28 +217,29 @@ function PlaceStage({ plan, index }: { plan: MulPlan; index: number }) {
 
   const caption =
     view.beat === "idle"
-      ? `等一下要算${placeName(place)}`
+      ? `等一下算${placeName(place)}`
       : view.beat === "mul"
-        ? `${placeName(place)}上每一个都是 ${s.digit} 吗？不是 —— 这里是 ${s.digit} × ${plan.factor}，先把这些点画出来。`
+        ? `${s.digit} × ${plan.factor} ⇒ 先画 ${s.base} 个点`
         : view.beat === "add"
           ? s.carryIn > 0
-            ? `右边送来的 ${s.carryIn} 个点也加进来（蓝色那些），一共 ${s.sum} 个。`
-            : `${s.base} 个点就是全部，没有从右边送来的。`
+            ? `加上右边送来的 ${s.carryIn} 个（蓝色）⇒ ${s.sum} 个`
+            : `右边没送来，一共 ${s.base} 个`
           : view.beat === "write"
             ? s.carryOut > 0
-              ? `每 10 个扎成一捆 —— 能扎出 ${s.carryOut} 捆，剩下 ${s.write} 个留在${placeName(place)}。`
-              : `${s.sum} 个还不够扎一捆，全部留在${placeName(place)}。`
+              ? `每 10 个扎 1 捆 ⇒ ${s.carryOut} 捆，留 ${s.write} 个`
+              : `${s.sum} 个不够扎一捆 ⇒ 全部留下`
             : view.beat === "carry"
               ? s.carryOut > 0
-                ? `${s.carryOut} 捆往左送到${placeName(place + 1)} —— 这就是「进 ${s.carryOut}」的来历。`
-                : `没有满 10，不用往左送。`
+                ? `${s.carryOut} 捆往左送到${placeName(place + 1)} ⇒ 就是「进 ${s.carryOut}」`
+                : `不满 10，不用往左送`
               : `${plan.value} × ${plan.factor} = ${plan.product}`
 
   return (
     <div className="mo-dotstage">
       <div className="mo-dot-head">
+        <MathIcon name="bundle" size={26} className="mo-dot-icon" />
         <b>位值点阵</b>
-        <span>用「点」看进位：满 10 个扎 1 捆，往左送</span>
+        <span>满 10 扎 1 捆，往左送</span>
       </div>
 
       <div className="mo-dot-eq">
@@ -273,19 +275,19 @@ function PlaceStage({ plan, index }: { plan: MulPlan; index: number }) {
       {view.beat !== "idle" && s.carryOut > 0 && (view.beat === "carry" || view.beat === "write") && (
         <div className="mo-bundle">
           <span className="mo-bundle-pill">×{s.carryOut} 捆</span>
-          <span className="mo-bundle-arrow">→ 送到{placeName(place + 1)}（就是「进 {s.carryOut}」）</span>
-          <span className="mo-bundle-left">留下 {s.write} 个</span>
+          <span className="mo-bundle-arrow">← 送 {s.carryOut} 到{placeName(place + 1)}</span>
+          <span className="mo-bundle-left">留 {s.write} 个</span>
         </div>
       )}
       {view.beat !== "idle" && (view.beat === "carry" || view.beat === "write") && s.carryOut === 0 && (
         <div className="mo-bundle mo-bundle-none">
-          <span>共 {s.sum} 个 · 不满 10 个，扎不成捆 ⇒ 不用进位</span>
+          <span>共 {s.sum} 个 · 不满 10，扎不成捆</span>
         </div>
       )}
 
       <p className="mo-dot-hint">
-        这一位一共有 {s.sum} 个点，其中 {bundling} 个要被扎成捆送到左边去。
-        {place === 0 && s.carryOut > 0 ? "个位不先算完，十位就不知道要加几 —— 这就是「从个位乘起」的原因。" : ""}
+        {s.sum} 个点里有 {bundling} 个扎捆送左边。
+        {place === 0 && s.carryOut > 0 ? "个位不先算完，十位不知道加几。" : ""}
       </p>
     </div>
   )
@@ -300,30 +302,31 @@ function TailCard({ plan }: { plan: MulPlan }) {
   if (!t) return null
   return (
     <div className="mo-tail">
-      <div className="mo-tail-head">⚡ 末尾有 0：不用一位一位地乘，这样算更快</div>
+      <div className="mo-tail-head">
+        <MathIcon name="zeroTail" size={26} className="mo-tail-icon" />
+        末尾有 0：这样算更快
+      </div>
       <div className="mo-tail-steps">
         <div className="mo-tail-step">
           <span className="mo-tail-n">①</span>
           <span>
-            先把末尾的 {t.zeros} 个 0 放一边，算 <b>{t.core} × {plan.factor} = {t.coreProduct}</b>
+            先算 <b>{t.core} × {plan.factor} = {t.coreProduct}</b>
           </span>
         </div>
         <div className="mo-tail-step">
           <span className="mo-tail-n">②</span>
           <span>
-            数一数：{plan.value} 的末尾有 <b>{t.zeros} 个 0</b>
+            末尾有 <b>{t.zeros} 个 0</b>
           </span>
         </div>
         <div className="mo-tail-step">
           <span className="mo-tail-n">③</span>
           <span>
-            把 {t.zeros} 个 0 补回去 ⇒ <b>{plan.value} × {plan.factor} = {plan.product}</b>
+            补 {t.zeros} 个 0 ⇒ <b>{plan.value} × {plan.factor} = {plan.product}</b>
           </span>
         </div>
       </div>
-      <p className="mo-tail-warn">
-        ⚠️ 最容易漏的就是第 ③ 步。写完一定要回头数一数：被乘数末尾原来有几个 0。
-      </p>
+      <p className="mo-tail-warn">⚠️ 最容易漏第 ③ 步 —— 写完回头数一数有几个 0。</p>
     </div>
   )
 }
@@ -335,21 +338,17 @@ function TailCard({ plan }: { plan: MulPlan }) {
 function WhyOnes() {
   return (
     <section className="card mo-why">
-      <h2 className="mo-sec-title">🔎 为什么一定要从个位乘起？</h2>
-      <p className="mo-sec-sub">
-        因为<b>进位只能往左走</b>。个位先攒够 10 个，才谈得上送 1 捆给十位；
-        十位在个位算完之前，根本不知道自己要多加几。
-      </p>
+      <h2 className="mo-sec-title">为什么从个位乘起</h2>
       <div className="mo-why-flow">
-        <span className="mo-why-box mo-why-b0">个位</span>
-        <span className="mo-why-arrow">──→</span>
-        <span className="mo-why-box mo-why-b1">十位</span>
-        <span className="mo-why-arrow">──→</span>
         <span className="mo-why-box mo-why-b2">百位</span>
+        <span className="mo-why-arrow">←</span>
+        <span className="mo-why-box mo-why-b1">十位</span>
+        <span className="mo-why-arrow">←</span>
+        <span className="mo-why-box mo-why-b0">个位</span>
+        <MathIcon name="arrowLeft" size={38} className="mo-why-icon" />
       </div>
       <p className="mo-why-note">
-        进位只会顺着这个方向走，不会倒过来。所以顺序是被进位的方向<b>逼</b>出来的，
-        不是老师规定的。从高位起也能算对，但每算一位都要回头改一次 —— 容易乱。
+        进位只能往左走：个位攒够 10 才送得出一捆，<b>十位在个位算完前不知道该加几</b>。
       </p>
     </section>
   )
@@ -386,8 +385,7 @@ function MistakeSection() {
 
   return (
     <section className="card mo-mistake" ref={ref}>
-      <h2 className="mo-sec-title">⚠️ 最容易错的 7 个地方</h2>
-      <p className="mo-sec-sub">先看红色的错例，想一想哪里不对，再看绿色的正确写法。</p>
+      <h2 className="mo-sec-title">最容易错的 7 个地方</h2>
       <div className="mo-mistake-list">
         {MISTAKE_CASES.map((c, i) => (
           <MistakeCard key={c.wrong} c={c} shake={shown.has(i)} />
@@ -414,7 +412,7 @@ function MistakeCard({ c, shake }: { c: MistakeCase; shake: boolean }) {
         </div>
       ) : (
         <button type="button" className="mo-btn mo-btn-sm mo-reveal" onClick={() => setRevealed(true)}>
-          想好了，看正确答案
+          看正确答案
         </button>
       )}
     </div>
@@ -461,13 +459,13 @@ function SolveCard({ p, onStep, onFinished }: {
         <p className="mo-card-note">{p.finalNote}</p>
         {p.traps.length > 0 && (
           <div className="mo-traps">
-            <div className="mo-traps-head">这几个答案也常有人写 —— 看看错在哪：</div>
+            <div className="mo-traps-head">这几个答案也常有人写：</div>
             {p.traps.map((t) => (
               <TrapRow key={t.label} t={t} />
             ))}
           </div>
         )}
-        <div className="mo-card-foot">这一步一填答对 {right} / {p.solveSteps.length}</div>
+        <div className="mo-card-foot">答对 {right} / {p.solveSteps.length}</div>
       </div>
     )
   }
@@ -576,11 +574,7 @@ function PracticeSection() {
 
   return (
     <section className="card mo-practice">
-      <h2 className="mo-sec-title">✍️ 一步一填：跟着竖式的每一步填</h2>
-      <p className="mo-sec-sub">
-        每一道题都按竖式的顺序问：先算这一位的乘法，再问「写几、进几」。
-        进位那一步是<b>故意的</b> —— 它正是最容易漏的地方。
-      </p>
+      <h2 className="mo-sec-title">一步一填</h2>
 
       <div className="mo-chips">
         {KIND_GROUPS.map((g) => (
@@ -591,16 +585,15 @@ function PracticeSection() {
             className={`mo-chip${kind === g.key ? " mo-chip-on" : ""}`}
             onClick={() => reload(g.key)}
           >
-            <b>
-              {g.emoji} {g.title}
-            </b>
+            <MathIcon name={g.icon} size={22} className="mo-chip-icon" />
+            <b>{g.title}</b>
           </button>
         ))}
       </div>
 
       <div className="mo-score">
-        本次已答对 <b>{stat.right}</b> / {stat.total}
-        {finished >= set.length && set.length > 0 && <span className="mo-score-done"> · 这一组做完了 🎉</span>}
+        答对 <b>{stat.right}</b> / {stat.total}
+        {finished >= set.length && set.length > 0 && <span className="mo-score-done"> · 本组完成 🎉</span>}
       </div>
 
       <div className="mo-set">
@@ -616,7 +609,7 @@ function PracticeSection() {
 
       <div className="mo-row">
         <button type="button" className="mo-btn mo-btn-primary" onClick={() => reload(kind)}>
-          ⟳ 再换一组题
+          ⟳ 换一组
         </button>
       </div>
     </section>
@@ -692,17 +685,17 @@ export function MathMulOnePage() {
       </header>
 
       {/* ⚠️ .module-header 是 flex ⇒ 副标题必须放 header **外面**，否则 h1 被挤成省略号 */}
-      <p className="mo-sub">
-        竖式<b>逐位四拍</b>：乘 → 加进位 → 写 → 进。每一次进位都单独演一遍，
-        再用<b>位值点阵</b>看懂「为什么要从个位乘起」。
-      </p>
+      <p className="mo-sub">逐位四拍：乘 → 加进位 → 写 → 进。点阵里满 10 扎 1 捆、往左送。</p>
 
       {/* ── 规律卡 ── */}
       <div className="card mo-rules">
         {RULES.map((r) => (
           <div key={r.title} className="mo-rule">
-            <b className="mo-rule-title">{r.title}</b>
-            <span className="mo-rule-body">{r.body}</span>
+            <MathIcon name={r.icon} size={34} className="mo-rule-icon" />
+            <div className="mo-rule-text">
+              <b className="mo-rule-title">{r.title}</b>
+              <span className="mo-rule-body">{r.body}</span>
+            </div>
           </div>
         ))}
       </div>
@@ -710,10 +703,6 @@ export function MathMulOnePage() {
       {/* ── 主舞台 ── */}
       <section className="card mo-main">
         <h2 className="mo-sec-title">🧮 竖式逐位演一遍：{plan.value} × {plan.factor}</h2>
-        <p className="mo-sec-sub">
-          下面对应的四个动作：这一位<b>乘</b>出多少、要不要<b>加</b>进位、结果<b>写</b>在哪儿、
-          <b>进</b>几到左边。高亮的那一块就是此刻在算的地方。
-        </p>
 
         <div className="mo-chips">
           {KIND_GROUPS.map((g) => (
@@ -724,9 +713,8 @@ export function MathMulOnePage() {
               className={`mo-chip${kind === g.key ? " mo-chip-on" : ""}`}
               onClick={() => pickKind(g.key)}
             >
-              <b>
-                {g.emoji} {g.title}
-              </b>
+              <MathIcon name={g.icon} size={30} className="mo-chip-icon" />
+              <b>{g.title}</b>
               <span>{g.desc}</span>
             </button>
           ))}
@@ -735,7 +723,7 @@ export function MathMulOnePage() {
         <div className="mo-qbar">
           <span className="mo-q">{plan.value} × {plan.factor} = ?</span>
           <span className="mo-qtag">
-            {group.title} · 积是 {plan.resultDigits.length} 位数
+            {group.title} · 积 {plan.resultDigits.length} 位
           </span>
         </div>
 
@@ -798,10 +786,10 @@ export function MathMulOnePage() {
               {plan.value} × {plan.factor} = <b>{plan.product}</b>
             </div>
             <p className="mo-done-note">
-              共 {plan.steps.length} 位、{plan.steps.filter((s) => s.carryOut > 0).length} 次进位。
-              {plan.grewTop ? "最高位还长出了一位，别忘了写。" : "积的位数和被乘数一样。"}
+              {plan.steps.length} 位 · {plan.steps.filter((s) => s.carryOut > 0).length} 次进位
+              {plan.grewTop ? " · 最前面还长出一位" : ""}
               <br />
-              校验：把写下来的各位拼回去 = {productFromPlan(plan)} ✓
+              校验：各位拼回去 = {productFromPlan(plan)} ✓
             </p>
           </div>
         )}

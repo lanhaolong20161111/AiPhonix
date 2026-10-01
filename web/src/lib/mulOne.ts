@@ -164,7 +164,8 @@ export interface MulProblem {
 
 export interface MulKindGroup {
   key: MulKind
-  emoji: string
+  /** ★ 题型卡的图（mathIcons.ts 的键）—— 用它代替 emoji + 长描述 */
+  icon: string
   title: string
   desc: string
 }
@@ -179,6 +180,8 @@ export interface MistakeCase {
 }
 
 export interface Rule {
+  /** ★ 规律卡的配图（mathIcons.ts 的键）—— 一句话配一幅画，少写一段字 */
+  icon: string
   title: string
   body: string
 }
@@ -445,11 +448,11 @@ export function kindOf(plan: MulPlan): MulKind {
 // ────────────────────────────────────────────────────────────
 
 export const KIND_GROUPS: MulKindGroup[] = [
-  { key: "noCarry", emoji: "🔹", title: "不进位", desc: "每一位乘完都不满十，顺着写下来就行" },
-  { key: "carry", emoji: "🔸", title: "进位", desc: "有一位满十，要向左边一位进几" },
-  { key: "carryChain", emoji: "🔗", title: "连续进位", desc: "连着两位都满十，进位一层层往左传" },
-  { key: "tailZero", emoji: "0️⃣", title: "末尾有 0", desc: "先算前面的数，最后把 0 补回来" },
-  { key: "midZero", emoji: "🕳️", title: "中间有 0", desc: "0 乘得 0，但别忘了再加上进上来的数" },
+  { key: "noCarry", icon: "rowSticks", title: "不进位", desc: "每位都不满十" },
+  { key: "carry", icon: "bundle", title: "进位", desc: "满十往左送" },
+  { key: "carryChain", icon: "bundleChain", title: "连续进位", desc: "一层层往左传" },
+  { key: "tailZero", icon: "zeroTail", title: "末尾有 0", desc: "先算前面，末尾补 0" },
+  { key: "midZero", icon: "zeroMid", title: "中间有 0", desc: "0 也要加进位" },
 ]
 
 // ────────────────────────────────────────────────────────────
@@ -522,40 +525,40 @@ export function viewOf(plan: MulPlan, index: number): MoView {
     hl.shown = "base"
     say = step.digit === 0
       ? step.carryIn > 0
-        ? `${placeName(place)}上是 0 —— 0 乘 ${plan.factor} 得 0。先记着这个 0，等一下还要加上进上来的数。`
-        : `${placeName(place)}上是 0 —— 0 乘任何数都得 0，这一位就写 0。`
-      : `${placeName(place)}上的 ${step.digit} 乘 ${plan.factor} —— ${step.chant}，得 ${step.base}。`
+        ? `${placeName(place)}是 0 —— 先记 0，进位等一下再加`
+        : `${placeName(place)}是 0 —— 0 乘几都得 0`
+      : `${placeName(place)}：${step.digit} × ${plan.factor} = ${step.base}　${step.chant}`
     if (step.digit * plan.factor >= 10) {
-      warn = `⚠️ ${step.chant}，满十了 —— 等一下要把十位那个数往左边送。`
+      warn = `⚠️ ${step.chant} 满十，等一下往左送`
     }
   } else if (beat === "add") {
     hl.carryIn = place
     hl.shown = "sum"
-    say = `再加上${placeName(place - 1)}进上来的 ${step.carryIn}：${step.base} + ${step.carryIn} = ${step.sum}。`
+    say = `${step.base} + ${step.carryIn} = ${step.sum}　（${placeName(place - 1)}进上来的）`
     warn = step.digit === 0
-      ? `⚠️ 这一位是 0，0 乘 ${plan.factor} 得 0 —— 但 0 还要加上进上来的 ${step.carryIn}，直接写 0 就错了。`
-      : `⚠️ 别忘了把刚进上来的 ${step.carryIn} 加进去。这一步是全章错得最多的地方。`
+      ? `⚠️ 这一位是 0，但 0 + ${step.carryIn} = ${step.sum} —— 直接写 0 就错了`
+      : `⚠️ 别漏了刚进上来的 ${step.carryIn} —— 全章错得最多的一步`
   } else if (beat === "write") {
     hl.write = place
     hl.shown = "sum"
     say = step.carryOut > 0
-      ? `${step.sum} 的个位是 ${step.write}，写在${placeName(place)}下面；十位那个 ${step.carryOut} 先记着。`
-      : `${step.sum} 不满十，${step.write} 直接写在${placeName(place)}下面，不用进位。`
-    if (step.carryOut > 1) warn = `⚠️ 满 ${step.sum}，要向前一位进 ${step.carryOut}，不是进 1。`
+      ? `${placeName(place)}写 ${step.write}，${step.carryOut} 记在头顶`
+      : `${step.sum} 不满十 —— 写 ${step.write}，不进位`
+    if (step.carryOut > 1) warn = `⚠️ 满 ${step.sum} 要进 ${step.carryOut}，不是进 1`
   } else if (beat === "carry") {
     hl.shown = "sum"
     if (place === len - 1) {
       hl.topCarry = true
-      say = `${step.sum} 满十了 —— ${step.carryOut} 写在最前面，积就比原来的数多一位。`
+      say = `${step.sum} 满十 —— ${step.carryOut} 写在最前面，积多一位`
     } else {
       hl.carryIn = place + 1
-      say = `${step.sum} 满十了 —— ${step.carryOut} 送到前一位（${placeName(place + 1)}）的头上去，算那一位的时候要加上它。`
+      say = `${step.sum} 满十 —— ${step.carryOut} 送到${placeName(place + 1)}头上，算到那一位要加上它`
     }
   } else if (beat === "done") {
     hl.shown = "sum"
-    say = `${plan.value} × ${plan.factor} = ${plan.product}。每一位都乘完、进位都加上了，竖式就完成了。`
+    say = `${plan.value} × ${plan.factor} = ${plan.product}　✓ 每位都乘完、进位都加了`
   } else {
-    say = `准备好了 —— 从个位开始，一位一位地乘。`
+    say = `从个位起，一位一位地乘`
   }
 
   return {
@@ -766,16 +769,16 @@ function makeVerticalSteps(plan: MulPlan): SolveStep[] {
       label: `${pn} · 乘`,
       ask:
         s.carryIn > 0
-          ? `${pn}上：${s.digit} × ${plan.factor} = ${s.base}，再加上右边进上来的 ${s.carryIn}，一共是多少？`
-          : `${pn}上：${s.digit} × ${plan.factor} = ?`,
+          ? `${pn}：${s.digit} × ${plan.factor} = ${s.base}，再加进上来的 ${s.carryIn} = ?`
+          : `${pn}：${s.digit} × ${plan.factor} = ?`,
       options: optsFor(String(s.sum), mulCands, numFillers(s.sum)),
       answer: String(s.sum),
       tip:
         s.digit === 0 && s.carryIn > 0
-          ? `0 乘 ${plan.factor} 确实是 0，但这一位不是 0 —— 还要加上进上来的 ${s.carryIn}。`
+          ? `0 × ${plan.factor} = 0 没错，但这一位还要加 ${s.carryIn}。`
           : s.carryIn > 0
-            ? `${s.digit} × ${plan.factor} = ${s.base}，再加上进上来的 ${s.carryIn}，得 ${s.sum}。漏掉进位就会算成 ${s.base}，这正是 27×4 被算成 88 的原因。`
-            : `${pn}上的 ${s.digit} 乘 ${plan.factor}（${s.chant || "0 乘任何数都得 0"}）得 ${s.sum}。`,
+            ? `漏掉进位就会写成 ${s.base} —— 27 × 4 算成 88 就是这个原因。`
+            : `${s.chant || "0 乘几都得 0"} ⇒ ${s.sum}`,
     })
 
     // ── ② 写几、进几 ──
@@ -797,14 +800,14 @@ function makeVerticalSteps(plan: MulPlan): SolveStep[] {
     out.push({
       key: `write${i}`,
       label: `${pn} · 写`,
-      ask: `${s.sum} —— ${pn}下面写几？向前一位进几？`,
+      ask: `${s.sum} —— ${pn}写几？进几？`,
       options: optsFor(answer, writeCands, writeFillers),
       answer,
       tip:
         s.carryOut > 0
-          ? `${s.sum} 的个位 ${s.write} 留在${pn}，十位 ${s.carryOut} 送到前一位头上。` +
-            (i === len - 1 ? "这是最前面了，所以它直接写进积的最高位，积就多一位。" : "")
-          : `${s.sum} 不到 10，${s.write} 直接写在${pn}，不用进位。`,
+          ? `个位 ${s.write} 留在${pn}，十位 ${s.carryOut} 送到前一位头上。` +
+            (i === len - 1 ? "已经是最前面，直接写进积的最高位。" : "")
+          : `${s.sum} 不到 10 —— 写 ${s.write}，不进位。`,
     })
   }
 
@@ -820,14 +823,14 @@ function makeTailZeroSteps(plan: MulPlan, tail: TailZeroHint): SolveStep[] {
   out.push({
     key: "core",
     label: "① 先算前面",
-    ask: `不看末尾的 ${"0".repeat(tail.zeros)}，先算 ${tail.core} × ${plan.factor} = ?`,
+    ask: `先算 ${tail.core} × ${plan.factor} = ?`,
     options: optsFor(
       String(p),
       [drop, one].filter((n) => n !== p).map(String),
       numFillers(p),
     ),
     answer: String(p),
-    tip: `${tail.core} × ${plan.factor} = ${p}。末尾的 0 先放一边，算完再补 —— 这样只要算两位数。`,
+    tip: `末尾的 0 先放一边 ⇒ 只要算两位数。`,
   })
 
   out.push({
@@ -836,20 +839,20 @@ function makeTailZeroSteps(plan: MulPlan, tail: TailZeroHint): SolveStep[] {
     ask: `${plan.value} 的末尾有几个 0？`,
     options: ["没有 0", "1 个 0", "2 个 0"],
     answer: `${tail.zeros} 个 0`,
-    tip: `${tail.core} 后面跟着 ${tail.zeros} 个 0，所以 ${plan.value} 的末尾有 ${tail.zeros} 个 0。补的时候一个也不能少。`,
+    tip: `补 0 的时候一个也不能少。`,
   })
 
   out.push({
     key: "final",
     label: "③ 补上 0",
-    ask: `${p} 的末尾补上 ${tail.zeros} 个 0，${plan.value} × ${plan.factor} = ?`,
+    ask: `${p} 后补 ${tail.zeros} 个 0 = ?`,
     options: optsFor(
       String(plan.product),
       [String(p), String(p * Math.pow(10, tail.zeros + 1))],
       numFillers(plan.product),
     ),
     answer: String(plan.product),
-    tip: `${p} 后面补 ${tail.zeros} 个 0 ⇒ ${plan.product}。漏补就少一个 0（变成 ${p}），多补就多一个 0。`,
+    tip: `补 ${tail.zeros} 个 0 ⇒ ${plan.product}。漏补就变成 ${p}。`,
   })
 
   return out
@@ -879,12 +882,12 @@ export function makeSolveSteps(plan: MulPlan): SolveStep[] {
   out.push({
     key: "final",
     label: "写完整",
-    ask: `把每一位写下来：${plan.value} × ${plan.factor} = ?`,
+    ask: `${plan.value} × ${plan.factor} = ?`,
     options: optsFor(String(plan.product), usableTraps([drop, one, zero], plan.product), numFillers(plan.product)),
     answer: String(plan.product),
-    tip: `${plan.value} × ${plan.factor} = ${plan.product}。${
-      plan.grewTop ? "最高位进上来的那个数也算一位，别忘了写。" : ""
-    }`,
+    tip:
+      `${plan.value} × ${plan.factor} = ${plan.product}` +
+      (plan.grewTop ? "，最前面还有进上来的一位" : ""),
   })
   return out
 }
@@ -901,7 +904,7 @@ function makeTraps(plan: MulPlan): MulTrap[] {
     out.push({
       label: `算成 ${drop}`,
       value: drop,
-      why: "每一位都忘了把右边进上来的数加进去。比如 27 × 4 被算成 88，就是这个原因。",
+      why: "每位都忘了加右边进上来的数（27 × 4 算成 88）。",
     })
   }
   if (one !== plan.product && one > 0 && !taken.has(one)) {
@@ -909,14 +912,14 @@ function makeTraps(plan: MulPlan): MulTrap[] {
     out.push({
       label: `算成 ${one}`,
       value: one,
-      why: "每一处进位都只进 1，可是 8 × 6 = 48 要进 4 —— 满几十就进几。比如 68 × 4 就这样被算成了 252。",
+      why: "每处进位都只进 1 —— 8 × 6 = 48 要进 4，满几十就进几。",
     })
   }
   if (zero !== plan.product && zero > 0 && !taken.has(zero)) {
     out.push({
       label: `算成 ${zero}`,
       value: zero,
-      why: "被乘数中间那一位是 0，就直接写了 0 —— 可它还要加上进上来的数。比如 305 × 6 被算成 1800，就是这个原因。",
+      why: "中间那位是 0 就直接写 0，忘了还要加进位。",
     })
   }
   return out
@@ -930,10 +933,10 @@ export function buildProblem(plan: MulPlan, groupKey: MulKind): MulProblem {
   const tail = tailZeroHint(plan.value, plan.factor)
   const note =
     groupKey === "tailZero" && tail
-      ? `${plan.value} × ${plan.factor} = ${plan.product}。${tail.core} × ${plan.factor} = ${tail.coreProduct}，末尾再补 ${tail.zeros} 个 0。`
+      ? `${tail.core} × ${plan.factor} = ${tail.coreProduct}，末尾补 ${tail.zeros} 个 0 ⇒ ${plan.product}`
       : groupKey === "midZero"
-        ? `${plan.value} × ${plan.factor} = ${plan.product}。中间那一位是 0，0 乘 ${plan.factor} 得 0，但还要加上进上来的数 —— 所以它不是 0。`
-        : `${plan.value} × ${plan.factor} = ${plan.product}。从个位起一位一位地乘，满十就向前一位进几。`
+        ? `中间那位是 0，0 × ${plan.factor} = 0 —— 但要加进位，所以它不是 0`
+        : `从个位起一位一位地乘，满十就往左进几`
 
   return {
     groupKey,
@@ -976,29 +979,24 @@ export function genProblemSet(groupKey: MulKind, n = 4): MulProblem[] {
 
 export const RULES: Rule[] = [
   {
-    title: "从个位乘起 —— 因为进位只能往左走",
-    body:
-      "个位先攒够 10，才谈得上送 1 个给十位；十位在个位算完之前根本不知道该加几。" +
-      "所以「从个位起」不是规定，是被进位的方向逼出来的。" +
-      "从高位起也能算对，但每算一位都要回头改，容易乱。",
+    icon: "arrowLeft",
+    title: "从个位乘起",
+    body: "进位只能往左走。个位攒够 10 才送得出一捆；十位在个位算完前不知道该加几。",
   },
   {
-    title: "哪一位满几十，就向前一位进几",
-    body:
-      "4 × 6 = 24，向前进 2；8 × 6 = 48，向前进 4。进的是「十位上的那个数」，" +
-      "不是不管三七二十一都进 1 —— 68 × 4 应该进 3，只进 1 就会算成 252。",
+    icon: "bundle",
+    title: "满几十就进几",
+    body: "4 × 6 = 24 进 2，8 × 6 = 48 进 4。不是一律进 1 —— 68 × 4 只进 1 会算成 252。",
   },
   {
-    title: "进上来的数要「加」进去",
-    body:
-      "算完下一位的乘法，还要把进上来的数加上。这一步是全章错得最多的地方：" +
-      "27 × 4，个位 7 × 4 = 28 写 8 进 2，十位 2 × 4 = 8 —— 别忘了 8 + 2 = 10。",
+    icon: "plusHead",
+    title: "进上来的数要加",
+    body: "乘法算完还要加它。27 × 4：7 × 4 = 28 写 8 进 2，十位 2 × 4 + 2 = 10。",
   },
   {
-    title: "末尾有 0：先算前面，最后补 0",
-    body:
-      "280 × 5 不用一位一位地乘。先算 28 × 5 = 140，末尾再补 1 个 0 ⇒ 1400。" +
-      "补几个 0，就看被乘数末尾原来有几个 0。",
+    icon: "zeroTail",
+    title: "末尾有 0 先算前面",
+    body: "280 × 5：先算 28 × 5 = 140，末尾补 1 个 0 ⇒ 1400。补几个看原来末尾有几个。",
   },
 ]
 
@@ -1010,58 +1008,50 @@ export const MISTAKE_CASES: MistakeCase[] = [
   {
     wrong: "27 × 4 = 88",
     right: "27 × 4 = 108",
-    why:
-      "个位 7 × 4 = 28，写 8 进 2；算十位 2 × 4 = 8 的时候，忘了把进上来的 2 加上去。" +
-      "应该 8 + 2 = 10，写 0 进 1。",
-    tip: "凡是上一句出现过「进几」，下一句就一定要「加上几」。在进位数旁边画个小圈提醒自己。",
+    why: "十位 2 × 4 = 8 时忘了加进上来的 2 —— 该写 0 进 1。",
+    tip: "「进几」的下一步一定「加上几」。在进位数旁边画个小圈提醒自己。",
     check: { value: 27, factor: 4, product: 108 },
   },
   {
     wrong: "305 × 6 = 1800",
     right: "305 × 6 = 1830",
-    why:
-      "十位是 0，孩子看见「0 × 6 = 0」就直接写了个 0，忘了个位 5 × 6 = 30 还进了 3 上来。" +
-      "这一位其实是 0 + 3 = 3。",
-    tip: "0 乘任何数都得 0，这句话没错 —— 但这一位要算的是「0 × 6 的积 再加上进位的数」。",
+    why: "看见 0 × 6 = 0 就写了 0，忘了个位 5 × 6 = 30 还进了 3 —— 这一位是 0 + 3。",
+    tip: "这一位要算的是「0 × 6 的积 再加进位数」。",
     check: { value: 305, factor: 6, product: 1830 },
   },
   {
     wrong: "403 × 2 = 86",
     right: "403 × 2 = 806",
-    why: "十位算出来是 0，孩子干脆没写，结果百位的 8 掉到了十位上，整个数位全错位了。",
-    tip: "哪一位算出来是 0，也要把 0 老老实实写在那一格上 —— 0 占的不是位置，是数位。",
+    why: "十位的 0 没写，百位的 8 就掉到了十位上。",
+    tip: "算出来是 0 也要写在那一格 —— 0 占的是数位。",
     check: { value: 403, factor: 2, product: 806 },
   },
   {
     wrong: "160 × 3 = 48",
     right: "160 × 3 = 480",
-    why: "用巧算先算了 16 × 3 = 48，最后忘了把末尾那个 0 补回去。",
-    tip: "巧算分两步：先算前面、再补 0。写完一定要回头数一数，被乘数末尾有几个 0。",
+    why: "巧算先算了 16 × 3 = 48，末尾的 0 忘了补。",
+    tip: "写完一定要回头数：被乘数末尾原来有几个 0。",
     check: { value: 160, factor: 3, product: 480 },
   },
   {
     wrong: "68 × 4 = 252",
     right: "68 × 4 = 272",
-    why:
-      "个位 8 × 4 = 32，应该向前进 3；孩子不管进多少都只进 1。" +
-      "于是十位算成了 6 × 4 + 1 = 25，写 5 进 2。",
-    tip: "进位进几，要看这一位乘出来的数十位上是几。32 就进 3，48 就进 4。",
+    why: "个位 8 × 4 = 32 该进 3，却只进了 1。",
+    tip: "进几看乘出来的数十位上是几：32 进 3，48 进 4。",
     check: { value: 68, factor: 4, product: 272 },
   },
   {
     wrong: "45 × 3 = 1215",
     right: "45 × 3 = 135",
-    why:
-      "把十位和个位各自算完就拼起来了：4 × 3 = 12、5 × 3 = 15，直接写成 1215。" +
-      "个位满十要往十位进，两块不能各写各的。",
-    tip: "竖式是一根链条：每一位算完都要把进位交给前一位，最后只有一个数。",
+    why: "十位和个位各算各的、拼成 1215 —— 个位满十要往十位进。",
+    tip: "每一位算完都要把进位交给前一位，最后只有一个数。",
     check: { value: 45, factor: 3, product: 135 },
   },
   {
     wrong: "78 × 8 = 604",
     right: "78 × 8 = 624",
-    why: "口诀背混了：七八五十六记成了七八五十四（和六九五十四串了）。",
-    tip: "七八五十六、六九五十四，这两句最爱混。背不牢的时候想「8 × 7 = 8 × 5 + 8 × 2 = 40 + 16」。",
+    why: "口诀背混：七八五十六记成了七八五十四。",
+    tip: "背不牢就想 8 × 7 = 40 + 16。",
     check: { value: 78, factor: 8, product: 624 },
   },
 ]

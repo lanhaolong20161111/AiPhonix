@@ -430,3 +430,6 @@ web/_shrink*.py
 .kotlin/
 # 图标包围盒离线检查脚本
 web/_check_icons.ts
+
+# mulOne page screenshot output (local visual check)
+web/_mo_*.png

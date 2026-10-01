@@ -3,9 +3,11 @@ package com.example.ai.data.math
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.example.ai.ui.icon.MathIcons
 import kotlin.random.Random
 
 /**
@@ -564,22 +566,25 @@ class MulOneTest {
     }
 
     @Test
-    fun `题型清单是唯一来源：5 个题型、key 唯一、文案齐全`() {
+    fun `题型清单是唯一来源：5 个题型、key 唯一、文案与配图齐全`() {
         assertEquals(5, MO_KIND_GROUPS.size)
         assertEquals(kinds.toSet(), MO_KIND_GROUPS.map { it.key }.toSet())
         assertEquals("key 不许重复", MO_KIND_GROUPS.size, MO_KIND_GROUPS.map { it.key.key }.toSet().size)
         for (g in MO_KIND_GROUPS) {
-            assertTrue("emoji/title/desc 都不能空", g.emoji.isNotEmpty() && g.title.isNotEmpty() && g.desc.isNotEmpty())
+            assertTrue("icon/title/desc 都不能空", g.icon.isNotEmpty() && g.title.isNotEmpty() && g.desc.isNotEmpty())
             assertFalse("题型文案混进星号", g.desc.contains("**"))
+            // ★ 配图键打错的话渲染件会安静地什么都不画 ⇒ 这里当场拦住
+            assertNotNull("题型「${g.title}」的配图「${g.icon}」不在 MathIcons 里", MathIcons[g.icon])
         }
     }
 
     @Test
-    fun `规律卡四条都在，且文案里没有 markdown 星号`() {
+    fun `规律卡四条都在，配图存在，且文案里没有 markdown 星号`() {
         assertEquals(4, MO_RULES.size)
         for (r in MO_RULES) {
             assertTrue(r.title.isNotEmpty() && r.body.isNotEmpty())
             assertFalse("规律卡混进了星号：${r.title}", r.title.contains("**") || r.body.contains("**"))
+            assertNotNull("规律卡「${r.title}」的配图「${r.icon}」不在 MathIcons 里", MathIcons[r.icon])
         }
     }
 

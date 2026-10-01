@@ -5,7 +5,7 @@ package com.example.ai.ui.icon
 //        ./web/node_modules/.bin/tsx web/_gen_math_icons.ts
 //    两端共用同一份图形数据，保证 web 与 Android 画出来逐字一致。
 
-/** 全部图标（24 个）。键与 web 端 MATH_ICONS 一一对应。 */
+/** 全部图标（31 个）。键与 web 端 MATH_ICONS 一一对应。 */
 internal object MathIcons {
 
     val card: List<IconPrim> = listOf(
@@ -166,6 +166,58 @@ internal object MathIcons {
         IconPrim.C(72f, 74f, 8f),
     )
 
+    val rowSticks: List<IconPrim> = listOf(
+        IconPrim.L(24f, 16f, 24f, 74f, 4f),
+        IconPrim.L(42f, 16f, 42f, 74f, 4f),
+        IconPrim.L(58f, 16f, 58f, 74f, 4f),
+        IconPrim.L(76f, 16f, 76f, 74f, 4f),
+        IconPrim.L(14f, 84f, 86f, 84f, 3f),
+    )
+
+    val bundle: List<IconPrim> = listOf(
+        IconPrim.L(22f, 16f, 22f, 84f, 3.5f),
+        IconPrim.L(32f, 16f, 32f, 84f, 3.5f),
+        IconPrim.L(42f, 16f, 42f, 84f, 3.5f),
+        IconPrim.L(58f, 16f, 58f, 84f, 3.5f),
+        IconPrim.L(68f, 16f, 68f, 84f, 3.5f),
+        IconPrim.L(78f, 16f, 78f, 84f, 3.5f),
+        IconPrim.Rr(12f, 44f, 76f, 12f, 4f),
+    )
+
+    val bundleChain: List<IconPrim> = listOf(
+        IconPrim.L(34f, 14f, 34f, 62f, 3.5f),
+        IconPrim.L(46f, 14f, 46f, 62f, 3.5f),
+        IconPrim.L(58f, 14f, 58f, 62f, 3.5f),
+        IconPrim.L(70f, 14f, 70f, 62f, 3.5f),
+        IconPrim.Rr(28f, 32f, 48f, 12f, 4f),
+        IconPrim.L(78f, 80f, 24f, 80f, 4f),
+        IconPrim.L(36f, 69f, 24f, 80f, 3f),
+        IconPrim.L(36f, 91f, 24f, 80f, 3f),
+    )
+
+    val arrowLeft: List<IconPrim> = listOf(
+        IconPrim.P(floatArrayOf(8f, 50f, 40f, 26f, 40f, 40f, 88f, 40f, 88f, 60f, 40f, 60f, 40f, 74f), true),
+    )
+
+    val zeroTail: List<IconPrim> = listOf(
+        IconPrim.Rr(14f, 34f, 34f, 34f, 5f),
+        IconPrim.C(70f, 51f, 17f, outline = true),
+    )
+
+    val zeroMid: List<IconPrim> = listOf(
+        IconPrim.Rr(8f, 32f, 26f, 36f, 4f),
+        IconPrim.C(50f, 50f, 18f, outline = true),
+        IconPrim.Rr(66f, 32f, 26f, 36f, 4f),
+    )
+
+    val plusHead: List<IconPrim> = listOf(
+        IconPrim.Rr(36f, 8f, 24f, 22f, 5f),
+        IconPrim.L(48f, 30f, 48f, 44f, 3f),
+        IconPrim.L(41f, 36f, 48f, 44f, 2.5f),
+        IconPrim.L(55f, 36f, 48f, 44f, 2.5f),
+        IconPrim.Rr(14f, 46f, 72f, 40f, 6f),
+    )
+
     val ALL: Map<String, List<IconPrim>> = linkedMapOf(
         "card" to card,
         "coin" to coin,
@@ -191,6 +243,13 @@ internal object MathIcons {
         "apple" to apple,
         "kid" to kid,
         "car" to car,
+        "rowSticks" to rowSticks,
+        "bundle" to bundle,
+        "bundleChain" to bundleChain,
+        "arrowLeft" to arrowLeft,
+        "zeroTail" to zeroTail,
+        "zeroMid" to zeroMid,
+        "plusHead" to plusHead,
     )
 
     /** 名字打错时返回 null —— 渲染件会退化成不画，而不是崩。 */

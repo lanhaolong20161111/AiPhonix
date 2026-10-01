@@ -168,7 +168,13 @@ data class MoProblem(
     val finalNote: String,
 )
 
-data class MoKindGroup(val key: MoKind, val emoji: String, val title: String, val desc: String)
+data class MoKindGroup(
+    val key: MoKind,
+    /** ★ 题型卡的图（MathIcons 的键）—— 用它代替 emoji + 长描述 */
+    val icon: String,
+    val title: String,
+    val desc: String,
+)
 
 data class MoMistakeCase(
     val wrong: String,
@@ -181,7 +187,12 @@ data class MoMistakeCase(
 
 data class MoCheck(val value: Int, val factor: Int, val product: Int)
 
-data class MoRule(val title: String, val body: String)
+data class MoRule(
+    /** ★ 规律卡的配图（MathIcons 的键）—— 一句话配一幅画，少写一段字 */
+    val icon: String,
+    val title: String,
+    val body: String,
+)
 
 /** 每拍用多久（ms）。`ADD` 只在真的进上来了数时才走，所以「无进位」的位会快很多 */
 val MO_BEAT_MS: Map<MoBeat, Long> = mapOf(
@@ -433,11 +444,11 @@ fun moKindOf(plan: MoPlan): MoKind {
 // ────────────────────────────────────────────────────────────
 
 val MO_KIND_GROUPS: List<MoKindGroup> = listOf(
-    MoKindGroup(MoKind.NO_CARRY, "🔹", "不进位", "每一位乘完都不满十，顺着写下来就行"),
-    MoKindGroup(MoKind.CARRY, "🔸", "进位", "有一位满十，要向左边一位进几"),
-    MoKindGroup(MoKind.CARRY_CHAIN, "🔗", "连续进位", "连着两位都满十，进位一层层往左传"),
-    MoKindGroup(MoKind.TAIL_ZERO, "0️⃣", "末尾有 0", "先算前面的数，最后把 0 补回来"),
-    MoKindGroup(MoKind.MID_ZERO, "🕳️", "中间有 0", "0 乘得 0，但别忘了再加上进上来的数"),
+    MoKindGroup(MoKind.NO_CARRY, "rowSticks", "不进位", "每位都不满十"),
+    MoKindGroup(MoKind.CARRY, "bundle", "进位", "满十往左送"),
+    MoKindGroup(MoKind.CARRY_CHAIN, "bundleChain", "连续进位", "一层层往左传"),
+    MoKindGroup(MoKind.TAIL_ZERO, "zeroTail", "末尾有 0", "先算前面，末尾补 0"),
+    MoKindGroup(MoKind.MID_ZERO, "zeroMid", "中间有 0", "0 也要加进位"),
 )
 
 // ────────────────────────────────────────────────────────────
@@ -510,58 +521,56 @@ fun moViewOf(plan: MoPlan, index: Int): MoView {
             )
             say = if (step.digit == 0) {
                 if (step.carryIn > 0) {
-                    "${moPlaceName(place)}上是 0 —— 0 乘 ${plan.factor} 得 0。先记着这个 0，等一下还要加上进上来的数。"
+                    "${moPlaceName(place)}是 0 —— 先记 0，进位等一下再加"
                 } else {
-                    "${moPlaceName(place)}上是 0 —— 0 乘任何数都得 0，这一位就写 0。"
+                    "${moPlaceName(place)}是 0 —— 0 乘几都得 0"
                 }
             } else {
-                "${moPlaceName(place)}上的 ${step.digit} 乘 ${plan.factor} —— ${step.chant}，得 ${step.base}。"
+                "${moPlaceName(place)}：${step.digit} × ${plan.factor} = ${step.base}　${step.chant}"
             }
             if (step.digit * plan.factor >= 10) {
-                warn = "⚠️ ${step.chant}，满十了 —— 等一下要把十位那个数往左边送。"
+                warn = "⚠️ ${step.chant} 满十，等一下往左送"
             }
         }
 
         MoBeat.ADD -> {
             hl = hl.copy(carryIn = place, shown = MoShown.SUM)
-            say = "再加上${moPlaceName(place - 1)}进上来的 ${step.carryIn}：" +
-                "${step.base} + ${step.carryIn} = ${step.sum}。"
+            say = "${step.base} + ${step.carryIn} = ${step.sum}　（${moPlaceName(place - 1)}进上来的）"
             warn = if (step.digit == 0) {
-                "⚠️ 这一位是 0，0 乘 ${plan.factor} 得 0 —— 但 0 还要加上进上来的 ${step.carryIn}，直接写 0 就错了。"
+                "⚠️ 这一位是 0，但 0 + ${step.carryIn} = ${step.sum} —— 直接写 0 就错了"
             } else {
-                "⚠️ 别忘了把刚进上来的 ${step.carryIn} 加进去。这一步是全章错得最多的地方。"
+                "⚠️ 别漏了刚进上来的 ${step.carryIn} —— 全章错得最多的一步"
             }
         }
 
         MoBeat.WRITE -> {
             hl = hl.copy(write = place, shown = MoShown.SUM)
             say = if (step.carryOut > 0) {
-                "${step.sum} 的个位是 ${step.write}，写在${moPlaceName(place)}下面；十位那个 ${step.carryOut} 先记着。"
+                "${moPlaceName(place)}写 ${step.write}，${step.carryOut} 记在头顶"
             } else {
-                "${step.sum} 不满十，${step.write} 直接写在${moPlaceName(place)}下面，不用进位。"
+                "${step.sum} 不满十 —— 写 ${step.write}，不进位"
             }
-            if (step.carryOut > 1) warn = "⚠️ 满 ${step.sum}，要向前一位进 ${step.carryOut}，不是进 1。"
+            if (step.carryOut > 1) warn = "⚠️ 满 ${step.sum} 要进 ${step.carryOut}，不是进 1"
         }
 
         MoBeat.CARRY -> {
             hl = hl.copy(shown = MoShown.SUM)
             if (place == len - 1) {
                 hl = hl.copy(topCarry = true)
-                say = "${step.sum} 满十了 —— ${step.carryOut} 写在最前面，积就比原来的数多一位。"
+                say = "${step.sum} 满十 —— ${step.carryOut} 写在最前面，积多一位"
             } else {
                 hl = hl.copy(carryIn = place + 1)
-                say = "${step.sum} 满十了 —— ${step.carryOut} 送到前一位（${moPlaceName(place + 1)}）的头上去，" +
-                    "算那一位的时候要加上它。"
+                say = "${step.sum} 满十 —— ${step.carryOut} 送到${moPlaceName(place + 1)}头上，算到那一位要加上它"
             }
         }
 
         MoBeat.DONE -> {
             hl = hl.copy(shown = MoShown.SUM)
-            say = "${plan.value} × ${plan.factor} = ${plan.product}。每一位都乘完、进位都加上了，竖式就完成了。"
+            say = "${plan.value} × ${plan.factor} = ${plan.product}　✓ 每位都乘完、进位都加了"
         }
 
         MoBeat.IDLE -> {
-            say = "准备好了 —— 从个位开始，一位一位地乘。"
+            say = "从个位起，一位一位地乘"
         }
     }
 
@@ -780,20 +789,19 @@ private fun moMakeVerticalSteps(plan: MoPlan, random: Random): List<MoSolveStep>
             key = "mul$i",
             label = "$pn · 乘",
             ask = if (s.carryIn > 0) {
-                "$pn 上：${s.digit} × ${plan.factor} = ${s.base}，再加上右边进上来的 ${s.carryIn}，一共是多少？"
+                "$pn：${s.digit} × ${plan.factor} = ${s.base}，再加进上来的 ${s.carryIn} = ?"
             } else {
-                "$pn 上：${s.digit} × ${plan.factor} = ?"
+                "$pn：${s.digit} × ${plan.factor} = ?"
             },
             options = moOptsFor(s.sum.toString(), mulCands, moNumFillers(s.sum), random),
             answer = s.sum.toString(),
             tip = when {
                 s.digit == 0 && s.carryIn > 0 ->
-                    "0 乘 ${plan.factor} 确实是 0，但这一位不是 0 —— 还要加上进上来的 ${s.carryIn}。"
+                    "0 × ${plan.factor} = 0 没错，但这一位还要加 ${s.carryIn}。"
                 s.carryIn > 0 ->
-                    "${s.digit} × ${plan.factor} = ${s.base}，再加上进上来的 ${s.carryIn}，得 ${s.sum}。" +
-                        "漏掉进位就会算成 ${s.base}，这正是 27×4 被算成 88 的原因。"
+                    "漏掉进位就会写成 ${s.base} —— 27 × 4 算成 88 就是这个原因。"
                 else ->
-                    "$pn 上的 ${s.digit} 乘 ${plan.factor}（${s.chant.ifEmpty { "0 乘任何数都得 0" }}）得 ${s.sum}。"
+                    "${s.chant.ifEmpty { "0 乘几都得 0" }} ⇒ ${s.sum}"
             },
         )
 
@@ -816,14 +824,14 @@ private fun moMakeVerticalSteps(plan: MoPlan, random: Random): List<MoSolveStep>
         out += MoSolveStep(
             key = "write$i",
             label = "$pn · 写",
-            ask = "${s.sum} —— $pn 下面写几？向前一位进几？",
+            ask = "${s.sum} —— $pn 写几？进几？",
             options = moOptsFor(answer, writeCands, writeFillers, random),
             answer = answer,
             tip = if (s.carryOut > 0) {
-                "${s.sum} 的个位 ${s.write} 留在$pn，十位 ${s.carryOut} 送到前一位头上。" +
-                    if (i == len - 1) "这是最前面了，所以它直接写进积的最高位，积就多一位。" else ""
+                "个位 ${s.write} 留在$pn，十位 ${s.carryOut} 送到前一位头上。" +
+                    if (i == len - 1) "已经是最前面，直接写进积的最高位。" else ""
             } else {
-                "${s.sum} 不到 10，${s.write} 直接写在$pn，不用进位。"
+                "${s.sum} 不到 10 —— 写 ${s.write}，不进位。"
             },
         )
     }
@@ -840,7 +848,7 @@ private fun moMakeTailZeroSteps(plan: MoPlan, tail: MoTailHint, random: Random):
     out += MoSolveStep(
         key = "core",
         label = "① 先算前面",
-        ask = "不看末尾的 ${"0".repeat(tail.zeros)}，先算 ${tail.core} × ${plan.factor} = ?",
+        ask = "先算 ${tail.core} × ${plan.factor} = ?",
         options = moOptsFor(
             p.toString(),
             listOf(drop, one).filter { it != p }.map { it.toString() },
@@ -848,7 +856,7 @@ private fun moMakeTailZeroSteps(plan: MoPlan, tail: MoTailHint, random: Random):
             random,
         ),
         answer = p.toString(),
-        tip = "${tail.core} × ${plan.factor} = $p。末尾的 0 先放一边，算完再补 —— 这样只要算两位数。",
+        tip = "末尾的 0 先放一边 ⇒ 只要算两位数。",
     )
 
     out += MoSolveStep(
@@ -857,13 +865,13 @@ private fun moMakeTailZeroSteps(plan: MoPlan, tail: MoTailHint, random: Random):
         ask = "${plan.value} 的末尾有几个 0？",
         options = listOf("没有 0", "1 个 0", "2 个 0"),
         answer = "${tail.zeros} 个 0",
-        tip = "${tail.core} 后面跟着 ${tail.zeros} 个 0，所以 ${plan.value} 的末尾有 ${tail.zeros} 个 0。补的时候一个也不能少。",
+        tip = "补 0 的时候一个也不能少。",
     )
 
     out += MoSolveStep(
         key = "final",
         label = "③ 补上 0",
-        ask = "${p} 的末尾补上 ${tail.zeros} 个 0，${plan.value} × ${plan.factor} = ?",
+        ask = "${p} 后补 ${tail.zeros} 个 0 = ?",
         options = moOptsFor(
             plan.product.toString(),
             listOf(p.toString(), (p * moPow10(tail.zeros + 1)).toString()),
@@ -871,7 +879,7 @@ private fun moMakeTailZeroSteps(plan: MoPlan, tail: MoTailHint, random: Random):
             random,
         ),
         answer = plan.product.toString(),
-        tip = "$p 后面补 ${tail.zeros} 个 0 ⇒ ${plan.product}。漏补就少一个 0（变成 $p），多补就多一个 0。",
+        tip = "补 ${tail.zeros} 个 0 ⇒ ${plan.product}。漏补就变成 $p。",
     )
 
     return out
@@ -906,7 +914,7 @@ fun moMakeSolveSteps(plan: MoPlan, random: Random = Random.Default): List<MoSolv
     out += MoSolveStep(
         key = "final",
         label = "写完整",
-        ask = "把每一位写下来：${plan.value} × ${plan.factor} = ?",
+        ask = "${plan.value} × ${plan.factor} = ?",
         options = moOptsFor(
             plan.product.toString(),
             moUsableTraps(listOf(drop, one, zero), plan.product),
@@ -914,8 +922,8 @@ fun moMakeSolveSteps(plan: MoPlan, random: Random = Random.Default): List<MoSolv
             random,
         ),
         answer = plan.product.toString(),
-        tip = "${plan.value} × ${plan.factor} = ${plan.product}。" +
-            if (plan.grewTop) "最高位进上来的那个数也算一位，别忘了写。" else "",
+        tip = "${plan.value} × ${plan.factor} = ${plan.product}" +
+            if (plan.grewTop) "，最前面还有进上来的一位" else "",
     )
     return out
 }
@@ -934,21 +942,21 @@ private fun moMakeTraps(plan: MoPlan): List<MoTrap> {
         out += MoTrap(
             label = "算成 $drop",
             value = drop,
-            why = "每一位都忘了把右边进上来的数加进去。比如 27 × 4 被算成 88，就是这个原因。",
+            why = "每位都忘了加右边进上来的数（27 × 4 算成 88）。",
         )
     }
     if (one != plan.product && one > 0 && taken.add(one)) {
         out += MoTrap(
             label = "算成 $one",
             value = one,
-            why = "每一处进位都只进 1，可是 8 × 6 = 48 要进 4 —— 满几十就进几。比如 68 × 4 就这样被算成了 252。",
+            why = "每处进位都只进 1 —— 8 × 6 = 48 要进 4，满几十就进几。",
         )
     }
     if (zero != plan.product && zero > 0 && taken.add(zero)) {
         out += MoTrap(
             label = "算成 $zero",
             value = zero,
-            why = "被乘数中间那一位是 0，就直接写了 0 —— 可它还要加上进上来的数。比如 305 × 6 被算成 1800，就是这个原因。",
+            why = "中间那位是 0 就直接写 0，忘了还要加进位。",
         )
     }
     return out
@@ -962,12 +970,10 @@ fun moBuildProblem(plan: MoPlan, groupKey: MoKind, random: Random = Random.Defau
     val tail = moTailZeroHint(plan.value, plan.factor)
     val note = when {
         groupKey == MoKind.TAIL_ZERO && tail != null ->
-            "${plan.value} × ${plan.factor} = ${plan.product}。" +
-                "${tail.core} × ${plan.factor} = ${tail.coreProduct}，末尾再补 ${tail.zeros} 个 0。"
+            "${tail.core} × ${plan.factor} = ${tail.coreProduct}，末尾补 ${tail.zeros} 个 0 ⇒ ${plan.product}"
         groupKey == MoKind.MID_ZERO ->
-            "${plan.value} × ${plan.factor} = ${plan.product}。" +
-                "中间那一位是 0，0 乘 ${plan.factor} 得 0，但还要加上进上来的数 —— 所以它不是 0。"
-        else -> "${plan.value} × ${plan.factor} = ${plan.product}。从个位起一位一位地乘，满十就向前一位进几。"
+            "中间那位是 0，0 × ${plan.factor} = 0 —— 但要加进位，所以它不是 0"
+        else -> "从个位起一位一位地乘，满十就往左进几"
     }
 
     return MoProblem(
@@ -1007,25 +1013,24 @@ fun moGenProblemSet(groupKey: MoKind, n: Int = 4, random: Random = Random.Defaul
 
 val MO_RULES: List<MoRule> = listOf(
     MoRule(
-        title = "从个位乘起 —— 因为进位只能往左走",
-        body = "个位先攒够 10，才谈得上送 1 个给十位；十位在个位算完之前根本不知道该加几。" +
-            "所以「从个位起」不是规定，是被进位的方向逼出来的。" +
-            "从高位起也能算对，但每算一位都要回头改，容易乱。",
+        icon = "arrowLeft",
+        title = "从个位乘起",
+        body = "进位只能往左走。个位攒够 10 才送得出一捆；十位在个位算完前不知道该加几。",
     ),
     MoRule(
-        title = "哪一位满几十，就向前一位进几",
-        body = "4 × 6 = 24，向前进 2；8 × 6 = 48，向前进 4。进的是「十位上的那个数」，" +
-            "不是不管三七二十一都进 1 —— 68 × 4 应该进 3，只进 1 就会算成 252。",
+        icon = "bundle",
+        title = "满几十就进几",
+        body = "4 × 6 = 24 进 2，8 × 6 = 48 进 4。不是一律进 1 —— 68 × 4 只进 1 会算成 252。",
     ),
     MoRule(
-        title = "进上来的数要「加」进去",
-        body = "算完下一位的乘法，还要把进上来的数加上。这一步是全章错得最多的地方：" +
-            "27 × 4，个位 7 × 4 = 28 写 8 进 2，十位 2 × 4 = 8 —— 别忘了 8 + 2 = 10。",
+        icon = "plusHead",
+        title = "进上来的数要加",
+        body = "乘法算完还要加它。27 × 4：7 × 4 = 28 写 8 进 2，十位 2 × 4 + 2 = 10。",
     ),
     MoRule(
-        title = "末尾有 0：先算前面，最后补 0",
-        body = "280 × 5 不用一位一位地乘。先算 28 × 5 = 140，末尾再补 1 个 0 ⇒ 1400。" +
-            "补几个 0，就看被乘数末尾原来有几个 0。",
+        icon = "zeroTail",
+        title = "末尾有 0 先算前面",
+        body = "280 × 5：先算 28 × 5 = 140，末尾补 1 个 0 ⇒ 1400。补几个看原来末尾有几个。",
     ),
 )
 
@@ -1037,54 +1042,50 @@ val MO_MISTAKE_CASES: List<MoMistakeCase> = listOf(
     MoMistakeCase(
         wrong = "27 × 4 = 88",
         right = "27 × 4 = 108",
-        why = "个位 7 × 4 = 28，写 8 进 2；算十位 2 × 4 = 8 的时候，忘了把进上来的 2 加上去。" +
-            "应该 8 + 2 = 10，写 0 进 1。",
-        tip = "凡是上一句出现过「进几」，下一句就一定要「加上几」。在进位数旁边画个小圈提醒自己。",
+        why = "十位 2 × 4 = 8 时忘了加进上来的 2 —— 该写 0 进 1。",
+        tip = "「进几」的下一步一定「加上几」。在进位数旁边画个小圈提醒自己。",
         check = MoCheck(27, 4, 108),
     ),
     MoMistakeCase(
         wrong = "305 × 6 = 1800",
         right = "305 × 6 = 1830",
-        why = "十位是 0，孩子看见「0 × 6 = 0」就直接写了个 0，忘了个位 5 × 6 = 30 还进了 3 上来。" +
-            "这一位其实是 0 + 3 = 3。",
-        tip = "0 乘任何数都得 0，这句话没错 —— 但这一位要算的是「0 × 6 的积 再加上进位的数」。",
+        why = "看见 0 × 6 = 0 就写了 0，忘了个位 5 × 6 = 30 还进了 3 —— 这一位是 0 + 3。",
+        tip = "这一位要算的是「0 × 6 的积 再加进位数」。",
         check = MoCheck(305, 6, 1830),
     ),
     MoMistakeCase(
         wrong = "403 × 2 = 86",
         right = "403 × 2 = 806",
-        why = "十位算出来是 0，孩子干脆没写，结果百位的 8 掉到了十位上，整个数位全错位了。",
-        tip = "哪一位算出来是 0，也要把 0 老老实实写在那一格上 —— 0 占的不是位置，是数位。",
+        why = "十位的 0 没写，百位的 8 就掉到了十位上。",
+        tip = "算出来是 0 也要写在那一格 —— 0 占的是数位。",
         check = MoCheck(403, 2, 806),
     ),
     MoMistakeCase(
         wrong = "160 × 3 = 48",
         right = "160 × 3 = 480",
-        why = "用巧算先算了 16 × 3 = 48，最后忘了把末尾那个 0 补回去。",
-        tip = "巧算分两步：先算前面、再补 0。写完一定要回头数一数，被乘数末尾有几个 0。",
+        why = "巧算先算了 16 × 3 = 48，末尾的 0 忘了补。",
+        tip = "写完一定要回头数：被乘数末尾原来有几个 0。",
         check = MoCheck(160, 3, 480),
     ),
     MoMistakeCase(
         wrong = "68 × 4 = 252",
         right = "68 × 4 = 272",
-        why = "个位 8 × 4 = 32，应该向前进 3；孩子不管进多少都只进 1。" +
-            "于是十位算成了 6 × 4 + 1 = 25，写 5 进 2。",
-        tip = "进位进几，要看这一位乘出来的数十位上是几。32 就进 3，48 就进 4。",
+        why = "个位 8 × 4 = 32 该进 3，却只进了 1。",
+        tip = "进几看乘出来的数十位上是几：32 进 3，48 进 4。",
         check = MoCheck(68, 4, 272),
     ),
     MoMistakeCase(
         wrong = "45 × 3 = 1215",
         right = "45 × 3 = 135",
-        why = "把十位和个位各自算完就拼起来了：4 × 3 = 12、5 × 3 = 15，直接写成 1215。" +
-            "个位满十要往十位进，两块不能各写各的。",
-        tip = "竖式是一根链条：每一位算完都要把进位交给前一位，最后只有一个数。",
+        why = "十位和个位各算各的、拼成 1215 —— 个位满十要往十位进。",
+        tip = "每一位算完都要把进位交给前一位，最后只有一个数。",
         check = MoCheck(45, 3, 135),
     ),
     MoMistakeCase(
         wrong = "78 × 8 = 604",
         right = "78 × 8 = 624",
-        why = "口诀背混了：七八五十六记成了七八五十四（和六九五十四串了）。",
-        tip = "七八五十六、六九五十四，这两句最爱混。背不牢的时候想「8 × 7 = 8 × 5 + 8 × 2 = 40 + 16」。",
+        why = "口诀背混：七八五十六记成了七八五十四。",
+        tip = "背不牢就想 8 × 7 = 40 + 16。",
         check = MoCheck(78, 8, 624),
     ),
 )
