@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
-import { PcmRecorder, energyLevel } from "./lib/pcmRecorder"
-import { evaluateSoe, type SoeResult, type SoeWord } from "./lib/soeApi"
+import { PcmRecorder, energyLevel } from "../../lib/pcmRecorder"
+import { evaluateSoe, type SoeResult, type SoeWord } from "../../lib/soeApi"
 
 const DEFAULT_TEXT = "春天来了，花儿开了，小鸟在树上唱歌。"
 
