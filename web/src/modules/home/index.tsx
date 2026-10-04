@@ -12,11 +12,11 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router-dom"
 import { fetchPlan, featureById, type PlanItem } from "../../services/training"
-import { SettingsSheet } from "../../components/SettingsSheet"
-import { useVisitCounts, recordVisit, sortByVisits } from "../../lib/visitCounts"
-import { APP_VERSION } from "../../lib/appVersion"
-import { ENABLED_ROUTES, FEATURE_ROUTES, HOME_SECTIONS } from "../../modules/registry"
-import type { SkillModule } from "../../modules/types"
+import { SettingsSheet } from "./SettingsSheet"
+import { useVisitCounts, recordVisit, sortByVisits } from "./visitCounts"
+import { APP_VERSION } from "./appVersion"
+import { ENABLED_ROUTES, FEATURE_ROUTES, HOME_SECTIONS } from "../registry"
+import type { SkillModule } from "../types"
 
 interface TileEntry {
   to: string

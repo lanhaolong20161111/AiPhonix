@@ -33,8 +33,8 @@ import {
   type MistakeCase,
   type StepLine,
   type Token,
-} from "../../lib/compoundExpr"
-import { OpPrecedenceDemo } from "../../components/OpPrecedenceDemo"
+} from "./compoundExpr"
+import { OpPrecedenceDemo } from "./OpPrecedenceDemo"
 
 // ────────────────────────────────────────────────────────────
 // 小工具

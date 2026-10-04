@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { aiChat, getAiSessionDetail, type AiTurn } from "../../services/aiPractice"
+import { aiChat, getAiSessionDetail, type AiTurn } from "./aiPractice"
 import { useTts } from "../../hooks/useTts"
 import { detailFromError } from "../../services/auth"
 

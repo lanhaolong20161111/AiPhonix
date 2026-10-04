@@ -10,8 +10,8 @@
 import { useCallback, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTts } from "../../hooks/useTts"
-import { getRadicalRiddles, getRadicalSong } from "../../services/radical"
-import { RADICAL_FAMILIES, type RadicalItem } from "../../data/radicalFamilies"
+import { getRadicalRiddles, getRadicalSong } from "./radical"
+import { RADICAL_FAMILIES, type RadicalItem } from "./radicalFamilies"
 
 interface Question {
   kind: "pickChar" | "pickRadical" | "riddle"

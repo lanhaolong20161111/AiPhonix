@@ -3,7 +3,7 @@
  */
 
 import { api } from "./api"
-import type { DialogueLine, DialogueScript, AnswerJudgeResult } from "./englishTalk"
+import type { DialogueLine, DialogueScript, AnswerJudgeResult } from "../modules/ai_english_talk/englishTalk"
 
 /** 生成中文口语对话剧情（主题 + 练习词 + 练习句 → 多轮台词/目标句/提示词） */
 export async function zhDialogueSetup(

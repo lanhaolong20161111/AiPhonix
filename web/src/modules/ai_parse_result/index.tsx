@@ -13,32 +13,32 @@ import { rotateBlob90 } from "../../lib/imageOrientation"
 import { schedulePolyPatch } from "../../lib/polyPatch"
 import { addHistory, updateHistory, makeThumb } from "../../lib/aiHistory"
 import { isSpeakableChar } from "../../lib/chars"
-import { BlockText } from "../../components/BlockText"
-import { BlockAsk } from "../../components/BlockAsk"
-import { BlockHighlight } from "../../components/BlockHighlight"
-import { MathAnalyze } from "../../components/MathAnalyze"
-import { QaHistoryModal } from "../../components/QaHistoryModal"
+import { BlockText } from "./BlockText"
+import { BlockAsk } from "./BlockAsk"
+import { BlockHighlight } from "./BlockHighlight"
+import { MathAnalyze } from "./MathAnalyze"
+import { QaHistoryModal } from "./QaHistoryModal"
 import { PhonicsWord, PhonicsToggle } from "../../components/PhonicsWord"
 import type { HighlightMarkItem, PosTagItem, StoryElementItem } from "../../services/aichinese"
-import { useBlockSpeaking } from "../../hooks/useBlockSpeaking"
+import { useBlockSpeaking } from "./useBlockSpeaking"
 import { markUnknownChars, recordCharClick, posTags, storyElements } from "../../services/aichinese"
 import { askLlm } from "../../services/aiAsk"
 import { detailFromError } from "../../services/auth"
 import { addWordbook } from "../../services/wordbook"
-import { SpeakableTable } from "../../components/SpeakableTable"
-import { splitInlineTables, stripMdHeaders } from "../../lib/paragraphFlow"
-import { sentenceAt, toReadableBlockText, rangeSliceIn, buildRange, paraIndexAtOffset } from "../../lib/readUnit"
-import type { ReadRange } from "../../lib/readUnit"
+import { SpeakableTable } from "./SpeakableTable"
+import { splitInlineTables, stripMdHeaders } from "./paragraphFlow"
+import { sentenceAt, toReadableBlockText, rangeSliceIn, buildRange, paraIndexAtOffset } from "./readUnit"
+import type { ReadRange } from "./readUnit"
 import {
   isTableSeg,
   mathAlignTextAlign,
   mathDisplaySegments,
   mathIndentEm,
   type MathSeg,
-} from "../../lib/mathDisplay"
-import { chineseReflow } from "../../lib/subject/chinese"
-import { englishReflow } from "../../lib/subject/english"
-import { mathReflow } from "../../lib/subject/math"
+} from "./mathDisplay"
+import { chineseReflow } from "./chinese"
+import { englishReflow } from "./english"
+import { mathReflow } from "./math"
 
 /** 点读即加生词本的文本判定：只收中文汉字（点读单字）或英文单词（点读整词），
  * 不收数字/标点/纯字母串（避免污染词库，如数学题面的数字、拼音注音）。 */

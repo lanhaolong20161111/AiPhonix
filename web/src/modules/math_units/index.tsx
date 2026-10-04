@@ -46,7 +46,7 @@ import {
   type UnitPair,
   type UnitPlan,
   type UnitProblem,
-} from "../../lib/units"
+} from "./units"
 
 // ────────────────────────────────────────────────────────────
 // 小工具

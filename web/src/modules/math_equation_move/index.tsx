@@ -49,7 +49,7 @@ import {
   type Side,
   type SolveItem,
   type SolveStep,
-} from "../../lib/equationMove"
+} from "./equationMove"
 
 // ────────────────────────────────────────────────────────────
 // 小工具

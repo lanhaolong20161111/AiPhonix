@@ -48,7 +48,7 @@ import {
   type MulProblem,
   type MulTrap,
   type SolveStep,
-} from "../../lib/mulOne"
+} from "./mulOne"
 
 // ────────────────────────────────────────────────────────────
 // 小工具

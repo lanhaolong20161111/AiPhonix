@@ -12,11 +12,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { parseSrt, toSentences, findCurrentSubtitle, isPauseAligned, type SubtitleEntry } from "../../lib/srtParser"
+import { parseSrt, toSentences, findCurrentSubtitle, isPauseAligned, type SubtitleEntry } from "./srtParser"
 import { useSoeScore } from "../../hooks/useSoeScore"
 import { SoeDetail } from "../../components/SoeDetail"
 import { PhonicsText } from "../../components/PhonicsWord"
-import { pcmToWavBlob } from "../../lib/pcmToWav"
+import { pcmToWavBlob } from "./pcmToWav"
 import { api } from "../../services/api"
 
 interface VideoItem {
