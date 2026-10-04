@@ -1,7 +1,93 @@
 # AiPhonix 项目记忆（通用交接文档）
 
-> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-09-22）。
+> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-10-04）。
 > 整合自 `AGENTS.md`、历史 `memory-export-*.md` / `SESSION_HANDOFF_*.md` 及最近会话的进展。
+
+---
+
+## 0.8 🆕 2026-10-04 Web 前端模块化三连：注册表 → 页面搬家 → 共享层共置
+
+用户诉求：「把这个网页应用模块化 skills 化，只保持最必要的核心」。
+分三个提交落地（`3aff04a` → `8be1297` → `f09ce3b`），全程只改 `web/src`，未动 `server_*`。
+
+### 起点诊断
+
+不是「没拆分」——`pages/` 早就是 49 个懒加载页面。真问题是**同一份「有哪些功能」清单被抄在 4 处、互不校验**：
+`routes.tsx`(44 条路由) · `HomePage.SECTIONS`(23 磁贴) · `HomePage.FEATURE_ROUTES`(12 条) · `services/training.FEATURES`(10 条)。
+漏改任一处 = 「首页有入口、点进去空白」。另发现 `web/src/App.tsx`(221 行) 是死代码。
+
+### ① 微内核 + 模块注册表（`3aff04a`）
+
+`web/src/modules/` 新增 `types.ts`（`SkillModule` 契约）· `catalog.ts`（**48 条声明 = 唯一真源**）·
+`registry.ts`（派生路由 / 磁贴 / 打卡目录）· `registry.test.ts`（自检）。
+
+| 消费方 | 变化 |
+|---|---|
+| `routes.tsx` | 155 → **63 行**，由 `AUTH_MODULES` / `GUEST_MODULES` 生成 |
+| `HomePage.tsx` | 磁贴与 `FEATURE_ROUTES` 改为派生，删 23 条死数据 |
+| `services/training.ts` | `FEATURES` 由 `TRAINING_MODULES` 派生 |
+| `web/src/App.tsx` | **删除**（无人 import） |
+
+新增构建期裁剪开关 **`VITE_SKILLS=pinyin,dictation,math_units`**（只打这些 + 系统页）——
+这就是「只保持最必要的核心」的落地口子。自检含**路由快照**（48 条与重构前逐条比对）。
+
+### ② 页面物理搬家（`8be1297`）
+
+`src/pages/XxxPage.tsx` → `src/modules/<catalog id>/index.tsx`（48 模块 + `home` 内核页），
+**`pages/` 目录整体删除**。深度 2→3 ⇒ 页面内 **263 条** `from "../` 统一加深为 `from "../../"`。
+
+前提全满足才好动手：唯一引用 `pages/` 的只有 `catalog.ts`(48 条) 与 `routes.tsx`(HomePage)，
+**页面之间零互相引用**，内部相对 import 只有 `"../<dir>"` 一种形态。
+
+新增**结构门禁**：catalog 每个 id 必须有 `modules/<id>/index.tsx`；反向查孤儿目录（`home` 白名单）。
+
+### ③ 共享层共置（`f09ce3b`）
+
+把「事实上只服务一个模块」的共享层文件搬进该模块目录（引擎 / 专用组件 / 专用 service / 其测试）。
+
+**归属判据 = 传递闭包 + 不动点迭代**：模块目录内文件归属该模块；共享层文件 F 的**全部「非测试、
+非死代码」引用者**都归属同一模块 M ⇒ F 归属 M；环 / 多归属 / 被 `routes.tsx`、`layouts` 引用 ⇒ 真共享。
+⇒ 连「只被某模块专用组件间接使用」的引擎也能正确归位（`precedence.ts` ← `OpPrecedenceDemo.tsx` ← `math_compound_expr`）。
+
+结果：共享层 127 → 68，**可共置 59 个**
+（`lib 60→28 · services 33→23 · components 33→18 · hooks 10→7 · data 4→3`）。
+`modules/ai_parse_result/` 现在自带 20 个文件。
+
+### ★ 搬家工具链的三个技术点（可复用）
+
+1. **路径重写不靠「加深一层」**（脆弱），而是「**旧图解析 → 新路径重算**」：对每条相对 import，
+   先用旧图解析出目标文件，再按「引用者新位置 → 目标新位置」重算相对路径 ——
+   引用者无论留在原地还是也被搬走都对。
+2. **正则必须同时吃 `"` 与 `'`**（项目里混用）；只吃双引号会漏改 ⇒ `Cannot find module`。
+3. **同目录「去扩展名后小写同名」会撞**：`components/MathAnalyze.tsx` 与 `lib/mathAnalyze.ts` 搬进同一目录后，
+   TS 在大小写不敏感文件系统上把 `"./MathAnalyze"` 解析到 `mathAnalyze.ts` ⇒ `TS2305` + `TS1261`。
+   规则：冲突时让 `lib/services` 侧留在共享层（引用者路径自动指回 `lib/`）。
+
+### ★★ 工具链改为「计算与执行分离 + 幂等」（重要教训）
+
+`web/_reg_colocate.py` 只产出 `_reg_plan.json`（**永不碰源码**），`web/_reg_apply_plan.py` **幂等**落地
+（目标内容已正确就跳过、旧路径不在就跳过）。
+
+原因：执行期发现 **写操作在沙箱里会被静默拦截**（命令仍报成功、`ls` 也自相矛盾），
+且 **同一条 Bash 命令可能被执行两次** ⇒ 一次性脚本的第二次运行会因源文件已不在而误报失败，
+**而你只会看到第二次的输出**，据此判断状态必然出错。
+
+### 验证
+
+- `tsc -b --force` 0 错 · `tsx --test src/**/*.test.ts` **349/349** · `vite build` ✓ **99 chunk**
+  （与搬家前一致 ⇒ 懒加载分包结构未变）
+- 浏览器实测：首页 **5 小节 / 23 磁贴**逐条不变；**16 条路由**直达全 OK，
+  其中 9 条是本轮动过文件的模块（`ai_parse_result` / `speech_compose` / `ai_english_talk` /
+  `math_compound_expr` / `video_practice` / `radical_game` / `math_equation_move` / `ai_homework` / `char_image` 练习）
+
+### 尚未做（下一步可选）
+
+- **能力折叠**：4 个数学页共用「口诀 / 易错卡」版式 ⇒ 折成 1 个 math-kit；8 个 AI 页共用对话 / 批改 ⇒ 1 个 ai-kit
+  （这一步要动渲染代码，才是真正「减核心」）
+- **死代码清理**：`components/BlockRecorder.tsx`、`CollapsibleText.tsx`、`hooks/useSegmentAsr.ts`、
+  `useSpeechComposer.ts`、`services/asrShort.ts`、`uploads.ts`、`zhDialogue.ts` 零引用
+  （`lib/stubs/shikiStub.ts` 有 vite alias `shiki`，**不是**死代码）
+- **未部署**：本轮只提交，未 `wrangler deploy`
 
 ---
 
