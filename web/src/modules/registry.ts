@@ -8,6 +8,7 @@
  */
 
 import { ALL_MODULES } from "./catalog"
+import { ALWAYS_ON_SKILLS, parseEnabledSkills } from "./skillsSwitch"
 import type { SkillGroup, SkillModule } from "./types"
 
 export { ALL_MODULES }
@@ -25,22 +26,17 @@ export const GROUP_LABEL: Record<SkillGroup, string> = {
   tools: "学习工具",
 }
 
-/** 即使被裁剪也必须保留的系统页 */
-const ALWAYS_ON = new Set(["login", "register", "placeholder"])
+/** 即使被裁剪也必须保留的系统页（与 skillsCss.ts / vite.config.ts 共用一份清单，见 skillsSwitch.ts） */
+const ALWAYS_ON = new Set(ALWAYS_ON_SKILLS)
 
 /**
- * 构建期裁剪开关 `VITE_SKILLS`：
- * - 未设置 / 空串 ⇒ 全部启用（默认，行为与改造前完全一致）
- * - 逗号分隔的模块 id（如 `pinyin,dictation,math_units`）⇒ 只保留这些 + ALWAYS_ON
- *
- * 用途：给「只要拼音+认字」的家长出一个极小包，或本地只跑单模块调试。
+ * 构建期裁剪开关 `VITE_SKILLS`：解析规则见 `skillsSwitch.parseEnabledSkills`。
  * ⚠️ 纯 Node 环境（单测）没有 import.meta.env，必须容错。
  */
 function readEnabledIds(): Set<string> | null {
   const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env
-  const raw = env?.VITE_SKILLS
-  if (typeof raw !== "string" || raw.trim() === "") return null
-  return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean))
+  const list = parseEnabledSkills(env?.VITE_SKILLS)
+  return list === null ? null : new Set(list)
 }
 
 const enabledIds = readEnabledIds()

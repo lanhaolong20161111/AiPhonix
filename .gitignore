@@ -442,3 +442,6 @@ web/_em_ui_shots/
 
 # module registry refactor local artifacts (smoke script / shots / build dir+log)
 web/_reg_*
+
+# CSS 归属标注工具（_css_split.py / _css_mark.py）与前后对比构建（本地，不入库）
+web/_css_*
