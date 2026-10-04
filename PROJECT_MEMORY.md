@@ -5,6 +5,71 @@
 
 ---
 
+## 0.10 🆕 2026-10-04 能力折叠：AI 语文/英语/数学三页折成同一个 `AiUploadPage`（`9dd4574`）
+
+承接 §0.8「尚未做」里的 **B 步 —— 能力折叠**（搬家只挪位置不改行为；折叠要改组件树，风险更高）。
+开工前先量化了「重复」到底有多少，**结论与最初设想不同**（见下），实际只做了其中最有价值的一块。
+
+### 1. ★ 调研结论：两个原定目标，只有一个成立
+
+| 原计划 | 调研结果 | 处置 |
+|---|---|---|
+| 4 个数学页共用「口诀/易错卡」→ 折成 1 个 math-kit | **不成立**。4 页实为**两套设计**：`uc`(math_units)/`mo`(math_mul_one) 是「揭示式」（wrong 卡 → 点开展示 right+why+tip）；`eq`(equation_move)/`ce`(compound_expr) 是「对照式」（wrong 行 + right 行并排 + tag/expr）。同组内 CSS 也**有实质差异**：`uc` card `padding:10px 11px`、tip 绿色 700 字重；`mo` `padding:11px 12px`、right 带虚线分隔、tip 琥珀色 400 字重 | **不做**。收益仅 ~120 行，却要么改 CSS 要么把类名参数化；后者会让源码里不再出现 `uc-mistake-card` 这类字面量，**直接废掉 §0.9 刚建立的样式归属分析** |
+| 8 个 AI 页共用对话/批改 → 折成 1 个 ai-kit | **大部分不成立**。对话逻辑**早已**在 `hooks/useAiChat.ts`；8 个页面里只有 3 个是同构的，其余各有自己的逻辑 | 只折这 3 页 |
+
+**怎么发现的**：`diff` 三个候选页面。`ai_chinese`(232 行) / `ai_english`(216 行) / `ai_homework`(223 行)
+的 `import` 段**逐行相同**，`diff` 只报组件名 / `useAiChat(mode)` / `module` / 标题 / 提示文案 ——
+典型的「同一组件的三个 mode」。而数学页是 `grep` 出 4 份 `MistakeCard` 定义后发现类名前缀与 CSS 都不同。
+
+### 2. 做了什么（`9dd4574`）
+
+新增 `web/src/components/AiUploadPage.tsx`，三页退化成 ~17 行薄壳（只声明 mode + 文案）。
+净省 **~330 行源码**，消除 3 份重复的「切块/自由框选/批处理」逻辑。
+
+| | 折叠前 | 折叠后 |
+|---|---|---|
+| `ai_chinese` chunk | 3663 B | **373 B** |
+| `ai_english` chunk | 3555 B | **351 B** |
+| `ai_homework` chunk | 3532 B | **349 B** |
+| 合计（含新 `AiUploadPage` 32.8 KB） | 10.75 KB | 33.9 KB |
+
+⚠️ **物产物体积没变小**：`AiUploadPage` 32.8 KB 里**内联了折叠前独立成 chunk 的 `useAiChat`**（29.7 KB）——
+它现在只有 1 个引用者，rollup 就不再单独拆 chunk。三页首屏总下载量基本持平（33.3 → 33.2 KB）。
+**收益在源码维护性**（改一处 = 改三处 → 改一处），不在字节数。裁剪能力不受影响（`AiUploadPage` 只要还有一个用户就保留）。
+
+### 3. 三个开关 = 三处「有意保留的差异」（别顺手统一）
+
+| 开关 | 归属 | 原因 |
+|---|---|---|
+| `polyPatch` | 语文 | 「切块 / 自由框选」路径**不走** `startParseBatch`，所以要各段自己后台补注音（`startParseBatch` 内部对整图路径已经调过了） |
+| `omitStructured` | 数学 | 整图识别沿用扁平口径（不落 blocks/crops）。**已验证 `false` 与不传等价**（`normalize()` 里是 `if (!omitStructured) return res`），所以直接透传安全 |
+| `plainStatus` | 语文 | 进度提示历史上是朴素内联样式，与另两页的 `.ai-parse-status` 卡片**视觉不同**；原样保留，不借折叠改 UI |
+
+### 4. ★ 验证手法：归一化 chunk 引用后比对（分辨「实质变化」vs「引用级联」）
+
+折叠后 `sha256` 比对发现 **85 个 chunk 全部改名**（连 4 个数学页 chunk 都变）—— 看着像出了大事。
+把两侧 chunk 里的 `-XXXXXXXX.js` 全部替换成 `-HASH.js` 再算哈希 ⇒
+
+```
+polyPatch / math_units / math_equation_move / math_compound_expr /
+math_mul_one / parseSessionStore / useTts   →  全部逐字节相同 ✓
+```
+
+🔴 **结论：vite 的 chunk hash 含「它 import 的 chunk 的 hash」⇒ 一处真变会让整个依赖链雪崩改名。**
+以后看到「所有 chunk 都变了」先做这一步归一化比对，别急着当成 85 处回归。数学页那 197 处 computed style
+差异同理：是**随机出题**（元素数 356→362），不是折叠引起的。
+
+`computed style` 快照对 12 条路由（含新增的 3 个 AI 路由）折叠前后逐项比对 ⇒
+**AI 三页含 `width`/`height` 全属性 0 差异**，`console errors` 0。
+
+### 5. 复用的工具
+
+`web/_css_smoke.mjs`（本地，gitignore）已扩成 12 条路由 —— auth 用假 session 注入 localStorage
+（`ai_phonix_web_auth`），`**/api/v1/**` 全部 mock 成 `{}`，`serviceWorkers:"block"`。
+`node _css_smoke.mjs <distDir> <label>`；同一 label 复跑会覆盖 `_css_shots/<label>/`。
+
+---
+
 ## 0.9 🆕 2026-10-04 构建期裁剪打通：死代码清理 + 样式归属标记（`VITE_SKILLS` 真能出小包）
 
 承接 §0.8。上一轮加了 `VITE_SKILLS` 裁剪开关，但它只决定「注册哪些路由」：
