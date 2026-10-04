@@ -5,7 +5,72 @@
 
 ---
 
-## 0.8 🆕 2026-10-04 Web 前端模块化三连：注册表 → 页面搬家 → 共享层共置
+## 0.9 🆕 2026-10-04 构建期裁剪打通：死代码清理 + 样式归属标记（`VITE_SKILLS` 真能出小包）
+
+承接 §0.8。上一轮加了 `VITE_SKILLS` 裁剪开关，但它只决定「注册哪些路由」：
+`catalog.ts` 里的 48 个 `import()` 仍在包里 ⇒ rollup 照样产 48 个 chunk、PWA 还把它们
+全部预缓存（~1.6MB）；`App.css` 229KB 源码也一次全量打包。本轮补齐（`f523a4a` → `012d795`）。
+
+### 1. 死代码清理（`f523a4a`）
+
+传递可达性扫描（从 `main.tsx` + vite alias 出发解析相对 import 建图）：210 个源文件 → 可达 180。
+删掉 7 个 0 引用且无同名测试的文件：`components/BlockRecorder.tsx`、`components/CollapsibleText.tsx`、
+`hooks/useSegmentAsr.ts`、`hooks/useSpeechComposer.ts`、`services/asrShort.ts`、`services/uploads.ts`、
+`services/zhDialogue.ts`（后三个的引用者是上一轮删掉的死代码 `App.tsx`）。
+另把 `src/SoeDemo.tsx` 搬进 `modules/soe_demo/`，`src` 根下只剩 `main.tsx` / `routes.tsx` / 样式入口。
+
+🔴 `src/lib/stubs/shikiStub.ts` 在扫描里同样显示 0 引用，但 `vite.config.ts` 有 alias 指向它 —— **是活的，别删**。
+
+### 2. 样式归属标记 —— 为什么不做「每个模块一个 css 文件」（★ 关键决策，别再试）
+
+`App.css` 里模块的规则是**散段**的：36 个模块共 148 段，`ai_parse_result` 一个模块散了 24 处。
+而 CSS 层叠依赖**规则顺序**：把散段合并进独立文件 = 改变加载位置。
+静态分析量出 **87 对**「同特指度 + 共享 class + 被搬走的原本排在留下的之前」的规则 ——
+搬走后它们会从「输」变「赢」，是**静默**的样式回归，抽查也发现不了。
+
+⇒ 采用：**单一有序样式表 + 归属标记 + 构建期整块删除**。
+删掉的规则属于未启用模块，那些模块的 DOM 不会渲染 ⇒ 不可能影响任何元素的最终样式。
+也正因如此，**未设 `VITE_SKILLS` 时产物与改造前逐字节相同**（hash 都不变），老路径零风险。
+
+### 3. 文件与命令
+
+| 东西 | 作用 |
+|---|---|
+| `src/App.css` 里的 `/* @skill: <id> */ … /* @skill:end */` | 148 对，覆盖 36 个页面；是合法 CSS 注释，没有过滤器也照常工作 |
+| `web/tools/cssSkillMark.py` | 生成器/校验器。`--report` 分析+列层叠风险、`--check` 校验标记与归属一致、`--write` 注入（已有标记则拒绝） |
+| `src/modules/skillsCss.ts` | `scanSkillBlocks` / `filterCssBySkills` / `checkSkillCss`（纯函数） |
+| `src/modules/skillsSwitch.ts` | **`VITE_SKILLS` 解析规则 + `ALWAYS_ON_SKILLS` 的唯一真源** |
+| `vite.config.ts`：`skillsCss()` / `skillsCatalog()` | 两个构建期插件 |
+
+🔴 **改 CSS 后跑 `python web/tools/cssSkillMark.py --check`**：标记与归属不一致会退出码 1
+（负例：删标记 / 把共享规则错标成模块，都能抓出来）。
+🔴 **`ALWAYS_ON_SKILLS`（`home`/`login`/`register`/`placeholder`）三处共用一份**
+（registry / skillsCss / vite.config）。曾踩：登录页样式被裁 ⇒ 「页面在、样式没了」的白屏。
+🔴 `skillsCatalog()` 会把未启用模块的 `load: () => import("./x/index")` 换成桩；
+**任一 `load:` 行不匹配预期写法就直接让构建失败**（宁可构建失败，也别静默少裁/多裁）。
+
+### 4. 实测（同一台机器、同一份源码）
+
+| | 全量 | 裁剪（8 个核心模块） |
+|---|---|---|
+| JS chunk | 99 | **21** |
+| CSS | 163432 B | **113124 B**（gzip 29689 → 21715） |
+| PWA 预缓存 | 1680 KiB | **1187 KiB** |
+| 首页磁贴 | 23 | 8 |
+
+命令：`VITE_SKILLS=pinyin,recognition,dictation,word_practice,math_units,math_mul_one,math_equation_move,math_compound_expr npm run build`
+（同时支持写进 `.env`：配置侧用 `loadEnv(mode, cwd, "VITE_")` 读，与 registry 读 `import.meta.env` 同口径）。
+
+### 5. 验证手法（可复用）
+
+- **默认构建零风险**：`cmp -s` 比对 CSS 与改造前**逐字节相同**，chunk 数不变。
+- **产物结构**：按去哈希 chunk 名做 `comm`，被裁模块的 76 个 chunk 名消失、12 个 always-on/核心页面全在。
+- **样式等价（这条最值钱）**：静态伺服两版产物，对 9 条路由抓全部元素的
+  **computed style 快照（1301 元素 × 28 项属性）**逐项比对 ⇒ 全量 vs 裁剪 **0 处差异**；
+  同时跑「全量 vs 全量」作噪声基线（随机出题的数学页会有 `width`/`gridTemplateColumns` 抖动）。
+  ⇒ 证明「只变小、没改样式」。脚本 `web/_css_smoke.mjs`（本地，gitignore）。
+- `web/tools/cssSkillMark.py --check`（负例也验过）。
+
 
 用户诉求：「把这个网页应用模块化 skills 化，只保持最必要的核心」。
 分三个提交落地（`3aff04a` → `8be1297` → `f09ce3b`），全程只改 `web/src`，未动 `server_*`。
