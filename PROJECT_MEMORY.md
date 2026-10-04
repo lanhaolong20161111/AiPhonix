@@ -5,6 +5,85 @@
 
 ---
 
+## 0.11 🆕 2026-10-04 后端模块清单化：挂载由 manifest 派生 + 端点 parity 门禁（`b8d2775`）
+
+承接「前端模块化做完了吗？**后端**可以模块化吗，保持最小核心」。先做了量化体检（结论写在 §0.11.1），
+再按体检结论只做最有价值的一步（§0.11.2）。
+
+### 1. ★ 体检结论：后端 ≠ 前端，「保持最小核心」的价值点完全不同
+
+| | `server_cf`（生产 Worker） | `server_ts`（本地 Node） |
+|---|---|---|
+| `src` TS 文件 / 行数 | 87 / **18769** | 71 / **13954** |
+| 路由文件 / 端点数 | 46 / **214**（含重复注册的原始条目 253） | 40 / **180**（原始 212） |
+| Worker 上传体积 | **2069 KiB / gzip 458 KiB** | — |
+
+- **体积不是瓶颈**：gzip 458 KiB，距 CF 限额（3 MiB 免费 / 10 MiB 付费）差 6~20 倍。
+  且**部署单元就是整个 Worker，裁剪不能让线上少部署一个字节** ⇒
+  「后端照搬前端的构建期裁剪」**几乎没收益**（前端裁剪救的是弱网下载，后端省不出用户可感知的东西）。
+  唯一真收益是**爆炸半径**，而那要**部署两个 Worker** ⇒ 属于 B2，本次未选。
+- **真正痛点是两端分叉，比记忆里记的严重**：68 个同名文件**只有 4 个相同**
+  （`lib/pinyin.ts`/`lib/practiceWeights.ts`/`lib/sentenceGuard.ts`/`types/bcryptjs.d.ts`），
+  **26 个差异 >40%**、37 个在 10~40%。「server_cf 是 server_ts 的自包含副本」**只在结构上成立**，
+  内容早已各走各的（且大量差异是必要的：R2 vs fs、D1 vs SQLite、`getEnv()` vs `process.env`）。
+- **护栏只盖了很小一块**：`contractParity.test.ts` **只比 zod schema 结构指纹**，
+  抓不到 ① 路由/挂载清单 ② 端点路径 ③ 裸常量（`BLOCK_TYPES` 等） ④ 中间件作用域。
+  而两端 `index.ts` 的「40 行 import + 20 行 `api.route()`」正是**各一份手工清单、零护栏**。
+- 已经存在的模块化：`routes/*.ts` 一模块一文件 + `lib/subject/{kernel,chinese,english,math}.ts`
+  学科隔离（**已验证的正确模式**，附「禁止开关型 API」的禁令 —— 数学的 `□` 真被语文清洗器删过）。
+
+### 2. 做了什么（`b8d2775`）
+
+1. **新增 `src/modules/manifest.ts`（两端同构）** —— 把挂载表收敛成一份有序数据
+   `{ id, target: "api"|"app", prefix, core?, handler }`；`index.ts` 只留「按清单挂载」两段循环，
+   净删 **~157 行**样板。
+   🔴 **清单顺序 = 挂载顺序，不可随意调整**：Hono 子应用 `route()` 会合并中间件，
+   `/llm` 下挂 4 个子应用、顺序敏感（见 §0.11.3 与 skill `aiphonix-backend-parity` §4 事故）。
+   `core` 字段**刻意留空未启用** —— 填它前必须确认核心边界，本次不做。
+2. **新增 `server_ts/tests/routeParity.test.ts`（5 条）+ `tests/routeDivergence.ts`** ——
+   从两端 Hono 实例取端点全集（`METHOD + path`）逐条比对，差异必须**恰好等于**显式冻结的
+   **38 条 cfOnly / 4 条 tsOnly**。未声明的漂移、以及「声明里写了但实际没差异」的僵尸条目，都会变红。
+   门禁还会断言**模块 id 集合**与 manifest 无重复、端点规模未骤降（防整片路由没挂上）。
+
+### 3. ★★ 踩的坑（这条最值钱，别再踩）
+
+- **Hono 会把 `router.get(path, mw, handler)` 的每个 handler 各存成一条同路径路由表条目。**
+  实测 `visits.ts` 只有 1 个 `router.get("/visits", requireAuth(), h)`，`app.routes` 里却是
+  **2 条**（中间件一条 + 处理器一条）。也正好解释「`PUT /daily-en` 重复而 `GET /daily-en` 不重复」
+  —— PUT 带了 `requireAuth()`。
+  ⇒ **取端点必须用「集合」去重**：不去重会把每个带守卫的路由都数成两次，
+  初版探针因此误报「39 对重复注册」，差点写进结论当 bug 报。
+  同理**门禁只管端点集合、不管注册顺序**（顺序仍靠人，manifest 文件头已写警告）。
+- **`cp.spawnSync("diff", …)` 在 Windows 上静默失败**：Git Bash 的 `PATH=/usr/bin` 是 POSIX 风格，
+  Node 按 Windows 语义解析 ⇒ 找不到 `diff` ⇒ `stdout` 为空 ⇒ 脚本算出「64 个文件 0% 差异」，
+  与「只有 4 个字节相同」直接矛盾。**看到「0 差异但字节不同」先怀疑工具没跑起来。**
+  Node 里做 diff 一律自己在 JS 里比，或给 spawn 传绝对路径 `C:/Program Files/Git/usr/bin/diff.exe`。
+- **`server_ts` 测试必须用系统 Node 24**（`better-sqlite3` 按 Node 24 编译，受管 Node 22 报
+  `ERR_DLOPEN_FAILED` / `NODE_MODULE_VERSION 127 vs 137`）。skill 里早有这条，实际仍先踩了一次。
+- `routeParity.test.ts` 导入 `server_ts/src/index.ts` 会连带执行 `src/db/index.ts` 的**顶层建库**
+  （`new Database()` + `init.sql` + 迁移）⇒ **必须先 `process.env.DATABASE_PATH = <临时目录>`
+  再动态 `await import()`**（静态 import 会被提升到赋值之前），否则会写开发者真实的 `shared/data/app.db`。
+
+### 4. 验证（每步真跑）
+
+- **行为零变化**（核心证据）：改造前后各导出一次端点全集 ⇒
+  **集合一致 + 原始序列逐条一致**（cf 214 / ts 180 唯一端点；含重复的原始条目 253 / 212 也完全相同）。
+- **反向验证**：故意从声明里删掉 1 条 ⇒ 门禁变红且报出预期消息，随后已恢复。
+  （不做的门禁等于没有门禁。）
+- `tsc --noEmit`：server_cf / server_ts 均 EXIT=0。
+- 测试：**server_cf 98/98**、**server_ts 31/31**（原 26 + 新增 5）。
+- 提交只含 `server_cf/` 2 个 + `server_ts/` 5 个文件，`web/` 与 `app/` 未动。
+
+### 5. 未做 / 待办
+
+- **未部署**：`b8d2775` 只提交没上线（用户未要求）。因端点集证明零变化，不紧急。
+- **B2「核心/全量双 Worker」未做**：`manifest.core` 已留字段但故意为空 —— 需要先确认核心边界
+  （可机械化的判据：该模块是否调用生成式 AI ⇒ 是否烧第三方额度）。
+- **B3「收敛两端 26 个 >40% 分叉文件」未做**，且建议**默认不做**：大量差异是 CF/Node 的本质差异，
+  硬合会把 CF 专属能力「对齐掉」—— 按纪律那属于「功能对齐」，不能混进隔离改动。
+
+---
+
 ## 0.10 🆕 2026-10-04 能力折叠：AI 语文/英语/数学三页折成同一个 `AiUploadPage`（`9dd4574`）
 
 承接 §0.8「尚未做」里的 **B 步 —— 能力折叠**（搬家只挪位置不改行为；折叠要改组件树，风险更高）。
