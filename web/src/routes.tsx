@@ -11,7 +11,7 @@ import { RequireAuth, GuestOnly } from "./components/Guards"
 import { AUTH_MODULES, GUEST_MODULES } from "./modules/registry"
 import type { SkillModule } from "./modules/types"
 
-const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })))
+const HomePage = lazy(() => import("./modules/home").then((m) => ({ default: m.HomePage })))
 
 /** 懒加载分片加载中的占位（居中轻量提示，避免白屏闪烁） */
 function PageFallback() {

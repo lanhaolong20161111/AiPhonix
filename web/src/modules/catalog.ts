@@ -1,7 +1,8 @@
 /** 模块目录 —— 全应用唯一的「有哪些功能」清单（唯一真源）。
  *
  * 路由表、首页磁贴、训练打卡目录都从这里派生；改这里就够了。
- * 每个模块只声明「叫什么、挂哪、怎么加载」，页面实现仍放在 pages/ 下（懒加载，不影响首屏体积）。
+ * 每个模块只声明「叫什么、挂哪、怎么加载」，实现在同目录 index.tsx（懒加载，不影响首屏体积）。
+ * 加功能 = 本文件加一条 + 建 modules/<id>/index.tsx；删功能 = 删掉那条与那个目录。
  *
  * 约定：
  * - `tile` 默认 true（进首页磁贴）；详情页 / 二级页 / 调试页显式 `tile: false`。
@@ -21,7 +22,7 @@ const pinyinModules: SkillModule[] = [
     icon: "🔤",
     subtitle: "看拼音读，SOE 评测 · 总分≥70 进下一关",
     group: "pinyin",
-    load: () => import("../pages/PinyinPracticePage").then((m) => ({ default: m.PinyinPracticePage })),
+    load: () => import("./pinyin").then((m) => ({ default: m.PinyinPracticePage })),
   },
   {
     id: "pinyin_index",
@@ -30,7 +31,7 @@ const pinyinModules: SkillModule[] = [
     icon: "📖",
     subtitle: "声母 · 韵母 · 整体认读音节 · 点读发声",
     group: "pinyin",
-    load: () => import("../pages/PinyinIndexPage").then((m) => ({ default: m.PinyinIndexPage })),
+    load: () => import("./pinyin_index").then((m) => ({ default: m.PinyinIndexPage })),
   },
   {
     id: "pinyin_detail",
@@ -39,7 +40,7 @@ const pinyinModules: SkillModule[] = [
     icon: "📖",
     group: "pinyin",
     tile: false,
-    load: () => import("../pages/PinyinDetailPage").then((m) => ({ default: m.PinyinDetailPage })),
+    load: () => import("./pinyin_detail").then((m) => ({ default: m.PinyinDetailPage })),
   },
 ]
 
@@ -54,7 +55,7 @@ const textbookModules: SkillModule[] = [
     subtitle: "看图认汉字，跟读发音",
     group: "textbook",
     training: true,
-    load: () => import("../pages/RecognitionPage").then((m) => ({ default: m.RecognitionPage })),
+    load: () => import("./recognition").then((m) => ({ default: m.RecognitionPage })),
   },
   {
     id: "dictation",
@@ -64,7 +65,7 @@ const textbookModules: SkillModule[] = [
     subtitle: "听音写字，检验掌握",
     group: "textbook",
     training: true,
-    load: () => import("../pages/DictationPage").then((m) => ({ default: m.DictationPage })),
+    load: () => import("./dictation").then((m) => ({ default: m.DictationPage })),
   },
   {
     id: "word_practice",
@@ -74,7 +75,7 @@ const textbookModules: SkillModule[] = [
     subtitle: "词语跟读与辨析",
     group: "textbook",
     training: true,
-    load: () => import("../pages/WordPracticePage").then((m) => ({ default: m.WordPracticePage })),
+    load: () => import("./word_practice").then((m) => ({ default: m.WordPracticePage })),
   },
   {
     id: "english_learning",
@@ -85,7 +86,7 @@ const textbookModules: SkillModule[] = [
     group: "textbook",
     tile: false,
     training: true,
-    load: () => import("../pages/EnglishLearningPage").then((m) => ({ default: m.EnglishLearningPage })),
+    load: () => import("./english_learning").then((m) => ({ default: m.EnglishLearningPage })),
   },
   {
     id: "letters",
@@ -94,7 +95,7 @@ const textbookModules: SkillModule[] = [
     icon: "🔡",
     group: "textbook",
     tile: false,
-    load: () => import("../pages/LetterIndexPage").then((m) => ({ default: m.LetterIndexPage })),
+    load: () => import("./letters").then((m) => ({ default: m.LetterIndexPage })),
   },
   {
     id: "letter_detail",
@@ -103,7 +104,7 @@ const textbookModules: SkillModule[] = [
     icon: "🔡",
     group: "textbook",
     tile: false,
-    load: () => import("../pages/LetterDetailPage").then((m) => ({ default: m.LetterDetailPage })),
+    load: () => import("./letter_detail").then((m) => ({ default: m.LetterDetailPage })),
   },
   {
     id: "phoneme_index",
@@ -112,7 +113,7 @@ const textbookModules: SkillModule[] = [
     icon: "🔊",
     group: "textbook",
     tile: false,
-    load: () => import("../pages/PhonemeIndexPage").then((m) => ({ default: m.PhonemeIndexPage })),
+    load: () => import("./phoneme_index").then((m) => ({ default: m.PhonemeIndexPage })),
   },
   {
     id: "phoneme_detail",
@@ -121,7 +122,7 @@ const textbookModules: SkillModule[] = [
     icon: "🔊",
     group: "textbook",
     tile: false,
-    load: () => import("../pages/PhonemeDetailPage").then((m) => ({ default: m.PhonemeDetailPage })),
+    load: () => import("./phoneme_detail").then((m) => ({ default: m.PhonemeDetailPage })),
   },
   {
     id: "pronounce",
@@ -130,7 +131,7 @@ const textbookModules: SkillModule[] = [
     icon: "🔊",
     group: "textbook",
     tile: false,
-    load: () => import("../pages/PronunciationPage").then((m) => ({ default: m.PronunciationPage })),
+    load: () => import("./pronounce").then((m) => ({ default: m.PronunciationPage })),
   },
 ]
 
@@ -145,7 +146,7 @@ const videoModules: SkillModule[] = [
     subtitle: "跟读视频练发音",
     group: "video",
     training: true,
-    load: () => import("../pages/VideoPracticePage").then((m) => ({ default: m.VideoPracticePage })),
+    load: () => import("./video_practice").then((m) => ({ default: m.VideoPracticePage })),
   },
   {
     id: "subtitle_capture",
@@ -154,7 +155,7 @@ const videoModules: SkillModule[] = [
     icon: "🎞️",
     subtitle: "框选影片字幕 · 截屏存盘带时间戳",
     group: "video",
-    load: () => import("../pages/SubtitleCapturePage").then((m) => ({ default: m.SubtitleCapturePage })),
+    load: () => import("./subtitle_capture").then((m) => ({ default: m.SubtitleCapturePage })),
   },
   {
     id: "quiz_practice",
@@ -163,7 +164,7 @@ const videoModules: SkillModule[] = [
     icon: "📝",
     group: "video",
     tile: false,
-    load: () => import("../pages/QuizPracticePage").then((m) => ({ default: m.QuizPracticePage })),
+    load: () => import("./quiz_practice").then((m) => ({ default: m.QuizPracticePage })),
   },
   {
     id: "daily_practice",
@@ -174,7 +175,7 @@ const videoModules: SkillModule[] = [
     group: "video",
     tile: false,
     training: true,
-    load: () => import("../pages/DailyPracticePage").then((m) => ({ default: m.DailyPracticePage })),
+    load: () => import("./daily_practice").then((m) => ({ default: m.DailyPracticePage })),
   },
   {
     id: "daily_chinese",
@@ -183,7 +184,7 @@ const videoModules: SkillModule[] = [
     icon: "📅",
     group: "video",
     tile: false,
-    load: () => import("../pages/DailyChinesePage").then((m) => ({ default: m.DailyChinesePage })),
+    load: () => import("./daily_chinese").then((m) => ({ default: m.DailyChinesePage })),
   },
   {
     id: "daily_english",
@@ -192,7 +193,7 @@ const videoModules: SkillModule[] = [
     icon: "📅",
     group: "video",
     tile: false,
-    load: () => import("../pages/DailyEnglishPage").then((m) => ({ default: m.DailyEnglishPage })),
+    load: () => import("./daily_english").then((m) => ({ default: m.DailyEnglishPage })),
   },
 ]
 
@@ -206,7 +207,7 @@ const mathModules: SkillModule[] = [
     icon: "🧮",
     subtitle: "动画演示「找→换→查」合并两个算式 · 何时必须加括号 + 易错警示",
     group: "math",
-    load: () => import("../pages/MathCompoundExprPage").then((m) => ({ default: m.MathCompoundExprPage })),
+    load: () => import("./math_compound_expr").then((m) => ({ default: m.MathCompoundExprPage })),
   },
   {
     id: "math_equation_move",
@@ -215,7 +216,7 @@ const mathModules: SkillModule[] = [
     icon: "⚖️",
     subtitle: "动画演示移项变号：跨过等号加减互换、乘除互换 · 同侧换位置符号不变",
     group: "math",
-    load: () => import("../pages/EquationMovePage").then((m) => ({ default: m.EquationMovePage })),
+    load: () => import("./math_equation_move").then((m) => ({ default: m.EquationMovePage })),
   },
   {
     id: "math_units",
@@ -224,7 +225,7 @@ const mathModules: SkillModule[] = [
     icon: "📏",
     subtitle: "毫米/厘米/分米/米/千米 · 克/千克/吨 —— 切开拼合看懂方向，参照物建立量感",
     group: "math",
-    load: () => import("../pages/MathUnitsPage").then((m) => ({ default: m.MathUnitsPage })),
+    load: () => import("./math_units").then((m) => ({ default: m.MathUnitsPage })),
   },
   {
     id: "math_mul_one",
@@ -233,7 +234,7 @@ const mathModules: SkillModule[] = [
     icon: "✏️",
     subtitle: "竖式逐位四拍：乘 → 加进位 → 写 → 进 · 位值点阵看懂为什么从个位乘起",
     group: "math",
-    load: () => import("../pages/MathMulOnePage").then((m) => ({ default: m.MathMulOnePage })),
+    load: () => import("./math_mul_one").then((m) => ({ default: m.MathMulOnePage })),
   },
 ]
 
@@ -247,7 +248,7 @@ const toolModules: SkillModule[] = [
     icon: "💬",
     subtitle: "自由表达 → AI 纠错 → 朗读 + 测评",
     group: "tools",
-    load: () => import("../pages/MurmurPage").then((m) => ({ default: m.MurmurPage })),
+    load: () => import("./murmur").then((m) => ({ default: m.MurmurPage })),
   },
   {
     id: "char_image",
@@ -257,7 +258,7 @@ const toolModules: SkillModule[] = [
     subtitle: "识字 · 识词 · 识句 · 左右滑动",
     group: "tools",
     training: true,
-    load: () => import("../pages/CharImageEntryPage").then((m) => ({ default: m.CharImageEntryPage })),
+    load: () => import("./char_image").then((m) => ({ default: m.CharImageEntryPage })),
   },
   {
     id: "wordbook",
@@ -266,7 +267,7 @@ const toolModules: SkillModule[] = [
     icon: "📓",
     subtitle: "点读收生字 · 每日间隔复习",
     group: "tools",
-    load: () => import("../pages/WordbookPage").then((m) => ({ default: m.WordbookPage })),
+    load: () => import("./wordbook").then((m) => ({ default: m.WordbookPage })),
   },
   {
     id: "memory_joy",
@@ -275,7 +276,7 @@ const toolModules: SkillModule[] = [
     icon: "🌟",
     subtitle: "今日字词自动编成小故事",
     group: "tools",
-    load: () => import("../pages/MemoryJoyPage").then((m) => ({ default: m.MemoryJoyPage })),
+    load: () => import("./memory_joy").then((m) => ({ default: m.MemoryJoyPage })),
   },
   {
     id: "sentence_practice",
@@ -284,7 +285,7 @@ const toolModules: SkillModule[] = [
     icon: "✏️",
     subtitle: "用一个词写句话，AI 老师批改",
     group: "tools",
-    load: () => import("../pages/SentencePracticePage").then((m) => ({ default: m.SentencePracticePage })),
+    load: () => import("./sentence_practice").then((m) => ({ default: m.SentencePracticePage })),
   },
   {
     id: "oral_writing",
@@ -294,7 +295,7 @@ const toolModules: SkillModule[] = [
     subtitle: "看图/听题口述表达，AI 评分润色",
     group: "tools",
     training: true,
-    load: () => import("../pages/OralWritingPage").then((m) => ({ default: m.OralWritingPage })),
+    load: () => import("./oral_writing").then((m) => ({ default: m.OralWritingPage })),
   },
   {
     id: "speech_compose",
@@ -303,7 +304,7 @@ const toolModules: SkillModule[] = [
     icon: "🤖",
     subtitle: "一问一答学语文，粘贴文章分句背诵跟读",
     group: "tools",
-    load: () => import("../pages/SpeechComposePage").then((m) => ({ default: m.SpeechComposePage })),
+    load: () => import("./speech_compose").then((m) => ({ default: m.SpeechComposePage })),
   },
   {
     id: "ai_english_talk",
@@ -312,7 +313,7 @@ const toolModules: SkillModule[] = [
     icon: "💬",
     subtitle: "和 AI 用英语聊天，卡住有提示",
     group: "tools",
-    load: () => import("../pages/AiEnglishTalkPage").then((m) => ({ default: m.AiEnglishTalkPage })),
+    load: () => import("./ai_english_talk").then((m) => ({ default: m.AiEnglishTalkPage })),
   },
   {
     id: "char_map",
@@ -321,7 +322,7 @@ const toolModules: SkillModule[] = [
     icon: "🗺️",
     subtitle: "点亮学过的每一个字",
     group: "tools",
-    load: () => import("../pages/CharMapPage").then((m) => ({ default: m.CharMapPage })),
+    load: () => import("./char_map").then((m) => ({ default: m.CharMapPage })),
   },
   {
     id: "diary",
@@ -330,7 +331,7 @@ const toolModules: SkillModule[] = [
     icon: "📖",
     subtitle: "每天一句话，AI 帮你记下来",
     group: "tools",
-    load: () => import("../pages/DiaryPage").then((m) => ({ default: m.DiaryPage })),
+    load: () => import("./diary").then((m) => ({ default: m.DiaryPage })),
   },
   {
     id: "radical_game",
@@ -339,7 +340,7 @@ const toolModules: SkillModule[] = [
     icon: "🔮",
     subtitle: "声旁猜读音，形旁猜意思",
     group: "tools",
-    load: () => import("../pages/RadicalGamePage").then((m) => ({ default: m.RadicalGamePage })),
+    load: () => import("./radical_game").then((m) => ({ default: m.RadicalGamePage })),
   },
   {
     id: "courseware_manager",
@@ -348,7 +349,7 @@ const toolModules: SkillModule[] = [
     icon: "📚",
     subtitle: "上传/管理语数英课件图片",
     group: "tools",
-    load: () => import("../pages/CoursewareManagerPage").then((m) => ({ default: m.CoursewareManagerPage })),
+    load: () => import("./courseware_manager").then((m) => ({ default: m.CoursewareManagerPage })),
   },
 
   // ── 以下不进首页磁贴：二级页 / 跳转页 ──
@@ -360,7 +361,7 @@ const toolModules: SkillModule[] = [
     icon: "🖼️",
     group: "tools",
     tile: false,
-    load: () => import("../pages/CharImagePage").then((m) => ({ default: m.CharImagePage })),
+    load: () => import("./char_image_practice").then((m) => ({ default: m.CharImagePage })),
   },
   {
     id: "soe_history",
@@ -369,7 +370,7 @@ const toolModules: SkillModule[] = [
     icon: "📊",
     group: "tools",
     tile: false,
-    load: () => import("../pages/SoeHistoryPage").then((m) => ({ default: m.SoeHistoryPage })),
+    load: () => import("./soe_history").then((m) => ({ default: m.SoeHistoryPage })),
   },
   {
     id: "parent_report",
@@ -378,7 +379,7 @@ const toolModules: SkillModule[] = [
     icon: "📈",
     group: "tools",
     tile: false,
-    load: () => import("../pages/ParentReportPage").then((m) => ({ default: m.ParentReportPage })),
+    load: () => import("./parent_report").then((m) => ({ default: m.ParentReportPage })),
   },
   {
     id: "ai_practice",
@@ -389,7 +390,7 @@ const toolModules: SkillModule[] = [
     group: "tools",
     tile: false,
     training: true,
-    load: () => import("../pages/AiPracticePage").then((m) => ({ default: m.AiPracticePage })),
+    load: () => import("./ai_practice").then((m) => ({ default: m.AiPracticePage })),
   },
   {
     id: "ai_practice_chat",
@@ -398,7 +399,7 @@ const toolModules: SkillModule[] = [
     icon: "🤖",
     group: "tools",
     tile: false,
-    load: () => import("../pages/AiPracticeChatPage").then((m) => ({ default: m.AiPracticeChatPage })),
+    load: () => import("./ai_practice_chat").then((m) => ({ default: m.AiPracticeChatPage })),
   },
   {
     id: "ai_homework",
@@ -407,7 +408,7 @@ const toolModules: SkillModule[] = [
     icon: "📷",
     group: "tools",
     tile: false,
-    load: () => import("../pages/AiHomeworkPage").then((m) => ({ default: m.AiHomeworkPage })),
+    load: () => import("./ai_homework").then((m) => ({ default: m.AiHomeworkPage })),
   },
   {
     id: "ai_chinese",
@@ -418,7 +419,7 @@ const toolModules: SkillModule[] = [
     group: "tools",
     tile: false,
     training: true,
-    load: () => import("../pages/AiChinesePage").then((m) => ({ default: m.AiChinesePage })),
+    load: () => import("./ai_chinese").then((m) => ({ default: m.AiChinesePage })),
   },
   {
     id: "ai_english",
@@ -427,7 +428,7 @@ const toolModules: SkillModule[] = [
     icon: "📷",
     group: "tools",
     tile: false,
-    load: () => import("../pages/AiEnglishPage").then((m) => ({ default: m.AiEnglishPage })),
+    load: () => import("./ai_english").then((m) => ({ default: m.AiEnglishPage })),
   },
   {
     id: "ai_parse_result",
@@ -436,7 +437,7 @@ const toolModules: SkillModule[] = [
     icon: "📄",
     group: "tools",
     tile: false,
-    load: () => import("../pages/AiParseResultPage").then((m) => ({ default: m.AiParseResultPage })),
+    load: () => import("./ai_parse_result").then((m) => ({ default: m.AiParseResultPage })),
   },
   {
     id: "ai_history",
@@ -445,7 +446,7 @@ const toolModules: SkillModule[] = [
     icon: "🕘",
     group: "tools",
     tile: false,
-    load: () => import("../pages/AiHistoryPage").then((m) => ({ default: m.AiHistoryPage })),
+    load: () => import("./ai_history").then((m) => ({ default: m.AiHistoryPage })),
   },
 ]
 
@@ -459,7 +460,7 @@ const systemModules: SkillModule[] = [
     icon: "🔑",
     tile: false,
     guard: "guest",
-    load: () => import("../pages/LoginPage").then((m) => ({ default: m.LoginPage })),
+    load: () => import("./login").then((m) => ({ default: m.LoginPage })),
   },
   {
     id: "register",
@@ -468,7 +469,7 @@ const systemModules: SkillModule[] = [
     icon: "🆕",
     tile: false,
     guard: "guest",
-    load: () => import("../pages/RegisterPage").then((m) => ({ default: m.RegisterPage })),
+    load: () => import("./register").then((m) => ({ default: m.RegisterPage })),
   },
   {
     id: "placeholder",
@@ -476,7 +477,7 @@ const systemModules: SkillModule[] = [
     title: "功能占位页",
     icon: "🚧",
     tile: false,
-    load: () => import("../pages/PlaceholderPage").then((m) => ({ default: m.PlaceholderPage })),
+    load: () => import("./placeholder").then((m) => ({ default: m.PlaceholderPage })),
   },
   {
     id: "soe_demo",
@@ -484,7 +485,7 @@ const systemModules: SkillModule[] = [
     title: "发音评测（调试）",
     icon: "🎤",
     tile: false,
-    load: () => import("../pages/SoeDemoPage").then((m) => ({ default: m.SoeDemoPage })),
+    load: () => import("./soe_demo").then((m) => ({ default: m.SoeDemoPage })),
   },
 ]
 

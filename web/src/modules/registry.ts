@@ -2,7 +2,7 @@
  *
  * 消费方：
  *   routes.tsx             → AUTH_MODULES / GUEST_MODULES
- *   pages/HomePage.tsx     → HOME_SECTIONS / FEATURE_ROUTES / ENABLED_ROUTES
+ *   modules/home/index.tsx → HOME_SECTIONS / FEATURE_ROUTES / ENABLED_ROUTES
  *   services/training.ts   → TRAINING_MODULES
  *   modules/registry.test.ts → checkRegistry
  */

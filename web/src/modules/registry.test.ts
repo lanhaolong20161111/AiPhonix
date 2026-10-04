@@ -7,6 +7,8 @@
  */
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
+import { existsSync, readdirSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import {
   ALL_MODULES,
   AUTH_MODULES,
@@ -34,6 +36,23 @@ describe("模块注册表", () => {
     assert.equal(new Set(ALL_MODULES.map((m) => m.id)).size, ALL_MODULES.length, "id 有重复")
     assert.equal(new Set(ALL_MODULES.map((m) => m.route)).size, ALL_MODULES.length, "route 有重复")
     assert.ok(ALL_MODULES.every((m) => m.title.length > 0), "有模块缺 title")
+  })
+
+  it("结构门禁：每个模块都有目录 modules/<id>/index.tsx，且没有孤儿目录", () => {
+    const here = fileURLToPath(new URL(".", import.meta.url))
+    const dirs = new Set(
+      readdirSync(here, { withFileTypes: true })
+        .filter((e) => e.isDirectory())
+        .map((e) => e.name),
+    )
+    for (const m of ALL_MODULES) {
+      assert.ok(dirs.has(m.id), `模块 ${m.id} 没有对应目录 modules/${m.id}/`)
+      assert.ok(existsSync(`${here}${m.id}/index.tsx`), `modules/${m.id}/ 缺 index.tsx`)
+    }
+    // 反向：目录必须在 catalog 里（home 是内核页，不在 catalog，白名单放行）
+    const ids = new Set(ALL_MODULES.map((m) => m.id))
+    const orphans = [...dirs].filter((d) => !ids.has(d) && d !== "home")
+    assert.deepEqual(orphans, [], `有目录不在 catalog 里：${orphans.join("、")}`)
   })
 
   it("默认不裁剪（未设 VITE_SKILLS 时全量启用）", () => {

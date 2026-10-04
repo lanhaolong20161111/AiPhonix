@@ -1,4 +1,4 @@
-/** 数学展示分段 —— 从 `pages/AiParseResultPage.tsx` 抽出（2026-09-15），为了：
+/** 数学展示分段 —— 从 `modules/ai_parse_result/index.tsx` 抽出（2026-09-15），为了：
  *  ① 可单测（align/indent/表格判定这些规则以前埋在页面组件里，改错没人拦得住）
  *  ② 渲染循环 / navCount / sectionLabel 共用同一份（索引必须对得上）
  *
