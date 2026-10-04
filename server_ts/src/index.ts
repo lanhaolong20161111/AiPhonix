@@ -8,41 +8,10 @@ import type { Server as HttpServer } from "node:http"
 import { fileURLToPath } from "node:url"
 import { getConfig, STATIC_DIR, DATA_DIR, ROOT } from "./env.js"
 import { sqlite } from "./db/index.js"
-import authRoutes from "./routes/auth.js"
-import usersRoutes from "./routes/users.js"
-import userImportsRoutes from "./routes/user_imports.js"
-import uploadsRoutes from "./routes/uploads.js"
-import coursewareRoutes from "./routes/courseware.js"
-import essaysRoutes from "./routes/essays.js"
-import englishRoutes from "./routes/english.js"
-import wordbankRoutes from "./routes/wordbank.js"
-import chinesePracticeRoutes from "./routes/chinese_practice.js"
-import practiceRoutes from "./routes/practice.js"
-import practiceTrackerRoutes from "./routes/practice_tracker.js"
-import trainingRoutes from "./routes/training.js"
-import importTemplatesRoutes from "./routes/import_templates.js"
-import charImagesRoutes from "./routes/char_images.js"
-import pinyinAudioRoutes from "./routes/pinyin_audio.js"
-import ipaAudioRoutes from "./routes/ipa_audio.js"
-import quizRoutes from "./routes/quiz.js"
-import wordSuggestionsRoutes from "./routes/word_suggestions.js"
-import llmRoutes from "./routes/llm.js"
-import arkImageRoutes from "./routes/ark_image.js"
-import freeLlmRoutes from "./routes/free_llm.js"
-import aiPracticeRoutes from "./routes/ai_practice.js"
-import chineseRoutes from "./routes/chinese.js"
-import aiChineseRoutes from "./routes/ai_chinese.js"
-import aiHomeworkRoutes from "./routes/ai_homework.js"
-import aiChatRoutes from "./routes/ai_chat.js"
-import ttsRoutes from "./routes/tts.js"
-import soeRoutes from "./routes/soe.js"
-import asrShortRoutes from "./routes/asrShort.js"
-import asrStreamRoutes, { attachAsrStream } from "./routes/asrStream.js"
-import subtitleCaptureRoutes from "./routes/subtitleCapture.js"
-import biliRoutes from "./routes/bili.js"
-import visitsRoutes from "./routes/visits.js"
-import prefsRoutes from "./routes/prefs.js"
-import videoIssuesRoutes from "./routes/video_issues.js"
+// 路由清单（模块注册表）—— 唯一真源；本文件只负责「按清单挂载」
+import { MODULES } from "./modules/manifest.js"
+// asrStream 的 WebSocket 升级必须挂在底层 http.Server 上（见文件末尾），故单独保留具名导入
+import { attachAsrStream } from "./routes/asrStream.js"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -296,45 +265,17 @@ if (existsSync(videosDir)) {
   app.use("/videos/*", serveStatic({ root: STATIC_DIR }))
 }
 
-// /api/v1 路由（逐阶段挂载）
+// /api/v1 路由：由 modules/manifest.ts 派生（逐段挂载）
+// 清单顺序 = 挂载顺序。两段循环之间插入 `app.route("/api/v1", api)`。
 const api = new Hono()
-api.route("/auth", authRoutes)
-api.route("/users", usersRoutes)
-api.route("/user-imports", userImportsRoutes)
-api.route("/uploads", uploadsRoutes)
-api.route("/courseware", coursewareRoutes)
-api.route("/essays", essaysRoutes)
-api.route("/english", englishRoutes)
-api.route("/wordbank", wordbankRoutes)
-api.route("/practice", practiceRoutes)
-api.route("/practice", practiceTrackerRoutes)
-api.route("/training", trainingRoutes)
-api.route("/import-templates", importTemplatesRoutes)
-api.route("/char-images", charImagesRoutes)
-api.route("/pinyin-audio", pinyinAudioRoutes)
-api.route("/ipa-audio", ipaAudioRoutes)
-api.route("/llm", quizRoutes)
-api.route("/llm", wordSuggestionsRoutes)
-api.route("/llm", llmRoutes)
-api.route("/llm", chinesePracticeRoutes)
-api.route("/chinese", chineseRoutes)
+for (const m of MODULES) {
+  if (m.target === "api") api.route(`/${m.prefix}`, m.handler)
+}
 app.route("/api/v1", api)
-// ai_*/tts/soe 内部用完整前缀，直接挂到 /api/v1
-app.route("/api/v1", aiChineseRoutes)
-app.route("/api/v1", aiHomeworkRoutes)
-app.route("/api/v1", aiPracticeRoutes)
-app.route("/api/v1", aiChatRoutes)
-app.route("/api/v1", arkImageRoutes)
-app.route("/api/v1", freeLlmRoutes)
-app.route("/api/v1", ttsRoutes)
-app.route("/api/v1", asrShortRoutes)
-app.route("/api/v1", asrStreamRoutes)
-app.route("/api/v1", soeRoutes)
-app.route("/api/v1", subtitleCaptureRoutes)
-app.route("/api/v1", biliRoutes)
-app.route("/api/v1", visitsRoutes)
-app.route("/api/v1", prefsRoutes)
-app.route("/api/v1", videoIssuesRoutes)
+// ai_*/tts/soe 等：路由文件内部用完整前缀，直接挂到 /api/v1
+for (const m of MODULES) {
+  if (m.target !== "api") app.route(m.prefix ? `/api/v1/${m.prefix}` : "/api/v1", m.handler)
+}
 
 // 404 for unknown API
 app.notFound((c) => c.json({ detail: "Not Found" }, 404))
