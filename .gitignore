@@ -439,3 +439,6 @@ web/_dump_zh.py
 
 # eqmove page UI-only screenshot output (local visual check)
 web/_em_ui_shots/
+
+# module registry refactor local artifacts (smoke script / shots / build dir+log)
+web/_reg_*

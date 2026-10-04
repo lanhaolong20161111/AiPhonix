@@ -1,8 +1,11 @@
 /** 首页 — 宫格磁贴布局：小节标签 + 紧凑方块（图标+标题），一屏尽收、无需反复滚动
  *
- * 分组（拼音/课本字词/视频）不再折叠展开，直接拍平为小节磁贴；
- * 副标题收入 title 悬停提示；训练任务完成态以 ✓ 角标展示；
- * 访问频次只影响节内排序（常用靠前），不再显示 🔥 徽标。
+ *  磁贴内容来自 modules/registry（唯一真源），本文件只负责渲染与「常用靠前」排序；
+ *  ★ 新增入口请改 src/modules/catalog.ts，不要在这里加死数据。
+ *
+ *  分组（拼音/课本字词/视频/动画学数学/学习工具）不再折叠展开，直接拍平为小节磁贴；
+ *  副标题收入 title 悬停提示；训练任务完成态以 ✓ 角标展示；
+ *  访问频次只影响节内排序（常用靠前），不再显示 🔥 徽标。
  */
 
 import { useState } from "react"
@@ -12,22 +15,8 @@ import { fetchPlan, featureById, type PlanItem } from "../services/training"
 import { SettingsSheet } from "../components/SettingsSheet"
 import { useVisitCounts, recordVisit, sortByVisits } from "../lib/visitCounts"
 import { APP_VERSION } from "../lib/appVersion"
-
-/** 已实现模块的实际路由（未实现走占位页） */
-const FEATURE_ROUTES: Record<string, string> = {
-  recognition: "/module/recognition",
-  dictation: "/module/dictation",
-  word_practice: "/module/word_practice",
-  english_learning: "/module/english_learning",
-  char_image: "/module/char_image",
-  oral_writing: "/module/oral_writing",
-  ai_practice: "/module/ai_practice",
-  ai_homework: "/module/ai_homework",
-  ai_chinese: "/module/ai_chinese",
-  video_practice: "/module/video_practice",
-  quiz_practice: "/module/quiz_practice",
-  pinyin: "/pinyin",
-}
+import { ENABLED_ROUTES, FEATURE_ROUTES, HOME_SECTIONS } from "../modules/registry"
+import type { SkillModule } from "../modules/types"
 
 interface TileEntry {
   to: string
@@ -39,62 +28,23 @@ interface TileEntry {
   feature?: string
 }
 
-/** 首页小节：扁平磁贴，不再折叠 */
-const SECTIONS: Array<{ key: string; label: string; entries: TileEntry[] }> = [
-  {
-    key: "pinyin",
-    label: "拼音",
-    entries: [
-      { to: "/pinyin", emoji: "🔤", title: "拼音练习", subtitle: "看拼音读，SOE 评测 · 总分≥70 进下一关", feature: "pinyin" },
-      { to: "/module/pinyin-index", emoji: "📖", title: "拼音表", subtitle: "声母 · 韵母 · 整体认读音节 · 点读发声" },
-    ],
-  },
-  {
-    key: "textbook",
-    label: "课本字词",
-    entries: [
-      { to: "/module/recognition", emoji: "🔤", title: "认字", subtitle: "看图认汉字，跟读发音", feature: "recognition" },
-      { to: "/module/dictation", emoji: "✏️", title: "默写", subtitle: "听音写字，检验掌握", feature: "dictation" },
-      { to: "/module/word_practice", emoji: "📚", title: "词语", subtitle: "词语跟读与辨析", feature: "word_practice" },
-    ],
-  },
-  {
-    key: "video",
-    label: "视频",
-    entries: [
-      { to: "/module/video_practice", emoji: "🎬", title: "视频跟读", subtitle: "跟读视频练发音", feature: "video_practice" },
-      { to: "/module/subtitle_capture", emoji: "🎞️", title: "字幕采集", subtitle: "框选影片字幕 · 截屏存盘带时间戳" },
-    ],
-  },
-  {
-    key: "math",
-    label: "动画学数学",
-    entries: [
-      { to: "/module/math_compound_expr", emoji: "🧮", title: "三年级上综合算式动画", subtitle: "动画演示「找→换→查」合并两个算式 · 何时必须加括号 + 易错警示" },
-      { to: "/module/math_equation_move", emoji: "⚖️", title: "等式变变变", subtitle: "动画演示移项变号：跨过等号加减互换、乘除互换 · 同侧换位置符号不变" },
-      { to: "/module/math_units", emoji: "📏", title: "长度与质量单位", subtitle: "毫米/厘米/分米/米/千米 · 克/千克/吨 —— 切开拼合看懂方向，参照物建立量感" },
-      { to: "/module/math_mul_one", emoji: "✏️", title: "多位数乘一位数", subtitle: "竖式逐位四拍：乘 → 加进位 → 写 → 进 · 位值点阵看懂为什么从个位乘起" },
-    ],
-  },
-  {
-    key: "tools",
-    label: "学习工具",
-    entries: [
-      { to: "/module/murmur", emoji: "💬", title: "碎碎念", subtitle: "自由表达 → AI 纠错 → 朗读 + 测评" },
-      { to: "/module/char_image", emoji: "🖼️", title: "看图识字", subtitle: "识字 · 识词 · 识句 · 左右滑动" },
-      { to: "/module/wordbook", emoji: "📓", title: "生词本", subtitle: "点读收生字 · 每日间隔复习" },
-      { to: "/module/memory_joy", emoji: "🌟", title: "记忆快乐本", subtitle: "今日字词自动编成小故事" },
-      { to: "/module/sentence_practice", emoji: "✏️", title: "造句练习", subtitle: "用一个词写句话，AI 老师批改" },
-      { to: "/module/oral_writing", emoji: "🎙️", title: "口述作文", subtitle: "看图/听题口述表达，AI 评分润色" },
-      { to: "/module/speech_compose", emoji: "🤖", title: "AI 对话学语文", subtitle: "一问一答学语文，粘贴文章分句背诵跟读" },
-      { to: "/module/ai_english_talk", emoji: "💬", title: "AI 英语对话", subtitle: "和 AI 用英语聊天，卡住有提示" },
-      { to: "/module/char_map", emoji: "🗺️", title: "汉字地图", subtitle: "点亮学过的每一个字" },
-      { to: "/module/diary", emoji: "📖", title: "成长日记", subtitle: "每天一句话，AI 帮你记下来" },
-      { to: "/module/radical_game", emoji: "🔮", title: "偏旁魔法屋", subtitle: "声旁猜读音，形旁猜意思" },
-      { to: "/module/courseware_manager", emoji: "📚", title: "课件库", subtitle: "上传/管理语数英课件图片" },
-    ],
-  },
-]
+/** 模块声明 → 磁贴（首页只认这个形状，其余字段一律不关心） */
+function toTile(m: SkillModule): TileEntry {
+  return {
+    to: m.route,
+    emoji: m.icon,
+    title: m.title,
+    subtitle: m.subtitle ?? "",
+    feature: m.training === true ? m.id : undefined,
+  }
+}
+
+/** 首页小节：扁平磁贴，不再折叠（分组与顺序由 registry 决定） */
+const SECTIONS = HOME_SECTIONS.map((s) => ({
+  key: s.key,
+  label: s.label,
+  entries: s.modules.map(toTile),
+}))
 
 function Tile({ to, emoji, title, subtitle, done }: TileEntry & { done?: boolean }) {
   return (
@@ -141,7 +91,7 @@ export function HomePage() {
     doneByRoute.set(FEATURE_ROUTES[item.feature] ?? `/module/${item.feature}`, item.done)
   }
 
-  // 小节已覆盖的条目不再重复出现在「今日任务」
+  // 小节已覆盖的条目不再重复出现在「今日任务」；指向已裁剪模块的链接一并挡掉
   const sectionRoutes = new Set(SECTIONS.flatMap((s) => s.entries.map((e) => e.to)))
   const planEntries: TileEntry[] = items
     .filter((i) => featureById(i.feature)?.training)
@@ -150,7 +100,7 @@ export function HomePage() {
       const to = FEATURE_ROUTES[item.feature] ?? `/module/${item.feature}`
       return { to, emoji: feature.emoji, title: feature.title, subtitle: feature.subtitle }
     })
-    .filter((e) => !sectionRoutes.has(e.to))
+    .filter((e) => !sectionRoutes.has(e.to) && ENABLED_ROUTES.has(e.to))
 
   // 访问频次：点击越多的入口在节内排得越靠前（登录态走服务端，跟随账户）
   const { counts } = useVisitCounts()

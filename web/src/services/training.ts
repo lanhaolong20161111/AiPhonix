@@ -1,20 +1,16 @@
 /** 训练计划 / 打卡 API 客户端 — 对应 server_py/routes/training.py */
 
 import { api } from "./api"
+import { TRAINING_MODULES } from "../modules/registry"
 
-/** 与 Android FeatureCatalog 一致的功能目录 */
-export const FEATURES = [
-  { id: "recognition", emoji: "🔤", title: "认字", subtitle: "看图认汉字，跟读发音", training: true },
-  { id: "dictation", emoji: "✏️", title: "默写", subtitle: "听音写字，检验掌握", training: true },
-  { id: "word_practice", emoji: "📚", title: "词语", subtitle: "词语跟读与辨析", training: true },
-  { id: "oral_writing", emoji: "🎙️", title: "口述作文", subtitle: "看图/听题口述表达", training: true },
-  { id: "char_image", emoji: "🖼️", title: "看图识字词句", subtitle: "识字 · 识词 · 识句", training: true },
-  { id: "english_learning", emoji: "🇬🇧", title: "英语学习", subtitle: "字母 · 拼读 · 视频跟读", training: true },
-  { id: "video_practice", emoji: "🎬", title: "视频跟读", subtitle: "跟读视频练发音", training: true },
-  { id: "daily_practice", emoji: "🏆", title: "每日一练", subtitle: "语文 · 数学 · 英语", training: true },
-  { id: "ai_practice", emoji: "🤖", title: "AI 陪我练", subtitle: "导入主题，AI 多轮引导练习", training: true },
-  { id: "ai_chinese", emoji: "📷", title: "AI 语文识图", subtitle: "拍照/粘贴图片识别，语文问答", training: true },
-] as const
+/** 与 Android FeatureCatalog 一致的功能目录 —— 由模块注册表派生（唯一真源，见 modules/catalog.ts） */
+export const FEATURES: Feature[] = TRAINING_MODULES.map((m) => ({
+  id: m.id,
+  emoji: m.icon,
+  title: m.title,
+  subtitle: m.subtitle ?? "",
+  training: true,
+}))
 
 export interface Feature {
   id: string
