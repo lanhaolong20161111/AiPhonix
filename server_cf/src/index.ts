@@ -46,9 +46,9 @@ function setCorsHeaders(c: { header: (name: string, value: string) => void }, or
 }
 
 app.use("*", async (c, next) => {
-  // 静态资源同源直出，不需要 CORS 处理（省一次 origin 解析 + 响应头写入）
+  // 静态资源/下载同源直出，不需要 CORS 处理（省一次 origin 解析 + 响应头写入）
   const p = c.req.path
-  if (p.startsWith("/web/") || p.startsWith("/letter-clips/") || p.startsWith("/videos/") || p === "/web" || p === "/") {
+  if (p.startsWith("/web/") || p.startsWith("/letter-clips/") || p.startsWith("/videos/") || p.startsWith("/dl/") || p === "/web" || p === "/") {
     return await next()
   }
   const origin = c.req.header("Origin")
@@ -74,7 +74,17 @@ const MEDIA_LOG_SKIP_PREFIXES = [
   "/letter-clips/",
   "/videos/",
   "/web/",
+  "/dl/",
 ]
+
+/**
+ * 下载口令就写在路径里，落库前先抹掉。
+ * D1 是长期留痕的，而口令一旦进日志，「不公开」这条前提就靠不住了。
+ */
+function redactPath(p: string): string {
+  return p.replace(/^\/dl\/[^/]+/, "/dl/***")
+}
+
 app.use("*", async (c, next) => {
   const start = Date.now()
   await next()
@@ -83,7 +93,7 @@ app.use("*", async (c, next) => {
     MEDIA_LOG_SKIP_PREFIXES.some((p) => c.req.path.startsWith(p)) && ms < 500 && c.res.status < 400
   if (!fastMedia) {
     c.executionCtx.waitUntil(
-      recordLog({ method: c.req.method, path: c.req.path, status: c.res.status, durationMs: ms, level: "info" })
+      recordLog({ method: c.req.method, path: redactPath(c.req.path), status: c.res.status, durationMs: ms, level: "info" })
     )
   }
 })
@@ -132,6 +142,9 @@ const MIME_BY_EXT: Record<string, string> = {
   wasm: "application/wasm",
   woff: "font/woff",
   woff2: "font/woff2",
+  // APK：写对 MIME 才会被浏览器/系统当成安装包（否则是 octet-stream，
+  // 部分国产浏览器会把它当普通文件存下来，不给「安装」入口）
+  apk: "application/vnd.android.package-archive",
 }
 
 function extMime(key: string): string {
@@ -139,7 +152,11 @@ function extMime(key: string): string {
   return m ? MIME_BY_EXT[m[1].toLowerCase()] ?? "application/octet-stream" : "application/octet-stream"
 }
 
-async function serveR2Object(c: Context, key: string, cacheControl: string): Promise<Response> {
+/**
+ * @param downloadAs 传文件名则加 `Content-Disposition: attachment`（强制下载而非就地打开）。
+ *   APK 必须走这条：否则某些浏览器会尝试渲染二进制。
+ */
+async function serveR2Object(c: Context, key: string, cacheControl: string, downloadAs?: string): Promise<Response> {
   const env = getEnv()
   const rangeHeader = c.req.header("Range")
   let obj = null as R2ObjectBody | null
@@ -149,6 +166,7 @@ async function serveR2Object(c: Context, key: string, cacheControl: string): Pro
     "Cache-Control": cacheControl,
     "Accept-Ranges": "bytes",
   }
+  if (downloadAs) headers["Content-Disposition"] = `attachment; filename="${downloadAs}"`
   if (rangeHeader) {
     const m = rangeHeader.match(/^bytes=(\d*)-(\d*)$/)
     if (m) {
@@ -221,6 +239,101 @@ app.get("/videos/*", (c) => {
   return serveR2Object(c, key, "public, max-age=86400")
 })
 
+// ── APK 下载（刻意「不公开」）────────────────────────────────────────
+// 为什么走服务端而不是静态资源：APK 46MB / 38MB，远超 Workers 静态资源**单文件 25MiB** 上限。
+// 为什么不在首页挂入口：小英 APK 的 BuildConfig 里烘焙了 DeepSeek key（从 classes.dex 里
+//   `grep sk-` 就能拿到明文），公开链接 = 把 key 送人。故只给一条猜不到的口令路径。
+// 口令从 secret `DL_TOKEN` 读（见 bindings.ts 里为什么不用 [vars]）；未配置则整块关闭。
+const DL_FILES: Record<string, { key: string; label: string; desc: string }> = {
+  "xiaoying.apk": {
+    key: "downloads/xiaoying.apk",
+    label: "小英（语音问答）",
+    desc: "喊「小英小英」→ 应答 → 问「XX 的英语怎么说」→ 读单词 3 遍 + 例句。首次打开需在 App 内下载 226MB 识别模型。",
+  },
+  "aiphonix.apk": {
+    key: "downloads/AiPhonix.apk",
+    label: "AiPhonix（主 App）",
+    desc: "拼音 / 认字 / 跟读测评 / 动画学数学等，功能对齐网页版。",
+  },
+}
+
+/** 口令校验：未配置或过短 ⇒ 一律拒绝（fail closed，避免「忘了配 secret」变成公开下载） */
+function dlTokenOk(input: string): boolean {
+  const want = (getEnv().DL_TOKEN ?? "").trim()
+  if (want.length < 12) return false
+  if (input.length !== want.length) return false
+  // 定长比较，不给「靠响应时间逐字节猜口令」留路（口令虽长，成本也就几行）
+  let diff = 0
+  for (let i = 0; i < want.length; i++) diff |= input.charCodeAt(i) ^ want.charCodeAt(i)
+  return diff === 0
+}
+
+function dlPageHtml(token: string, files: { name: string; label: string; desc: string; size: number | null }[]): string {
+  const rows = files
+    .map((f) => {
+      const size = f.size === null ? "未上传" : `${(f.size / 1048576).toFixed(1)} MB`
+      const action = f.size === null
+        ? `<span class="btn off">暂不可用</span>`
+        : `<a class="btn" href="/dl/${token}/${f.name}">下载</a>`
+      return `<li><div><p class="name">${f.label}</p><p class="desc">${f.desc}</p></div><div class="act"><span class="size">${size}</span>${action}</div></li>`
+    })
+    .join("")
+  return `<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>小英 · 下载</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;padding:24px 16px 48px;font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f6f7f4;color:#23231f}
+.wrap{max-width:560px;margin:0 auto}
+h1{margin:0 0 4px;font-size:20px;font-weight:600}
+.sub{margin:0 0 20px;color:#5f5e5a;font-size:13px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+li{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2e1db;border-radius:12px;padding:14px}
+.name{margin:0 0 4px;font-weight:600}
+.desc{margin:0;color:#5f5e5a;font-size:12.5px;line-height:1.5}
+.act{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+.size{color:#8a8880;font-size:12px;white-space:nowrap}
+.btn{display:inline-block;padding:8px 18px;border-radius:8px;background:#2f6f4f;color:#fff;text-decoration:none;font-size:14px;white-space:nowrap}
+.btn.off{background:#d3d1c7;color:#5f5e5a}
+.note{margin:20px 0 0;padding:12px 14px;border-radius:10px;background:#fdf6e3;border:1px solid #f0e0b0;font-size:12.5px;color:#6b5518}
+.note b{color:#4a3808}
+@media(max-width:420px){li{flex-direction:column;align-items:flex-start}.act{flex-direction:row;align-items:center;gap:10px}}
+</style></head>
+<body><div class="wrap">
+<h1>小英 · 下载</h1>
+<p class="sub">安卓安装包。手机点「下载」→ 安装时允许「未知来源应用」即可。</p>
+<ul>${rows}</ul>
+<p class="note"><b>请勿转发此页面链接。</b>小英安装包里烘焙了开发者的大模型 API 凭据，链接扩散会让你账户的额度被别人刷掉。</p>
+</div></body></html>`
+}
+
+app.get("/dl/:token", async (c) => {
+  if (!dlTokenOk(c.req.param("token"))) return c.notFound()
+  const files = await Promise.all(
+    Object.entries(DL_FILES).map(async ([name, f]) => {
+      const head = await getEnv().FILES.head(toKey(f.key))
+      return { name, label: f.label, desc: f.desc, size: head ? head.size : null }
+    }),
+  )
+  return c.html(dlPageHtml(c.req.param("token"), files), 200, {
+    // 口令页不留缓存、不进搜索引擎（口令本身已在 URL 里，缓存等于二次分发）
+    "Cache-Control": "no-store",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  })
+})
+
+app.get("/dl/:token/:name", (c) => {
+  if (!dlTokenOk(c.req.param("token"))) return c.notFound()
+  const f = DL_FILES[c.req.param("name")]
+  if (!f) return c.notFound()
+  // private：不让中间缓存把「口令 URL」缓存下来二次分发；max-age 给浏览器留 1 天，便于断点续传
+  return serveR2Object(c, toKey(f.key), "private, max-age=86400", c.req.param("name"))
+})
+
 // ── /api/v1 路由：由 modules/manifest.ts 派生（与 server_ts 挂载一致） ──
 // 清单顺序 = 挂载顺序。两段循环之间插入 `app.route("/api/v1", api)`，
 // 与改造前「先挂完 api 子应用、再挂 app 级路由」的顺序逐条对应。
@@ -243,13 +356,13 @@ app.onError((err, c) => {
   const errMsg = anyErr.detail || (err as Error).message || "服务器内部错误"
   if (anyErr.budget) {
     c.executionCtx.waitUntil(
-      recordLog({ method: c.req.method, path: c.req.path, status: 429, durationMs: 0, level: "warn", message: "budget guard", meta: errMeta(err) })
+      recordLog({ method: c.req.method, path: redactPath(c.req.path), status: 429, durationMs: 0, level: "warn", message: "budget guard", meta: errMeta(err) })
     )
     return c.json({ detail: "今日 AI 额度已用完，请明天再试（预算守卫）", budget: true }, 429 as const)
   }
   const status = (anyErr.status || 500) as 200 | 400 | 401 | 403 | 404 | 413 | 422 | 429 | 500
   c.executionCtx.waitUntil(
-    recordLog({ method: c.req.method, path: c.req.path, status, durationMs: 0, level: "error", message: errMsg, meta: errMeta(err) })
+    recordLog({ method: c.req.method, path: redactPath(c.req.path), status, durationMs: 0, level: "error", message: errMsg, meta: errMeta(err) })
   )
   return c.json({ detail: errMsg }, status)
 })

@@ -33,6 +33,11 @@ export const ROUTE_DIVERGENCE: RouteDivergence = {
     "GET /web/*", //   server_ts 用 @hono/node-server 的 serveStatic（不进 routes 表）
     "GET /letter-clips/*", // R2 媒体（server_ts 走本地静态目录）
     "GET /videos/*",
+    // APK 下载页与下载流：产物只存在于 R2（46MB / 38MB，远超 Workers 静态资源单文件
+    //   25MiB 上限，也绝不该进仓库），server_ts 读本地 shared/ 目录，**无从提供**。
+    //   另外口令走 secret `DL_TOKEN`，本地 dev 也没有对应配置 ⇒ 归 cfOnly 是正确分叉。
+    "GET /dl/:token",
+    "GET /dl/:token/:name",
 
     // ── server_ts 完全没有这个模块（详见 cfOnlyModules）──
     "GET /api/v1/daily-en",

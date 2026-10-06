@@ -39,4 +39,10 @@ export interface Bindings {
   /** GLM 兜底（智谱 BigModel，DeepSeek 欠费/失败时启用；未设置则跳过兜底） */
   BIGMODEL_API_KEY?: string
   BIGMODEL_MODEL?: string
+  /**
+   * APK 下载页口令（`/dl/<口令>`）。**刻意用 secret 而不是 [vars]**：
+   * 仓库推在 GitHub 上，口令进了 wrangler.toml 就等于公开，「不公开下载页」的前提就没了。
+   * 未设置（或短于 12 字符）时整块下载路由**关闭**（fail closed）——避免「忘了配」变成默认公开。
+   */
+  DL_TOKEN?: string
 }
