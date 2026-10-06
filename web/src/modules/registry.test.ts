@@ -140,6 +140,7 @@ describe("模块注册表", () => {
       "/module/math_equation_move",
       "/module/math_units",
       "/module/math_mul_one",
+      "/module/math_relations",
       "/module/murmur",
       "/module/char_image",
       "/module/wordbook",
@@ -179,6 +180,7 @@ describe("模块注册表", () => {
           "/module/math_equation_move",
           "/module/math_units",
           "/module/math_mul_one",
+          "/module/math_relations",
         ]],
         ["学习工具", [
           "/module/murmur",

@@ -236,6 +236,15 @@ const mathModules: SkillModule[] = [
     group: "math",
     load: () => import("./math_mul_one/index").then((m) => ({ default: m.MathMulOnePage })),
   },
+  {
+    id: "math_relations",
+    route: "/module/math_relations",
+    title: "数量关系与交换",
+    icon: "🔁",
+    subtitle: "一共 · 比多少 · 倍数 · 平均分 —— 颜色标角色，一眼看出换位置会不会变",
+    group: "math",
+    load: () => import("./math_relations/index").then((m) => ({ default: m.MathRelationsPage })),
+  },
 ]
 
 // ═══════════════════════════ 学习工具 ═══════════════════════════

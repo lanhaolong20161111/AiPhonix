@@ -11027,3 +11027,466 @@ button.btn-mode-off {
 }
 /* @skill:end */
 
+/* @skill: math_relations */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   数量关系与交换页（/module/math_relations）
+   前缀统一 rr-（relations）
+
+   ★ 本页唯一的一条视觉语法：**颜色标角色，不标大小**。
+     所以四个角色色只从 relations.ts 的 ROLE_META 来，页面内联成
+     --rr-fg / --rr-bg / --rr-dot 三个变量，CSS 只负责消费，绝不自己写死色值。
+       part  灰（对等）      whole 深（合出来的结果）
+       base  青绿（基准）     cmp   橙红（比较）
+   ★ 交换动画的铁律：位移的**终点**必须恰好等于对面槽位的**原位**
+     （位移量 = 100% + gap），否则落位那一帧会跳一下，「无缝换色」就破了。
+   ★ 全局 button{width:100%} ⇒ 本页每个按钮都要显式 width:auto。
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.rr-page {
+  --rr-gap: 12px; /* ★ 与 JSX 里 translateX(calc(100% + 12px)) 必须同值 */
+  --rr-ok: #16a34a;
+  --rr-bad: #dc2626;
+}
+
+.rr-sub {
+  font-size: 13px;
+  line-height: 1.75;
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+
+.rr-sec-title { font-size: 15px; font-weight: 800; color: #111827; margin: 0 0 9px; }
+
+/* ── 规律卡 ── */
+.rr-rules { display: grid; gap: 9px; margin-bottom: 12px; }
+.rr-rule {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.rr-rule-icon { color: #0f766e; }
+.rr-rule-text { display: grid; gap: 1px; min-width: 0; }
+.rr-rule-title { font-size: 13.5px; font-weight: 800; color: #111827; }
+.rr-rule-body { font-size: 12px; line-height: 1.6; color: #6b7280; }
+
+.rr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding-top: 9px;
+  border-top: 1px dashed #e5e7eb;
+}
+.rr-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rr-fg);
+}
+.rr-legend-item i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--rr-dot);
+}
+
+/* ── 主舞台 ── */
+.rr-main { margin-bottom: 12px; }
+
+.rr-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.rr-chip {
+  width: auto;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 8px;
+  padding: 9px 10px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.rr-chip .rr-chip-icon { grid-row: 1 / span 2; }
+.rr-chip b { font-size: 13.5px; font-weight: 800; color: #111827; }
+.rr-chip span { font-size: 11px; color: #94a3b8; }
+.rr-chip-both { border-style: solid; }
+.rr-chip-dir { border-style: dashed; }
+.rr-chip-on { border-color: #0f766e; background: #f0fdfa; }
+.rr-chip-on b { color: #0f766e; }
+
+.rr-qbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+.rr-qtag { font-size: 11.5px; font-weight: 800; color: #0f766e; }
+.rr-qphase { font-size: 11.5px; font-weight: 700; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+.rr-stage {
+  /* 上下留白给飞行摆动（~±0.17×块高）用，别让它顶出圆角外 */
+  padding: 22px 0 20px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.rr-slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--rr-gap);
+  padding: 0 10px;
+}
+.rr-slot { min-width: 0; }
+.rr-block-wrap {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+}
+/*
+ * ★ 交换用**动画**而不是 transition：两组 keyframes 让两块在中点**上下错开**，
+ *   否则它们正面穿过彼此，实测会叠成一个「77」谁也看不清（移项页踩过同一个坑）。
+ *   · 100% 那一帧必须恰好落在对面槽位（100% + gap），落位才不会有接缝。
+ *   · 45% 那一帧同时**缩到 0.78** —— 只靠上下错开不够：两块 ~109px 高，
+ *     错开 36px 时下面那块只剩 **1/3** 露在外面（抓帧实测），照样读不出数。
+ *   · 抬升量必须写**百分比（-28% = 自身高度的 28%）而不是固定 px**：
+ *     四个题型的块高差很多（倍数页点阵 5 行、平均分页只有 1 行 ~36px），
+ *     写死 22px 时高个子题型只剩 44% 露出（实测卡在门禁线上）。
+ *     写百分比后可见比例 = 1 - 0.22/0.78 ≈ **72%，与块高无关**。
+ *   · 上下各留 22px/20px 的 stage 内边距，让 ~±0.17H 的摆动不会顶出圆角外。
+ *   · 向上飞的那块给更大的 z-index —— 两层交错时要能看出谁在上、谁在下。
+ */
+.rr-fly-to-r {
+  animation: rr-fly-r 0.62s cubic-bezier(0.45, 0.05, 0.35, 1) both;
+  z-index: 4;
+  filter: drop-shadow(0 7px 12px rgb(15 23 42 / 18%));
+}
+.rr-fly-to-l {
+  animation: rr-fly-l 0.62s cubic-bezier(0.45, 0.05, 0.35, 1) both;
+  z-index: 3;
+  filter: drop-shadow(0 7px 12px rgb(15 23 42 / 18%));
+}
+@keyframes rr-fly-r {
+  0% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(calc(50% + 6px), -28%) scale(0.78); }
+  100% { transform: translate(calc(100% + 12px), 0) scale(1); }
+}
+@keyframes rr-fly-l {
+  0% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(calc(-50% - 6px), 28%) scale(0.78); }
+  100% { transform: translate(calc(-100% - 12px), 0) scale(1); }
+}
+
+.rr-block {
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  border: 2px solid var(--rr-fg);
+  background: var(--rr-bg);
+  transition: border-color 0.35s, background 0.35s;
+}
+.rr-block-role {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--rr-fg);
+  border-radius: 999px;
+  padding: 1px 8px;
+  transition: background 0.35s;
+}
+.rr-block-who { font-size: 12.5px; font-weight: 800; color: var(--rr-fg); }
+.rr-block-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--rr-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 点阵：绝对定位 + transform，容器尺寸固定 ⇒ 排布变化时不重排、只让每个点走位 */
+.rr-grid {
+  position: relative;
+  border-radius: 3px;
+  /* ★ 底轨（跑道）：两块的容器**同尺寸**（都取 max），点又都从左上角起算 ⇒
+     比的是「填进去多长」。没有这条底轨，「13 个」和「8 个」就只是两排点，
+     差 5 个看不出来；有了它，右边空出来的那一截就是「差多少」。 */
+  background: rgb(255 255 255 / 62%);
+  box-shadow: inset 0 0 0 1px rgb(15 23 42 / 5%);
+}
+.rr-cell {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 2.5px;
+  background: var(--rr-dot);
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rr-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--rr-fg);
+}
+.rr-result-label { font-size: 11.5px; font-weight: 800; opacity: 0.85; }
+.rr-result b { font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+/* 平均分：同一个总数重排成另一种分法 */
+.rr-stage-share {
+  /* 同理：上留白给飞行摆动（这里的 mini 只有 ~36px 高，百分比摆幅很小） */
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 22px 10px 18px;
+}
+.rr-share-total {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--rr-fg);
+  background: var(--rr-bg);
+}
+.rr-stage-share .rr-slots { width: 100%; }
+.rr-mini {
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--rr-fg);
+  background: var(--rr-bg);
+  transition: border-color 0.35s, background 0.35s;
+  will-change: transform;
+}
+.rr-mini b { font-size: 16px; font-weight: 900; color: var(--rr-fg); font-variant-numeric: tabular-nums; }
+.rr-mini span { font-size: 11.5px; color: var(--rr-fg); }
+.rr-mini-role { font-size: 10px; font-weight: 800; }
+.rr-share-cap { margin: 0; font-size: 11.5px; color: #64748b; font-variant-numeric: tabular-nums; }
+
+/* ── 解说条 ── */
+.rr-say {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: #f1f5f9;
+  transition: background 0.3s;
+}
+.rr-say-flying { background: #fef3c7; }
+.rr-say-landed { background: #ecfdf5; }
+.rr-say-check { background: #f0fdf4; }
+.rr-say-text { margin: 0 0 5px; font-size: 12px; font-weight: 800; color: #475569; }
+.rr-sentence {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+.rr-sentence .rr-key {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #fde68a;
+  font-weight: 900;
+}
+.rr-sentence-changed .rr-key { background: #fecaca; color: #991b1b; }
+.rr-sentence-same .rr-key { background: #d1fae5; color: #065f46; }
+.rr-say-reveal { margin: 7px 0 0; font-size: 12.5px; line-height: 1.75; color: #334155; }
+.rr-say-inv { color: #0f766e; font-weight: 700; }
+.rr-say-extra { margin: 5px 0 0; font-size: 12px; line-height: 1.7; color: #b45309; }
+
+.rr-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+.rr-btn {
+  width: auto;
+  padding: 7px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.rr-btn:disabled { opacity: 0.4; cursor: default; }
+.rr-btn-primary { border-color: #0f766e; background: #0f766e; color: #fff; }
+.rr-btn-sm { padding: 5px 11px; font-size: 12px; }
+
+/* ── 四类对照表 ── */
+.rr-table-card { margin-bottom: 12px; }
+.rr-table { display: grid; gap: 7px; }
+.rr-trow {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) 20px minmax(0, 1fr);
+  gap: 5px;
+  align-items: center;
+  padding: 6px 7px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border-left: 3px solid #cbd5e1;
+}
+.rr-trow-changed { border-left-color: #ea580c; background: #fff7ed; }
+.rr-tcell { font-size: 12px; line-height: 1.5; font-variant-numeric: tabular-nums; min-width: 0; }
+.rr-tname { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; gap: 5px; }
+.rr-tname b { font-size: 12.5px; font-weight: 800; color: #111827; }
+.rr-tname-icon { color: #0f766e; }
+.rr-tbef { color: #334155; }
+.rr-taft { color: #7c2d12; font-weight: 700; }
+.rr-tarrow { text-align: center; color: #94a3b8; font-weight: 900; }
+.rr-tverdict { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; padding-top: 3px; }
+.rr-verdict {
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.rr-verdict-ok { background: #d1fae5; color: #065f46; }
+.rr-verdict-bad { background: #ffedd5; color: #9a3412; }
+.rr-tnote { font-size: 11px; color: #64748b; }
+.rr-table-foot { margin: 9px 0 0; font-size: 11.5px; line-height: 1.7; color: #64748b; }
+.rr-tip-both { color: #475569; font-weight: 800; }
+.rr-tip-cmp { color: #c2410c; font-weight: 800; }
+.rr-tip-base { color: #0f766e; font-weight: 800; }
+
+/* ── 易错警示 ── */
+.rr-mistake { margin-bottom: 12px; }
+.rr-mistake-list { display: grid; gap: 10px; }
+.rr-mistake-item { display: grid; gap: 5px; }
+.rr-mistake-title {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+.rr-mistake-title b { font-size: 12.5px; font-weight: 800; color: #b45309; }
+.rr-mistake-icon { color: #b45309; }
+.rr-mistake-card {
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  overflow: hidden;
+}
+.rr-mistake-wrong {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 5px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #991b1b;
+  font-variant-numeric: tabular-nums;
+}
+.rr-mistake-right {
+  padding: 8px 10px;
+  background: #f0fdf4;
+  border-top: 1px solid #bbf7d0;
+  animation: rr-reveal 0.32s ease-out;
+}
+.rr-mistake-line {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 5px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #166534;
+  font-variant-numeric: tabular-nums;
+}
+.rr-mistake-why { margin: 5px 0 0; font-size: 12px; line-height: 1.7; color: #334155; }
+.rr-mistake-tip { margin: 3px 0 0; font-size: 12px; line-height: 1.7; color: #0f766e; font-weight: 700; }
+.rr-mk { font-size: 12px; }
+.rr-reveal { margin: 0 10px 9px; }
+@keyframes rr-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rr-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  45% { transform: translateX(4px); }
+  70% { transform: translateX(-2px); }
+}
+.rr-shake { animation: rr-shake 0.42s ease-in-out; }
+
+/* ── 一步一填 ── */
+.rr-practice .rr-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 9px; }
+.rr-score { font-size: 12.5px; color: #475569; margin-bottom: 8px; }
+.rr-score b { color: #0f766e; font-size: 15px; }
+.rr-score-done { color: #16a34a; font-weight: 700; }
+.rr-set { display: grid; gap: 10px; }
+.rr-card { border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; padding: 10px; }
+.rr-card-done { background: #f0fdf4; border-color: #bbf7d0; }
+.rr-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.rr-card-q { font-size: 13px; font-weight: 800; color: #111827; line-height: 1.5; }
+.rr-card-progress { font-size: 11px; color: #94a3b8; white-space: nowrap; }
+.rr-card-trail { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.rr-trail-pill { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+.rr-trail-ok { background: #dcfce7; color: #166534; }
+.rr-trail-bad { background: #fee2e2; color: #991b1b; }
+.rr-card-label { font-size: 11px; font-weight: 800; color: #0f766e; }
+.rr-card-ask { margin: 3px 0 8px; font-size: 13px; line-height: 1.65; color: #1f2937; font-variant-numeric: tabular-nums; }
+.rr-opts { display: grid; gap: 6px; }
+.rr-opt {
+  width: auto;
+  padding: 8px 11px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #334155;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.rr-opt-ok { border-color: #16a34a; background: #dcfce7; color: #14532d; }
+.rr-opt-bad { border-color: #dc2626; background: #fee2e2; color: #991b1b; }
+.rr-opt-dim { opacity: 0.42; }
+.rr-opt:disabled { cursor: default; }
+.rr-feedback { margin-top: 8px; padding: 8px 10px; border-radius: 9px; }
+.rr-fb-ok { background: #f0fdf4; color: #166534; }
+.rr-fb-bad { background: #fef2f2; color: #991b1b; }
+.rr-fb-head { font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+.rr-fb-tip { margin: 0 0 8px; font-size: 12.5px; line-height: 1.75; color: #475569; }
+.rr-card-note { margin: 5px 0 0; font-size: 12.5px; line-height: 1.7; color: #334155; }
+.rr-card-inv { color: #0f766e; }
+.rr-card-foot { margin-top: 6px; font-size: 11.5px; color: #16a34a; font-weight: 700; }
+
+/* ── 窄屏：对照表改成上下两行，别把字挤成省略号 ── */
+@media (max-width: 400px) {
+  .rr-trow { grid-template-columns: 68px minmax(0, 1fr) 16px minmax(0, 1fr); }
+  .rr-tcell { font-size: 11.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-block-wrap, .rr-mini, .rr-cell, .rr-block { transition: none; }
+  /* ★ 飞行 keyframes 也要关掉：否则「减少动态效果」下还会看到一次位移动画 */
+  .rr-shake, .rr-mistake-right, .rr-fly-to-r, .rr-fly-to-l { animation: none; }
+}
+/* @skill:end */

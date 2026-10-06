@@ -79,6 +79,10 @@ class MathIconsTest {
                 "substitute" -> MathIcons.substitute
                 "checkMark" -> MathIcons.checkMark
                 "ltrSteps" -> MathIcons.ltrSteps
+                "moreLess" -> MathIcons.moreLess
+                "timesCopies" -> MathIcons.timesCopies
+                "shareEqual" -> MathIcons.shareEqual
+                "swapRoles" -> MathIcons.swapRoles
                 else -> error("$name 是 ALL 里的键，但没有对应的 val 属性 —— 生成脚本漏了？")
             }
             assertEquals("$name 的 val 与 ALL 条目不一致", byProp, prims)
@@ -94,7 +98,7 @@ class MathIconsTest {
         for (n in length + mass) {
             assertNotNull("缺少图标 $n", MathIcons[n])
         }
-        assertEquals("图标总数与预期不符（新增/删除图标时请同步这里与 web 端）", 43, all.size)
+        assertEquals("图标总数与预期不符（新增/删除图标时请同步这里与 web 端）", 47, all.size)
     }
 
     @Test
@@ -119,6 +123,15 @@ class MathIconsTest {
     fun `compoundExpr 页要用的图标一个都不能少`() {
         // 小括号 / 多余括号 / 找 / 换 / 查 / 从左往右
         val names = listOf("paren", "parenSlash", "lookup", "substitute", "checkMark", "ltrSteps")
+        for (n in names) {
+            assertNotNull("缺少图标 $n", MathIcons[n])
+        }
+    }
+
+    @Test
+    fun `math_relations 页要用的图标一个都不能少`() {
+        // 比多少 / 倍（一份复制成几份）/ 平均分 / 交换角色 / 一共（两边合一个）
+        val names = listOf("moreLess", "timesCopies", "shareEqual", "swapRoles", "mergeTerms")
         for (n in names) {
             assertNotNull("缺少图标 $n", MathIcons[n])
         }
