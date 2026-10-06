@@ -88,6 +88,16 @@ const bigmodelSchema = z.object({
   base_url: z.string().default("https://open.bigmodel.cn/api/paas"),
 })
 
+/**
+ * App（小英）LLM 代理。口令放在**配置**而不是像 DL_TOKEN 那样直接读 bindings，
+ * 是为了和 server_ts 同构 —— server_ts 没有 bindings.ts，它的配置一律走 config.yaml + 环境变量，
+ * 两边都落到 `cfg.app_llm.token` 才能让路由代码保持一模一样。
+ */
+const appLlmSchema = z.object({
+  /** 未配置或短于 16 字符 ⇒ 代理端点整体关闭（fail closed） */
+  token: z.string().default(""),
+})
+
 const configSchema = z.object({
   deepseek: deepseekSchema.default({}),
   baidu_tts: baiduTtsSchema.default({}),
@@ -98,6 +108,7 @@ const configSchema = z.object({
   ark_image: arkImageSchema.default({}),
   ark_chat: arkChatSchema.default({}),
   bigmodel: bigmodelSchema.default({}),
+  app_llm: appLlmSchema.default({}),
 })
 
 export type AppConfig = z.infer<typeof configSchema>
@@ -154,6 +165,7 @@ export function loadConfig(env: Bindings): AppConfig {
   if (env.ARK_VISION_MODEL) cfg.ark_chat.vision_model = env.ARK_VISION_MODEL.trim()
   if (env.BIGMODEL_API_KEY) cfg.bigmodel.api_key = cleanSecret(env.BIGMODEL_API_KEY)
   if (env.BIGMODEL_MODEL) cfg.bigmodel.model = env.BIGMODEL_MODEL.trim()
+  if (env.APP_LLM_TOKEN) cfg.app_llm.token = cleanSecret(env.APP_LLM_TOKEN)
 
   // 默认提示词补全
   const prompts = cfg.llm_prompts as Record<string, string>

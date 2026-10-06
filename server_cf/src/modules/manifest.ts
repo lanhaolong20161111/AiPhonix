@@ -52,6 +52,7 @@ import wordbookRoutes from "../routes/wordbook.js"
 import radicalRoutes from "../routes/radical.js"
 import arkImageRoutes from "../routes/ark_image.js"
 import freeLlmRoutes from "../routes/free_llm.js"
+import appLlmRoutes from "../routes/app_llm.js"
 import ttsRoutes from "../routes/tts.js"
 import soeRoutes from "../routes/soe.js"
 import subtitleCaptureRoutes from "../routes/subtitleCapture.js"
@@ -120,6 +121,9 @@ export const MODULES: readonly BackendModule[] = [
   { id: "radical", target: "app", prefix: "radical", handler: radicalRoutes },
   { id: "ark_image", target: "app", prefix: "", handler: arkImageRoutes },
   { id: "free_llm", target: "app", prefix: "", handler: freeLlmRoutes },
+  // App（小英）LLM 代理：把 DeepSeek key 留在服务端，客户端只持有一个可作废的口令。
+  // prefix="" 且路由文件内部自带完整路径（/app-llm/chat/completions），故不参与前缀分组。
+  { id: "app_llm", target: "app", prefix: "", handler: appLlmRoutes },
   { id: "tts", target: "app", prefix: "", handler: ttsRoutes },
   { id: "soe", target: "app", prefix: "", handler: soeRoutes },
   { id: "subtitle_capture", target: "app", prefix: "", handler: subtitleCaptureRoutes },

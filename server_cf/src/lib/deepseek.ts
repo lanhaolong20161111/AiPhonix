@@ -462,3 +462,135 @@ async function tryGlmFallback(
     return null
   }
 }
+
+// ── App 端（小英）专用：单链路直连 + 与 web 端共用一个日预算硬顶 ──────────────
+
+export interface AppChatParams {
+  messages: ChatMessage[]
+  maxTokens: number
+  temperature: number
+  thinking?: { type: string }
+  responseFormat?: { type: string }
+  /** 调用方标识，进 llm_call_log，便于在 /api/v1/ops 里把 App 用量单独挑出来看 */
+  caller: string
+}
+
+export interface AppChatResult {
+  content: string
+  finish_reason: string
+  prompt_tokens: number
+  comp_tokens: number
+  model: string
+  cost_yuan: number
+}
+
+/**
+ * App 端专用：**只走付费 DeepSeek 一条链**，不叠加 Ark / GLM 兜底。
+ *
+ * 为什么不复用 chat()：
+ * 1. App 的契约是「一次调用 = 一个可预期的结果」——上游到底是哪个模型必须能从响应的
+ *    model 字段看出来，而 chat() 会在 Ark / DeepSeek / GLM 之间漂移，用量与延迟都不可预期；
+ * 2. App 用量极小（一问一次），为省几分钱引入不确定性不划算。
+ *
+ * 预算：与 web 端**共用同一份 llm_budget_day 日累计**（cfg.deepseek.max_cost_per_day）。
+ * 单一硬顶的好处是「不论从哪个入口刷，一天最多就烧这么多」；代价是 App 被刷会挤占
+ * web 端的当日额度。这是**有意的取舍**：宁可功能降级，也不要真金白银的损失。
+ */
+export async function chatForApp(p: AppChatParams): Promise<AppChatResult> {
+  const cfg = getConfig()
+  const start = Date.now()
+  const inputChars = p.messages.reduce((n, m) => n + m.content.length, 0)
+
+  const log: LLMCallLog = {
+    time: localIso(),
+    caller: p.caller,
+    model: cfg.deepseek.model,
+    system_prompt: p.messages.find((m) => m.role === "system")?.content ?? "",
+    user_prompt: p.messages
+      .filter((m) => m.role === "user")
+      .map((m) => m.content)
+      .join("\n"),
+    prompt_tokens: 0,
+    comp_tokens: 0,
+    total_tokens: 0,
+    cost_yuan: 0,
+    duration_ms: 0,
+    success: false,
+    error: "",
+  }
+
+  // 预算守卫。⚠️ 读不到当日花费时**直接抛**（fail closed）而不是放行：
+  // 这条端点是给公开分发的 APK 用的，成本闸门失灵比「暂时不能用」危险得多。
+  try {
+    const dayCost = await getDayCost()
+    checkBudget(inputChars, p.maxTokens, dayCost.total_cost, cfg.deepseek)
+  } catch (e) {
+    log.error = String((e as Error).message ?? e)
+    await finishLog(log, start)
+    throw e
+  }
+
+  const extra: Record<string, unknown> = {}
+  if (p.thinking) extra.thinking = p.thinking
+  if (p.responseFormat) extra.response_format = p.responseFormat
+
+  const call = (body?: Record<string, unknown>) =>
+    openaiCompatible(
+      cfg.deepseek.base_url,
+      cfg.deepseek.api_key,
+      cfg.deepseek.model,
+      p.messages,
+      p.maxTokens,
+      p.temperature,
+      undefined,
+      body
+    )
+
+  let r: Awaited<ReturnType<typeof openaiCompatible>>
+  try {
+    try {
+      r = await call(Object.keys(extra).length ? extra : undefined)
+    } catch (e) {
+      // 上游 4xx 且我们带了 thinking ⇒ 可能是不认这个扩展字段的模型，去掉再试一次。
+      // **只试一次**：真正的「key 错 / 欠费」也是 4xx，不该被变成两次调用。
+      const msg = String((e as Error).message ?? e)
+      if (extra.thinking && /LLM API 4\d\d/.test(msg)) {
+        console.warn(`[llm] App 代理：上游拒绝 thinking 字段，去掉后重试一次（${msg.slice(0, 120)}）`)
+        const without = { ...extra }
+        delete without.thinking
+        r = await call(Object.keys(without).length ? without : undefined)
+      } else {
+        throw e
+      }
+    }
+  } catch (e) {
+    log.error = String((e as Error).message ?? e)
+    await finishLog(log, start)
+    throw e
+  }
+
+  log.prompt_tokens = r.prompt_tokens
+  log.comp_tokens = r.comp_tokens
+  log.total_tokens = r.prompt_tokens + r.comp_tokens
+  log.cost_yuan =
+    (r.prompt_tokens / 1_000_000) * COST_PER_M_INPUT + (r.comp_tokens / 1_000_000) * COST_PER_M_OUTPUT
+
+  if (!r.content) {
+    log.error = "empty content"
+    await finishLog(log, start)
+    throw new Error("上游返回空内容（思考模型可能把预算都花在思维链上）")
+  }
+
+  log.success = true
+  await finishLog(log, start)
+  await recordCost(log.cost_yuan)
+
+  return {
+    content: r.content,
+    finish_reason: r.finish_reason,
+    prompt_tokens: r.prompt_tokens,
+    comp_tokens: r.comp_tokens,
+    model: cfg.deepseek.model,
+    cost_yuan: log.cost_yuan,
+  }
+}

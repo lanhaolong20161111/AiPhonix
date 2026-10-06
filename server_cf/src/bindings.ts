@@ -45,4 +45,13 @@ export interface Bindings {
    * 未设置（或短于 12 字符）时整块下载路由**关闭**（fail closed）——避免「忘了配」变成默认公开。
    */
   DL_TOKEN?: string
+  /**
+   * App（小英）LLM 代理口令 —— `POST /api/v1/app-llm/chat/completions` 的 Bearer 值。
+   * 与 [DL_TOKEN] 同理刻意用 secret 而非 [vars]（仓库推在 GitHub 上）。
+   * 未设置或短于 16 字符时整块端点**关闭**（fail closed）。
+   *
+   * ⚠️ 这个口令会被编译进 APK，所以它是**一个可作废的开关**，不是密码学意义上的隔离；
+   * 真正兜住滥用的是 `llm_budget_day` 那条与 web 端共用的日预算硬顶。
+   */
+  APP_LLM_TOKEN?: string
 }

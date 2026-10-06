@@ -109,6 +109,12 @@ const bigmodelSchema = z.object({
   model: z.string().default("glm-5.3-flash"),
 })
 
+/** App（小英）LLM 代理。口令可从 shared/config.yaml 的 `app_llm.token` 或环境变量 APP_LLM_TOKEN 给。 */
+const appLlmSchema = z.object({
+  /** 未配置或短于 16 字符 ⇒ 代理端点整体关闭（fail closed） */
+  token: z.string().default(""),
+})
+
 const configSchema = z.object({
   server: serverSchema.default({}),
   deepseek: deepseekSchema.default({}),
@@ -121,6 +127,7 @@ const configSchema = z.object({
   ark_chat: arkChatSchema.default({}),
   pp_structure: ppStructureSchema.default({}),
   bigmodel: bigmodelSchema.default({}),
+  app_llm: appLlmSchema.default({}),
 })
 
 export type AppConfig = z.infer<typeof configSchema>
@@ -173,6 +180,8 @@ export function loadConfig(): AppConfig {
   if (process.env.ARK_VISION_MODEL) cfg.ark_chat.vision_model = process.env.ARK_VISION_MODEL
   if (process.env.PP_TOKEN) cfg.pp_structure.token = process.env.PP_TOKEN
   if (process.env.BIGMODEL_API_KEY) cfg.bigmodel.api_key = process.env.BIGMODEL_API_KEY
+  // App 代理口令：config.yaml 的 app_llm.token 已被上面的 parse 读入，这里只做环境变量覆盖
+  if (process.env.APP_LLM_TOKEN) cfg.app_llm.token = process.env.APP_LLM_TOKEN
 
   // 默认提示词补全
   const prompts = cfg.llm_prompts as Record<string, string>

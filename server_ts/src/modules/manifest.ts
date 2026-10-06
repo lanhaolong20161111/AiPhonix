@@ -37,6 +37,7 @@ import aiPracticeRoutes from "../routes/ai_practice.js"
 import aiChatRoutes from "../routes/ai_chat.js"
 import arkImageRoutes from "../routes/ark_image.js"
 import freeLlmRoutes from "../routes/free_llm.js"
+import appLlmRoutes from "../routes/app_llm.js"
 import ttsRoutes from "../routes/tts.js"
 import asrShortRoutes from "../routes/asrShort.js"
 import asrStreamRoutes from "../routes/asrStream.js"
@@ -95,6 +96,8 @@ export const MODULES: readonly BackendModule[] = [
   { id: "ai_chat", target: "app", prefix: "", handler: aiChatRoutes },
   { id: "ark_image", target: "app", prefix: "", handler: arkImageRoutes },
   { id: "free_llm", target: "app", prefix: "", handler: freeLlmRoutes },
+  // App（小英）LLM 代理：与 server_cf 同构（路由文件逐字一致，前缀 "" 且内部自带完整路径）
+  { id: "app_llm", target: "app", prefix: "", handler: appLlmRoutes },
   { id: "tts", target: "app", prefix: "", handler: ttsRoutes },
   { id: "asr_short", target: "app", prefix: "", handler: asrShortRoutes },
   { id: "asr_stream", target: "app", prefix: "", handler: asrStreamRoutes },
