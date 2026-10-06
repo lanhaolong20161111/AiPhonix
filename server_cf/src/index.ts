@@ -307,7 +307,7 @@ li{display:flex;gap:12px;align-items:center;justify-content:space-between;backgr
 <h1>小英 · 下载</h1>
 <p class="sub">安卓安装包。手机点「下载」→ 安装时允许「未知来源应用」即可。</p>
 <ul>${rows}</ul>
-<p class="note"><b>请勿转发此页面链接。</b>小英安装包里烘焙了开发者的大模型 API 凭据，链接扩散会让你账户的额度被别人刷掉。</p>
+<p class="note"><b>请勿转发此页面链接。</b>小英安装包里带有一个「访问口令」——大模型 key 只在服务端，APK 里已经没有它了；但口令扩散出去，别人就会用掉你的 AI 额度（服务端有每日硬顶，可你当天也就用不了了）。</p>
 </div></body></html>`
 }
 
