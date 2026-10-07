@@ -21,7 +21,7 @@ SEMESTER = "下"
 TYPE = "词"
 
 # 初始化 ARK 客户端
-api_key = os.environ.get("ARK_API_KEY", "6acabf09-8736-4f09-a573-f12b64a901e4")
+api_key = os.environ["ARK_API_KEY"]  # 只从环境变量读取；密钥不写入源码
 client = Ark(base_url="https://ark.cn-beijing.volces.com/api/v3", api_key=api_key)
 
 # 加载索引

@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-API_KEY = "ICj014x3faJcd74nARBrmwJ7"
-SECRET_KEY = "zxWUFGwGu3fXCHiTzAvVArZQz3kDCE0t"
+API_KEY = os.environ["BAIDU_OCR_API_KEY"]        # 只从环境变量读取；密钥不写入源码
+SECRET_KEY = os.environ["BAIDU_OCR_SECRET_KEY"]
 
 input_dir = Path(r"C:\Users\lhl20\Desktop\语文字词表")
 output_file = input_dir / "ocr_output.txt"

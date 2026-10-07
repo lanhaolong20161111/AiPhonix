@@ -4662,7 +4662,7 @@ This is an automatically generated checkpoint condensing an earlier span of the 
 - `AiPhonix/server_ts/src/routes/ai_chinese_textbook.ts`: writes to `IMAGE_DIR` (L177-178), `.page.jpg` (L187).
 - `AiPhonix/server_ts/src/db/schema.ts`: `imagePath: text("image_path")` fields (L225, 282, 298, 388).
 - `AiPhonix/server_ts/src/lib/ark.ts`: GLM 5.2 comment removed (kept flash/pro/doubao entries).
-- `AiPhonix/shared/config.yaml`: `dev_agent:` block REMOVED (was L34-35). Still has `ark_chat` (api_key `6acabf09-8736-4f09-a573-f12b64a901e4`), `pp_structure`, tencent/baidu sections.
+- `AiPhonix/shared/config.yaml`: `dev_agent:` block REMOVED (was L34-35). Still has `ark_chat` (api_key `<REDACTED>`), `pp_structure`, tencent/baidu sections.
 - `AiPhonix/start_ts_backend.ps1`: `DEV_AGENT_ENABLED=1` line + comment removed; still sets `$env:PORT="18002"`.
 - `AiPhonix/server_py/main.py`: 3 dev_agent refs (import, `dev_agent.init(cfg)`, `include_router`) removed (legacy retired Python backend).
 - Deleted files: `server_ts/src/routes/dev_agent.ts`, `server_ts/dist/routes/dev_agent.js`, `server_py/routes/dev_agent.py`, `web/src/pages/DevAgentPage.tsx`.

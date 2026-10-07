@@ -449,3 +449,6 @@ web/_css_*
 # 数量关系与交换页的抓帧工具与产物（本地可复用，不入库）
 web/_rr_shot.mjs
 web/_rr_shots/
+
+# 含凭据的日志：wrangler tail 的输出里带过完整的 Bearer token，永不入库
+server_cf/tail_log.txt

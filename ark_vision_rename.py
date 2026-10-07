@@ -2,7 +2,7 @@
 import os, re, base64, time
 from volcenginesdkarkruntime import Ark
 
-ARK_API_KEY = os.environ.get("ARK_API_KEY", "6acabf09-8736-4f09-a573-f12b64a901e4")
+ARK_API_KEY = os.environ["ARK_API_KEY"]  # 只从环境变量读取；密钥不写入源码
 VISION_MODEL = "doubao-vision-pro-32k"  # 视觉模型，可换成 ep-xxx 端点 ID
 
 IMAGE_DIR = r"C:\Users\lhl20\Desktop\word_images"
