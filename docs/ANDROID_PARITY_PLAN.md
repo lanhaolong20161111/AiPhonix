@@ -376,6 +376,24 @@ web `ParentReportPage.tsx`（149 行）是一份**给家长看的近 7 天周报
 - 易错卡「滚到才揭晓」用 LazyColumn 天然实现（等效 web 的 `IntersectionObserver`）。
 - 题型选择排成 3 行 / chips 排成 2 行（web 是 flex-wrap，窄屏 320 会顶出横向滚动）。
 
+### 批次 C 收官后新增：数量关系与交换（动画学数学 第 5 页｜2026-10-07）
+
+| 模块 | 路由键（`web/src/modules/catalog.ts`） | 引擎（纯 Kotlin，零后端） | 页面 |
+|---|---|---|---|
+| 数量关系与交换 | `module/math_relations` | `data/math/Relations.kt`（**前缀 `Rl`/`rl`/`RL_`**） | `ui/relations/`（VM + Screen） |
+
+- NavKey `MathRelations`；首页「🧮 动画学数学」小节第 5 张卡；**未改 `AppContainer`**（无依赖注入）。
+- 单测 **16 例**（web 13 例 + Android 侧补 3 例）。引擎逐行移植，`Random` 注入。
+- ★ **三条教学断言照搬不改**：① 颜色钉槽位、内容对调；② 点阵左上起算 + 底轨（两块共用 `maxShape`/`pitch`）；
+  ③ 交错抬升用**自身高度百分比（−28%）**。
+- ★ **Compose 与 web 的机制不同但语义等价**：单条 `Animatable` + 三段关键帧插值（45% 为交叉点），位移输出走 `graphicsLayer`；
+  ★★ 位移的**唯一真源是 `phase`**（`t = if (flying) fly.value else 0f`）—— 否则会有一帧把已落位的块再推出去一个槽位。
+  舞台**只 `background`、不 `clip`**（clip 会把飞行中的块裁掉）。
+- ★ `pitch` 按 `BoxWithConstraints` 实测槽宽自适应缩（`compare` 的 `big` 可达 18，10dp 间距在手机上会溢出）。
+- `prefers-reduced-motion` ⇒ 系统动画缩放 ⇒ 直接跳 ⑤ 完成态。
+- **未做逐帧核验**（本机无设备/模拟器）：只到「`assembleDebug` 通过 + 全量单测绿（**557 例 / 39 类 / 0 失败**，
+  其中本页 16 例）」—— ⚠️ 文档旧记的 526/37 已过时，以本次实测为准。观感由实机验证补。
+
 ### 批次 C 收官后新增：长度与质量单位 + 多位数乘一位数（动画学数学 第 3/4 页｜2026-10-01）
 
 | 模块 | 路由键（`web/src/routes.tsx`） | 引擎（纯 Kotlin，零后端） | 页面 |

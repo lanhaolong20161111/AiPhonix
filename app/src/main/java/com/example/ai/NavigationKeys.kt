@@ -124,6 +124,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object EqMove : NavKey                               // 等式变变变（移项变号：幽灵飞越等号线 + 跨线翻牌 + 随机 5 题）
 @Serializable data object MathUnits : NavKey                            // 长度与质量单位（切开/拼合动画 + 真实尺寸米尺 + 参照物墙 + 换算法 + 分步练习）
 @Serializable data object MathMulOne : NavKey                           // 多位数乘一位数（竖式逐位四拍：乘→加进位→写→进 + 位值点阵 + 一步一填）
+@Serializable data object MathRelations : NavKey                        // 数量关系与交换（一共/比多少/倍数/平均分 ⇄ 换位置：颜色标角色不标大小）
 
 // ── 视频 ──
 @Serializable data object SubtitleCapture : NavKey                      // 字幕采集（框选影片字幕区 → 截屏存盘带时间戳 + 识图翻译纠错）

@@ -703,7 +703,7 @@ mulOne 的**四裁判对拍**（`value*factor` / 展开法 / 轨迹拼回 / 逐�
 APK ≈35.8MB。★ 本机**无设备/模拟器** ⇒ 止于「构建通过 + 单测绿」，
 **实机观感（真实尺寸量得准不准、点阵挤不挤、竖式高亮跟不跟得上）由用户补验**。
 
-### 「数量关系与交换」页（数学动画 · 第 5 个模块｜2026-10-06）—— **只做 web，Android 未移植** ⏳
+### 「数量关系与交换」页（数学动画 · 第 5 个模块｜web `1bb7dd4` / Android 2026-10-07）✅
 
 `web/src/modules/math_relations/`（三大件共置：`relations.ts` 引擎 / `index.tsx` 页面 / `relations.test.ts` 13 例）。
 路由 `/module/math_relations`，首页「动画学数学」小节第 5 张卡（`catalog.ts` 一条声明即可）。
@@ -742,8 +742,44 @@ APK ≈35.8MB。★ 本机**无设备/模拟器** ⇒ 止于「构建通过 + �
 图标库 43 → **47**（`moreLess`/`timesCopies`/`shareEqual`/`swapRoles`），`MathIcons.kt` 已重新生成、
 `MathIconsTest.kt` 已加 4 条 `when` 分支 + 总数门禁 + 「本页要用的图标一个都不能少」门禁（**gradle 已绿**）。
 
-⚠️ **Android 侧未做移植**（按约定 web 先行）；移植时注意：点阵**左上起算 + 底轨**、抬升量**用百分比**、
-「颜色钉槽位、内容对调」这三条都是**教学断言**，不能按「顺手实现」改掉。
+---
+
+#### Android 移植（2026-10-07）—— 零后端，引擎整份移植 + Compose 页
+
+| 位置 | 文件 | 说明 |
+|---|---|---|
+| 引擎 | `data/math/Relations.kt` | **前缀 `Rl`/`rl`/`RL_`**（同包已有 `CompoundExpr`/`EqMove`/`MulOne`/`Precedence` 的裸名，必撞） |
+| 单测 | `data/math/RelationsTest.kt` | **16 例**（web 13 例 + 3 例 Android 侧补充：JS `rnd` 边界、选项去重、四类生成器成功率） |
+| 页面 | `ui/relations/RelationsViewModel.kt` + `RelationsScreen.kt` | 五阶段时间轴 + 交换动画 + 点阵 + 对照表 + 易错 6 例 + 一步一填 |
+
+接线四处：`NavigationKeys`（`MathRelations`）、`Navigation.kt`（import + 入口回调 + `entry<>`）、
+`HomeScreen.kt`（「🧮 动画学数学」小节第 5 张卡，`E0F2F1` / `00695C`）。**未改 `AppContainer`**（本页无依赖注入）。
+
+★ **三条「教学断言」逐条照搬，不许按「顺手实现」改**（web 侧已经为它们踩过坑）：
+1. **颜色钉槽位、内容对调** —— `leftQ = if (landed) p.right else p.left`（槽位角色 `slotRole` 全程不动）；
+2. **点阵左上起算 + 底轨** —— 两块共用同一个 `maxShape` 与 `pitch` ⇒ 比的是「填进去多长」，
+   未填的那截就是「差多少」（居中会让「3 行 × b」与「1 行 × b」一样高，倍数信息全丢）；
+3. **交错抬升用自身高度百分比（−28%）**，不写固定 px（写死后高个子题型只剩 44% 露出）。
+
+★ **Compose 侧的两条等价实现（与 web 的机制不同、语义相同）**：
+- web 用「两组 CSS keyframes ＋ 类名切换」；Android 用**单条 `Animatable(0f→1f)` + 三段关键帧插值**
+  （`keyframe3(t, from, mid=45%, to)`），`graphicsLayer{translationX/Y, scaleX/Y}` 输出。
+- ★★ **位移的唯一真源必须是 `phase`，不是动画值**：`t = if (flying) fly.value else 0f`。
+  若反过来（等动画跑完再切 phase），会有一帧把已经落位的块**再推出去一个槽位**。
+  写成 `t` 依赖 phase 后，「落位」与「内容对调」在**同一次组合**里完成，天然无接缝 —— 与 web 的「一次 setState 两处变」等价。
+- ★ **舞台只 `background(color, shape)`、绝不 `clip`** —— 一 clip 就把飞行中的块裁掉了。
+- 点阵重排动画：每个点各一个 `animateIntOffsetAsState`（容器定宽 ⇒ 容器不重排，只有点在走位）。
+- `pitch` 按 `BoxWithConstraints` 的实测槽宽**自适应缩**（`min(10.dp, (slotW-18dp)/maxCols)`），
+  两块**共用同一个 pitch**；`compare` 里 `big` 最大 18 ⇒ 手机上 10dp 间距会溢出，自适应是必需的（不是可选优化）。
+- `prefers-reduced-motion` ⇒ 系统动画缩放（`ANIMATOR_DURATION_SCALE == 0`）⇒ 直接跳 ⑤ 完成态，且 `t` 恒为 0。
+
+⚠️ **本机无设备/模拟器** ⇒ 止于「构建通过 + 单测绿」，**实机观感（点阵挤不挤、飞行块会不会被裁、
+一步一填选项换行）由用户实机验证补**。
+
+**门禁**：`export JAVA_HOME="C:/Program Files/Java/jdk-21.0.11"` → `:app:testDebugUnitTest` + `:app:assembleDebug` ✅
+—— **557 用例 / 39 类 / 0 失败**（其中 `RelationsTest` 16 例），APK ≈36.3MB。
+⚠️ 文档里旧记的「526 用例 / 37 类」**已过时**（本轮开工时工作区是干净的，说明 HEAD 里已有其它批次新增的用例）；
+**以上一次实测为准**。构建只剩 2 条既有警告（`Navigation.kt` 的 `it as NavKey` "No cast needed"，不在本轮 diff 内）。
 
 ### 拍照 OCR 自动填入（设置面板自动填入｜2026-09-22 收官后新增）
 

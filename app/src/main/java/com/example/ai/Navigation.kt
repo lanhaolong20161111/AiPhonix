@@ -121,6 +121,7 @@ import com.example.ai.ui.englishtalk.EnglishTalkViewModel
 import com.example.ai.ui.eqmove.EqMoveScreen
 import com.example.ai.ui.mathcompound.MathCompoundExprScreen
 import com.example.ai.ui.mulone.MulOneScreen
+import com.example.ai.ui.relations.RelationsScreen
 import com.example.ai.ui.units.UnitsScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureScreen
 import com.example.ai.ui.subtitlecapture.SubtitleCaptureViewModel
@@ -201,6 +202,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenEqMove = { backStack.add(EqMove) },
             onOpenMathUnits = { backStack.add(MathUnits) },
             onOpenMathMulOne = { backStack.add(MathMulOne) },
+            onOpenMathRelations = { backStack.add(MathRelations) },
             onOpenSubtitleCapture = { backStack.add(SubtitleCapture) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
@@ -376,6 +378,13 @@ fun MainNavigation(container: AppContainer) {
         }
         entry<MathMulOne> {
           MulOneScreen(
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
+          )
+        }
+        entry<MathRelations> {
+          // 同上：整页是单个 LazyColumn，内边距由各 item 管，这里只给安全区
+          RelationsScreen(
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding(),
           )

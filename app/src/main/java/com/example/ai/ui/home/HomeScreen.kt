@@ -65,6 +65,7 @@ fun HomeScreen(
     onOpenEqMove: () -> Unit = {},
     onOpenMathUnits: () -> Unit = {},
     onOpenMathMulOne: () -> Unit = {},
+    onOpenMathRelations: () -> Unit = {},
     onOpenSubtitleCapture: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
@@ -364,6 +365,17 @@ fun HomeScreen(
             containerColor = Color(0xFFF3E5F5),
             arrowColor = Color(0xFF6A1B9A),
             onClick = onOpenMathMulOne,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 数量关系与交换（颜色标角色：同色能换、异色换了就变）
+        ToolCard(
+            emoji = "🔁",
+            title = "数量关系与交换",
+            subtitle = "一共 · 比多少 · 倍数 · 平均分 —— 颜色标角色，一眼看出换位置会不会变",
+            containerColor = Color(0xFFE0F2F1),
+            arrowColor = Color(0xFF00695C),
+            onClick = onOpenMathRelations,
         )
         Spacer(Modifier.height(12.dp))
 
