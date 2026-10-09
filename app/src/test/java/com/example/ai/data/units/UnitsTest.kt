@@ -248,7 +248,7 @@ class UnitsTest {
     @Test
     fun `roundsOf：非 10 的整数次幂一律抛错，不许四舍五入`() {
         val weird = UnitDef(
-            id = UnitId.MM, kind = L, name = "怪单位", symbol = "?", base = 3.0,
+            id = UnitId.MM, kind = L, name = "怪单位", symbol = "?", en = "weirdunit", base = 3.0,
             sense = "", refs = emptyList(), onScreenReal = false,
         )
         val threw = try {
@@ -446,10 +446,13 @@ class UnitsTest {
     @Test
     fun `米尺事实表的每条 text 都能被引擎复算出来`() {
         val facts = LENGTH_FACTS + MASS_FACTS
+        // ★ 文案现在跟着英文标注（`1米(m) = 10分米(dm)`）—— 复算前先剥掉，
+        //   下面这条正则只认「数值 + 中文单位名」的数值关系，认不出 `(m)`。
+        val strip = { s: String -> s.replace(Regex("\\([a-z]{1,3}\\)"), "") }
         val re = Regex("^(\\d+)(\\S+) = (\\d+)(\\S+)$")
         var checked = 0
         for (f in facts) {
-            val m = re.matchEntire(f.text) ?: error("事实文案格式变了，无法复算：${f.text}")
+            val m = re.matchEntire(strip(f.text)) ?: error("事实文案格式变了，无法复算：${f.text}")
             val (v, ua, want, ub) = m.destructured
             val A = UNITS.firstOrNull { it.name == ua } ?: error("未知单位名：$ua")
             val B = UNITS.firstOrNull { it.name == ub } ?: error("未知单位名：$ub")
@@ -462,6 +465,8 @@ class UnitsTest {
 
     @Test
     fun `★ 易错案例：每条的「正确写法」引擎能复算、「错误写法」引擎算不出那个数`() {
+        // ★ 同「事实表」那条：文案里跟着 `(cm)` 这种英文标注，正则先剥掉再复算
+        val strip = { s: String -> s.replace(Regex("\\([a-z]{1,3}\\)"), "") }
         val re = Regex("^(\\d+)(\\S+?) = (\\d+)(\\S+?)$")
         var checked = 0
         for (c in UNIT_MISTAKE_CASES) {
@@ -470,7 +475,7 @@ class UnitsTest {
             for (s in listOf(c.wrong, c.right, c.why, c.tip)) {
                 assertTrue("文案里混进了 markdown 星号（页面上会原样露出来）：$s", !s.contains("**"))
             }
-            val mr = re.matchEntire(c.right) ?: continue
+            val mr = re.matchEntire(strip(c.right)) ?: continue
             val (rv, ru, rwant, ru2) = mr.destructured
             val RA = UNITS.firstOrNull { it.name == ru } ?: continue
             val RB = UNITS.firstOrNull { it.name == ru2 } ?: continue
@@ -478,7 +483,7 @@ class UnitsTest {
             // 正确写法必须与引擎一致
             assertEquals("「${c.right}」与引擎不一致", rwant.toDouble(), convert(rv.toDouble(), RA, RB), 1e-9)
             // 错误写法若也是同一种形态，必须真的算不出那个数
-            val mw = re.matchEntire(c.wrong)
+            val mw = re.matchEntire(strip(c.wrong))
             if (mw != null) {
                 val (wv, wu, wwant, wu2) = mw.destructured
                 val WA = UNITS.firstOrNull { it.name == wu }
@@ -528,6 +533,214 @@ class UnitsTest {
         for (u in UNITS) for (r in u.refs) r.draw?.let {
             assertTrue("${u.name} 的绘制形态只能是 bar/slab，实际 ${it.form}", it.form == "bar" || it.form == "slab")
             assertTrue("baseAmount 必须是正数", it.baseAmount > 0)
+        }
+    }
+
+    // ── 尺子实例「亮出这一段」（同一段长度、不同写法）──────────────
+
+    @Test
+    fun `★ 尺子实例：每个例子都能拆成整数单位，且每条读数换回毫米都回到原值`() {
+        val ex = rulerExamples()
+        assertTrue("尺子例子太少：${ex.size}", ex.size >= 6)
+
+        // 例子的毫米数必须严格递增（页面上是按顺序排的一排 chip）
+        for (i in 1 until ex.size) {
+            assertTrue("例子没按毫米升序：${ex[i - 1].mm} → ${ex[i].mm}", ex[i].mm > ex[i - 1].mm)
+        }
+
+        for (e in ex) {
+            // 一把 10 厘米的尺子 ⇒ 所有例子都必须落在 1..100 毫米之内
+            assertTrue("${e.label} 超出尺子范围：${e.mm}mm", e.mm in 1..100)
+
+            val rs = readingsOf(e.mm)
+            assertTrue("${e.label} 一条读数都没有", rs.isNotEmpty())
+            // ★ 主说法（复合读法）必须**由引擎派生**，不是页面手写的字符串
+            assertEquals("${e.mm}mm 的复合说法不对", compoundOf(e.mm).label, e.label)
+
+            for (r in rs) {
+                // ★ 读数必须是**整数**（三年级不读 0.7 分米）
+                assertTrue(
+                    "${r.value}${r.unit.name} 不是正整数写法",
+                    r.value > 0 && r.value == r.value.toLong().toDouble(),
+                )
+                // ★ 换回毫米必须回到原值 —— 这就是「同一段长度，换个单位写」
+                val back = convert(r.value, r.unit, unitOf(UnitId.MM))
+                assertEquals("${r.value}${r.unit.name} ≠ ${e.mm}毫米", e.mm.toDouble(), back, 0.0)
+            }
+
+            // 带英文标注的写法：条数一致，且每条都以「(小写字母)」结尾
+            assertEquals("读数与标注条数不一致", rs.size, e.same.size)
+            for (s in e.same) {
+                assertTrue("读数没标英文：$s", Regex("[\\u4e00-\\u9fff]\\([a-z]+\\)$").containsMatchIn(s))
+            }
+            // ★ 最后一条必须是「毫米」写法 —— 复合读法拆到底一定落到毫米
+            assertEquals("${e.label} 的毫米写法不对", "${e.mm}毫米(mm)", e.same.last())
+        }
+    }
+
+    @Test
+    fun `★ 复合读法：7厘米3毫米 —— 各段之和必须回到原值（页面按它把亮区分段画）`() {
+        // 参与「尺子上读一段」的单位只有毫米/厘米/分米/米（千米按真实尺寸要几百万 dp，放不下）
+        assertEquals(
+            "rulerUnits 不对",
+            listOf(UnitId.M, UnitId.DM, UnitId.CM, UnitId.MM),
+            rulerUnits().map { it.id },
+        )
+        for (u in rulerUnits()) assertTrue("${u.name} 不该出现在尺子上", u.base <= 1000.0)
+
+        for (mm in (RULER_EXAMPLE_MM + METER_EXAMPLE_MM)) {
+            val c = compoundOf(mm)
+            assertEquals("${c.label} 的各段加起来 ≠ ${mm}毫米", mm.toDouble(), c.parts.sumOf { it.mm }, 0.0)
+            assertTrue("${c.label} 段数不合理：${c.parts.size}", c.parts.size in 1..4)
+
+            c.parts.forEachIndexed { i, p ->
+                assertTrue("${c.label} 里有一段不是正整数", p.value > 0 && p.value == p.value.toLong().toDouble())
+                assertEquals("${c.label} 的段长和数值对不上", p.value * p.unit.base, p.mm, 0.0)
+                if (i > 0) {
+                    assertTrue("${c.label} 的单位没从大到小排", p.unit.base < c.parts[i - 1].unit.base)
+                    // ★ 贪心的不变量：后面每一截都必须**比上一级小**（1200 不能拆成「1米1分米」）
+                    assertTrue(
+                        "${c.label}：${p.value}${p.unit.name} 比上一级还大，拆错了",
+                        p.mm < c.parts[i - 1].unit.base,
+                    )
+                }
+            }
+            assertEquals(c.label, c.parts.joinToString("") { unitNumStr(it.value) + it.unit.name })
+        }
+    }
+
+    @Test
+    fun `★ 复合读法在 1 到 1500 毫米上全覆盖：拆得开、加得回、把标签解析回去还是原值`() {
+        // ★ 反向裁判：把**引擎生成的那个字符串**重新解析成毫米 —— 不是再跑一遍同一个贪心，
+        //   而是从文本逆推。单位名写错、少写一段、数字丢一位，这里都会当场炸。
+        val baseOf = mapOf("毫米" to 1, "厘米" to 10, "分米" to 100, "米" to 1000)
+        // ★ 「毫米」必须排在「米」前面，否则只吃到「米」
+        val re = Regex("(\\d+)(毫米|厘米|分米|米)")
+
+        fun parseLabel(s: String): Int {
+            var total = 0
+            var last = 0
+            for (m in re.findAll(s)) {
+                if (m.range.first != last) return -1 // 中间夹着认不出来的字符
+                last = m.range.last + 1
+                val v = m.groupValues[1].toIntOrNull() ?: return -1
+                total += v * (baseOf[m.groupValues[2]] ?: return -1)
+            }
+            return if (last == s.length) total else -1
+        }
+
+        var single = 0
+        for (mm in 1..1500) {
+            val c = compoundOf(mm)
+            assertTrue("$mm 的标签是空的", c.label.isNotEmpty())
+            assertEquals("$mm ⇒ ${c.label} 加不回原值", mm.toDouble(), c.parts.sumOf { it.mm }, 0.0)
+            for (p in c.parts) {
+                assertEquals("${c.label}：${p.value}${p.unit.name} 不是整数个单位", 0.0, p.mm % p.unit.base, 0.0)
+            }
+            assertEquals("把「${c.label}」解析回毫米 ≠ $mm", mm, parseLabel(c.label))
+            if (c.parts.size == 1) single++
+        }
+        // 单段的值恰好是「一个单位就能写出来」的那些：
+        //   1..9 毫米(9) + 10..90 厘米(9) + 100..900 分米(9) + 1000 米(1) = 28
+        // 数出来 ≠ 28 ⇒ 贪心在某一级多取或少取了（比如把 30 拆成「2厘米10毫米」）
+        assertEquals("单段值应为 28 个", 28, single)
+    }
+
+    @Test
+    fun `★ 米尺例子：只放分米、米与复合读法，且一格都没超出尺子长度`() {
+        val ex = meterExamples()
+        assertEquals(METER_EXAMPLE_MM.sorted(), ex.map { it.mm })
+        assertEquals(listOf("1分米", "5分米", "1米", "1米2分米"), ex.map { it.label })
+
+        for (e in ex) {
+            assertTrue("${e.label} 超出米尺（${METER_RULER_CM} 厘米）", e.mm <= METER_RULER_CM * 10)
+            // 米尺上的例子都是整分米 —— 页面是按「亮到第几大格」讲的
+            assertEquals("${e.label} 不是整分米", 0, e.mm % 100)
+        }
+        // 米尺至少要画到 1 米（第 10 格），否则「1米」这个锚点落不进去
+        assertTrue("米尺只有 ${METER_RULER_CM} 厘米，画不到 1 米", METER_RULER_CM >= 100)
+    }
+
+    @Test
+    fun `尺子实例钉死：73 毫米读作 7厘米3毫米；70 100 读作 7厘米 1分米`() {
+        fun bare(mm: Int) = readingsOf(mm).map { qty(it.value, it.unit) }
+        fun label(mm: Int) = compoundOf(mm).label
+
+        assertEquals(listOf("7厘米", "70毫米"), bare(70))
+        assertEquals(listOf("1分米", "10厘米", "100毫米"), bare(100))
+        assertEquals(listOf("5毫米"), bare(5))
+        assertEquals(listOf("1厘米", "10毫米"), bare(10))
+
+        // ★ 复合读法（用户点名要的那一类）
+        assertEquals("7厘米3毫米", label(73))
+        assertEquals("2厘米5毫米", label(25))
+        assertEquals("3厘米7毫米", label(37))
+        assertEquals("9厘米8毫米", label(98))
+        assertEquals("7厘米", label(70))
+        assertEquals("1分米", label(100))
+        assertEquals("1米2分米", label(1200))
+        assertEquals("1米5分米", label(1500))
+        assertEquals("1米5厘米", label(1050)) // ★ 中间那级恰好是 0 就跳过，不写「0分米」
+
+        val three = rulerExamples().firstOrNull { it.mm == 73 }
+        assertNotNull("默认例子 7厘米3毫米 不在列表里", three)
+        assertEquals("7厘米3毫米", three!!.label)
+        assertEquals(listOf("73毫米(mm)"), three.same)
+        assertEquals(listOf(70.0, 3.0), three.parts.map { it.mm })
+
+        val seven = rulerExamples().firstOrNull { it.mm == 70 }
+        assertNotNull("例子 7 厘米 不在列表里", seven)
+        assertEquals("7厘米", seven!!.label)
+        assertEquals(listOf("7厘米(cm)", "70毫米(mm)"), seven.same)
+
+        // 非法输入必须炸，绝不许悄悄四舍五入（Kotlin 的 Int 参数已经把 7.5 挡在编译期）
+        for (bad in listOf(0, -1)) {
+            var threw = false
+            try {
+                readingsOf(bad)
+            } catch (e: IllegalArgumentException) {
+                threw = true
+            }
+            assertTrue("readingsOf($bad) 应该抛错", threw)
+
+            threw = false
+            try {
+                compoundOf(bad)
+            } catch (e: IllegalArgumentException) {
+                threw = true
+            }
+            assertTrue("compoundOf($bad) 应该抛错", threw)
+        }
+    }
+
+    // ── 中文单位旁的英文标注（展示数据不许和单位表脱节）──────────────
+
+    @Test
+    fun `★ 每个单位都配了英文名，qtyEn 就是「中文名 + 英文缩写」`() {
+        val en = mapOf(
+            UnitId.MM to "millimeter",
+            UnitId.CM to "centimeter",
+            UnitId.DM to "decimeter",
+            UnitId.M to "meter",
+            UnitId.KM to "kilometer",
+            UnitId.G to "gram",
+            UnitId.KG to "kilogram",
+            UnitId.T to "ton",
+        )
+        for (u in UNITS) {
+            assertEquals("${u.name} 的英文名不对", en.getValue(u.id), u.en)
+            assertTrue("${u.name} 的英文名不是纯小写字母：${u.en}", Regex("^[a-z]+$").matches(u.en))
+            assertEquals("7${u.name}(${u.symbol})", qtyEn(7.0, u))
+        }
+        // 长度单位的缩写必须是课本/尺子上那三个字母以内的小写
+        for (u in unitsOf(UnitKind.LENGTH)) {
+            assertTrue("${u.name} 的缩写不像英文单位：${u.symbol}", Regex("^[a-z]{1,2}$").matches(u.symbol))
+        }
+        // 关系式与易错例里的中文单位，都要在括号里跟着英文缩写
+        val annotated = Regex("\\([a-z]{1,2}\\)")
+        for (f in LENGTH_FACTS) assertTrue("关系式没标英文：${f.text}", annotated.containsMatchIn(f.text))
+        for (c in UNIT_MISTAKE_CASES) {
+            assertTrue("易错例的正确侧没标英文：${c.right}", annotated.containsMatchIn(c.right))
         }
     }
 }

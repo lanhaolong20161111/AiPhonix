@@ -484,6 +484,36 @@ web `display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align
   + 先 `goto(BASE)` 注入假 session（`ai_phonix_web_auth`，形状 `{state:{session:{…}},version:0}`）
   再进模块，并断言 `page.url()` 含模块键（`RequireAuth` 是纯客户端守卫）。
 
+### math_units 追加：尺子上看例子（复合读法 + 米尺）+ 全页中文单位旁标英文（2026-10-09）
+
+web 侧本轮把「长度与质量单位」页的**尺子段落重做**并给全页单位加英文标注，Android 同步移植：
+
+| 层 | 改了什么 |
+|---|---|
+| 引擎 `data/units/Units.kt` | `UnitDef` 加 `en`（8 个单位全称）+ `qtyEn(v,u)`；新增复合读法引擎 `UnitReadingPart` / `UnitCompound` / `UnitRulerReading` / `rulerUnits()` / `compoundOf()` / `unitReadingOf()` / `rulerExamples()` / `meterExamples()` + 常量 `RULER_EXAMPLE_MM` / `METER_EXAMPLE_MM` / `METER_RULER_CM`；`LENGTH_FACTS` / `MASS_FACTS` / `UNIT_RULES` / `UNIT_MISTAKE_CASES` / `genProblem.fullText` 逐字补英标 |
+| Screen `ui/units/UnitsScreen.kt` | 新增 `ExampleRulerSection`（学生尺 + 米尺两把尺子、例子 chip、`EgRuler` 画布、`EgOut`/`EgNote`/`EgHint`）+ 25 处单位文案补 `(符号)` |
+| 单测 `data/units/UnitsTest.kt` | 新增 6 条（尺子实例 / 复合读法分段 / 1–1500 全覆盖+反向解析 / 米尺例子 / 实例钉死 / 英文标注）；另修 2 条**既有**用例：它们的文案正则要先把 `(cm)` 剥掉再复算 |
+
+- ★ **复合读法用贪心拆解，页面绝不手写数字**：从大到小逐级取整（`73 ⇒ 7厘米3毫米`、`1200 ⇒ 1米2分米`），
+  不变量是「后面每一截必须比上一级小」，中间那级恰好为 0 就跳过（`1050 ⇒ 1米5厘米`，不写「0分米」）。
+  亮区按 `parts` **分段画**（琥珀/橙交替 + 虚线分界 + 右端实心端线），孩子一眼看出「7厘米」和「多出来的 3毫米」是拼起来的一整段。
+- ★ **两把尺子性质不同，必须显式声明**：`学生尺` = **真实物理尺寸** 0–100mm（`dpPerMm` 走 `DisplayMetrics.xdpi` + 用户校准滑块）；
+  `米尺` = **示意图**，固定 360dp 宽 / 15 大格（1 大格 = 1dm），与校准无关 —— 页面上明写「米尺是示意图，不是真实大小」，
+  并给出「按真实尺寸画 1米(m) 要 N dp 宽」的实时数字；千米连示意图都不画。
+- ★ **反向裁判**（断言不能自证）：单测里把**引擎生成的中文标签重新解析回毫米**（`parseLabel`）与 `mm` 对拍；
+  另钉死「1–1500 毫米里只有 **28** 个值是单段」（1–9 毫米 9 + 10–90 厘米 9 + 100–900 分米 9 + 1000 米 1）——
+  数出来 ≠ 28 ⇒ 贪心在某一级多取或少取了。
+- 🔴 **Compose 没有 CSS 那种 per-corner `border-radius`**：`CornerRadius` 只有 `(x, y)` 双参构造，
+  `drawRoundRect` 只有「四角同一半径」的重载。要「首段跟尺子左圆角走、末段跟右圆角走」必须自己拼
+  `RoundRect(rect = Rect(...), topLeft = …, topRight = …, bottomRight = …, bottomLeft = …)` 再 `drawPath`。
+  ⚠️ 四角版 `RoundRect` 的**第一个参数是 `Rect`**，没有 `(left, top, right, bottom, cornerRadius×4)` 那个重载。
+- 🔴 **Kotlin 反引号函数名不能含 `.` 和 `/`**（`` `1..1500 全覆盖` `` / `` `分米/米/复合` `` 都会报
+  `Name contains illegal characters`）⇒ 改写成「1 到 1500」「分米、米与复合读法」。
+- 🔴 **加字段会让既有单测编译失败**：`UnitDef` 加 `en` 后，测试里那个手搓 `UnitDef(...)` 少了必填参数
+  （`No value passed for parameter 'en'`）—— 数据类加字段要顺手全仓 grep 构造点。
+- ⚠️ **仍有的一处显示差异**：web 在量感提示旁有一条「看看 1厘米(cm) 有多大」锚点跳转到参照物墙，
+  Android 的 `CutStage` 没有这条跳转（LazyColumn 定位需额外接线）—— 文字标注已对齐，跳转动作未移植。
+
 ### 有意保留的能力降级（非遗漏，别当 bug 修）
 
 - ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。

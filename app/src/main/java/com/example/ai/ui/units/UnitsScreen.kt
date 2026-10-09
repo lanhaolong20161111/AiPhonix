@@ -47,15 +47,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,6 +73,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ai.data.units.ADJACENT_PAIRS
 import com.example.ai.data.units.ChainFact
+import com.example.ai.data.units.METER_RULER_CM
 import com.example.ai.data.units.PROBLEM_GROUPS
 import com.example.ai.data.units.UnitDef
 import com.example.ai.data.units.UnitDirection
@@ -74,7 +84,11 @@ import com.example.ai.data.units.UnitPair
 import com.example.ai.data.units.UnitProblem
 import com.example.ai.data.units.UNIT_MISTAKE_CASES
 import com.example.ai.data.units.UNIT_RULES
+import com.example.ai.data.units.UnitRulerReading
+import com.example.ai.data.units.meterExamples
 import com.example.ai.data.units.qty
+import com.example.ai.data.units.qtyEn
+import com.example.ai.data.units.rulerExamples
 import com.example.ai.data.units.unitNumStr
 import com.example.ai.ui.icon.MathIcon
 import kotlin.math.ceil
@@ -200,13 +214,13 @@ fun UnitsScreen(
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     DirButton(
-                        text = "${state.pair.big.name} → ${state.pair.small.name}（切开 · 乘）",
+                        text = "${state.pair.big.name}(${state.pair.big.symbol}) → ${state.pair.small.name}(${state.pair.small.symbol})（切开 · 乘）",
                         on = state.toSmaller,
                         modifier = Modifier.weight(1f),
                         onClick = { viewModel.setDirection(true) },
                     )
                     DirButton(
-                        text = "${state.pair.small.name} → ${state.pair.big.name}（拼合 · 除）",
+                        text = "${state.pair.small.name}(${state.pair.small.symbol}) → ${state.pair.big.name}(${state.pair.big.symbol})（拼合 · 除）",
                         on = !state.toSmaller,
                         modifier = Modifier.weight(1f),
                         onClick = { viewModel.setDirection(false) },
@@ -237,6 +251,9 @@ fun UnitsScreen(
                 },
             )
         }
+
+        // ── 尺子上看例子（复合读法 + 米尺）──
+        item(key = "ruler-eg") { ExampleRulerSection(dpPerMm = dpPerMm) }
 
         // ── 参照物墙 ──
         item(key = "sense") { SenseSection(kind = state.kind, dpPerMm = dpPerMm) }
@@ -456,7 +473,7 @@ private fun PairChips(pairs: List<UnitPair>, active: UnitPair, onPick: (UnitPair
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { p ->
                     Chip(
-                        text = "${p.small.name} ⟷ ${p.big.name}\n进率 ${unitNumStr(p.ratio)}",
+                        text = "${p.small.name}(${p.small.symbol}) ⟷ ${p.big.name}(${p.big.symbol})\n进率 ${unitNumStr(p.ratio)}",
                         modifier = Modifier.weight(1f),
                         on = active.key == p.key,
                         onClick = { onPick(p) },
@@ -501,14 +518,14 @@ private fun CutStage(
         // ── 题面 ──
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(unitNumStr(plan.value), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = InkColor)
-            Text(" ${plan.from.name} = ", fontSize = 18.sp, color = InkColor)
+            Text(" ${plan.from.name}(${plan.from.symbol}) = ", fontSize = 18.sp, color = InkColor)
             Text(
                 if (state.answered) unitNumStr(plan.result) else "?",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (state.answered) OkColor else Faint,
             )
-            Text(" ${plan.to.name}", fontSize = 18.sp, color = InkColor)
+            Text(" ${plan.to.name}(${plan.to.symbol})", fontSize = 18.sp, color = InkColor)
         }
         Spacer(Modifier.height(10.dp))
 
@@ -604,7 +621,7 @@ private fun CutStage(
                     .padding(12.dp),
             ) {
                 Text(
-                    "${qty(plan.value, plan.from)} = ${qty(plan.result, plan.to)}",
+                    "${qtyEn(plan.value, plan.from)} = ${qtyEn(plan.result, plan.to)}",
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = OkColor,
@@ -636,14 +653,14 @@ private fun CutStage(
         if (plan.from.kind == UnitKind.LENGTH) {
             val px = (plan.from.base * dpPerMm * LocalDensity.current.density).roundToInt()
             Text(
-                "💡 1${plan.from.name} 按屏幕比例约 $px 像素宽" +
+                "💡 1${plan.from.name}(${plan.from.symbol}) 按屏幕比例约 $px 像素宽" +
                     if (px > 600) " —— 屏幕放不下，所以上面画的是示意图。" else "。",
                 fontSize = 12.sp,
                 color = Grey,
             )
         } else {
             Text(
-                "💡 质量没法画成尺寸：1${plan.from.name}有多重，看下面的参照物。",
+                "💡 质量没法画成尺寸：1${plan.from.name}(${plan.from.symbol})有多重，看下面的参照物。",
                 fontSize = 12.sp,
                 color = Grey,
             )
@@ -900,6 +917,336 @@ private fun HundredGrid() {
 }
 
 /***************************************
+ * 尺子上看例子：点一个长度，看它从 0 亮到哪儿
+ * ★ 「亮出 7 厘米 3 毫米那一段」比任何一句话都直观 —— 单位不是符号，是一段真实长度
+ ***************************************/
+
+/** 学生尺总长（毫米）—— 一把 10 厘米的尺子 */
+private const val EG_RULER_MM = 100
+
+/** 默认停在那个被点名的例子：7 厘米 3 毫米 */
+private const val EG_DEFAULT_MM = 73
+
+/** 米尺示意图的固定 dp 宽（0..METER_RULER_CM 厘米 ⇒ 15 大格 × 24dp，与校准无关） */
+private const val EG_METER_DP = 360f
+
+/** 米尺默认停在 1 米 —— 这一档里最重要的锚点 */
+private const val EG_METER_DEFAULT_MM = 1000
+
+/** 亮区两色：复合读法「7厘米3毫米」⇒ 前面 70 毫米一块、后面 3 毫米一块 */
+private val EgSegAmber = Color(0xB8FDE68A)
+private val EgSegOrange = Color(0x80FB923C)
+
+/** 亮区的分界线 / 端线 / 标签描边（全站琥珀强调色） */
+private val EgSegLine = Color(0xFFB45309)
+private val EgTagBg = Color(0xFFFFFBEB)
+private val EgTagInk = Color(0xFF92400E)
+private val EgRulerBg = Color(0xFFFFFBEB)
+private val EgRulerBorder = Color(0xFFFCD34D)
+private val EgTick = Color(0xFFD97706)
+private val EgTickCm = Color(0xFFEF4444)
+private val EgNum = Color(0xFF92400E)
+private val EgCellLine = Color(0xFFE2E8F0)
+private val EgCellNum = Color(0xFF94A3B8)
+private val EgTeal = Color(0xFF0F766E)
+
+/** 这把尺子是**真实尺寸**（学生尺）还是**示意图**（米尺）—— 只影响画法与提示文案 */
+private enum class EgRulerKind { Student, Meter }
+
+@Composable
+private fun ExampleRulerSection(dpPerMm: Float) {
+    val examples = remember { rulerExamples() }
+    val meters = remember { meterExamples() }
+    var mm by remember { mutableStateOf(EG_DEFAULT_MM) }
+    var meterMm by remember { mutableStateOf(EG_METER_DEFAULT_MM) }
+    val cur = examples.firstOrNull { it.mm == mm } ?: examples.first()
+    val curM = meters.firstOrNull { it.mm == meterMm } ?: meters.first()
+
+    // ★ 米尺是**示意图**（屏幕装不下 1.5 米）⇒ 它有自己的固定比例，与校准无关
+    val meterPxPerMm = EG_METER_DP / (METER_RULER_CM * 10f)
+
+    SectionCard {
+        SectionTitle("📏 尺子上看例子")
+        SectionSub("点一个长度，看它从 0 亮到哪儿。")
+
+        // ── 学生尺（真实尺寸）──
+        Spacer(Modifier.height(14.dp))
+        EgSubTitle("学生尺", "真实大小 · 0–10 厘米")
+        EgChips(examples, cur.mm) { mm = it }
+        // ★ 真实 10 厘米尺子 ≈ 378dp 宽，卡片内容区装不下 ⇒ 横向滚动，绝不缩放
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+            EgRuler(read = cur, pxPerMm = dpPerMm, kind = EgRulerKind.Student)
+        }
+        EgOut(cur)
+        if (cur.parts.size > 1) {
+            EgNote(
+                buildString {
+                    cur.parts.forEachIndexed { i, p ->
+                        if (i > 0) append(" + ")
+                        append(unitNumStr(p.value) + p.unit.name + "（" + unitNumStr(p.mm) + " 小格）")
+                    }
+                    append(" = " + cur.mm + " 毫米")
+                },
+            )
+        } else {
+            EgNote("从 0 亮到第 " + cur.mm + " 个小格（1 小格 = 1 毫米）")
+        }
+
+        // ── 米尺（示意图）──
+        Spacer(Modifier.height(14.dp))
+        EgSubTitle("米尺", "示意图 · 0–1.5 米")
+        EgChips(meters, curM.mm) { meterMm = it }
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+            EgRuler(read = curM, pxPerMm = meterPxPerMm, kind = EgRulerKind.Meter)
+        }
+        EgOut(curM)
+        EgNote("亮到第 " + (curM.mm / 100) + " 大格（1 大格 = 1分米(dm) = 10厘米(cm)）")
+        EgNote("第 10 大格的右边就是 1米(m) = 100厘米(cm) = 1000毫米(mm)。")
+
+        EgHint(
+            "★ 米尺是示意图，不是真实大小 —— 屏幕上按真实尺寸画 1 米(m) 要 " +
+                (1000 * dpPerMm).roundToInt() + " dp 宽，卡片装不下。米尺上只数格，别量长度；" +
+                "要量真实大小，用上面那把学生尺。",
+        )
+        EgHint(
+            "★ 千米(km)连示意图都不画：1千米(km) = 1000米(m)，按真实尺寸要 " +
+                (1_000_000 * dpPerMm).roundToInt() + " dp 宽。它的量感看下面「参照物墙」。",
+        )
+    }
+}
+
+@Composable
+private fun EgSubTitle(title: String, note: String) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = EgTeal)
+        Text(
+            note,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Faint,
+            modifier = Modifier.padding(start = 7.dp, bottom = 1.dp),
+        )
+    }
+    Spacer(Modifier.height(9.dp))
+}
+
+@Composable
+private fun EgChips(list: List<UnitRulerReading>, activeMm: Int, onPick: (Int) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        list.forEach { e ->
+            val on = e.mm == activeMm
+            Text(
+                e.label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (on) EgTagInk else Color(0xFF334155),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (on) EgTagBg else Color.White)
+                    .border(1.dp, if (on) EgSegLine else EgCellLine, RoundedCornerShape(9.dp))
+                    .clickableNoRipple { onPick(e.mm) }
+                    .padding(vertical = 5.dp, horizontal = 9.dp),
+            )
+        }
+    }
+    Spacer(Modifier.height(10.dp))
+}
+
+/** 同一段长度的各种写法：`7厘米3毫米 = 73毫米(mm)`。数据全来自引擎，页面不手写 */
+@Composable
+private fun EgOut(read: UnitRulerReading) {
+    val s = buildAnnotatedString {
+        withStyle(SpanStyle(color = Color(0xFF1E3A8A), fontSize = 20.sp, fontWeight = FontWeight.Bold)) {
+            append(read.label)
+        }
+        read.same.forEach {
+            withStyle(SpanStyle(color = Faint, fontSize = 16.sp, fontWeight = FontWeight.Bold)) { append(" = ") }
+            withStyle(SpanStyle(color = MdColor, fontSize = 16.sp, fontWeight = FontWeight.Bold)) { append(it) }
+        }
+    }
+    Text(s, modifier = Modifier.padding(bottom = 4.dp))
+}
+
+@Composable
+private fun EgNote(text: String) {
+    Text(text, fontSize = 11.5.sp, color = Faint, modifier = Modifier.padding(top = 4.dp))
+}
+
+@Composable
+private fun EgHint(text: String) {
+    Text(text, fontSize = 11.5.sp, color = Faint, modifier = Modifier.padding(top = 6.dp))
+}
+
+/**
+ * 一把尺子 + 头顶的标签 + 按复合读法分段的亮区。
+ *
+ * ★ 三条硬约束（都是 web 那边踩出来的）：
+ *   ① 刻度与数字共用同一个 `i/100` 网格 —— 各算各的会错开 1~3dp；
+ *   ② 亮区右端的实心端线画在**段内**，段宽就是「占的那一段长度」，不会被撑长；
+ *   ③ 标签挂在亮区右端上方；亮区比标签还窄时改挂右端**外侧**，否则小标签被裁掉。
+ */
+@Composable
+private fun EgRuler(read: UnitRulerReading, pxPerMm: Float, kind: EgRulerKind) {
+    val fullMm = if (kind == EgRulerKind.Student) EG_RULER_MM else METER_RULER_CM * 10
+    val tagRowH = 22.dp
+    val rulerH = if (kind == EgRulerKind.Student) 54.dp else 46.dp
+    val numSize = with(LocalDensity.current) { 10.sp.toPx() }
+    val tagSize = with(LocalDensity.current) { 11.sp.toPx() }
+    val label = read.label
+
+    val numPaint = remember {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            textAlign = android.graphics.Paint.Align.CENTER
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+    }
+    val tagPaint = remember {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            textAlign = android.graphics.Paint.Align.LEFT
+            color = EgTagInk.toArgb()
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+        }
+    }
+
+    Canvas(Modifier.width((fullMm * pxPerMm).dp).height(tagRowH + rulerH)) {
+        val w = size.width
+        val rulerTop = tagRowH.toPx()
+        val rulerBottom = size.height
+        val mmPx = pxPerMm.dp.toPx()
+        val r6 = 6.dp.toPx()
+        val totalMm = read.parts.sumOf { it.mm }.toInt()
+
+        // ① 尺子底板
+        drawRoundRect(EgRulerBg, Offset(0f, rulerTop), Size(w, rulerBottom - rulerTop), CornerRadius(r6))
+        drawRoundRect(
+            EgRulerBorder,
+            Offset(0f, rulerTop),
+            Size(w, rulerBottom - rulerTop),
+            CornerRadius(r6),
+            style = Stroke(width = 1.dp.toPx()),
+        )
+
+        // ② 亮区：按复合读法分段（「7厘米3毫米」⇒ 70mm 一段 + 3mm 一段）
+        var accPx = 0f
+        read.parts.forEachIndexed { i, p ->
+            val left = accPx
+            val segW = (p.mm * mmPx).toFloat()
+            accPx += segW
+            val first = i == 0
+            val last = i == read.parts.size - 1
+            val r5 = 5.dp.toPx()
+            val fitEnd = last && totalMm == fullMm
+            // ⚠️ `drawRoundRect` 只有「四角同一个半径」的重载（Compose 没有 CSS 那种 per-corner border-radius）
+            //    ⇒ 要「首段跟尺子左圆角走、末段跟右圆角走」就得自己拼 RoundRect 再 drawPath。
+            val segPath = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        rect = Rect(left, rulerTop, left + segW, rulerBottom),
+                        topLeft = CornerRadius(if (first) r5 else 0f),
+                        topRight = CornerRadius(if (fitEnd) r5 else 0f),
+                        bottomRight = CornerRadius(if (fitEnd) r5 else 0f),
+                        bottomLeft = CornerRadius(if (first) r5 else 0f),
+                    ),
+                )
+            }
+            drawPath(segPath, if (i % 2 == 0) EgSegAmber else EgSegOrange)
+            if (!first) {
+                drawLine(
+                    color = EgSegLine,
+                    start = Offset(left, rulerTop),
+                    end = Offset(left, rulerBottom),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())),
+                )
+            }
+            if (last) {
+                val endX = left + segW - 1.dp.toPx()
+                drawLine(EgSegLine, Offset(endX, rulerTop), Offset(endX, rulerBottom), strokeWidth = 2.dp.toPx())
+            }
+        }
+
+        // ③ 刻度 / 格子（与数字共用同一个 i 网格，对齐由构造保证）
+        numPaint.textSize = numSize
+        if (kind == EgRulerKind.Student) {
+            numPaint.color = EgNum.toArgb()
+            for (i in 0..EG_RULER_MM) {
+                val x = w * i / EG_RULER_MM
+                val tall = i % 10 == 0
+                val mid = i % 5 == 0
+                val len = if (tall) 22.dp.toPx() else if (mid) 14.dp.toPx() else 8.dp.toPx()
+                drawLine(
+                    color = if (tall) EgTickCm else EgTick,
+                    start = Offset(x, rulerTop + 1.dp.toPx()),
+                    end = Offset(x, rulerTop + 1.dp.toPx() + len),
+                    strokeWidth = if (tall) 2.dp.toPx() else 1.dp.toPx(),
+                )
+            }
+            drawIntoCanvas { c ->
+                for (i in 0..10) {
+                    c.nativeCanvas.drawText(i.toString(), w * i / 10f, rulerTop + 40.dp.toPx(), numPaint)
+                }
+            }
+        } else {
+            // 15 个大格，每格 1 分米；第 10 格的右边正好是 1 米（蓝线锚点）
+            numPaint.color = EgCellNum.toArgb()
+            val cells = METER_RULER_CM / 10
+            val cellPx = w / cells
+            drawIntoCanvas { c ->
+                for (i in 0 until cells) {
+                    val x = i * cellPx
+                    if (i > 0) {
+                        drawLine(EgCellLine, Offset(x, rulerTop), Offset(x, rulerBottom), strokeWidth = 1.dp.toPx())
+                    }
+                    if (i == 9) {
+                        val mx = x + cellPx - 1.dp.toPx()
+                        drawLine(MdColor, Offset(mx, rulerTop), Offset(mx, rulerBottom), strokeWidth = 2.dp.toPx())
+                    }
+                    c.nativeCanvas.drawText((i + 1).toString(), (i + 0.5f) * cellPx, rulerBottom - 5.dp.toPx(), numPaint)
+                }
+            }
+        }
+
+        // ④ 标签：挂在亮区右端上方，尖角向下指着那一格
+        tagPaint.textSize = tagSize
+        val bandPx = totalMm * mmPx
+        val padH = 7.dp.toPx()
+        val chipW = tagPaint.measureText(label) + padH * 2
+        val chipH = tagSize + 4.dp.toPx()
+        val out = bandPx < chipW + 6.dp.toPx()
+        val chipLeft = (if (out) bandPx + 4.dp.toPx() else bandPx - 4.dp.toPx() - chipW)
+            .coerceIn(0f, (w - chipW).coerceAtLeast(0f))
+        val chipTop = rulerTop - 2.dp.toPx() - chipH
+        val r7 = 7.dp.toPx()
+        drawRoundRect(EgTagBg, Offset(chipLeft, chipTop), Size(chipW, chipH), CornerRadius(r7))
+        drawRoundRect(
+            EgSegLine,
+            Offset(chipLeft, chipTop),
+            Size(chipW, chipH),
+            CornerRadius(r7),
+            style = Stroke(width = 1.dp.toPx()),
+        )
+        val pipCx = if (out) chipLeft + 7.dp.toPx() else chipLeft + chipW - 12.dp.toPx()
+        drawPath(
+            Path().apply {
+                moveTo(pipCx, chipTop + chipH + 6.dp.toPx())
+                lineTo(pipCx - 5.dp.toPx(), chipTop + chipH)
+                lineTo(pipCx + 5.dp.toPx(), chipTop + chipH)
+                close()
+            },
+            EgSegLine,
+        )
+        drawIntoCanvas { c ->
+            c.nativeCanvas.drawText(label, chipLeft + padH, chipTop + chipH - 4.dp.toPx(), tagPaint)
+        }
+    }
+}
+
+/***************************************
  * 参照物墙
  ***************************************/
 
@@ -911,7 +1258,7 @@ private fun SenseSection(kind: UnitKind, dpPerMm: Float) {
     val units = ids.map { com.example.ai.data.units.unitOf(it) }
 
     SectionCard {
-        SectionTitle("👀 1${units[0].name}到底有多大？")
+        SectionTitle("👀 1${units[0].name}（${units[0].symbol}）有多大")
         SectionSub(
             "单位不是两个长得不一样的字，它是有大小的。先把「1 个单位」的样子装进脑子里，" +
                 "填空和换算就不会离谱。",
@@ -943,7 +1290,9 @@ private fun UnitSenseCard(u: UnitDef, dpPerMm: Float, availDp: androidx.compose.
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(u.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = InkColor)
-            Text("  ${u.symbol}", fontSize = 12.sp, color = Grey, modifier = Modifier.padding(start = 6.dp))
+            // ★ 中文单位旁标英文全称 + 缩写（对齐 web 的 uc-sense-en / uc-sense-sym）
+            Text(u.en, fontSize = 11.sp, color = Faint, modifier = Modifier.padding(start = 6.dp))
+            Text("(${u.symbol})", fontSize = 11.sp, color = Faint, modifier = Modifier.padding(start = 3.dp))
         }
         Spacer(Modifier.height(8.dp))
 
@@ -960,7 +1309,7 @@ private fun UnitSenseCard(u: UnitDef, dpPerMm: Float, availDp: androidx.compose.
                 val barDp = (draw.baseAmount * dpPerMm).toFloat()
                 if (barDp > availDp.value * 0.92f) {
                     Text(
-                        "1${u.name} 的真实长度约 ${barDp.roundToInt()} dp，这张卡片装不下。" +
+                        "1${u.name}(${u.symbol}) 的真实长度约 ${barDp.roundToInt()} dp，这张卡片装不下。" +
                             "这里不缩小着画 —— 缩小就不是真实大小了。" +
                             "想感受它：把真尺子贴到上面那把米尺上，看 0 到 ${draw.baseAmount.roundToInt() / 10} 厘米这一段。",
                         fontSize = 12.sp,
@@ -977,7 +1326,7 @@ private fun UnitSenseCard(u: UnitDef, dpPerMm: Float, availDp: androidx.compose.
                             .border(1.dp, MdColor),
                     )
                     Text(
-                        "屏幕上这段 = 真实的 1${u.name}（约 ${barDp.roundToInt()} dp）",
+                        "屏幕上这段 = 真实的 1${u.name}（1${u.symbol}，约 ${barDp.roundToInt()} dp）",
                         fontSize = 11.sp,
                         color = Grey,
                         modifier = Modifier.padding(top = 4.dp),
@@ -1071,7 +1420,7 @@ private fun BenchSection(
             )
             plan != null -> {
                 Text(
-                    "${qty(state.benchValue!!, state.benchFrom)} = ${state.benchResultPretty}${state.benchTo.name}",
+                    "${qtyEn(state.benchValue!!, state.benchFrom)} = ${state.benchResultPretty}${state.benchTo.name}(${state.benchTo.symbol})",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = OkColor,
@@ -1103,7 +1452,7 @@ private fun BenchSection(
                     )
                 }
                 Text(
-                    "这一对是${state.benchFrom.name}↔${state.benchTo.name}，进率 ${unitNumStr(plan.ratio)}，" +
+                    "这一对是${state.benchFrom.name}(${state.benchFrom.symbol})↔${state.benchTo.name}(${state.benchTo.symbol})，进率 ${unitNumStr(plan.ratio)}，" +
                         "要 ${plan.rounds} 轮 —— " +
                         if (plan.rounds == 1) "切一轮就到了。" else "10 要乘 ${plan.rounds} 次。",
                     fontSize = 11.sp,
@@ -1124,7 +1473,7 @@ private fun UnitPickRow(
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         chain.forEach { u ->
             Chip(
-                text = u.name,
+                text = "${u.name}(${u.symbol})",
                 on = active == u.id,
                 onClick = { onPick(u.id) },
             )
@@ -1347,7 +1696,7 @@ private fun SolveCard(p: UnitProblem, index: Int, onStep: (Boolean) -> Unit) {
         if (done) {
             Spacer(Modifier.height(4.dp))
             Text(
-                "${qty(p.value, p.from)} = ${qty(p.result, p.to)}",
+                "${qtyEn(p.value, p.from)} = ${qtyEn(p.result, p.to)}",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = OkColor,
@@ -1355,8 +1704,8 @@ private fun SolveCard(p: UnitProblem, index: Int, onStep: (Boolean) -> Unit) {
             Text(p.finalNote, fontSize = 12.sp, color = InkColor, modifier = Modifier.padding(top = 4.dp))
             if (p.trap != null) {
                 Text(
-                    "⚠️ 如果方向判反了，会算成 ${unitNumStr(p.trap)}${p.to.name}。记住：" +
-                        "${p.from.name}${if (p.from.base > p.to.base) "大、要切开" else "小、要拼合"}，" +
+                    "⚠️ 如果方向判反了，会算成 ${unitNumStr(p.trap)}${p.to.name}(${p.to.symbol})。记住：" +
+                        "${p.from.name}(${p.from.symbol})${if (p.from.base > p.to.base) "大、要切开" else "小、要拼合"}，" +
                         "所以是${if (p.op == "×") "乘" else "除"}。",
                     fontSize = 12.sp,
                     color = AsColor,

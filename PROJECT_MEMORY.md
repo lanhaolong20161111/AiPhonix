@@ -5,6 +5,47 @@
 
 ---
 
+## 0.13 🆕 2026-10-09 长度与质量单位页：尺子上看例子（复合读法 + 米尺）+ 全页中文单位旁标英文（已上线 `acf71471-…`）
+
+**两件事一次做完**：web 侧「尺子看例子」段落重做 + 全页单位补英文标注 → 生产 Worker 上线，Android 同步移植。
+
+- **上线**：`wrangler deploy --env=""` → `Current Version ID: acf71471-8cd1-44d0-8972-f19f1b79c6fd`。
+  入口 **`index-LcTisOji.js`**（本次构建产物；替换旧的入口 chunk）；本次改动 chunk **`math_units-C43ANh_h.js`**（36974 字节）。
+  线上 `/web/` 首次即返回新哈希，且线上 chunk `cmp -s` 与本地**逐字节相同**；探活 `/health` 200 + `/api/v1/wordbook/list` 401。
+- ⚠️ **重建前 `web/dist` 有 342 文件 / 282 chunk（同名多哈希 85 个）** ⇒ 上次构建忘了清、旧 chunk 全堆在产物里；
+  `server_cf/static_assets/web` 只有 168 文件但**内容也是旧的**（`index.html` 停在 10-07）。
+  干净构建基线 = **168 文件 / 102 js**。做法：`vite build --outDir dist_clean_<时间戳>` 出权威清单 →
+  **逐文件 rename 移出**不在清单里的 → `cpSync` 覆盖两个目录（脚本 `web/_uc_sync.cjs`，已 gitignore）。
+  ⇒ ⚠️ **`pinyin-*` / `wordbook-*` 各有两个哈希是「真·重名 chunk」**（两个模块同名），不是脏产物，别误删。
+- ★ **新增「尺子上看例子」段**：`学生尺`（**真实物理尺寸** 0–100mm）+ `米尺`（**示意图** 360dp / 15 大格，1 大格 = 1dm）。
+  点一个长度 → 亮区按**复合读法分段**画（琥珀/橙交替 + 虚线分界 + 右端实心端线），标签挂在亮区右端上方、尖角指位。
+  例子：学生尺 `[5,10,25,37,70,73,98,100]`、米尺 `[100,500,1000,1200]`（默认停在 **73 = 7厘米3毫米**）。
+- ★★ **复合读法（用户点名要的那类）由引擎贪心派生，页面绝不手写数字**：
+  从大到小逐级取整（`73 ⇒ 7厘米3毫米`、`1200 ⇒ 1米2分米`），不变量是「后面每一截必须比上一级小」，
+  中间那级恰好为 0 就跳过（`1050 ⇒ 1米5厘米`，不写「0分米」）。
+- ★ **全页英标**：`UnitDef.en`（全称）+ `qtyEn(v,u) = "7厘米(cm)"`；**关系式 / 题面 / 方向按钮 / 单位选项 / 易错例 / 参照物卡**
+  全部走它；**成句的解说文字不标**（`qty()` 保持裸写法，单测仍用它）。`LENGTH_FACTS`/`MASS_FACTS`/`UNIT_RULES`/`UNIT_MISTAKE_CASES` 逐字补 `(符号)`。
+- 🔴🔴 **给数据类加字段会连带炸既有单测**：`UnitDef` 加 `en` 后，测试里手搓的 `UnitDef(...)`
+  少必填参数（`No value passed for parameter 'en'`）；`LENGTH_FACTS`/`UNIT_MISTAKE_CASES` 文案加了 `(cm)` 后，
+  **两条既有用例的解析正则全部 `matchEntire` 失败**（`\S+` 把 `米(m)` 整个当单位名 ⇒ `error("未知单位名")` /
+  静默 `continue` 到 `checked=0`）⇒ 修法是**复算前先剥掉 `\([a-z]{1,3}\)`**。数据类加字段/改文案必须全仓 grep 消费点。
+- 🔴 **Compose 没有 CSS 那种 per-corner `border-radius`**：`CornerRadius` 只有 `(x, y)` 双参构造，
+  `drawRoundRect` 只有「四角同一半径」重载。要「首段跟尺子左圆角走、末段跟右圆角走」得自己拼
+  `RoundRect(rect = Rect(...), topLeft/topRight/bottomRight/bottomLeft = ...)` 再 `drawPath`
+  （⚠️ 四角版 `RoundRect` **第一个参数是 `Rect`**）。查这类 API 别猜：`javap` 直接读 gradle 缓存里的
+  `ui-graphics-api.jar` / `ui-geometry-api.jar`，比盲改一轮便宜得多。
+- 🔴 **Kotlin 反引号函数名不能含 `.` 和 `/`**（`1..1500 全覆盖`、`分米/米/复合` 都会报 `Name contains illegal characters`）。
+- 🔴 **本机 gradle 门禁会卡在 `settings.gradle.kts` 的 foojay 插件**：直连 `plugins.gradle.org` TLS 被 fake-ip 代理掐断
+  （`Remote host terminated the handshake`），而 `--offline` 又报 `No cached version … available for offline mode`
+  （缓存里有 jar/pom 但离线元数据不认）。可行解：`export JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7897 …"`
+  跑一次（只为一个 POM，量极小），之后走缓存。门禁基线：`:app:testDebugUnitTest` **39 类 / 563 例 / 0 失败**。
+- ⚠️ **仍有一处显示差异**：web 在量感提示旁有「看看 1厘米(cm) 有多大」锚点跳转到参照物墙，Android 未移植
+  （LazyColumn 定位需额外接线；`bringIntoViewRequester` 对**未组合**的列表项不可靠，别用它硬做）。
+- 收尾：`.gitignore` 补 `web/_uc_sync.cjs` / `web/_build_clean.log` / `web/dist_clean_*/`；
+  `docs/ANDROID_PARITY_PLAN.md` 新增同名小节（含上述全部坑）。
+
+---
+
 ## 0.12 🆕 2026-10-04 上线：能力折叠 + 后端 manifest 同批部署（`90f40b9a-…`）
 
 一次 `wrangler deploy --env=""` 同时带上两批未上线改动（前端折叠 `9dd4574` + 后端 manifest `b8d2775`）。

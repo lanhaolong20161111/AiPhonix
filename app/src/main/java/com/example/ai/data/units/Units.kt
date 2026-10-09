@@ -75,7 +75,10 @@ data class UnitDef(
     val id: UnitId,
     val kind: UnitKind,
     val name: String,
+    /** 英文缩写（尺子上、英文数学里就写这个） */
     val symbol: String,
+    /** 英文全称 —— ★ 中文单位名旁边要标注的就是它 */
+    val en: String,
     /** 相对**基准单位**的倍数（长度基准毫米 / 质量基准克） */
     val base: Double,
     /** 怎么用手比出来 */
@@ -175,6 +178,111 @@ fun unitNumStr(v: Double): String {
 /** 题面/答案里的数量写法：中文数学题里数字和单位之间不空格 */
 fun qty(value: Double, unit: UnitDef): String = unitNumStr(value) + unit.name
 
+/** 数量写法 + 英文标注：`7厘米(cm)`。★ 页面要「中文单位旁标英文」就用它，别在页面里手拼 */
+fun qtyEn(value: Double, unit: UnitDef): String = qty(value, unit) + "(" + unit.symbol + ")"
+
+// ────────────────────────────────────────────────────────────
+// 尺子实例「亮出这一段」—— 拿尺子做基准，用实例子建立量感
+// ────────────────────────────────────────────────────────────
+
+/** 复合读法里的一段（「7厘米3毫米」⇒ 7厘米 + 3毫米） */
+data class UnitReadingPart(
+    /** 这一部分的数值，如 7 */
+    val value: Double,
+    /** 这一部分的单位，如 厘米 */
+    val unit: UnitDef,
+    /** 这一部分折成多少毫米（= value × unit.base）。页面按它把亮区**分段**，不自己算 */
+    val mm: Double,
+)
+
+/** 复合读法：整段长度的毫米数 + 中文写法 + 拆开的部分 */
+data class UnitCompound(
+    /** 这一段一共多少毫米 */
+    val mm: Int,
+    /** 中文复合写法，如 "7厘米3毫米"（三年级就是这么读长度的，不说「73毫米」） */
+    val label: String,
+    /** 拆开的部分，从大到小。页面按它把亮区**画成几段** */
+    val parts: List<UnitReadingPart>,
+)
+
+/** 一段长度的一套读法（页面「亮出这一段」的数据来源） */
+data class UnitRulerReading(
+    /** 这一段一共多少毫米（= 尺子上亮到第几小格） */
+    val mm: Int,
+    /** 中文复合写法，如 "7厘米3毫米" */
+    val label: String,
+    /** 拆开的部分，从大到小 */
+    val parts: List<UnitReadingPart>,
+    /** 同一段长度的整数写法（带英文标注），从大到小，如 ["73毫米(mm)"] */
+    val same: List<String>,
+)
+
+/**
+ * ★ 同一段长度、不同单位写法 —— **由单位表派生，绝不手写**。
+ * 只取「base 能整除 mm」的长度单位（只到米为止；千米一把尺子放不下）：
+ *   70  ⇒ [7厘米, 70毫米]
+ *   100 ⇒ [1分米, 10厘米, 100毫米]
+ * 之所以要「整除」，是因为尺子上读出来的必须是整数 —— 7 厘米就是 7 厘米，
+ * 不许变成 0.7 分米（三年级不要求）。
+ */
+fun readingsOf(mm: Int): List<UnitReadingPart> {
+    require(mm > 0) { "尺子例子必须是正整数毫米：$mm" }
+    return unitsOf(UnitKind.LENGTH)
+        .filter { it.base <= 1000.0 && mm % it.base.toInt() == 0 }
+        .sortedByDescending { it.base } // 大单位在前 = 读起来最自然的那个
+        .map {
+            val v = (mm / it.base.toInt()).toDouble()
+            UnitReadingPart(v, it, v * it.base)
+        }
+}
+
+/** 能在一把尺子上读出来的长度单位（毫米/厘米/分米/米；千米要 378 万像素，放不下） */
+fun rulerUnits(): List<UnitDef> =
+    unitsOf(UnitKind.LENGTH).filter { it.base <= 1000.0 }.sortedByDescending { it.base }
+
+/**
+ * ★ 复合读法：像「7厘米3毫米」这样，用**两个单位**说同一段长度。
+ *
+ * 这里用**贪心拆解**（从大单位往小单位走）把它算出来，页面绝不手写这些数字：
+ *   73   ⇒ 7厘米3毫米   （7×10 + 3）
+ *   1200 ⇒ 1米2分米     （1×1000 + 2×100）
+ *   1500 ⇒ 1米5分米     （中间那级恰好是 0 就跳过，不写「0分米」）
+ *   5    ⇒ 5毫米        （只有一级）
+ */
+fun compoundOf(mm: Int): UnitCompound {
+    require(mm > 0) { "尺子例子必须是正整数毫米：$mm" }
+    val parts = mutableListOf<UnitReadingPart>()
+    var rest = mm
+    for (u in rulerUnits()) {
+        val base = u.base.toInt()
+        val value = rest / base
+        if (value <= 0) continue
+        parts += UnitReadingPart(value.toDouble(), u, (value * base).toDouble())
+        rest -= value * base
+    }
+    check(rest == 0) { "$mm 毫米拆不出整数单位（不该发生）" }
+    return UnitCompound(mm, parts.joinToString("") { unitNumStr(it.value) + it.unit.name }, parts)
+}
+
+/** 学生尺（**真实尺寸** 0..100 毫米 = 10 厘米）上的例子 —— 含复合读法 */
+val RULER_EXAMPLE_MM: List<Int> = listOf(5, 10, 25, 37, 70, 73, 98, 100)
+
+/** 米尺（**示意图** 0..1.5 米）上的例子，用毫米表示 —— 分米 / 米 / 复合 */
+val METER_EXAMPLE_MM: List<Int> = listOf(100, 500, 1000, 1200)
+
+/** 米尺画到多少厘米（= 15 大格，刚好把「1米2分米」这种复合例子装进来） */
+const val METER_RULER_CM = 150
+
+/** 一段长度的一套读法：复合中文写法 + 各种整数写法（带英文标注） */
+private fun unitReadingOf(mm: Int): UnitRulerReading {
+    val c = compoundOf(mm)
+    return UnitRulerReading(mm, c.label, c.parts, readingsOf(mm).map { qtyEn(it.value, it.unit) })
+}
+
+fun rulerExamples(): List<UnitRulerReading> = RULER_EXAMPLE_MM.sorted().map(::unitReadingOf)
+
+fun meterExamples(): List<UnitRulerReading> = METER_EXAMPLE_MM.sorted().map(::unitReadingOf)
+
 // ────────────────────────────────────────────────────────────
 // 单位表
 // ★ 参照物全部按人教版三年级上「测量」单元的通行口径，并逐条用「约」限定；
@@ -184,7 +292,7 @@ fun qty(value: Double, unit: UnitDef): String = unitNumStr(value) + unit.name
 val UNITS: List<UnitDef> = listOf(
     // ── 长度（基准 = 毫米）──
     UnitDef(
-        id = UnitId.MM, kind = UnitKind.LENGTH, name = "毫米", symbol = "mm", base = 1.0,
+        id = UnitId.MM, kind = UnitKind.LENGTH, name = "毫米", symbol = "mm", en = "millimeter", base = 1.0,
         sense = "两指夹卡的缝",
         refs = listOf(
             UnitRef("card", "银行卡", "1 毫米", UnitDraw("slab", 1.0)),
@@ -195,7 +303,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = true,
     ),
     UnitDef(
-        id = UnitId.CM, kind = UnitKind.LENGTH, name = "厘米", symbol = "cm", base = 10.0,
+        id = UnitId.CM, kind = UnitKind.LENGTH, name = "厘米", symbol = "cm", en = "centimeter", base = 10.0,
         sense = "食指指甲盖",
         refs = listOf(
             UnitRef("nail", "指甲盖", "1 厘米", UnitDraw("bar", 10.0)),
@@ -205,7 +313,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = true,
     ),
     UnitDef(
-        id = UnitId.DM, kind = UnitKind.LENGTH, name = "分米", symbol = "dm", base = 100.0,
+        id = UnitId.DM, kind = UnitKind.LENGTH, name = "分米", symbol = "dm", en = "decimeter", base = 100.0,
         sense = "张开手，一拃",
         refs = listOf(
             UnitRef("hand", "一拃", "1 分米", UnitDraw("bar", 100.0)),
@@ -215,7 +323,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = true,
     ),
     UnitDef(
-        id = UnitId.M, kind = UnitKind.LENGTH, name = "米", symbol = "m", base = 1000.0,
+        id = UnitId.M, kind = UnitKind.LENGTH, name = "米", symbol = "m", en = "meter", base = 1000.0,
         sense = "两臂平伸",
         refs = listOf(
             UnitRef("door", "教室门宽", "1 米"),
@@ -226,7 +334,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = false,
     ),
     UnitDef(
-        id = UnitId.KM, kind = UnitKind.LENGTH, name = "千米", symbol = "km", base = 1_000_000.0,
+        id = UnitId.KM, kind = UnitKind.LENGTH, name = "千米", symbol = "km", en = "kilometer", base = 1_000_000.0,
         sense = "走 15 分钟",
         refs = listOf(
             UnitRef("track", "跑道 2 圈半", "1 千米"),
@@ -238,7 +346,7 @@ val UNITS: List<UnitDef> = listOf(
 
     // ── 质量（基准 = 克）──
     UnitDef(
-        id = UnitId.G, kind = UnitKind.MASS, name = "克", symbol = "g", base = 1.0,
+        id = UnitId.G, kind = UnitKind.MASS, name = "克", symbol = "g", en = "gram", base = 1.0,
         sense = "一粒花生米",
         refs = listOf(
             UnitRef("coin", "2 分硬币", "1 克"),
@@ -249,7 +357,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = false,
     ),
     UnitDef(
-        id = UnitId.KG, kind = UnitKind.MASS, name = "千克", symbol = "kg", base = 1000.0,
+        id = UnitId.KG, kind = UnitKind.MASS, name = "千克", symbol = "kg", en = "kilogram", base = 1000.0,
         sense = "两瓶矿泉水",
         refs = listOf(
             UnitRef("sack", "两袋盐", "1 千克"),
@@ -260,7 +368,7 @@ val UNITS: List<UnitDef> = listOf(
         onScreenReal = false,
     ),
     UnitDef(
-        id = UnitId.T, kind = UnitKind.MASS, name = "吨", symbol = "t", base = 1_000_000.0,
+        id = UnitId.T, kind = UnitKind.MASS, name = "吨", symbol = "t", en = "ton", base = 1_000_000.0,
         sense = "40 个小朋友",
         refs = listOf(
             UnitRef("kid", "40 个小朋友", "1 吨"),
@@ -412,18 +520,18 @@ fun pairsOf(kind: UnitKind): List<UnitPair> = ADJACENT_PAIRS.filter { it.kind ==
 
 /** 长度链条：三个 10 叠成 1000，这就是「可数出来的 1000」 */
 val LENGTH_FACTS: List<ChainFact> = listOf(
-    ChainFact("1米 = 10分米", "把 1 米切成 10 段，每段就是 1 分米"),
-    ChainFact("1分米 = 10厘米", "把 1 分米切成 10 段，每段就是 1 厘米"),
-    ChainFact("1厘米 = 10毫米", "把 1 厘米切成 10 段，每段就是 1 毫米"),
-    ChainFact("1米 = 100厘米", "切了两轮：10 × 10 = 100"),
-    ChainFact("1米 = 1000毫米", "切了三轮：10 × 10 × 10 = 1000"),
-    ChainFact("1千米 = 1000米", "这一对进率是 1000，不是 10 —— 最容易记错的一个"),
+    ChainFact("1米(m) = 10分米(dm)", "把 1 米切成 10 段，每段就是 1 分米"),
+    ChainFact("1分米(dm) = 10厘米(cm)", "把 1 分米切成 10 段，每段就是 1 厘米"),
+    ChainFact("1厘米(cm) = 10毫米(mm)", "把 1 厘米切成 10 段，每段就是 1 毫米"),
+    ChainFact("1米(m) = 100厘米(cm)", "切了两轮：10 × 10 = 100"),
+    ChainFact("1米(m) = 1000毫米(mm)", "切了三轮：10 × 10 × 10 = 1000"),
+    ChainFact("1千米(km) = 1000米(m)", "这一对进率是 1000，不是 10 —— 最容易记错的一个"),
 )
 
 val MASS_FACTS: List<ChainFact> = listOf(
-    ChainFact("1千克 = 1000克", "把 1 千克切成 1000 份，每份就是 1 克"),
-    ChainFact("1吨 = 1000千克", "把 1 吨切成 1000 份，每份就是 1 千克"),
-    ChainFact("1吨 = 1000000克", "切了六轮，所以是 1000 × 1000（这一步三年级不要求算，只要知道很大）"),
+    ChainFact("1千克(kg) = 1000克(g)", "把 1 千克切成 1000 份，每份就是 1 克"),
+    ChainFact("1吨(t) = 1000千克(kg)", "把 1 吨切成 1000 份，每份就是 1 千克"),
+    ChainFact("1吨(t) = 1000000克(g)", "切了六轮，所以是 1000 × 1000（这一步三年级不要求算，只要知道很大）"),
 )
 
 fun factsOf(kind: UnitKind): List<ChainFact> = if (kind == UnitKind.LENGTH) LENGTH_FACTS else MASS_FACTS
@@ -439,11 +547,11 @@ val UNIT_RULES: List<UnitRule> = listOf(
     ),
     UnitRule(
         title = "进率不用背，数一数是几个 10",
-        body = "长度相邻都是 10（米↔千米例外，是 1000）；质量相邻都是 1000",
+        body = "长度相邻都是 10（米 m↔千米 km 例外，是 1000）；质量相邻都是 1000",
     ),
     UnitRule(
         title = "换算前先想「它有多大」",
-        body = "西瓜 5 千克不是 5 克。先掂一掂，再动笔",
+        body = "西瓜 5 千克(kg) 不是 5 克(g)。先掂一掂，再动笔",
     ),
 )
 
@@ -456,46 +564,46 @@ val UNIT_RULES: List<UnitRule> = listOf(
 
 val UNIT_MISTAKE_CASES: List<UnitMistakeCase> = listOf(
     UnitMistakeCase(
-        wrong = "5米 = 500分米",
-        right = "5米 = 50分米",
-        why = "米和分米是相邻单位，进率 10",
-        tip = "乘 100 那是换成厘米",
+        wrong = "5米(m) = 500分米(dm)",
+        right = "5米(m) = 50分米(dm)",
+        why = "米(m)和分米(dm)相邻，进率 10",
+        tip = "乘 100 那是换成厘米(cm)",
     ),
     UnitMistakeCase(
-        wrong = "1千米 = 100米",
-        right = "1千米 = 1000米",
-        why = "米和千米是唯一的例外：进率 1000",
-        tip = "跑道 2 圈半才 1 千米",
+        wrong = "1千米(km) = 100米(m)",
+        right = "1千米(km) = 1000米(m)",
+        why = "米(m)和千米(km)是唯一的例外：进率 1000",
+        tip = "跑道 2 圈半才 1 千米(km)",
     ),
     UnitMistakeCase(
-        wrong = "3000克 = 300千克",
-        right = "3000克 = 3千克",
-        why = "克→千克进率是 1000，不是 10",
-        tip = "1000 克才是 1 千克",
+        wrong = "3000克(g) = 300千克(kg)",
+        right = "3000克(g) = 3千克(kg)",
+        why = "克(g)→千克(kg)进率是 1000，不是 10",
+        tip = "1000 克(g) 才是 1 千克(kg)",
     ),
     UnitMistakeCase(
-        wrong = "4吨 = 400千克",
-        right = "4吨 = 4000千克",
-        why = "吨→千克要乘 1000",
-        tip = "1 吨 = 10 袋 100 千克的米",
+        wrong = "4吨(t) = 400千克(kg)",
+        right = "4吨(t) = 4000千克(kg)",
+        why = "吨(t)→千克(kg)要乘 1000",
+        tip = "1 吨(t) = 10 袋 100 千克(kg)的米",
     ),
     UnitMistakeCase(
-        wrong = "20毫米 = 2米",
-        right = "20毫米 = 2厘米",
-        why = "毫米→米要跨两道，进率 1000",
-        tip = "20 毫米还没一根手指宽",
+        wrong = "20毫米(mm) = 2米(m)",
+        right = "20毫米(mm) = 2厘米(cm)",
+        why = "毫米(mm)→米(m)要跨两道，进率 1000",
+        tip = "20 毫米(mm)还没一根手指宽",
     ),
     UnitMistakeCase(
-        wrong = "一个西瓜重5克",
-        right = "一个西瓜重5千克",
-        why = "5 克只有一粒花生米重",
-        tip = "两瓶矿泉水就是 1 千克",
+        wrong = "一个西瓜重 5 克(g)",
+        right = "一个西瓜重 5 千克(kg)",
+        why = "5 克(g)只有一粒花生米重",
+        tip = "两瓶矿泉水就是 1 千克(kg)",
     ),
     UnitMistakeCase(
-        wrong = "3米 + 50厘米 = 53米",
-        right = "3米 + 50厘米 = 350厘米（也就是 3米50厘米）",
+        wrong = "3米(m) + 50厘米(cm) = 53米(m)",
+        right = "3米(m) + 50厘米(cm) = 350厘米(cm)（也就是 3米50厘米）",
         why = "单位不同不能直接相加",
-        tip = "先化成 300 厘米再算",
+        tip = "先化成 300 厘米(cm)再算",
     ),
 )
 
@@ -682,7 +790,7 @@ fun genProblem(groupKey: ProblemGroupKey, random: Random = Random.Default): Unit
         ratio = ratio,
         op = op,
         rounds = rounds,
-        fullText = "${qty(value, from)} = ?${to.name}",
+        fullText = "${qtyEn(value, from)} = ?${to.name}(${to.symbol})",
         steps = steps,
         finalNote = "${qty(value, from)} = ${qty(result, to)}。$cutDesc。",
         trap = trap,

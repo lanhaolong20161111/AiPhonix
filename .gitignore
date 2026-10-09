@@ -416,6 +416,8 @@ server_cf/_deploy_*.log
 web/_uc_probe.mjs
 web/_uc_shot.mjs
 web/_uc_shots/
+web/_uc_eg_shot.mjs
+web/_uc_eg_shots/
 # local _mo_* verification artifacts (multi-digit x 1-digit page: _mo_shot.mjs gate + _mo_probe.mjs)
 web/_mo_*.mjs
 web/_mo_shots/
@@ -452,3 +454,8 @@ web/_rr_shots/
 
 # 含凭据的日志：wrangler tail 的输出里带过完整的 Bearer token，永不入库
 server_cf/tail_log.txt
+
+# 单位页「尺子上看例子」一次性抓帧/同步脚本与干净构建目录（本地可复用，不入库）
+web/_uc_sync.cjs
+web/_build_clean.log
+web/dist_clean_*/
