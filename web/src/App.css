@@ -10152,6 +10152,7 @@ button.btn-mode-off {
 }
 .uc-sense-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 7px;
   margin-bottom: 8px;
@@ -10467,6 +10468,163 @@ button.btn-mode-off {
   padding: 7px 9px;
   border-radius: 8px;
   background: #fffbeb;
+}
+
+/* ── 尺子上看例子（真实尺寸尺子 + 亮出这一段） ── */
+.uc-eg-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.uc-eg-chip {
+  width: auto;
+  flex: 0 0 auto;
+  /* 例子有 8 个（含复合读法）⇒ 430px 下会折成两行。两行照样读得出「从小到大」这条链，
+     别为凑一行把字号压到看不清。 */
+  padding: 5px 9px;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s, background 0.15s;
+}
+.uc-eg-chip-on { border-color: #b45309; background: #fffbeb; color: #92400e; }
+
+/* ★ 出血 + 横向滚动：真实 10 厘米尺子 ≈ 378px，卡片内容区只有 300~366px。
+   不出血就必然把「10」那格刻度顶到视口外，而这一段恰恰要对着尺子读。 */
+.uc-eg-scroll {
+  overflow-x: auto;
+  margin-inline: -16px;
+  padding: 4px 6px 2px;
+  margin-bottom: 8px;
+}
+.uc-eg-stage { position: relative; }
+/* 尺子上方留一行放标签 —— 标签绝不压住刻度。
+   z-index 2：标签的尖角要**压在尺子上**才看得出它指着哪一格（尺子本身是同层的后续元素） */
+.uc-eg-tagrow { position: relative; z-index: 2; height: 22px; }
+.uc-eg-tag {
+  position: absolute;
+  bottom: 2px;
+  /* 尖角：贴在「亮区的右端」上方，明确指着那一格 */
+  --eg-pip: 7px;
+  padding: 1px 7px;
+  border-radius: 7px;
+  background: #fffbeb;
+  border: 1px solid #b45309;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+/* 演示尺比「数一数」那把矮一点（没有底部说明字） */
+.uc-eg-tag::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: var(--eg-pip);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #b45309;
+}
+/* 亮区太窄时标签挂到了右端外侧 ⇒ 尖角改挂标签左沿，仍指着亮区右端 */
+.uc-eg-tag-out::after { right: auto; left: 2px; }
+/* 演示尺比「数一数」那把矮一点（没有底部说明字）。
+   🔴 这里**不能**写 overflow: hidden —— 那把尺子的 `0` 和 `10` 两个数字是
+   `left: i%` + `translateX(-50%)` 定位的，会被自己的 padding box 各切掉一半
+   （`10` 只剩一个 `1`）。改用「首段/末段跟着尺子圆角走」的写法，见 .uc-eg-seg-start/end。 */
+.uc-eg-ruler { height: 54px; }
+.uc-eg-ruler .uc-ruler-marks,
+.uc-eg-ruler .uc-ruler-nums { position: relative; z-index: 1; }
+/* ★ 亮区按复合读法分成几块（「7厘米3毫米」⇒ 70mm 一块 + 3mm 一块）：
+   两色交替 + 中间一条虚线分界 ⇒ 「7厘米」和那多出来的 3毫米 各是哪一段，一眼看得出 */
+.uc-eg-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  animation: uc-eg-in 0.28s ease-out;
+}
+/* 琥珀 = 「当前高亮」，与全站约定一致 */
+.uc-eg-seg-0 { background: rgba(253, 230, 138, 0.72); }
+/* 复合读法里「多出来的那一小截」用橙色区分 */
+.uc-eg-seg-1 { background: rgba(251, 146, 60, 0.5); }
+.uc-eg-seg-split { border-left: 1px dashed #b45309; }
+/* 右端实心端线标出「到这儿为止」 */
+.uc-eg-seg-last { border-right: 2px solid #b45309; }
+/* 亮区贴着尺子两端时，跟着尺子自己的圆角走（6px 圆角 ⇒ 内缩 5px 看着正好） */
+.uc-eg-seg-start { border-radius: 5px 0 0 5px; }
+.uc-eg-seg-end { border-radius: 0 5px 5px 0; }
+@keyframes uc-eg-in { from { opacity: 0; } to { opacity: 1; } }
+.uc-eg-out {
+  margin: 0 0 4px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1e3a8a;
+  font-variant-numeric: tabular-nums;
+}
+.uc-eg-out b { font-size: 20px; }
+.uc-eg-eqs { color: #94a3b8; font-weight: 700; }
+.uc-eg-alt { font-weight: 800; color: #2563eb; }
+.uc-eg-note { margin: 0; font-size: 11.5px; line-height: 1.7; color: #94a3b8; }
+.uc-eg-note b { color: #b45309; font-size: 13px; }
+.uc-eg-note + .uc-eg-note { margin-top: 2px; }
+.uc-eg-hint { margin: 6px 0 0; font-size: 11.5px; line-height: 1.7; color: #94a3b8; }
+
+/* 两个子尺的小标题（学生尺 / 米尺） */
+.uc-eg-h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 14px 0 7px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f766e;
+}
+.uc-eg-h3:first-of-type { margin-top: 4px; }
+.uc-eg-h3-note {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+/* ── 米尺（示意图）：15 个大格，每格 1分米；第 10 格右边 = 1米 ──
+   🔴 框线用 inset box-shadow 而不是 border —— border 会让「15 格 × 24px = 360px」
+   被边框吃掉 2px，亮区右端就和格线错开。inset 阴影不参与布局。 */
+.uc-mr {
+  position: relative;
+  height: 46px;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.uc-mr-cells { position: absolute; inset: 0; display: flex; }
+.uc-mr-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  border-left: 1px solid #e2e8f0;
+}
+.uc-mr-cell:first-child { border-left: 0; }
+/* 第 10 格的右边界 = 10分米 = 1米 —— 给一条蓝线做锚点 */
+.uc-mr-cell-m { border-right: 2px solid #2563eb; }
+
+/* ── 中文单位旁的英文标注（参照物卡） ── */
+.uc-sense-en { font-size: 11px; color: #94a3b8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-eg-seg { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

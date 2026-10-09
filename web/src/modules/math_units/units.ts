@@ -57,7 +57,10 @@ export interface UnitDef {
   id: UnitId
   kind: UnitKind
   name: string
+  /** 英文缩写（尺子上、英文数学里就写这个） */
   symbol: string
+  /** 英文全称 —— ★ 中文单位名旁边要标注的就是它 */
+  en: string
   /** 相对**基准单位**的倍数（长度基准毫米 / 质量基准克）。换算一律先化基准再化目标 */
   base: number
   /** 怎么用手比出来 */
@@ -146,6 +149,7 @@ export const UNITS: UnitDef[] = [
     kind: "length",
     name: "毫米",
     symbol: "mm",
+    en: "millimeter",
     base: 1,
     sense: "两指夹卡的缝",
     refs: [
@@ -161,6 +165,7 @@ export const UNITS: UnitDef[] = [
     kind: "length",
     name: "厘米",
     symbol: "cm",
+    en: "centimeter",
     base: 10,
     sense: "食指指甲盖",
     refs: [
@@ -175,6 +180,7 @@ export const UNITS: UnitDef[] = [
     kind: "length",
     name: "分米",
     symbol: "dm",
+    en: "decimeter",
     base: 100,
     sense: "张开手，一拃",
     refs: [
@@ -189,6 +195,7 @@ export const UNITS: UnitDef[] = [
     kind: "length",
     name: "米",
     symbol: "m",
+    en: "meter",
     base: 1000,
     sense: "两臂平伸",
     refs: [
@@ -204,6 +211,7 @@ export const UNITS: UnitDef[] = [
     kind: "length",
     name: "千米",
     symbol: "km",
+    en: "kilometer",
     base: 1_000_000,
     sense: "走 15 分钟",
     refs: [
@@ -220,6 +228,7 @@ export const UNITS: UnitDef[] = [
     kind: "mass",
     name: "克",
     symbol: "g",
+    en: "gram",
     base: 1,
     sense: "一粒花生米",
     refs: [
@@ -235,6 +244,7 @@ export const UNITS: UnitDef[] = [
     kind: "mass",
     name: "千克",
     symbol: "kg",
+    en: "kilogram",
     base: 1000,
     sense: "两瓶矿泉水",
     refs: [
@@ -250,6 +260,7 @@ export const UNITS: UnitDef[] = [
     kind: "mass",
     name: "吨",
     symbol: "t",
+    en: "ton",
     base: 1_000_000,
     sense: "40 个小朋友",
     refs: [
@@ -382,6 +393,117 @@ export function qty(value: number, unit: UnitDef): string {
   return `${value}${unit.name}`
 }
 
+/** 数量写法 + 英文标注：`7厘米(cm)`。★ 页面要「中文单位旁标英文」就用它，别在页面里手拼 */
+export function qtyEn(value: number, unit: UnitDef): string {
+  return `${value}${unit.name}(${unit.symbol})`
+}
+
+// ────────────────────────────────────────────────────────────
+// 尺子实例「亮出这一段」—— 拿尺子做基准，用实例子建立量感
+// ────────────────────────────────────────────────────────────
+
+export interface ReadingPart {
+  /** 这一部分的数值，如 7 */
+  value: number
+  /** 这一部分的单位，如 厘米 */
+  unit: UnitDef
+  /** 这一部分折成多少毫米（= value × unit.base）。页面按它把亮区**分段**，不自己算 */
+  mm: number
+}
+
+export interface RulerReading {
+  /** 这一段一共多少毫米（= 尺子上亮到第几小格） */
+  mm: number
+  /**
+   * 中文复合写法，如 "7厘米3毫米"。
+   * ★ 三年级课本就是这么读长度的（不说「73毫米」）—— 但它和「73毫米」是同一段。
+   */
+  label: string
+  /** 拆开的部分，从大到小（"7厘米3毫米" ⇒ 7厘米 + 3毫米）。页面按它把亮区**画成几段** */
+  parts: ReadingPart[]
+  /** 同一段长度的整数写法（带英文标注），从大到小，如 ["73毫米(mm)"] */
+  same: string[]
+}
+
+/**
+ * ★ 同一段长度、不同单位写法 —— **由单位表派生，绝不手写**。
+ * 找出所有「base 能整除 mm」的长度单位（只到米为止；千米一把尺子放不下）。
+ *   70  ⇒ [{7,厘米}, {70,毫米}]
+ *   100 ⇒ [{1,分米}, {10,厘米}, {100,毫米}]
+ * 之所以要「整除」，是因为尺子上读出来的必须是整数 —— 7 厘米就是 7 厘米，
+ * 不许变成 `0.7 分米`（三年级不要求）。
+ */
+export function readingsOf(mm: number): { value: number; unit: UnitDef }[] {
+  if (!Number.isInteger(mm) || mm <= 0) {
+    throw new Error(`尺子例子必须是正整数毫米：${mm}`)
+  }
+  return unitsOf("length")
+    .filter((u) => u.base <= 1000 && mm % u.base === 0)
+    .sort((a, b) => b.base - a.base) // 大单位在前 = 读起来最自然的那个
+    .map((u) => ({ value: mm / u.base, unit: u }))
+}
+
+/** 能在一把尺子上读出来的长度单位（毫米/厘米/分米/米；千米要 378 万像素，放不下） */
+export function rulerUnits(): UnitDef[] {
+  return unitsOf("length")
+    .filter((u) => u.base <= 1000)
+    .sort((a, b) => b.base - a.base)
+}
+
+/**
+ * ★ 复合读法：像「7厘米3毫米」这样，用**两个单位**说同一段长度。
+ *
+ * 三年级读「7厘米3毫米」而不是「73毫米」—— 两者是同一段。这里用**贪心拆解**
+ * （从大单位往小单位走）把它算出来，页面绝不手写这些数字：
+ *   73   ⇒ 7厘米3毫米   （7×10 + 3）
+ *   1200 ⇒ 1米2分米     （1×1000 + 2×100）
+ *   1500 ⇒ 1米5分米     （中间那级恰好是 0 就跳过，不写「0分米」）
+ *   5    ⇒ 5毫米        （只有一级）
+ */
+export function compoundOf(mm: number): { mm: number; label: string; parts: ReadingPart[] } {
+  if (!Number.isInteger(mm) || mm <= 0) {
+    throw new Error(`尺子例子必须是正整数毫米：${mm}`)
+  }
+  const parts: ReadingPart[] = []
+  let rest = mm
+  for (const u of rulerUnits()) {
+    const value = Math.floor(rest / u.base)
+    if (value <= 0) continue
+    parts.push({ value, unit: u, mm: value * u.base })
+    rest -= value * u.base
+  }
+  if (rest !== 0) throw new Error(`${mm} 毫米拆不出整数单位（不该发生）`)
+  return { mm, label: parts.map((p) => `${p.value}${p.unit.name}`).join(""), parts }
+}
+
+/** 学生尺（**真实尺寸** 0..100 毫米 = 10 厘米）上的例子 —— 含复合读法 */
+export const RULER_EXAMPLE_MM = [5, 10, 25, 37, 70, 73, 98, 100]
+
+/** 米尺（**示意图** 0..1.5 米）上的例子，用毫米表示 —— 分米 / 米 / 复合 */
+export const METER_EXAMPLE_MM = [100, 500, 1000, 1200]
+
+/** 米尺画到多少厘米（= 15 大格，刚好把「1米2分米」这种复合例子装进来） */
+export const METER_RULER_CM = 150
+
+/** 一段长度的一套读法：复合中文写法 + 各种整数写法（带英文标注） */
+function readingOf(mm: number): RulerReading {
+  const c = compoundOf(mm)
+  return {
+    mm,
+    label: c.label,
+    parts: c.parts,
+    same: readingsOf(mm).map((r) => qtyEn(r.value, r.unit)),
+  }
+}
+
+export function rulerExamples(): RulerReading[] {
+  return [...RULER_EXAMPLE_MM].sort((a, b) => a - b).map(readingOf)
+}
+
+export function meterExamples(): RulerReading[] {
+  return [...METER_EXAMPLE_MM].sort((a, b) => a - b).map(readingOf)
+}
+
 // ────────────────────────────────────────────────────────────
 // 相邻单位对（主舞台只演示这些 —— 用户要的就是「相邻单位之间的转换」）
 // ────────────────────────────────────────────────────────────
@@ -424,18 +546,18 @@ export interface ChainFact {
 
 /** 长度链条：三个 10 叠成 1000，这就是「可数出来的 1000」 */
 export const LENGTH_FACTS: ChainFact[] = [
-  { text: "1米 = 10分米", note: "把 1 米切成 10 段，每段就是 1 分米" },
-  { text: "1分米 = 10厘米", note: "把 1 分米切成 10 段，每段就是 1 厘米" },
-  { text: "1厘米 = 10毫米", note: "把 1 厘米切成 10 段，每段就是 1 毫米" },
-  { text: "1米 = 100厘米", note: "切了两轮：10 × 10 = 100" },
-  { text: "1米 = 1000毫米", note: "切了三轮：10 × 10 × 10 = 1000" },
-  { text: "1千米 = 1000米", note: "这一对进率是 1000，不是 10 —— 最容易记错的一个" },
+  { text: "1米(m) = 10分米(dm)", note: "把 1 米切成 10 段，每段就是 1 分米" },
+  { text: "1分米(dm) = 10厘米(cm)", note: "把 1 分米切成 10 段，每段就是 1 厘米" },
+  { text: "1厘米(cm) = 10毫米(mm)", note: "把 1 厘米切成 10 段，每段就是 1 毫米" },
+  { text: "1米(m) = 100厘米(cm)", note: "切了两轮：10 × 10 = 100" },
+  { text: "1米(m) = 1000毫米(mm)", note: "切了三轮：10 × 10 × 10 = 1000" },
+  { text: "1千米(km) = 1000米(m)", note: "这一对进率是 1000，不是 10 —— 最容易记错的一个" },
 ]
 
 export const MASS_FACTS: ChainFact[] = [
-  { text: "1千克 = 1000克", note: "把 1 千克切成 1000 份，每份就是 1 克" },
-  { text: "1吨 = 1000千克", note: "把 1 吨切成 1000 份，每份就是 1 千克" },
-  { text: "1吨 = 1000000克", note: "切了六轮，所以是 1000 × 1000（这一步三年级不要求算，只要知道很大）" },
+  { text: "1千克(kg) = 1000克(g)", note: "把 1 千克切成 1000 份，每份就是 1 克" },
+  { text: "1吨(t) = 1000千克(kg)", note: "把 1 吨切成 1000 份，每份就是 1 千克" },
+  { text: "1吨(t) = 1000000克(g)", note: "切了六轮，所以是 1000 × 1000（这一步三年级不要求算，只要知道很大）" },
 ]
 
 export function factsOf(kind: UnitKind): ChainFact[] {
@@ -458,11 +580,11 @@ export const RULES: Rule[] = [
   },
   {
     title: "进率不用背，数一数是几个 10",
-    body: "长度相邻都是 10（米↔千米例外，是 1000）；质量相邻都是 1000",
+    body: "长度相邻都是 10（米 m↔千米 km 例外，是 1000）；质量相邻都是 1000",
   },
   {
     title: "换算前先想「它有多大」",
-    body: "西瓜 5 千克不是 5 克。先掂一掂，再动笔",
+    body: "西瓜 5 千克(kg) 不是 5 克(g)。先掂一掂，再动笔",
   },
 ]
 
@@ -472,46 +594,46 @@ export const RULES: Rule[] = [
 
 export const MISTAKE_CASES: MistakeCase[] = [
   {
-    wrong: "5米 = 500分米",
-    right: "5米 = 50分米",
-    why: "米和分米是相邻单位，进率 10",
-    tip: "乘 100 那是换成厘米",
+    wrong: "5米(m) = 500分米(dm)",
+    right: "5米(m) = 50分米(dm)",
+    why: "米(m)和分米(dm)相邻，进率 10",
+    tip: "乘 100 那是换成厘米(cm)",
   },
   {
-    wrong: "1千米 = 100米",
-    right: "1千米 = 1000米",
-    why: "米和千米是唯一的例外：进率 1000",
-    tip: "跑道 2 圈半才 1 千米",
+    wrong: "1千米(km) = 100米(m)",
+    right: "1千米(km) = 1000米(m)",
+    why: "米(m)和千米(km)是唯一的例外：进率 1000",
+    tip: "跑道 2 圈半才 1 千米(km)",
   },
   {
-    wrong: "3000克 = 300千克",
-    right: "3000克 = 3千克",
-    why: "克→千克进率是 1000，不是 10",
-    tip: "1000 克才是 1 千克",
+    wrong: "3000克(g) = 300千克(kg)",
+    right: "3000克(g) = 3千克(kg)",
+    why: "克(g)→千克(kg)进率是 1000，不是 10",
+    tip: "1000 克(g) 才是 1 千克(kg)",
   },
   {
-    wrong: "4吨 = 400千克",
-    right: "4吨 = 4000千克",
-    why: "吨→千克要乘 1000",
-    tip: "1 吨 = 10 袋 100 千克的米",
+    wrong: "4吨(t) = 400千克(kg)",
+    right: "4吨(t) = 4000千克(kg)",
+    why: "吨(t)→千克(kg)要乘 1000",
+    tip: "1 吨(t) = 10 袋 100 千克(kg)的米",
   },
   {
-    wrong: "20毫米 = 2米",
-    right: "20毫米 = 2厘米",
-    why: "毫米→米要跨两道，进率 1000",
-    tip: "20 毫米还没一根手指宽",
+    wrong: "20毫米(mm) = 2米(m)",
+    right: "20毫米(mm) = 2厘米(cm)",
+    why: "毫米(mm)→米(m)要跨两道，进率 1000",
+    tip: "20 毫米(mm)还没一根手指宽",
   },
   {
-    wrong: "一个西瓜重5克",
-    right: "一个西瓜重5千克",
-    why: "5 克只有一粒花生米重",
-    tip: "两瓶矿泉水就是 1 千克",
+    wrong: "一个西瓜重 5 克(g)",
+    right: "一个西瓜重 5 千克(kg)",
+    why: "5 克(g)只有一粒花生米重",
+    tip: "两瓶矿泉水就是 1 千克(kg)",
   },
   {
-    wrong: "3米 + 50厘米 = 53米",
-    right: "3米 + 50厘米 = 350厘米（也就是 3米50厘米）",
+    wrong: "3米(m) + 50厘米(cm) = 53米(m)",
+    right: "3米(m) + 50厘米(cm) = 350厘米(cm)（也就是 3米50厘米）",
     why: "单位不同不能直接相加",
-    tip: "先化成 300 厘米再算",
+    tip: "先化成 300 厘米(cm)再算",
   },
 ]
 
@@ -677,7 +799,7 @@ export function genProblem(groupKey: ProblemGroupKey): UnitProblem {
     ratio,
     op,
     rounds,
-    fullText: `${qty(value, from)} = ?${to.name}`,
+    fullText: `${qtyEn(value, from)} = ?${to.name}(${to.symbol})`,
     steps,
     finalNote: `${qty(value, from)} = ${qty(result, to)}（${cutDesc}）`,
     trap,

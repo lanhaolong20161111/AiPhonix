@@ -28,19 +28,24 @@ import MathIcon from "../../components/MathIcon"
 import { useNavigate } from "react-router-dom"
 import {
   ADJACENT_PAIRS,
+  METER_RULER_CM,
   MISTAKE_CASES,
   PROBLEM_GROUPS,
   RULES,
   convert,
   factsOf,
   genProblemSet,
+  meterExamples,
   pairsOf,
   planSteps,
   qty,
+  qtyEn,
+  rulerExamples,
   unitOf,
   unitsOf,
   type MistakeCase,
   type ProblemGroupKey,
+  type RulerReading,
   type UnitDef,
   type UnitKind,
   type UnitPair,
@@ -160,12 +165,12 @@ function CutStage({ plan, mmPx }: { plan: UnitPlan; mmPx: number }) {
       {/* 题面 */}
       <p className="uc-question">
         <span className="uc-q-num">{plan.value}</span>
-        <span className="uc-q-unit">{plan.from.name}</span>
+        <span className="uc-q-unit">{plan.from.name}({plan.from.symbol})</span>
         <span className="uc-q-eq">=</span>
         <span className={`uc-q-ans${answered ? " uc-q-ans-ok" : ""}`}>
           {answered ? plan.result : "?"}
         </span>
-        <span className="uc-q-unit">{plan.to.name}</span>
+        <span className="uc-q-unit">{plan.to.name}({plan.to.symbol})</span>
       </p>
 
       {/* 图形舞台：高度恒定，份数越多格子越小 */}
@@ -251,7 +256,7 @@ function CutStage({ plan, mmPx }: { plan: UnitPlan; mmPx: number }) {
       {answered && (
         <div className="uc-conclusion">
           <p className="uc-conclusion-eq">
-            {qty(plan.value, plan.from)} = <b>{qty(plan.result, plan.to)}</b>
+            {qtyEn(plan.value, plan.from)} = <b>{qtyEn(plan.result, plan.to)}</b>
           </p>
           <p className="uc-conclusion-why">
             {plan.direction === "split"
@@ -267,12 +272,12 @@ function CutStage({ plan, mmPx }: { plan: UnitPlan; mmPx: number }) {
       <p className="uc-hint-sm">
         {plan.from.kind === "length" ? (
           <>
-            💡 按下面「数一数」里校准好的比例，1{plan.from.name} 的真实宽度大约是{" "}
+            💡 按下面「数一数」里校准好的比例，1{plan.from.name}({plan.from.symbol}) 的真实宽度大约是{" "}
             <b>{Math.round(plan.from.base * mmPx)}</b> 像素
             {plan.from.base * mmPx > 600 ? " —— 屏幕放不下，所以上面画的是示意图" : ""}。
           </>
         ) : (
-          <>💡 质量没法画成尺寸：1{plan.from.name}有多重，看下面的参照物。</>
+          <>💡 质量没法画成尺寸：1{plan.from.name}({plan.from.symbol})有多重，看下面的参照物。</>
         )}
         <button
           type="button"
@@ -281,7 +286,7 @@ function CutStage({ plan, mmPx }: { plan: UnitPlan; mmPx: number }) {
             document.getElementById("uc-sense")?.scrollIntoView({ behavior: "smooth", block: "start" })
           }
         >
-          看看 1{plan.from.name} 有多大
+          看看 1{plan.from.name}({plan.from.symbol}) 有多大
         </button>
       </p>
     </div>
@@ -344,7 +349,7 @@ function Ruler({ mmPx }: { mmPx: number }) {
           </span>
         ))}
       </div>
-      <div className="uc-ruler-cap">厘米（10 小格 = 1 厘米）</div>
+      <div className="uc-ruler-cap">厘米 cm · 10 小格 = 1 厘米</div>
     </div>
   )
 }
@@ -354,14 +359,14 @@ function HundredGrid() {
   return (
     <div className="uc-hundred">
       <div className="uc-hundred-label">
-        <b>1 分米</b> = 100 个 <b>1 毫米</b>
+        <b>1 分米(dm)</b> = 100 个 <b>1 毫米(mm)</b>
       </div>
       <div className="uc-hundred-grid">
         {Array.from({ length: 100 }, (_, i) => (
           <span key={i} className="uc-hundred-cell" />
         ))}
       </div>
-      <p className="uc-hundred-note">10 × 10 = 100 格；1 米 = 10 块 ⇒ 1000 毫米</p>
+      <p className="uc-hundred-note">10 × 10 = 100 格；1 米(m) = 10 块 ⇒ 1000 毫米(mm)</p>
     </div>
   )
 }
@@ -423,6 +428,237 @@ function CountSection({ kind, mmPx, onCalib, calib }: {
 }
 
 // ────────────────────────────────────────────────────────────
+// 尺子上看例子：点一个长度，看它在尺子上亮到哪儿
+// ★ 「亮出 7 厘米那一段」比任何一句话都直观 —— 单位不是符号，是一段真实长度
+// ────────────────────────────────────────────────────────────
+
+/** 学生尺总长（毫米）—— 一把 10 厘米的尺子 */
+const EG_RULER_MM = 100
+/** 默认停在那个被点名的例子：7 厘米 3 毫米 */
+const EG_DEFAULT_MM = 73
+/** 米尺示意图的固定像素宽（0..METER_RULER_CM 厘米 ⇒ 15 大格 × 24px） */
+const EG_METER_PX = 360
+
+/**
+ * 把一段长度按**复合读法**切成并排的几块亮区。
+ * 「7厘米3毫米」⇒ 前面 70 毫米一块、后面 3 毫米一块（两色 + 一条虚线分界）
+ * ⇒ 孩子一眼看出「7厘米」和「多出来的 3毫米」是拼起来的一整段。
+ */
+function BandSegs({ read, pxPerMm, fullMm }: { read: RulerReading; pxPerMm: number; fullMm: number }) {
+  let acc = 0
+  const total = read.parts.reduce((a, p) => a + p.mm, 0)
+  return (
+    <>
+      {read.parts.map((p, i) => {
+        const left = acc * pxPerMm
+        acc += p.mm
+        const last = i === read.parts.length - 1
+        // ⚠️ 分类名必须**逐字写出来**（不能用 "uc-eg-seg-" + i 拼）——
+        //    tools/cssSkillMark.py 是靠「源码里出现该 class 字面量」判样式归属的，
+        //    拼出来的名字查不到 ⇒ 这条规则被判成共享样式、从 math_units 的裁剪块里漏掉。
+        const cls = [
+          "uc-eg-seg",
+          i % 2 === 0 ? "uc-eg-seg-0" : "uc-eg-seg-1",
+          i === 0 ? "uc-eg-seg-start" : "",
+          i > 0 ? "uc-eg-seg-split" : "",
+          last ? "uc-eg-seg-last" : "",
+          // 亮区正好铺满整把尺子时，右端要跟着尺子的圆角走（否则方角会戳出圆角外）
+          last && total === fullMm ? "uc-eg-seg-end" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+        return (
+          <span
+            key={`${read.mm}-${p.unit.id}`}
+            className={cls}
+            style={{ left: `${left}px`, width: `${p.mm * pxPerMm}px` }}
+            aria-hidden="true"
+          />
+        )
+      })}
+    </>
+  )
+}
+
+/** ★ 标签默认右对齐、贴住亮区右端；亮区太窄（< 60px）时改挂到右端**外侧** ——
+ *  否则「5毫米」这种小标签比亮区还宽，会被左边裁掉一半。 */
+function tagStyleFor(bandW: number): React.CSSProperties {
+  return bandW < 60
+    ? { left: `${bandW + 4}px` }
+    : { left: `${bandW - 4}px`, transform: "translateX(-100%)" }
+}
+
+function RulerSection({ mmPx }: { mmPx: number }) {
+  const examples = useMemo(() => rulerExamples(), [])
+  const meters = useMemo(() => meterExamples(), [])
+  const [mm, setMm] = useState(EG_DEFAULT_MM)
+  /** 米尺默认停在 1 米 —— 这一档里最重要的锚点 */
+  const [meterMm, setMeterMm] = useState(1000)
+  const cur = examples.find((e) => e.mm === mm) ?? examples[0]
+  const curM = meters.find((e) => e.mm === meterMm) ?? meters[0]
+
+  const rulerW = EG_RULER_MM * mmPx
+  const bandW = cur.mm * mmPx
+  /** 米尺是**示意图**（屏幕装不下 1.5 米）⇒ 它有自己的固定比例，与校准无关 */
+  const mPxPerMm = EG_METER_PX / (METER_RULER_CM * 10)
+  const mBandW = curM.mm * mPxPerMm
+  /** 米尺每个大格 = 1分米 = 10厘米 */
+  const mCells = METER_RULER_CM / 10
+
+  return (
+    <section className="card uc-eg" id="uc-ruler-eg">
+      <h2 className="uc-sec-title">📏 尺子上看例子</h2>
+      <p className="uc-sec-sub">点一个长度，看它从 0 亮到哪儿。</p>
+
+      <h3 className="uc-eg-h3">
+        学生尺 <span className="uc-eg-h3-note">真实大小 · 0–10 厘米</span>
+      </h3>
+
+      <div className="uc-eg-chips">
+        {examples.map((e) => (
+          <button
+            key={e.mm}
+            type="button"
+            className={"uc-eg-chip" + (e.mm === cur.mm ? " uc-eg-chip-on" : "")}
+            onClick={() => setMm(e.mm)}
+          >
+            {e.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ★ 真实尺寸尺子（1 毫米 ≈ 3.78 像素 ⇒ 10 厘米 ≈ 378px），手机上卡片放不下
+          ⇒ 和「数一数」那把一样出血 + 自己横向滚，绝不把整页撑宽。 */}
+      <div className="uc-eg-scroll">
+        <div className="uc-eg-stage" data-ruler="cm" style={{ width: `${rulerW}px` }}>
+          <div className="uc-eg-tagrow">
+            <span className={"uc-eg-tag" + (bandW < 60 ? " uc-eg-tag-out" : "")} style={tagStyleFor(bandW)}>
+              {cur.label}
+            </span>
+          </div>
+          <div className="uc-ruler uc-eg-ruler" style={{ width: `${rulerW}px` }}>
+            {/* 亮出来的这一段：按复合读法分成几块，右端一道实心端线 */}
+            <BandSegs read={cur} pxPerMm={mmPx} fullMm={EG_RULER_MM} />
+            <div className="uc-ruler-marks">
+              {Array.from({ length: EG_RULER_MM + 1 }, (_, i) => (
+                <span
+                  key={i}
+                  className={"uc-tick" + (i % 10 === 0 ? " uc-tick-cm" : i % 5 === 0 ? " uc-tick-mid" : "")}
+                  style={{ left: `${i}%` }}
+                />
+              ))}
+            </div>
+            <div className="uc-ruler-nums">
+              {Array.from({ length: 11 }, (_, i) => (
+                <span key={i} className="uc-ruler-num" style={{ left: `${i * 10}%` }}>
+                  {i}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ★ 同一段长度的各种写法由引擎派生（7厘米3毫米 = 73毫米），页面不手写 */}
+      <p className="uc-eg-out">
+        <b>{cur.label}</b>
+        {cur.same.map((s) => (
+          <span key={s}>
+            <span className="uc-eg-eqs"> = </span>
+            <span className="uc-eg-alt">{s}</span>
+          </span>
+        ))}
+      </p>
+      <p className="uc-eg-note">
+        {cur.parts.length > 1 ? (
+          <>
+            {cur.parts.map((p, i) => (
+              <span key={p.unit.id}>
+                {i > 0 ? " + " : ""}
+                <b>
+                  {p.value}
+                  {p.unit.name}
+                </b>
+                （{p.mm} 小格）
+              </span>
+            ))}
+            <span> = {cur.mm} 毫米</span>
+          </>
+        ) : (
+          <>
+            从 0 亮到第 <b>{cur.mm}</b> 个小格（1 小格 = 1 毫米）
+          </>
+        )}
+      </p>
+
+      <h3 className="uc-eg-h3">
+        米尺 <span className="uc-eg-h3-note">示意图 · 0–1.5 米</span>
+      </h3>
+
+      <div className="uc-eg-chips">
+        {meters.map((e) => (
+          <button
+            key={e.mm}
+            type="button"
+            className={"uc-eg-chip" + (e.mm === curM.mm ? " uc-eg-chip-on" : "")}
+            onClick={() => setMeterMm(e.mm)}
+          >
+            {e.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="uc-eg-scroll">
+        <div className="uc-eg-stage" data-ruler="m" style={{ width: `${EG_METER_PX}px` }}>
+          <div className="uc-eg-tagrow">
+            <span className={"uc-eg-tag" + (mBandW < 60 ? " uc-eg-tag-out" : "")} style={tagStyleFor(mBandW)}>
+              {curM.label}
+            </span>
+          </div>
+          {/* 15 个大格，每格 1 分米；第 10 格的右边正好是 1 米 */}
+          <div className="uc-mr">
+            <BandSegs read={curM} pxPerMm={mPxPerMm} fullMm={METER_RULER_CM * 10} />
+            <div className="uc-mr-cells">
+              {Array.from({ length: mCells }, (_, i) => (
+                <span key={i} className={"uc-mr-cell" + (i === 9 ? " uc-mr-cell-m" : "")}>
+                  {i + 1}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p className="uc-eg-out">
+        <b>{curM.label}</b>
+        {curM.same.map((s) => (
+          <span key={s}>
+            <span className="uc-eg-eqs"> = </span>
+            <span className="uc-eg-alt">{s}</span>
+          </span>
+        ))}
+      </p>
+      <p className="uc-eg-note">
+        亮到第 <b>{curM.mm / 100}</b> 大格（1 大格 = 1分米(dm) = 10厘米(cm)）
+      </p>
+      <p className="uc-eg-note">
+        第 10 大格的右边就是 1米(m) = 100厘米(cm) = 1000毫米(mm)。
+      </p>
+
+      <p className="uc-eg-hint">
+        ★ 米尺是示意图，不是真实大小 —— 屏幕上按真实尺寸画 1 米(m) 要{" "}
+        {Math.round(1000 * mmPx).toLocaleString("zh-CN")} 像素宽，卡片装不下。米尺上只数格，别量长度；
+        要量真实大小，用上面那把学生尺。
+      </p>
+      <p className="uc-eg-hint">
+        ★ 千米(km)连示意图都不画：1千米(km) = 1000米(m)，按真实尺寸要{" "}
+        {Math.round(1_000_000 * mmPx).toLocaleString("zh-CN")} 像素宽。它的量感看下面「参照物墙」。
+      </p>
+    </section>
+  )
+}
+
+// ────────────────────────────────────────────────────────────
 // 参照物墙
 // ────────────────────────────────────────────────────────────
 
@@ -473,7 +709,7 @@ function RealSize({ unit, mmPx, availPx }: { unit: UnitDef; mmPx: number; availP
         )}
       </div>
       <span className="uc-real-cap">
-        屏幕上这段 = 真实的 1{unit.name}（约 {Math.round(px)} 像素）
+        屏幕上这段 = 真实的 1{unit.name}（1{unit.symbol}，约 {Math.round(px)} 像素）
       </span>
     </div>
   )
@@ -507,12 +743,13 @@ function SenseSection({ kind, mmPx }: { kind: UnitKind; mmPx: number }) {
 
   return (
     <section className="card uc-sense" id="uc-sense">
-      <h2 className="uc-sec-title">👀 1{list[0].name}有多大</h2>
+      <h2 className="uc-sec-title">👀 1{list[0].name}（{list[0].symbol}）有多大</h2>
       <div className="uc-sense-grid" ref={gridRef}>
         {list.map((u) => (
           <div key={u.id} className="uc-sense-card">
             <div className="uc-sense-head">
               <span className="uc-sense-name">{u.name}</span>
+              <span className="uc-sense-en">{u.en}</span>
               <span className="uc-sense-sym">{u.symbol}</span>
             </div>
             <RealSize unit={u} mmPx={mmPx} availPx={availPx} />
@@ -586,7 +823,7 @@ function Bench({ mmPx }: { mmPx: number }) {
         >
           {chain.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.name}
+              {u.name}({u.symbol})
             </option>
           ))}
         </select>
@@ -612,7 +849,7 @@ function Bench({ mmPx }: { mmPx: number }) {
       {valid && plan && result !== null && (
         <>
           <p className="uc-bench-out">
-            {qty(value, from)} = <b>{pretty}{to.name}</b>
+            {qtyEn(value, from)} = <b>{pretty}{to.name}({to.symbol})</b>
           </p>
           <p className="uc-bench-calc">
             <code>
@@ -632,7 +869,7 @@ function Bench({ mmPx }: { mmPx: number }) {
             ))}
           </ul>
           <p className="uc-bench-note">
-            这一对是{from.name}↔{to.name}，进率 {plan.ratio}，要 {plan.rounds} 轮 ——{" "}
+            这一对是{from.name}({from.symbol})↔{to.name}({to.symbol})，进率 {plan.ratio}，要 {plan.rounds} 轮 ——{" "}
             {plan.rounds === 1 ? "切一轮就到了" : `10 要乘 ${plan.rounds} 次`}。
             <span className="uc-bench-mm">（参照物比例尺：1 毫米 ≈ {mmPx.toFixed(2)} 像素）</span>
           </p>
@@ -821,12 +1058,12 @@ function SolveCard({ p, index, onStep, onFinished }: {
       {done && (
         <div className="uc-pcard-final">
           <p className="uc-pcard-ans">
-            {qty(p.value, p.from)} = <b>{qty(p.result, p.to)}</b>
+            {qtyEn(p.value, p.from)} = <b>{qtyEn(p.result, p.to)}</b>
           </p>
           <p className="uc-pcard-note">{p.finalNote}</p>
           {p.trap !== null && (
             <p className="uc-pcard-trap">
-              ⚠️ 如果方向判反了，会算成 <b>{p.trap}</b>{p.to.name}。记住：{p.from.name}
+              ⚠️ 如果方向判反了，会算成 <b>{p.trap}</b>{p.to.name}({p.to.symbol})。记住：{p.from.name}
               {p.from.base > p.to.base ? "大、要切开" : "小、要拼合"}，所以是{planDirWord(p)}。
             </p>
           )}
@@ -922,7 +1159,7 @@ function PairChips({ pairs, active, onPick }: {
           onClick={() => onPick(p)}
         >
           <b>
-            {p.small.name} ⟷ {p.big.name}
+            {p.small.name}({p.small.symbol}) ⟷ {p.big.name}({p.big.symbol})
           </b>
           <span>进率 {p.ratio}</span>
         </button>
@@ -991,7 +1228,7 @@ export function MathUnitsPage() {
 
       {/* ⚠️ .module-header 是 flex ⇒ 副标题必须放 header **外面**，否则 h1 被挤成省略号 */}
       <p className="uc-sub">
-        毫米 · 厘米 · 分米 · 米 · 千米 ｜ 克 · 千克 · 吨
+        毫米 mm · 厘米 cm · 分米 dm · 米 m · 千米 km ｜ 克 g · 千克 kg · 吨 t
       </p>
 
       {/* ── 规律卡 ── */}
@@ -1016,7 +1253,7 @@ export function MathUnitsPage() {
             onClick={() => setKind("length")}
           >
             <b>📏 长度</b>
-            <span>{groupTitle}：毫米 / 厘米 / 分米 / 米 / 千米</span>
+            <span>{groupTitle}：毫米 mm / 厘米 cm / 分米 dm / 米 m / 千米 km</span>
           </button>
           <button
             type="button"
@@ -1024,7 +1261,7 @@ export function MathUnitsPage() {
             onClick={() => setKind("mass")}
           >
             <b>⚖️ 质量</b>
-            <span>克 / 千克 / 吨</span>
+            <span>克 g / 千克 kg / 吨 t</span>
           </button>
         </div>
 
@@ -1036,14 +1273,14 @@ export function MathUnitsPage() {
             className={`uc-btn uc-btn-sm${toSmaller ? " uc-btn-on" : ""}`}
             onClick={() => setToSmaller(true)}
           >
-            {pair.big.name} → {pair.small.name}（切开 · 乘）
+            {pair.big.name}({pair.big.symbol}) → {pair.small.name}({pair.small.symbol})（切开 · 乘）
           </button>
           <button
             type="button"
             className={`uc-btn uc-btn-sm${!toSmaller ? " uc-btn-on" : ""}`}
             onClick={() => setToSmaller(false)}
           >
-            {pair.small.name} → {pair.big.name}（拼合 · 除）
+            {pair.small.name}({pair.small.symbol}) → {pair.big.name}({pair.big.symbol})（拼合 · 除）
           </button>
         </div>
 
@@ -1052,6 +1289,9 @@ export function MathUnitsPage() {
 
       {/* ── 数一数 ── */}
       <CountSection kind={kind} mmPx={mmPx} calib={calib} onCalib={onCalib} />
+
+      {/* ── 尺子上看例子 ── */}
+      <RulerSection mmPx={mmPx} />
 
       {/* ── 参照物墙 ── */}
       <SenseSection kind={kind} mmPx={mmPx} />

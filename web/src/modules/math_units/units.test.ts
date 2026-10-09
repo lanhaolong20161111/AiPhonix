@@ -22,6 +22,15 @@ import {
   roundsOf,
   planSteps,
   qty,
+  qtyEn,
+  readingsOf,
+  compoundOf,
+  rulerUnits,
+  rulerExamples,
+  meterExamples,
+  RULER_EXAMPLE_MM,
+  METER_EXAMPLE_MM,
+  METER_RULER_CM,
   genProblem,
   genProblemSet,
   ADJACENT_PAIRS,
@@ -475,4 +484,193 @@ test("题组声明与相邻单位对一致：相邻题组不许混进跨级对",
     return !adjacent.has(`${small}-${big}`)
   })
   assert.ok(hasCross, "跨级组里一对跨级的都没有")
+})
+
+// ────────────────────────────────────────────────────────────
+// 6. 尺子实例：同一段长度、不同写法（「亮出这一段」的数据来源）
+// ────────────────────────────────────────────────────────────
+
+test("★ 尺子实例：每个例子都能整除出整数写法，且每条读数换回毫米都回到原值", () => {
+  const ex = rulerExamples()
+  assert.ok(ex.length >= 6, `尺子例子太少：${ex.length}`)
+
+  // 例子的毫米数必须严格递增（页面上是按顺序排的 chip）
+  for (let i = 1; i < ex.length; i++) {
+    assert.ok(ex[i].mm > ex[i - 1].mm, `例子没按毫米升序：${ex[i - 1].mm} → ${ex[i].mm}`)
+  }
+
+  for (const e of ex) {
+    // 一把 10 厘米的尺子 ⇒ 所有例子都必须落在 0..100 毫米之内
+    assert.ok(Number.isInteger(e.mm) && e.mm > 0 && e.mm <= 100, `${e.label} 超出尺子范围：${e.mm}mm`)
+
+    const rs = readingsOf(e.mm)
+    assert.ok(rs.length >= 1, `${e.label} 一条读数都没有`)
+    // ★ 主说法（复合读法）必须**由引擎派生**，不是页面手写的字符串
+    assert.equal(e.label, compoundOf(e.mm).label, `${e.mm}mm 的复合说法不对`)
+
+    for (const r of rs) {
+      // ★ 读数必须是**整数**（三年级不读 0.7 分米）
+      assert.ok(Number.isInteger(r.value) && r.value > 0, `${qty(r.value, r.unit)} 不是正整数写法`)
+      // ★ 换回毫米必须回到原值 —— 这就是「同一段长度，换个单位写」
+      const back = convert(r.value, r.unit, unitOf("mm"))
+      assert.equal(Math.round(back), e.mm, `${qty(r.value, r.unit)} ≠ ${e.mm}毫米`)
+    }
+
+    // 带英文标注的写法：条数一致，且每条都以「(小写字母)」结尾
+    assert.equal(e.same.length, rs.length)
+    for (const s of e.same) {
+      assert.ok(/[\u4e00-\u9fff]\([a-z]+\)$/.test(s), `读数没标英文：${s}`)
+    }
+    // ★ 最后一条必须是「毫米」写法 —— 复合读法拆到底一定落到毫米
+    assert.equal(e.same[e.same.length - 1], `${e.mm}毫米(mm)`, `${e.label} 的毫米写法不对`)
+  }
+})
+
+test("★ 复合读法：7厘米3毫米 —— 各段之和必须回到原值（页面按它把亮区分段画）", () => {
+  // 参与「尺子上读一段」的单位只有毫米/厘米/分米/米（千米要 378 万像素，放不下）
+  const ru = rulerUnits()
+  assert.deepEqual(ru.map((u) => u.id), ["m", "dm", "cm", "mm"], `rulerUnits 不对：${ru.map((u) => u.id).join(",")}`)
+  for (const u of ru) assert.ok(u.base <= 1000, `${u.name} 不该出现在尺子上`)
+
+  for (const mm of [...RULER_EXAMPLE_MM, ...METER_EXAMPLE_MM]) {
+    const c = compoundOf(mm)
+    assert.equal(
+      c.parts.reduce((a, p) => a + p.mm, 0),
+      mm,
+      `${c.label} 的各段加起来 ≠ ${mm}毫米`,
+    )
+    assert.ok(c.parts.length >= 1 && c.parts.length <= 4, `${c.label} 段数不合理：${c.parts.length}`)
+    for (let i = 0; i < c.parts.length; i++) {
+      const p = c.parts[i]
+      assert.ok(Number.isInteger(p.value) && p.value > 0, `${c.label} 里有一段不是正整数`)
+      assert.equal(p.mm, p.value * p.unit.base, `${c.label} 的段长和数值对不上`)
+      if (i > 0) {
+        assert.ok(p.unit.base < c.parts[i - 1].unit.base, `${c.label} 的单位没从大到小排`)
+        // ★ 贪心的不变量：后面每一截都必须**比上一级小**（1200 不能拆成「1米1分米」）
+        assert.ok(p.mm < c.parts[i - 1].unit.base, `${c.label}：${p.value}${p.unit.name} 比上一级还大，拆错了`)
+      }
+    }
+    assert.equal(c.label, c.parts.map((p) => `${p.value}${p.unit.name}`).join(""))
+  }
+})
+
+test("★ 复合读法在 1..1500 毫米上全覆盖：拆得开、加得回、把标签解析回去还是原值", () => {
+  /**
+   * ★ 反向裁判：把**引擎生成的那个字符串**重新解析成毫米 —— 不是再跑一遍同一个贪心，
+   * 而是从文本逆推。单位名写错、少写一段、数字丢一位，这里都会当场炸。
+   */
+  const parseLabel = (s: string): number => {
+    const idOf: Record<string, UnitId> = { 毫米: "mm", 厘米: "cm", 分米: "dm", 米: "m" }
+    const re = /(\d+)(毫米|厘米|分米|米)/g // ★ 「毫米」必须排在「米」前面，否则只吃到「米」
+    let total = 0
+    let last = 0
+    let m: RegExpExecArray | null
+    while ((m = re.exec(s))) {
+      if (m.index !== last) return NaN // 中间夹着认不出来的字符
+      last = m.index + m[0].length
+      total += Number(m[1]) * unitOf(idOf[m[2]]).base
+    }
+    return last === s.length ? total : NaN
+  }
+
+  let single = 0
+  for (let mm = 1; mm <= 1500; mm++) {
+    const c = compoundOf(mm)
+    assert.ok(c.label.length > 0, `${mm} 的标签是空的`)
+    assert.equal(c.parts.reduce((a, p) => a + p.mm, 0), mm, `${mm} ⇒ ${c.label} 加不回原值`)
+    for (const p of c.parts) {
+      assert.equal(p.mm % p.unit.base, 0, `${c.label}：${p.value}${p.unit.name} 不是整数个单位`)
+    }
+    assert.equal(parseLabel(c.label), mm, `把「${c.label}」解析回毫米 ≠ ${mm}`)
+    if (c.parts.length === 1) single++
+  }
+  // 单段的值恰好是「一个单位就能写出来」的那些：
+  //   1..9 毫米(9) + 10..90 厘米(9) + 100..900 分米(9) + 1000 米(1) = 28
+  // 数出来 ≠ 28 ⇒ 贪心在某一级多取或少取了（比如把 30 拆成「2厘米10毫米」）
+  assert.equal(single, 28, `单段值 ${single} 个（应为 28）`)
+})
+
+test("★ 米尺例子：只放分米/米/复合，且一格都没超出尺子长度", () => {
+  const ex = meterExamples()
+  assert.deepEqual(ex.map((e) => e.mm), [...METER_EXAMPLE_MM].sort((a, b) => a - b))
+  assert.deepEqual(ex.map((e) => e.label), ["1分米", "5分米", "1米", "1米2分米"])
+  for (const e of ex) {
+    assert.ok(e.mm <= METER_RULER_CM * 10, `${e.label} 超出米尺（${METER_RULER_CM} 厘米）`)
+    // 米尺上的例子都是整分米 —— 页面是按「亮到第几大格」讲的
+    assert.equal(e.mm % 100, 0, `${e.label} 不是整分米`)
+  }
+  // 米尺至少要画到 1 米（第 10 格），否则「1米」这个锚点落不进去
+  assert.ok(METER_RULER_CM >= 100, `米尺只有 ${METER_RULER_CM} 厘米，画不到 1 米`)
+})
+
+test("尺子实例钉死：73 毫米读作 7厘米3毫米；70 / 100 读作 7厘米 / 1分米", () => {
+  const bare = (mm: number) => readingsOf(mm).map((r) => qty(r.value, r.unit))
+  const label = (mm: number) => compoundOf(mm).label
+
+  assert.deepEqual(bare(70), ["7厘米", "70毫米"])
+  assert.deepEqual(bare(100), ["1分米", "10厘米", "100毫米"])
+  assert.deepEqual(bare(5), ["5毫米"])
+  assert.deepEqual(bare(10), ["1厘米", "10毫米"])
+
+  // ★ 复合读法（用户点名要的那一类）
+  assert.equal(label(73), "7厘米3毫米")
+  assert.equal(label(25), "2厘米5毫米")
+  assert.equal(label(37), "3厘米7毫米")
+  assert.equal(label(98), "9厘米8毫米")
+  assert.equal(label(70), "7厘米")
+  assert.equal(label(100), "1分米")
+  assert.equal(label(1200), "1米2分米")
+  assert.equal(label(1500), "1米5分米")
+  assert.equal(label(1050), "1米5厘米") // ★ 中间那级恰好是 0 就跳过，不写「0分米」
+
+  const three = rulerExamples().find((e) => e.mm === 73)
+  assert.ok(three, "默认例子 7厘米3毫米 不在列表里")
+  assert.equal(three.label, "7厘米3毫米")
+  assert.deepEqual(three.same, ["73毫米(mm)"])
+  assert.deepEqual(three.parts.map((p) => p.mm), [70, 3])
+
+  const seven = rulerExamples().find((e) => e.mm === 70)
+  assert.ok(seven, "例子 7 厘米 不在列表里")
+  assert.equal(seven.label, "7厘米")
+  assert.deepEqual(seven.same, ["7厘米(cm)", "70毫米(mm)"])
+
+  // 非法输入必须炸，绝不许悄悄四舍五入
+  assert.throws(() => readingsOf(0), /正整数/)
+  assert.throws(() => readingsOf(7.5), /正整数/)
+  assert.throws(() => readingsOf(-1), /正整数/)
+  assert.throws(() => compoundOf(0), /正整数/)
+  assert.throws(() => compoundOf(7.5), /正整数/)
+})
+
+// ────────────────────────────────────────────────────────────
+// 7. 中文单位旁的英文标注（展示数据不许和单位表脱节）
+// ────────────────────────────────────────────────────────────
+
+test("★ 每个单位都配了英文名，qtyEn 就是「中文名 + 英文缩写」", () => {
+  const en: Record<UnitId, string> = {
+    mm: "millimeter",
+    cm: "centimeter",
+    dm: "decimeter",
+    m: "meter",
+    km: "kilometer",
+    g: "gram",
+    kg: "kilogram",
+    t: "ton",
+  }
+  for (const u of UNITS) {
+    assert.equal(u.en, en[u.id], `${u.name} 的英文名不对`)
+    assert.ok(/^[a-z]+$/.test(u.en), `${u.name} 的英文名不是纯小写字母：${u.en}`)
+    assert.equal(qtyEn(7, u), `7${u.name}(${u.symbol})`)
+  }
+  // 长度单位的缩写必须是课本/尺子上那三个字母以内的小写
+  for (const u of unitsOf("length")) {
+    assert.ok(/^[a-z]{1,2}$/.test(u.symbol), `${u.name} 的缩写不像英文单位：${u.symbol}`)
+  }
+  // 关系式与易错例里的中文单位，都要在括号里跟着英文缩写
+  for (const f of LENGTH_FACTS) {
+    assert.ok(/\([a-z]{1,2}\)/.test(f.text), `关系式没标英文：${f.text}`)
+  }
+  for (const c of MISTAKE_CASES) {
+    assert.ok(/\([a-z]{1,2}\)/.test(c.right), `易错例的正确侧没标英文：${c.right}`)
+  }
 })
