@@ -2,37 +2,30 @@
  * App 端 LLM 代理 — `POST /api/v1/app-llm/chat/completions`
  *
  * ## 为什么存在
- * 小英（xiaoying）正式版的 APK 里烘焙了 DeepSeek key，而 APK 是要发出去给人装的二进制：
- * `unzip app.apk 'classes*.dex' && grep -a 'sk-'` 就能拿到明文 key。
- * 把 key 换成「一个随时可作废的访问口令」之后，最坏情况只是**换口令**，
- * 不必去 DeepSeek 后台轮换 key，也不会有账单被别人刷走。
+ * 小英（xiaoying）App 的 APK 要发出去给人装，客户端里不能烘焙任何 AI 供应商 key：
+ * `unzip app.apk 'classes*.dex' && grep -a 'sk-'` 就能拿到明文 key，被刷的是供应商账单。
+ * 所以客户端只带**用户自己的 JWT**（账号登录拿的），由服务端代理调用上游模型。
  *
  * ## 为什么 OpenAI 兼容
  * 客户端（Android 的 `LlmClient`）只改 baseUrl 与凭据，**请求体构造与响应解析一行都不用改**；
  * 将来要换模型、要加流式，协议也不用动。
  *
  * ## 三条安全边界（少任何一条，这就是一个免费 LLM 中转站）
- * 1. **口令 fail closed** —— 服务端没配口令（或短于 16 字符）时整块端点关闭。
- *    这样「忘了配 secret」的结果是「不能用」，而不是「对全世界开放」。
+ * 1. **账号鉴权** —— 凭 `Authorization: Bearer <JWT>` 解析当前用户（`resolveCurrentUser`），
+ *    未登录/伪造 token 一律 401。不再有「编译进 APK 的口令」：口令随 APK 扩散的问题从根上消失。
  * 2. **白名单转发** —— 只有 `lib/appLlmGuard.ts` 放行的字段会进上游请求，
  *    尤其 **model 由服务端决定**：客户端传什么都无效，否则它能把便宜模型换成贵的，
  *    预算守卫的「单次最坏预估」也就按错误费率估了。
  * 3. **预算守卫** —— 复用 `lib/deepseek.ts` 的 `llm_budget_day`，与 web 端共用同一条
- *    日累计硬顶。所以「App 被刷」最多把当天额度提前用完，不会烧穿预算。
- *
- * ⚠️ 诚实地说：口令本身会随 APK 一起被人拿到（它就是编译进客户端的），
- * 所以它**不是**密码学意义上的隔离，而是一个「可作废的开关」。真正扛住滥用的
- * 是第 3 条预算硬顶。这一点在给用户的说明里不能含糊。
+ *    日累计硬顶。所以「账号被偷」最多把当天额度提前用完，不会烧穿预算。
+ *    调用日志 caller 带用户名，`/api/v1/ops` 里能精确看出是哪个账号在烧。
  */
 import { Hono } from "hono"
-import { getConfig } from "../env.js"
 import { BudgetExceededError, chatForApp } from "../lib/deepseek.js"
 import { normalizeAppLlmRequest } from "../lib/appLlmGuard.js"
+import { resolveCurrentUser } from "../middleware/auth.js"
 
 const router = new Hono()
-
-/** 口令最短长度。短于它就当作「没配」⇒ 整块关闭（fail closed）。 */
-const MIN_TOKEN_CHARS = 16
 
 /**
  * 请求体上限。真正的字段级上限在 appLlmGuard 里（合计 8000 字符），
@@ -40,25 +33,6 @@ const MIN_TOKEN_CHARS = 16
  * 否则光是把它读进内存、交给 JSON.parse 就已经消耗掉这个请求的配额了。
  */
 const MAX_BODY_BYTES = 64 * 1024
-
-/**
- * 口令校验。与下载页 `/dl/*` 同一套做法：定长比较，
- * 不给「靠响应时间逐字节猜口令」留路（口令虽长，多写这几行不值一提）。
- */
-function tokenOk(input: string): boolean {
-  const want = (getConfig().app_llm.token ?? "").trim()
-  if (want.length < MIN_TOKEN_CHARS) return false
-  if (input.length !== want.length) return false
-  let diff = 0
-  for (let i = 0; i < want.length; i++) diff |= input.charCodeAt(i) ^ want.charCodeAt(i)
-  return diff === 0
-}
-
-function bearer(header: string | undefined): string {
-  if (!header) return ""
-  const m = /^Bearer\s+(.+)$/i.exec(header.trim())
-  return m ? m[1].trim() : ""
-}
 
 /**
  * 错误一律用 **OpenAI 的错误信封**，而不是本项目惯用的 `{detail}`。
@@ -82,8 +56,11 @@ function newId(): string {
 }
 
 router.post("/app-llm/chat/completions", async (c) => {
-  if (!tokenOk(bearer(c.req.header("Authorization")))) {
-    return c.json(oaiError(401, "访问口令无效（或服务端未配置口令）", "invalid_api_key", "invalid_request_error"), 401)
+  // 账号鉴权：凭用户自己的 JWT（不再是编译进 APK 的口令）。
+  // optional=true 让解析失败返回 null 而非抛错 —— 本路由自己转成 OpenAI 401 信封。
+  const user = await resolveCurrentUser(c.req.header("Authorization"), true)
+  if (!user) {
+    return c.json(oaiError(401, "请先登录（账号未认证或登录已过期）", "invalid_api_key", "invalid_request_error"), 401)
   }
 
   const declared = Number(c.req.header("Content-Length") ?? "0")
@@ -108,8 +85,9 @@ router.post("/app-llm/chat/completions", async (c) => {
       temperature: req.temperature,
       thinking: req.thinking,
       responseFormat: req.responseFormat,
-      // caller 进 llm_call_log，便于在 /api/v1/ops 里把 App 的用量单独挑出来
-      caller: "app_xiaoying",
+      // caller 进 llm_call_log，便于在 /api/v1/ops 里把 App 的用量单独挑出来，
+      // 并精确到账号（JWT 鉴权后每个请求都带着真实的 user）
+      caller: `app:${user.username}`,
     })
     return c.json({
       id: `chatcmpl-${newId()}`,

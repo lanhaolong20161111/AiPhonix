@@ -78,8 +78,9 @@ const MEDIA_LOG_SKIP_PREFIXES = [
 ]
 
 /**
- * 下载口令就写在路径里，落库前先抹掉。
- * D1 是长期留痕的，而口令一旦进日志，「不公开」这条前提就靠不住了。
+ * 历史遗留：`/dl/<口令>/…` 时代，口令写在路径里，落库前必须抹掉（D1 是长期留痕的）。
+ * 口令已废除（下载页公开），当前 `/dl` 路径不含敏感段，这里保留统一出口只为将来
+ * 路径重新出现敏感段时不用再散落各处；顺带让日志里所有下载聚成 `/dl/***`。
  */
 function redactPath(p: string): string {
   return p.replace(/^\/dl\/[^/]+/, "/dl/***")
@@ -239,11 +240,12 @@ app.get("/videos/*", (c) => {
   return serveR2Object(c, key, "public, max-age=86400")
 })
 
-// ── APK 下载（刻意「不公开」）────────────────────────────────────────
+// ── APK 下载（公开链接）────────────────────────────────────────
 // 为什么走服务端而不是静态资源：APK 46MB / 38MB，远超 Workers 静态资源**单文件 25MiB** 上限。
-// 为什么不在首页挂入口：小英 APK 的 BuildConfig 里烘焙了 DeepSeek key（从 classes.dex 里
-//   `grep sk-` 就能拿到明文），公开链接 = 把 key 送人。故只给一条猜不到的口令路径。
-// 口令从 secret `DL_TOKEN` 读（见 bindings.ts 里为什么不用 [vars]）；未配置则整块关闭。
+// 以前是口令保护（DL_TOKEN），现已改为公开：一个固定 URL，可收藏 / 转发给家人直接下载。
+// 安全模型：APK 内**不烘焙任何 AI 供应商 key / 口令**，AI 请求一律走服务端账号鉴权
+// （JWT，`Authorization: Bearer`），预算由 `llm_budget_day` 每日硬顶兜底。
+// DL_TOKEN / APP_LLM_TOKEN 两个历史 secret 均已删除。
 const DL_FILES: Record<string, { key: string; label: string; desc: string }> = {
   "xiaoying.apk": {
     key: "downloads/xiaoying.apk",
@@ -257,24 +259,13 @@ const DL_FILES: Record<string, { key: string; label: string; desc: string }> = {
   },
 }
 
-/** 口令校验：未配置或过短 ⇒ 一律拒绝（fail closed，避免「忘了配 secret」变成公开下载） */
-function dlTokenOk(input: string): boolean {
-  const want = (getEnv().DL_TOKEN ?? "").trim()
-  if (want.length < 12) return false
-  if (input.length !== want.length) return false
-  // 定长比较，不给「靠响应时间逐字节猜口令」留路（口令虽长，成本也就几行）
-  let diff = 0
-  for (let i = 0; i < want.length; i++) diff |= input.charCodeAt(i) ^ want.charCodeAt(i)
-  return diff === 0
-}
-
-function dlPageHtml(token: string, files: { name: string; label: string; desc: string; size: number | null }[]): string {
+function dlPageHtml(files: { name: string; label: string; desc: string; size: number | null }[]): string {
   const rows = files
     .map((f) => {
       const size = f.size === null ? "未上传" : `${(f.size / 1048576).toFixed(1)} MB`
       const action = f.size === null
         ? `<span class="btn off">暂不可用</span>`
-        : `<a class="btn" href="/dl/${token}/${f.name}">下载</a>`
+        : `<a class="btn" href="/dl/${f.name}">下载</a>`
       return `<li><div><p class="name">${f.label}</p><p class="desc">${f.desc}</p></div><div class="act"><span class="size">${size}</span>${action}</div></li>`
     })
     .join("")
@@ -307,31 +298,29 @@ li{display:flex;gap:12px;align-items:center;justify-content:space-between;backgr
 <h1>小英 · 下载</h1>
 <p class="sub">安卓安装包。手机点「下载」→ 安装时允许「未知来源应用」即可。</p>
 <ul>${rows}</ul>
-<p class="note"><b>请勿转发此页面链接。</b>小英安装包里带有一个「访问口令」——大模型 key 只在服务端，APK 里已经没有它了；但口令扩散出去，别人就会用掉你的 AI 额度（服务端有每日硬顶，可你当天也就用不了了）。</p>
+<p class="note"><b>安装须知。</b>手机点「下载」→ 安装时允许「未知来源应用」即可。App 的 AI 功能需**登录自己的账号**使用，额度按账号计（服务端有每日硬顶兜底）。</p>
 </div></body></html>`
 }
 
-app.get("/dl/:token", async (c) => {
-  if (!dlTokenOk(c.req.param("token"))) return c.notFound()
+app.get("/dl", async (c) => {
   const files = await Promise.all(
     Object.entries(DL_FILES).map(async ([name, f]) => {
       const head = await getEnv().FILES.head(toKey(f.key))
       return { name, label: f.label, desc: f.desc, size: head ? head.size : null }
     }),
   )
-  return c.html(dlPageHtml(c.req.param("token"), files), 200, {
-    // 口令页不留缓存、不进搜索引擎（口令本身已在 URL 里，缓存等于二次分发）
-    "Cache-Control": "no-store",
+  return c.html(dlPageHtml(files), 200, {
+    // 下载页可缓存一小会儿（文件列表不常变）；不进搜索引擎，避免被爬
+    "Cache-Control": "public, max-age=300",
     "X-Robots-Tag": "noindex, nofollow, noarchive",
   })
 })
 
-app.get("/dl/:token/:name", (c) => {
-  if (!dlTokenOk(c.req.param("token"))) return c.notFound()
+app.get("/dl/:name", (c) => {
   const f = DL_FILES[c.req.param("name")]
   if (!f) return c.notFound()
-  // private：不让中间缓存把「口令 URL」缓存下来二次分发；max-age 给浏览器留 1 天，便于断点续传
-  return serveR2Object(c, toKey(f.key), "private, max-age=86400", c.req.param("name"))
+  // 公开下载：允许中间缓存，max-age 1 天便于断点续传
+  return serveR2Object(c, toKey(f.key), "public, max-age=86400", c.req.param("name"))
 })
 
 // ── /api/v1 路由：由 modules/manifest.ts 派生（与 server_ts 挂载一致） ──
