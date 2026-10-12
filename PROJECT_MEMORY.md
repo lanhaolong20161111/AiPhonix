@@ -1,7 +1,76 @@
 # AiPhonix 项目记忆（通用交接文档）
 
-> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-10-04）。
+> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-10-12）。
 > 整合自 `AGENTS.md`、历史 `memory-export-*.md` / `SESSION_HANDOFF_*.md` 及最近会话的进展。
+
+---
+
+## 0.15 🆕 2026-10-12 App LLM 代理收尾：客户端彻底没有可配的地址/密钥（`08ca2ca` + 本轮）
+
+小英 Android App（独立仓 `android_cli_demos/xiaoying`，不在本仓内）的 AI 答疑走本服务端代理
+`POST /api/v1/app-llm/chat/completions`。**链路上的一切凭据都在服务端，APK 里一个都没有。**
+
+| 环节 | 位置 | 凭据 |
+| --- | --- | --- |
+| App 发请求 | `xiaoying/.../data/llm/LlmClient.kt` | 只带**用户自己的 JWT**（`Authorization: Bearer`），请求体里**连 `model` 都不带** |
+| 服务端鉴权 | `server_{cf,ts}/src/routes/app_llm.ts` → `resolveCurrentUser()` | 401 走 OpenAI 错误信封 |
+| 字段白名单 | `server_{cf,ts}/src/lib/appLlmGuard.ts`（两端**逐字一致**） | model 由服务端决定 |
+| 预算守卫 | `lib/deepseek.ts::chatForApp()`，复用 `llm_budget_day` | 与 web 共用日累计硬顶；超限 → 429 `insufficient_quota` |
+| 上游 key | **只在服务端**（`deepseek.local.properties`，已 gitignore） | 客户端不可见 |
+
+- 挂载：`manifest.ts` 里 `{ id:"app_llm", target:"app", prefix:"", handler: appLlmRoutes }`（cf 与 ts 各一条）。
+- 历史：「编译进 APK 的访问口令」（`llm.local.properties` → `BuildConfig.LLM_API_KEY`）已彻底删除，
+  服务端 `grep LLM_API_KEY|APP_LLM_PASSWORD` = 0 命中。
+- **本轮收尾**：把小英设置页里的「服务器地址」输入框也删了（`AppSettings.apiBaseUrl` / `setApiBase` /
+  `K_API_BASE` 一并移除，改为纯常量 `AppSettings.DEFAULT_API_BASE`，并加了一次性 `remove("api_base")` 迁移）。
+  `LlmClient.ask(question, settings)` 的 `settings` 参数随之删掉。
+  ⇒ **App 里现在唯一要填的东西就是账号密码**；地址与模型都不可配（理由：地址不是密钥，但让家长可填
+  等于白送一个「填错地址 → 以为 App 坏了」的故障源）。
+- 顺手修的 parity 瑕疵：`server_cf/src/routes/app_llm.ts` 有个**死 import `getConfig`**（`../env.js`），
+  导致两端该文件不是逐字一致；已删，现 `diff` = 0。`server_cf/manifest.ts` 里「客户端只持有一个
+  可作废的口令」的注释也已过时，一并更正。
+- 验证：`server_cf` `tsc --noEmit` rc=0；`server_ts` `npm test` 45/45；`xiaoying` `compileDebugKotlin` 成功。
+
+---
+
+## 0.14 🆕 2026-10-12 三个常用服务层提炼成跨项目 skill（TTS / OCR / 文案）
+
+后端有三块「接第三方能力」的代码，成熟、复用价值高。本轮把它们提炼成**跨项目可借鉴的 skill**
+（装在 `~/.workbuddy/skills/`，与项目无关，别的项目可直接触发）。
+
+| 服务 | skill | 参考实现入口 | 一句话 |
+|---|---|---|---|
+| **TTS**（文本→音频） | `tts-service` | `lib/baiduTts.ts`、`baiduTtsStream.ts`、`routes/tts.ts`、`preGeneratedTts.ts` | token 缓存 + 音色路由 + 5 层缓存 + 流式 mp3 |
+| **OCR**（图片→结构化文本） | `ocr-service` | `lib/paddleOcr.ts`、`ocr.ts`、`image.ts`、`subject/*` | 多引擎降级链 + 熔断 + 归一化坐标 + 双端 bump |
+| **文案**（LLM→给人看的中文） | `copywriting-service` | `lib/{ark,deepseek,prompts,aiTextUtils}.ts`、`subject/*` | 免费优先链 + 预算 fail-closed + 提示词强约束 JSON + 清洗工具箱 |
+
+**与既有两个 skill 的分工（别搞混）**：
+
+- `baidu-tts-pron-verify` = **验证**"某个字/字母实际读成什么"（md5 A/B、ASR 回灌）—— 答"读得对不对"
+- `tts-service` = **服务怎么搭**（provider/token/音色/缓存/流式）—— 答"怎么接"
+- `ocr-engine-bench` = **选型基准**"哪个引擎快/准"—— 答"选哪个"
+- `ocr-service` = **服务怎么搭**（降级链/坐标/缓存）—— 答"怎么接"
+
+### 本轮顺手更正的两条过时结论（很重要）
+
+1. 🔴 **"并发竞速 + 抢断"已不再是 OCR 现行实现**。那是**已删除的流式端点**（前端 `parseImageStream`
+   + 服务端 `/ai-chinese/parse-image-stream`）的旧设计；现行是**顺序 fallback + 熔断器**
+   （`subject/chinese.ts` L404-449、`paddleOcr.ts` L31-50，只统计 ≥15s 的"慢失败"）。
+   `ocr-engine-bench` §7 仍推荐竞速 —— 那是**历史记录**，别再照着复刻。
+2. 🔴 **服务端 `autoOrient` 的 ~4s 开销已不成立**。`lib/image.ts` 现在是**纯透传**
+   （workerd 禁运行时 wasm；静态 import .wasm 撞 CPU 限制 503/1102），
+   压缩/转正全在客户端 `web/src/lib/imageCompress.ts`（1600px/0.85，平板 1-4s）。
+   `ocr-engine-bench` §9 那条要按这个更正读。
+
+### 三条反复出现、值得所有项目抄的原则
+
+- **责任边界**：TTS 的文本清洗在**调用方**（服务端只做停顿/锁音）；图片像素处理在**客户端**
+  （Edge/Worker 别跑 wasm）；OCR 的"业务差异"在**业务文件**而非全局开关。
+- **缓存即省钱**：三块服务都是"缓存击穿一次就够了"，键一律含**内容 hash/文本**，
+  且改质量规则时**服务端与客户端都要 bump 版本**（否则客户端直接绕过服务端）。
+- **花钱的地方要 fail-closed**：LLM 日预算超限**拒绝服务**而不是降级到更贵的模型
+  （`deepseek.ts` L323-327）；付费 TTS 引擎配错直接**抛错**而不是注释提醒
+  （`doubaoAudio.ts` L71-74）。
 
 ---
 
