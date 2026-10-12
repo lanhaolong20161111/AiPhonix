@@ -121,7 +121,9 @@ export const MODULES: readonly BackendModule[] = [
   { id: "radical", target: "app", prefix: "radical", handler: radicalRoutes },
   { id: "ark_image", target: "app", prefix: "", handler: arkImageRoutes },
   { id: "free_llm", target: "app", prefix: "", handler: freeLlmRoutes },
-  // App（小英）LLM 代理：把 DeepSeek key 留在服务端，客户端只持有一个可作废的口令。
+  // App（小英）LLM 代理：把 DeepSeek key 留在服务端，客户端**不含任何凭据**，
+  // 只带用户自己的 JWT（AiPhonix 账号登录）。不再有「编译进 APK 的口令」——
+  // 凭据可吊销、按账号计量，卸载/换机即失效。
   // prefix="" 且路由文件内部自带完整路径（/app-llm/chat/completions），故不参与前缀分组。
   { id: "app_llm", target: "app", prefix: "", handler: appLlmRoutes },
   { id: "tts", target: "app", prefix: "", handler: ttsRoutes },

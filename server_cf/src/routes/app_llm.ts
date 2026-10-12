@@ -21,7 +21,6 @@
  *    调用日志 caller 带用户名，`/api/v1/ops` 里能精确看出是哪个账号在烧。
  */
 import { Hono } from "hono"
-import { getConfig } from "../env.js"
 import { BudgetExceededError, chatForApp } from "../lib/deepseek.js"
 import { normalizeAppLlmRequest } from "../lib/appLlmGuard.js"
 import { resolveCurrentUser } from "../middleware/auth.js"
