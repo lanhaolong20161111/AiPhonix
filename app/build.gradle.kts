@@ -4,61 +4,29 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
-import java.util.Properties
-
-// 百度语音合成（TTS）凭据
-val bdProps = Properties()
-val bdFile = rootProject.file("baidu.local.properties")
-if (bdFile.exists()) bdProps.load(bdFile.inputStream())
-fun bd(key: String) = "\"${bdProps.getProperty("baidu.$key", "")}\""
-
-// DeepSeek API 凭据
-val dsProps = Properties()
-val dsFile = rootProject.file("deepseek.local.properties")
-if (dsFile.exists()) dsProps.load(dsFile.inputStream())
-fun ds(key: String) = "\"${dsProps.getProperty("deepseek.$key", "")}\""
+// ── 这里原本从根目录的 *.local.properties 读凭证并注入 BuildConfig ──
+// 2026-10-13 移除，两个理由叠加起来是硬伤：
+//   1. 那 12 个字段（XF_* / TC_* / BD_* / DEEPSEEK_*）在**参与编译的源码里引用数为 0**。
+//      全仓唯一引用在 `archived/data/repository/xfyun/` 下，那个目录不是 Gradle source set。
+//   2. debug 包不做裁剪 ⇒ 即使没人用，常量也会原样留在 classes.dex 里，
+//      `unzip app.apk 'classes*.dex' && grep -a 'sk-'` 就能拿到明文。
+// 而这个 APK 是挂在**公开**的 /dl 下载页上的 ⇒ 等于把 DeepSeek / 腾讯云 / 百度 / 讯飞的
+// 凭据一起公开发布。实测旧包里能直接抓到 sk-*（35 字符）与 AKID*（36 字符）。
+// 现在 App 的 TTS / LLM / SOE 全部走服务端代理，客户端不需要任何供应商凭据。
+// 若将来确有功能必须在客户端直连某家服务，别把 key 放回这里 —— 走服务端转发。
 
 android {
     namespace = "com.example.ai"
     compileSdk = 36
 
-    // 从开发机本地文件读取凭证（gitignored），注入 BuildConfig
-    val xfProps = Properties()
-    val xfFile = rootProject.file("xfyun.local.properties")
-    if (xfFile.exists()) xfProps.load(xfFile.inputStream())
-    fun xf(key: String) = "\"${xfProps.getProperty("xfyun.$key", "")}\""
-
-    // 腾讯云凭证（可选，仅用于 SOE Demo）
-    val tcProps = Properties()
-    val tcFile = rootProject.file("tencent.local.properties")
-    if (tcFile.exists()) tcProps.load(tcFile.inputStream())
-    fun tc(key: String) = "\"${tcProps.getProperty("tencent.$key", "")}\""
-
     defaultConfig {
         applicationId = "com.example.ai"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
-        buildConfigField("String","XF_APP_ID",xf("appId"))
-        buildConfigField("String","XF_API_KEY",xf("apiKey"))
-        buildConfigField("String","XF_API_SECRET",xf("apiSecret"))
+        versionCode = 2
+        versionName = "1.1"
 
-        // 腾讯云 SOE Demo 凭证
-        buildConfigField("String","TC_APP_ID",tc("appId"))
-        buildConfigField("String","TC_SECRET_ID",tc("secretId"))
-        buildConfigField("String","TC_SECRET_KEY",tc("secretKey"))
-
-        // 百度 TTS 凭证
-        buildConfigField("String","BD_APP_ID",bd("appId"))
-        buildConfigField("String","BD_API_KEY",bd("apiKey"))
-        buildConfigField("String","BD_SECRET_KEY",bd("secretKey"))
-
-        // DeepSeek API 凭证
-        buildConfigField("String","DEEPSEEK_API_KEY",ds("apiKey"))
-        buildConfigField("String","DEEPSEEK_BASE_URL",ds("baseUrl"))
-        buildConfigField("String","DEEPSEEK_MODEL",ds("model"))
-
+        // 客户端只需要知道服务端在哪；供应商凭据一律留在服务端。
         // 服务器代理地址（TTS/LLM/SOE）
         buildConfigField("String","TTS_SERVER_HOST","\"\"")
     }

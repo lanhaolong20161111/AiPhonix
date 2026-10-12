@@ -1,11 +1,56 @@
 # AiPhonix 项目记忆（通用交接文档）
 
-> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-10-12）。
+> 供任何 coding agent 读取的完整项目上下文。生成日期：2026-08-17（最后更新：2026-10-13）。
 > 整合自 `AGENTS.md`、历史 `memory-export-*.md` / `SESSION_HANDOFF_*.md` 及最近会话的进展。
 
 ---
 
-## 0.15 🆕 2026-10-12 App LLM 代理收尾：客户端彻底没有可配的地址/密钥（`08ca2ca` + 本轮）
+## 0.16 🆕 2026-10-13 主 App 的 APK 不再烘焙任何供应商凭据（版本 1.1）
+
+**背景**：`/dl` 是**公开**下载页。主 App 的 `app/build.gradle.kts` 一直把 12 个凭据字段
+（讯飞 `XF_*` 3 个、腾讯云 `TC_*` 3 个、百度 `BD_*` 3 个、DeepSeek `DEEPSEEK_*` 3 个）
+从根目录的 `*.local.properties` 读出来注入 `BuildConfig`，而 **debug 包不做裁剪** ⇒
+即使没有任何代码引用它们，常量也原样留在 `classes.dex` 里：
+
+```bash
+unzip AiPhonix.apk 'classes*.dex' && cat classes*.dex | grep -a -o 'sk-[A-Za-z0-9_-]\{20,\}'
+```
+
+实测旧包（`f3de6034…`，10-12 14:55 上线）能直接抓到 DeepSeek `sk-dcd…7d36`（35 字符）
+与腾讯云 `AKIDaCej…0e4G`（36 字符），且 12 个字段名**全部存在**。
+
+**关键判断：这 12 个字段其实都是死的。** 全仓唯一引用 `BuildConfig.XF_API_KEY` 在
+`archived/data/repository/xfyun/XfyunCredentialsProvider.kt`，而 `archived/` **不是 Gradle source set**，
+不参与编译。真正被用到的只有 `TTS_SERVER_HOST`。⚠️ 判「字段有没有人用」**不能只 grep 名字**：
+`di/ServiceModule.kt` 是用**反射**读的（`Class.forName("com.example.ai.BuildConfig")` +
+`getField("TTS_SERVER_HOST")`），要连 `Class.forName` / `getField` 一起查。
+
+**改动**：删掉 12 个 `buildConfigField` + 4 组 Properties 读取 helper，只留 `TTS_SERVER_HOST`
+（留在文件里的注释写明了「别把 key 放回来，走服务端转发」）。
+版本 `versionCode 1→2`、`versionName 1.0→1.1`；家长设置页底部新增 `AiPhonix v1.1（2）`
+—— 与 `/dl` 的 MB 不同，版本号是用户唯一能自证更新成功的入口。
+
+**验证（新包 `6265bb17…`，37,210,121 B，已上线）**：
+
+| 检查 | 结果 |
+| --- | --- |
+| `sk-*` / `AKID*` / `AKIA*` / `LTAI*` | 全 **0** |
+| 12 个已删字段名 | 全 **0** |
+| `TTS_SERVER_HOST`（反射依赖） | 仍在 |
+| 清单 `1.1` / `1.0`（UTF-16LE 计数） | 1 / 0 |
+
+🔴 **待办（与 10-12 那条同源）**：旧包已公开数日，这几家凭据**必须轮换** ——
+DeepSeek API key、腾讯云 secretId + secretKey、百度 TTS、讯飞。
+
+⚠️ **顺带发现，未核实**：`TTS_SERVER_HOST` 编译值是空串，于是
+`data/chinesepractice/WordInfoRepository.kt:39`、`di/ServiceModule.kt:18`、
+`ui/chinesepractice/RecognitionViewModel.kt:101` 会退回到硬编码的
+`http://192.168.1.3:8080` / `http://192.168.1.10:8080`（开发机 LAN 地址）。
+app 源码里 `workers.dev` 出现 **0 次**。这几条路径在家人手机上是否可达、是否已废弃，待确认。
+
+---
+
+## 0.15 🈶 2026-10-12 App LLM 代理收尾：客户端彻底没有可配的地址/密钥（`08ca2ca` + 本轮）
 
 小英 Android App（独立仓 `android_cli_demos/xiaoying`，不在本仓内）的 AI 答疑走本服务端代理
 `POST /api/v1/app-llm/chat/completions`。**链路上的一切凭据都在服务端，APK 里一个都没有。**

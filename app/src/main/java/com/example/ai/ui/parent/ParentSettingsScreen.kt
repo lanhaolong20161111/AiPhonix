@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
+import com.example.ai.BuildConfig
 import com.example.ai.data.training.FeatureId
 import com.example.ai.data.training.PlanItem
 import com.example.ai.data.training.TrainingPlanStore
@@ -363,6 +364,16 @@ private fun PlanEditor(
                 "💡 完成规则：学生从首页任务卡片进入页面并返回，即自动打卡。家长可在此重置。",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(12.dp))
+            // 版本号：家长靠这一行分辨手机上装的是不是最新包。
+            // 下载页 /dl 上长期挂着同一个链接，页面显示的 MB 会四舍五入，看不出新旧。
+            Text(
+                "AiPhonix v${BuildConfig.VERSION_NAME}（${BuildConfig.VERSION_CODE}）",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(24.dp))
         }
