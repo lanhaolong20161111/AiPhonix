@@ -25,7 +25,7 @@
  * 后面手滑点乱不该把成绩抹掉。进度存在 localStorage，换设备不同步（这是练习页，不需要）。
  */
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { useTts } from "../../hooks/useTts"
@@ -110,6 +110,64 @@ function saveSolved(m: Record<string, true>): void {
   }
 }
 
+/**
+ * 五个修改符号的实际画法（红笔）。
+ *
+ * 这是全站唯一的符号真源 —— 别在别处再写一份，改画法只改这里。
+ * 画法依据课本范例（不是网上流传的「圆圈版」）：
+ *   改正 = 左下小方框（错的）+ 引线 + 右上方框（对的）
+ *   增补 = 方框（要补的字）+ 横平线 → 竖下 → 末端「人」形小分叉（插入点）
+ *   删除 = 方框（要删的）+ 右上一条藤，藤上两个小环
+ *   对调 = 一条折线，形如两节城垛（下—右—上—右—下），直连紧挨的两处
+ *   移动 = 方框（要移的）+ 横线向右 → 上折 → 顶端「Y」形分叉（目标位）
+ *
+ * stroke 写死红色而不跟随 currentColor：修改符号本来就是红笔写的，
+ * 而且按钮选中态用的是边框和底色，符号跟着变色反而让孩子以为「符号变了」。
+ */
+function FixSign({ tool }: { tool: FixTool }) {
+  const p = {
+    fill: "none",
+    stroke: "#dc2626",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  }
+  return (
+    <svg className="sd-sign" viewBox="0 0 44 30" aria-hidden="true">
+      {tool === "改正" && (
+        <>
+          <rect x="1.5" y="16.5" width="16" height="11" rx="2" {...p} />
+          <rect x="26.5" y="3.5" width="16" height="12" rx="2" {...p} />
+          <path d="M17.5,17.5 L26.5,10" {...p} />
+        </>
+      )}
+      {tool === "增补" && (
+        <>
+          <rect x="27.5" y="1.5" width="15" height="10" rx="2" {...p} />
+          <path d="M27.5,6.5 L12,6.5 L12,17" {...p} />
+          <path d="M8,22.5 L12,17 L16,21.5" {...p} />
+        </>
+      )}
+      {tool === "删除" && (
+        <>
+          <rect x="1.5" y="14.5" width="18" height="12" rx="2" {...p} />
+          <path d="M19.5,14.5 Q 29,5 40,4" {...p} />
+          <circle cx="26.5" cy="10.8" r="2.4" {...p} />
+          <circle cx="32" cy="7.6" r="2.4" {...p} />
+        </>
+      )}
+      {tool === "对调" && <path d="M6,4 L6,22 L16,22 L16,5 L30,5 L30,24" {...p} />}
+      {tool === "移动" && (
+        <>
+          <rect x="1.5" y="13.5" width="17" height="11" rx="2" {...p} />
+          <path d="M18.5,19 L36,19 L36,9" {...p} />
+          <path d="M30,2.5 L36,9 L42,3.5" {...p} />
+        </>
+      )}
+    </svg>
+  )
+}
+
 export function SentenceDoctorPage() {
   const navigate = useNavigate()
   const { speaking, speak } = useTts()
@@ -120,6 +178,19 @@ export function SentenceDoctorPage() {
   const [fItems, setFItems] = useState<Record<string, FItemState>>({})
   const [active, setActive] = useState<{ key: string; slot: number } | null>(null)
   const [solved, setSolved] = useState<Record<string, true>>(loadSolved)
+  /** 病句门诊顶部「五个修改符号」里点开的那一个（null = 没点开） */
+  const [signPick, setSignPick] = useState<FixTool | null>(null)
+  const levelBarRef = useRef<HTMLDivElement | null>(null)
+
+  /* 关卡条在手机上是要横滑的（病句那边有 6 关），当前关可能整个滚在屏幕外——
+     孩子点了「下一关」却没看到哪一关被选中。每次换关把当前项滚到中间。
+     只动这个容器的 scrollLeft，不调 scrollIntoView：后者会把整个页面一起纵向拽动。 */
+  useEffect(() => {
+    const bar = levelBarRef.current
+    const el = bar?.children[lvIdx[mode]] as HTMLElement | undefined
+    if (!bar || !el) return
+    bar.scrollLeft = el.offsetLeft - (bar.clientWidth - el.clientWidth) / 2
+  }, [mode, lvIdx])
 
   const pLevel = PUNCT_LEVELS[lvIdx.punct]
   const fLevel = FIX_LEVELS[lvIdx.fix]
@@ -250,7 +321,7 @@ export function SentenceDoctorPage() {
         </button>
       </div>
 
-      <div className="sd-levels">
+      <div className="sd-levels" ref={levelBarRef}>
         {levels.map((l, i) => (
           <button
             key={l.key}
@@ -276,6 +347,35 @@ export function SentenceDoctorPage() {
           <span>{fLevel.intro.replace(/\*\*/g, "")}</span>
         )}
       </div>
+
+      {mode === "fix" && (
+        <div className="sd-signs">
+          <div className="sd-signs-head">
+            <span className="sd-rule-tag">五个修改符号</span>
+            <span className="sd-signs-tip">课本一共就教这五个，点一下看怎么用</span>
+          </div>
+          <div className="sd-signs-row">
+            {FIX_TOOLS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                title={t.when}
+                className={`sd-sign-chip${signPick === t.key ? " sd-on" : ""}`}
+                onClick={() => setSignPick(signPick === t.key ? null : t.key)}
+              >
+                <FixSign tool={t.key} />
+                <span className="sd-sign-chip-n">{t.key}号</span>
+              </button>
+            ))}
+          </div>
+          {signPick && (
+            <p className="sd-sign-note">
+              <b>{signPick}号</b>
+              {FIX_TOOLS.find((t) => t.key === signPick)?.when} 时用它。
+            </p>
+          )}
+        </div>
+      )}
 
       {mode === "punct"
         ? pLevel.items.map((item, i) => {
@@ -525,7 +625,7 @@ export function SentenceDoctorPage() {
                             <button
                               key={t.key}
                               type="button"
-                              title={t.desc}
+                              title={`${t.key}号：${t.when}`}
                               className={`sd-tool${picked ? " sd-on" : ""}${
                                 picked && t.key !== spot.tool ? " sd-bad" : ""
                               }`}
@@ -535,7 +635,7 @@ export function SentenceDoctorPage() {
                                 })
                               }
                             >
-                              <span className="sd-tool-sign">{t.sign}</span>
+                              <FixSign tool={t.key} />
                               <span className="sd-tool-name">{t.key}刀</span>
                             </button>
                           )

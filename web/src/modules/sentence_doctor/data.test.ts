@@ -115,6 +115,24 @@ describe("修改病句 · 结构", () => {
     }
   })
 
+  it("五个符号都在题目里出现过（工具栏不留死按钮）", () => {
+    const used = new Set<string>()
+    for (const lv of FIX_LEVELS) {
+      for (const it of lv.items) for (const s of it.spots) used.add(s.tool)
+    }
+    for (const t of FIX_TOOLS) {
+      assert.ok(
+        used.has(t.key),
+        `「${t.key}号」摆在工具栏上，但没有任何一道题用到它 —— 孩子点了没反应，会以为是坏了`,
+      )
+    }
+    assert.equal(
+      new Set(FIX_TOOLS.map((t) => t.key)).size,
+      FIX_TOOLS.length,
+      "FIX_TOOLS 里有重复的符号",
+    )
+  })
+
   it("每句都有订正句，且订正句与病句不同", () => {
     for (const lv of FIX_LEVELS) {
       lv.items.forEach((it, i) => {
