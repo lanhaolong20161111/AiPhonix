@@ -20,12 +20,28 @@
  *   空 / 正好等于答案（对）/ 是某个答案的前缀（待续，中性）/ 其余（错）。
  * 这样就不会「点第一下就报红」，把正在操作的正常过程判成错误。
  *
+ * ── 两个「看得见」的辅助（都要孩子自己点，不自动给）──────────────
+ *   🔆 提示语在哪儿（标点册）—— 把提示语那一段高亮、并在牌子上标出「在前/在中/在后」。
+ *      为什么不默认打开：**「找出谁在说」本来就是这一册要练的那件事**，
+ *      一直亮着等于把题做了。它是给卡住的孩子一个台阶，不是给所有人发答案。
+ *   ✏️ 画  笔（两册都有）—— 打开后可以在「订正栏」上随手画。修改符号本来就该手画：
+ *      课本第一关留的作业就是「请画出三种手术刀的样子」。孩子先自己画，
+ *      再对照下面自动打出来的红笔标记，比直接看答案印象深得多。
+ *
+ * ── 病句册为什么把红笔画在**原句**上 ─────────────────────────────
+ * 原来的做法是：选完刀、选完病因，最后给一句「订正后（参考答案）」。
+ * 可孩子真正要学的是**在原句上指出哪一处坏了**——那才是修改符号的用场。
+ * 所以现在只要某一处诊断对了，那处的符号就立刻画到原句上（框住病灶、
+ * 引线牵到订正栏写字）；全部看答案时把所有处一起画出来。
+ * 位置不靠 diff 猜，由内容里的 SpotMark 显式给出，并由 marks.test.ts
+ * 的「重建 == fixed」钉死 —— 见 data.ts 里 SpotMark 的注释。
+ *
  * ── 记录口径 ─────────────────────────────────────────────────
  * 「已掌握」记账后不再因为改动而撤销（除非按「重来」）——孩子做对过就值得留痕，
  * 后面手滑点乱不该把成绩抹掉。进度存在 localStorage，换设备不同步（这是练习页，不需要）。
  */
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
 import { useTts } from "../../hooks/useTts"
@@ -38,7 +54,10 @@ import {
   type FixTool,
   type PunctItem,
   type PunctSlot,
+  type SpotMark,
 } from "./data"
+import { describeMark, locateMark } from "./marks"
+import { TAG_POS_LABEL, tagPartIndexOf, tagPositionOf } from "./tags"
 
 type Mode = "punct" | "fix"
 
@@ -47,6 +66,8 @@ interface PItemState {
   vals: string[]
   hint: boolean
   revealed: boolean
+  /** 🔆 是否点亮提示语 */
+  tagOn: boolean
 }
 
 interface FItemState {
@@ -82,6 +103,7 @@ const emptyP = (n: number): PItemState => ({
   vals: Array.from({ length: n }, () => ""),
   hint: false,
   revealed: false,
+  tagOn: false,
 })
 
 const emptyF = (n: number): FItemState => ({
@@ -113,7 +135,8 @@ function saveSolved(m: Record<string, true>): void {
 /**
  * 五个修改符号的实际画法（红笔）。
  *
- * 这是全站唯一的符号真源 —— 别在别处再写一份，改画法只改这里。
+ * 这是**符号卡**上的符号真源 —— 画在原句上的那种「现场标记」见 <MarkedSentence />，
+ * 那里是逐个笔画贴着字画的，形状不同（一个是图标，一个是标记）。
  * 画法依据课本范例（不是网上流传的「圆圈版」）：
  *   改正 = 左下小方框（错的）+ 引线 + 右上方框（对的）
  *   增补 = 方框（要补的字）+ 横平线 → 竖下 → 末端「人」形小分叉（插入点）
@@ -168,6 +191,214 @@ function FixSign({ tool }: { tool: FixTool }) {
   )
 }
 
+// ──────────────────────────────────────────────────────────────
+//  原句上的红笔标记
+// ──────────────────────────────────────────────────────────────
+
+/** 一处要画在原句上的框 */
+interface MarkBox {
+  start: number
+  end: number
+  tool: FixTool
+  /** cut = 病灶本身；with = 对调/移动的另一处；at = 纯插入的插入点（零宽） */
+  role: "cut" | "with" | "at"
+  put?: string
+}
+
+/**
+ * 把原句按病灶切成「红笔标记 + 普通文字」交错的一串。
+ *
+ * 每处标记都紧贴在**它框住的那几个字**上，靠 position:relative 的子元素
+ * 往上「长」出引线/方框/藤——不用量坐标，句子折行也不会画歪。
+ * 缺点也明说：**跨行的长引线画不出来**（比如「移动」要挪到上一行的某处），
+ * 所以移动、对调两处用 ① ② 编号配对，而不是硬拉一条穿过好几行的线。
+ */
+function MarkedSentence({ text, marks }: { text: string; marks: { tool: FixTool; mark: SpotMark }[] }) {
+  const nodes = useMemo(() => {
+    const boxes: MarkBox[] = []
+    for (const { tool, mark } of marks) {
+      const g = locateMark(text, mark)
+      if (g.cut) boxes.push({ start: g.cut[0], end: g.cut[1], tool, role: "cut", put: mark.put })
+      if (g.with) boxes.push({ start: g.with[0], end: g.with[1], tool, role: "with", put: mark.put })
+      if (!g.cut && !g.with && g.at !== null) boxes.push({ start: g.at, end: g.at, tool, role: "at", put: mark.put })
+    }
+    boxes.sort((a, b) => a.start - b.start || a.end - b.end)
+
+    const out: { key: string; node: React.ReactNode | string }[] = []
+    let cur = 0
+    boxes.forEach((b, i) => {
+      if (b.start > cur) out.push({ key: `t${i}`, node: text.slice(cur, b.start) })
+      const inner = text.slice(b.start, b.end)
+      const boxed = b.tool === "改正" || b.tool === "删除" || b.role === "cut"
+      out.push({
+        key: `b${i}`,
+        node: (
+          <span className={`sd-mk sd-mk-${b.role}${boxed ? " sd-mk-box" : ""}`}>
+            {inner}
+            {/* 改正 / 增补（换+补那种）：引线牵到订正栏，写上新的字 */}
+            {(b.tool === "改正" || b.tool === "增补") && b.role === "cut" && (
+              <>
+                <svg className="sd-lead" viewBox="0 0 30 16" aria-hidden="true">
+                  <path d="M1,15 L27,2" />
+                </svg>
+                <span className="sd-putbox">{b.put}</span>
+              </>
+            )}
+            {b.tool === "删除" && b.role === "cut" && (
+              <svg className="sd-vine" viewBox="0 0 32 14" aria-hidden="true">
+                <path d="M1,13 Q15,2 31,2" />
+                <circle cx="13" cy="6.8" r="2" />
+                <circle cx="22" cy="3.6" r="2" />
+              </svg>
+            )}
+            {/* 增补：方框(新字) + 竖线 + 「人」形分叉，分叉的尖就落在插入点上 */}
+            {b.tool === "增补" && b.role === "at" && (
+              <>
+                <svg className="sd-fork" viewBox="0 0 16 22" aria-hidden="true">
+                  <path d="M8,1 L8,14" />
+                  <path d="M1,21 L8,14 L15,21" />
+                </svg>
+                <span className="sd-putbox sd-putbox-add">{b.put}</span>
+              </>
+            )}
+            {/* 对调：两个框紧挨着，中间架一条两节城垛的折线（课本画法） */}
+            {b.tool === "对调" && b.role === "cut" && (
+              <svg className="sd-crenel" viewBox="0 0 30 22" aria-hidden="true">
+                <path d="M2,2 L2,19 L14,19 L14,2 L26,2 L26,19" />
+              </svg>
+            )}
+            {/* 移动：源处画框挂 ①，目标处画「人」形分叉挂 ②。
+                跨行时不硬拉一条穿过好几行的引线 —— 用编号配对，孩子照样看得出谁搬到谁那儿。 */}
+            {b.tool === "移动" && b.role === "cut" && <span className="sd-chip">①</span>}
+            {b.tool === "移动" && b.role === "with" && (
+              <>
+                <svg className="sd-fork" viewBox="0 0 16 22" aria-hidden="true">
+                  <path d="M8,1 L8,14" />
+                  <path d="M1,21 L8,14 L15,21" />
+                </svg>
+                <span className="sd-chip">②</span>
+              </>
+            )}
+          </span>
+        ),
+      })
+      cur = b.end
+    })
+    if (cur < text.length) out.push({ key: "tail", node: text.slice(cur) })
+    return out
+  }, [text, marks])
+
+  return (
+    <p className="sd-case">
+      {nodes.map((n) => (
+        <span key={n.key}>{n.node}</span>
+      ))}
+    </p>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────
+//  画笔层
+// ──────────────────────────────────────────────────────────────
+
+/** 归一化坐标（0~1）× 视口 1000，配合 preserveAspectRatio="none" + non-scaling-stroke */
+interface Pt {
+  x: number
+  y: number
+}
+
+/**
+ * 订正栏上的自由画笔。
+ *
+ * 三个刻意的选择：
+ *   · 坐标**按容器尺寸归一化**存 —— 手机横竖屏切换、字号变化都不会让笔迹跑偏；
+ *   · 只铺在「订正栏」那一块上，不铺整张卡 —— 否则手指在卡片上滑动就被笔吃掉，
+ *     孩子没法滚页面了（整页只有订正栏是 touch-action:none）；
+ *   · 关掉画笔时 pointer-events:none —— 笔迹留着不挡答题。
+ */
+function PenLayer({
+  on,
+  strokes,
+  setStrokes,
+}: {
+  on: boolean
+  strokes: Pt[][]
+  setStrokes: (s: Pt[][]) => void
+}) {
+  const ref = useRef<SVGSVGElement | null>(null)
+  const live = useRef<Pt[] | null>(null)
+  const [, tick] = useState(0)
+
+  const norm = (e: React.PointerEvent): Pt => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r || !r.width || !r.height) return { x: 0, y: 0 }
+    return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }
+  }
+  const down = (e: React.PointerEvent) => {
+    if (!on) return
+    live.current = [norm(e)]
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      /* 个别环境不允许指针捕获 → 不影响画，只是手指滑出这块后收不到 move */
+    }
+    tick((n) => n + 1)
+  }
+  const move = (e: React.PointerEvent) => {
+    if (!on || !live.current) return
+    live.current.push(norm(e))
+    tick((n) => n + 1)
+  }
+  const up = () => {
+    const s = live.current
+    live.current = null
+    if (s && s.length > 1) setStrokes([...strokes, s])
+    else tick((n) => n + 1)
+  }
+  const d = (pts: Pt[]) =>
+    pts.map((p, i) => `${i ? "L" : "M"}${(p.x * 1000).toFixed(1)},${(p.y * 1000).toFixed(1)}`).join(" ")
+  const all = live.current ? [...strokes, live.current] : strokes
+  return (
+    <svg
+      ref={ref}
+      className={`sd-pen${on ? " sd-pen-on" : ""}`}
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="none"
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+      aria-hidden="true"
+    >
+      {all.map((s, i) => (
+        <path key={i} d={d(s)} />
+      ))}
+    </svg>
+  )
+}
+
+/** 订正栏：原句 + 红笔标记 + 画笔层，共用一个 position:relative 的框 */
+function Paper({
+  children,
+  penOn,
+  penStrokes,
+  setPenStrokes,
+  wide,
+}: {
+  children: React.ReactNode
+  penOn: boolean
+  penStrokes: Pt[][]
+  setPenStrokes: (s: Pt[][]) => void
+  wide?: boolean
+}) {
+  return (
+    <div className={`sd-paper${wide ? " sd-paper-wide" : ""}`}>
+      {children}
+      <PenLayer on={penOn} strokes={penStrokes} setStrokes={setPenStrokes} />
+    </div>
+  )
+}
+
 export function SentenceDoctorPage() {
   const navigate = useNavigate()
   const { speaking, speak } = useTts()
@@ -180,6 +411,9 @@ export function SentenceDoctorPage() {
   const [solved, setSolved] = useState<Record<string, true>>(loadSolved)
   /** 病句门诊顶部「五个修改符号」里点开的那一个（null = 没点开） */
   const [signPick, setSignPick] = useState<FixTool | null>(null)
+  /** ✏️ 画笔总开关（两册共用）；笔迹按卡片 key 分开存，换关回来还在 */
+  const [penOn, setPenOn] = useState(false)
+  const [strokes, setStrokes] = useState<Record<string, Pt[][]>>({})
   const levelBarRef = useRef<HTMLDivElement | null>(null)
 
   /* 关卡条在手机上是要横滑的（病句那边有 6 关），当前关可能整个滚在屏幕外——
@@ -251,6 +485,16 @@ export function SentenceDoctorPage() {
     })
   }, [])
 
+  /** 只清一张卡的笔迹（按「重来」时用） */
+  const clearStrokes = useCallback((k: string) => {
+    setStrokes((m) => {
+      if (!m[k]) return m
+      const next = { ...m }
+      delete next[k]
+      return next
+    })
+  }, [])
+
   const readAloud = useCallback(
     async (text: string) => {
       if (speaking) return
@@ -266,25 +510,46 @@ export function SentenceDoctorPage() {
         pLevel.items.forEach((_, i) => delete next[`p:${pLevel.key}:${i}`])
         return next
       })
-      pLevel.items.forEach((_, i) => forget(`p:${pLevel.key}:${i}`))
+      pLevel.items.forEach((_, i) => {
+        forget(`p:${pLevel.key}:${i}`)
+        clearStrokes(`p:${pLevel.key}:${i}`)
+      })
     } else {
       setFItems((m) => {
         const next = { ...m }
         fLevel.items.forEach((_, i) => delete next[`f:${fLevel.key}:${i}`])
         return next
       })
-      fLevel.items.forEach((_, i) => forget(`f:${fLevel.key}:${i}`))
+      fLevel.items.forEach((_, i) => {
+        forget(`f:${fLevel.key}:${i}`)
+        clearStrokes(`f:${fLevel.key}:${i}`)
+      })
     }
     setActive(null)
-  }, [mode, pLevel, fLevel, forget])
+  }, [mode, pLevel, fLevel, forget, clearStrokes])
 
   // 两册的关卡数组结构不同，这里只取共有的两个字段用于渲染标签（避免联合类型调 map 报错）
   const levels: { key: string; name: string }[] = mode === "punct" ? PUNCT_LEVELS : FIX_LEVELS
 
   const isSlotActive = (k: string, si: number) => active?.key === k && active.slot === si
 
+  /** 这一关有没有笔迹 —— 决定「清空笔迹」要不要出现 */
+  const hasStrokes = useMemo(() => {
+    const pre = mode === "punct" ? `p:${pLevel.key}:` : `f:${fLevel.key}:`
+    return Object.keys(strokes).some((k) => k.startsWith(pre) && strokes[k].length > 0)
+  }, [strokes, mode, pLevel, fLevel])
+
+  const clearLevelStrokes = useCallback(() => {
+    const pre = mode === "punct" ? `p:${pLevel.key}:` : `f:${fLevel.key}:`
+    setStrokes((m) => {
+      const next = { ...m }
+      for (const k of Object.keys(next)) if (k.startsWith(pre)) delete next[k]
+      return next
+    })
+  }, [mode, pLevel, fLevel])
+
   return (
-    <div className="page sd-page">
+    <div className={`page sd-page${penOn ? " sd-pen-mode" : ""}`}>
       <div className="module-header">
         <button type="button" className="back-btn" onClick={() => navigate(-1)}>
           ←
@@ -319,6 +584,24 @@ export function SentenceDoctorPage() {
         >
           🩺 病句门诊
         </button>
+      </div>
+
+      <div className="sd-penbar">
+        <button
+          type="button"
+          className={`sd-pentog${penOn ? " sd-on" : ""}`}
+          onClick={() => setPenOn((v) => !v)}
+        >
+          ✏️ 画笔{penOn ? "：开" : ""}
+        </button>
+        {penOn && hasStrokes && (
+          <button type="button" className="sd-mini" onClick={clearLevelStrokes}>
+            🧽 清空笔迹
+          </button>
+        )}
+        <span className="sd-pentip">
+          {penOn ? "现在可以在「订正栏」上随手画，标点牌先点不动 —— 再按一下关掉画笔" : "想自己动手画修改符号？打开画笔"}
+        </span>
       </div>
 
       <div className="sd-levels" ref={levelBarRef}>
@@ -382,32 +665,56 @@ export function SentenceDoctorPage() {
             const k = `p:${pLevel.key}:${i}`
             const st = pItems[k] ?? emptyP(item.slots.length)
             const done = !!solved[k]
+            const tagIdx = tagPartIndexOf(item)
+            const tagPos = tagPositionOf(item)
             return (
               <div key={k} className={`sd-card${done ? " sd-done" : ""}`}>
                 <div className="sd-card-head">
                   <span className="sd-no">{i + 1}</span>
-                  {done && <span className="sd-badge">✓ 全对</span>}
+                  <span className="sd-head-right">
+                    {done && <span className="sd-badge">✓ 全对</span>}
+                    {st.tagOn && tagPos && <span className="sd-badge sd-badge-tag">{TAG_POS_LABEL[tagPos]}</span>}
+                    <button
+                      type="button"
+                      className={`sd-tagbtn${st.tagOn ? " sd-on" : ""}`}
+                      title="把提示语那一段点亮（先自己找，卡住了再点）"
+                      onClick={() => updP(k, item.slots.length, { tagOn: !st.tagOn })}
+                    >
+                      🔆 提示语在哪儿
+                    </button>
+                  </span>
                 </div>
 
-                <div className="sd-sent">
-                  {item.slots.map((s, si) => (
-                    <span key={`seg${si}`}>
-                      {s ? (
-                        <button
-                          type="button"
-                          className={`sd-slot st-${slotStateOf(st.vals[si] ?? "", s)}${
-                            isSlotActive(k, si) ? " sd-on" : ""
-                          }`}
-                          onClick={() => setActive(isSlotActive(k, si) ? null : { key: k, slot: si })}
-                          aria-label={`第 ${si + 1} 个标点空位`}
-                        >
-                          {st.vals[si] || "?"}
-                        </button>
-                      ) : null}
-                      {si < item.parts.length ? <span className="sd-txt">{item.parts[si]}</span> : null}
-                    </span>
-                  ))}
-                </div>
+                <Paper
+                  penOn={penOn}
+                  penStrokes={strokes[k] ?? []}
+                  setPenStrokes={(s) => setStrokes((m) => ({ ...m, [k]: s }))}
+                >
+                  <div className="sd-sent">
+                    {item.slots.map((s, si) => (
+                      <span key={`seg${si}`}>
+                        {s ? (
+                          <button
+                            type="button"
+                            className={`sd-slot st-${slotStateOf(st.vals[si] ?? "", s)}${
+                              isSlotActive(k, si) ? " sd-on" : ""
+                            }`}
+                            onClick={() => setActive(isSlotActive(k, si) ? null : { key: k, slot: si })}
+                            aria-label={`第 ${si + 1} 个标点空位`}
+                          >
+                            {st.vals[si] || "?"}
+                          </button>
+                        ) : null}
+                        {si < item.parts.length ? (
+                          <span className={st.tagOn && si === tagIdx ? "sd-txt sd-tagpart" : "sd-txt"}>
+                            {item.parts[si]}
+                            {st.tagOn && si === tagIdx && <span className="sd-taglabel">提示语</span>}
+                          </span>
+                        ) : null}
+                      </span>
+                    ))}
+                  </div>
+                </Paper>
 
                 <div className="sd-acts">
                   <button
@@ -435,6 +742,7 @@ export function SentenceDoctorPage() {
                     onClick={() => {
                       updP(k, item.slots.length, emptyP(item.slots.length))
                       forget(k)
+                      clearStrokes(k)
                     }}
                   >
                     ↺ 重来
@@ -548,14 +856,33 @@ export function SentenceDoctorPage() {
             const k = `f:${fLevel.key}:${i}`
             const st = fItems[k] ?? emptyF(item.spots.length)
             const done = !!solved[k]
+            /** 诊断对了（或已看答案）的病灶 —— 只有它们才画到原句上 */
+            const spotOk = (si: number) =>
+              st.tools[si] === item.spots[si].tool && st.picks[si] === item.spots[si].answer
+            const marked = item.spots.filter((_, si) => spotOk(si) || st.revealed)
             return (
               <div key={k} className={`sd-card${done ? " sd-done" : ""}`}>
                 <div className="sd-card-head">
                   <span className="sd-no">{i + 1}</span>
-                  {done && <span className="sd-badge">✓ 全都治好了</span>}
+                  <span className="sd-head-right">
+                    {done && <span className="sd-badge">✓ 全都治好了</span>}
+                    {!done && marked.length > 0 && (
+                      <span className="sd-badge sd-badge-tag">
+                        已标出 {marked.length}/{item.spots.length} 处
+                      </span>
+                    )}
+                  </span>
                 </div>
 
-                <div className="sd-case">{item.text}</div>
+                <Paper
+                  wide
+                  penOn={penOn}
+                  penStrokes={strokes[k] ?? []}
+                  setPenStrokes={(s) => setStrokes((m) => ({ ...m, [k]: s }))}
+                >
+                  <span className="sd-paper-cap">订正栏</span>
+                  <MarkedSentence text={item.text} marks={marked} />
+                </Paper>
 
                 <div className="sd-acts">
                   <button type="button" className="sd-act" disabled={speaking} onClick={() => void readAloud(item.text)}>
@@ -581,6 +908,7 @@ export function SentenceDoctorPage() {
                     onClick={() => {
                       updF(k, item.spots.length, emptyF(item.spots.length))
                       forget(k)
+                      clearStrokes(k)
                     }}
                   >
                     ↺ 重来
@@ -607,7 +935,7 @@ export function SentenceDoctorPage() {
                 {item.spots.map((spot, si) => {
                   const tool = st.tools[si] ?? ""
                   const pick = st.picks[si] ?? -1
-                  const ok = tool === spot.tool && pick === spot.answer
+                  const ok = spotOk(si)
                   const showWhy = ok || st.revealed
                   return (
                     <div key={`sp${si}`} className={`sd-spot${ok ? " sd-ok" : ""}`}>
@@ -615,7 +943,7 @@ export function SentenceDoctorPage() {
                         <span className="sd-spot-no">
                           {item.spots.length > 1 ? `第 ${si + 1} 处` : "选刀，再找出病处"}
                         </span>
-                        {ok && <span className="sd-spot-ok">✓ 治好</span>}
+                        {ok && <span className="sd-spot-ok">✓ 治好 · 已画到原句上</span>}
                       </div>
 
                       <div className="sd-tools">
@@ -670,6 +998,7 @@ export function SentenceDoctorPage() {
                             <span className="sd-why-tool">{spot.tool}手术刀</span>
                           </div>
                           <div className="sd-why-first">{spot.options[spot.answer]}</div>
+                          <div className="sd-why-mark">✍️ {describeMark(spot)}</div>
                           <div className="sd-why-t">{spot.why}</div>
                         </div>
                       )}
@@ -681,6 +1010,14 @@ export function SentenceDoctorPage() {
                   <div className="sd-answer">
                     <div className="sd-answer-head">
                       <span>订正后（参考答案）</span>
+                      <button
+                        type="button"
+                        className="sd-mini"
+                        disabled={speaking}
+                        onClick={() => void readAloud(item.fixed)}
+                      >
+                        🔊 读一读
+                      </button>
                     </div>
                     <p className="sd-fixed">{item.fixed}</p>
                   </div>
@@ -698,7 +1035,8 @@ export function SentenceDoctorPage() {
         )}
         <p className="sd-note">
           标点题有标准答案；<b>病句题的改法不止一种</b>，这里判的是「有没有找到那一处」，
-          订正句仅供参考，以老师讲评为准。
+          订正句仅供参考，以老师讲评为准。红笔标记画的是**参考改法**，
+          自己用画笔画的算数——两种画法对得上，才算真会了。
         </p>
         <p className="sd-credit">内容整理自廖敏老师自制练习册《提示语及修改病句专项练习》</p>
       </div>

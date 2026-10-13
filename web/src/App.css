@@ -12133,7 +12133,9 @@ button.btn-mode-off {
   justify-content: center;
   gap: 2px;
   width: auto;
-  flex: 1 1 62px;
+  /* 56px 是算过的：5 把刀 × 56 + 4 × 6(gap) = 304，360 宽的手机（卡片内宽 332）一行放得下。
+     62px 的时候正好差 2px 折行，会剩「移动刀」孤零零挂在第二行。 */
+  flex: 1 1 56px;
   min-height: 54px;
   padding: 5px 2px;
   border: 1px solid #dbe3ee;
@@ -12336,10 +12338,326 @@ button.btn-mode-off {
   font-size: 12px;
 }
 
+/* ══════════════ 订正栏：原句上的红笔标记 + 提示语高亮 + 画笔 ══════════════
+ *
+ * 三样东西叠在同一个 position:relative 的「订正栏」上：
+ *   ① 原句（折行正常排）
+ *   ② 红笔标记 —— 每个框都是**贴在它框住的那几个字**上的内联元素，
+ *      靠绝对定位的子元素往上长引线/方框/藤。不用量坐标，所以句子折行也不会画歪。
+ *      代价要记住：**跨行的长引线画不出来**，所以「移动」「对调」用 ① ② 配对，
+ *      而不是硬拉一条穿过好几行的线。
+ *   ③ 画笔层（.sd-pen）—— 铺满整个订正栏，关着时 pointer-events:none 不挡答题。
+ *
+ * 订正栏上方**固定留出**一段空白（.sd-paper 的 padding-top）：修改符号本来就写在
+ * 字上面／旁边的空白里，不留白就只能压在字上。病句那边留得更多（要放订正的字），
+ * 所以顺带把行高也放大 —— 不然第 2 行上的框会盖住第 1 行的字。
+ */
+
+.sd-paper {
+  position: relative;
+  padding: 1.7em 10px 10px;
+  margin-bottom: 12px;
+  border-left: 3px solid #fca5a5;
+  border-radius: 0 10px 10px 0;
+  background: #fffbfb;
+}
+
+.sd-paper-wide {
+  padding-top: 2.3em;
+}
+
+/* 原句本身不再自带边框/底色 —— 那一层已经由 .sd-paper 提供了 */
+.sd-paper .sd-case,
+.sd-paper .sd-sent {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sd-paper-wide .sd-case {
+  /* 行高故意开得很大：标记是往上「长」的（方框+引线约 30px），
+     行距不够的话第 2 行上的标记会压到第 1 行的字上。
+     3.4 实测能容下最宽的那种标记（比如「秋天的岳麓山」整段换序）。 */
+  line-height: 3.4;
+}
+
+.sd-paper-cap {
+  position: absolute;
+  top: 5px;
+  right: 9px;
+  color: #f0a5a5;
+  font-size: 11px;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+/* ── 红笔标记 ── */
+.sd-mk {
+  position: relative;
+}
+
+.sd-mk-box {
+  padding: 0 2px;
+  margin: 0 1px;
+  border: 1.5px solid #dc2626;
+  border-radius: 3px;
+}
+
+.sd-lead {
+  position: absolute;
+  left: 100%;
+  bottom: 100%;
+  width: 24px;
+  height: 13px;
+  overflow: visible;
+}
+
+.sd-lead path {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.sd-vine {
+  position: absolute;
+  left: 100%;
+  bottom: 100%;
+  width: 30px;
+  height: 13px;
+  overflow: visible;
+}
+
+.sd-vine path,
+.sd-vine circle {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.sd-putbox {
+  position: absolute;
+  left: calc(100% + 18px);
+  bottom: calc(100% + 9px);
+  padding: 0 5px;
+  border: 1.5px solid #dc2626;
+  border-radius: 3px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.55;
+  white-space: nowrap;
+}
+
+/* 增补：竖线 + 「人」形分叉，分叉的尖落在插入点上 */
+.sd-mk-at .sd-fork,
+.sd-mk-with .sd-fork {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 14px;
+  height: 19px;
+  transform: translateX(-50%);
+  overflow: visible;
+}
+
+.sd-fork path {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 增补方框挂在分叉上方 */
+.sd-putbox-add {
+  left: 0;
+  bottom: calc(100% + 22px);
+  transform: translateX(-50%);
+}
+
+/* 对调：架在两个紧挨的框中间的那条折线。
+   margin-left 取负值 = 让它骑在交界处（半个身位在左框上、半个在右框上）。 */
+.sd-crenel {
+  position: absolute;
+  left: 100%;
+  bottom: calc(100% + 1px);
+  width: 30px;
+  height: 22px;
+  margin-left: -13px;
+  overflow: visible;
+}
+
+.sd-crenel path {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ① ② / ⇄ 编号牌：位置不同的两处靠编号配对，不硬拉跨行的线 */
+.sd-chip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1px);
+  padding: 0 5px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.sd-mk-with .sd-chip {
+  left: 0;
+  bottom: calc(100% + 21px);
+}
+
+/* ── 提示语高亮 ── */
+.sd-tagpart {
+  position: relative;
+  padding: 0 1px;
+  border-bottom: 2px solid #f59e0b;
+  border-radius: 3px;
+  background: #fef9c3;
+}
+
+.sd-taglabel {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  padding: 0 6px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 10.5px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.sd-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sd-head-right .sd-badge {
+  margin-left: 0;
+}
+
+.sd-badge-tag {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sd-tagbtn {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sd-tagbtn.sd-on {
+  border-style: solid;
+  border-color: #f59e0b;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+}
+
+/* ── 画笔 ── */
+.sd-penbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.sd-pentog {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sd-pentog.sd-on {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+
+.sd-pentip {
+  color: #94a3b8;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.sd-pen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sd-pen-on {
+  cursor: crosshair;
+  pointer-events: auto;
+  /* 画的时候手指滑动不能被当成滚页面 */
+  touch-action: none;
+}
+
+.sd-pen path {
+  fill: none;
+  stroke: #dc2626;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* 视口是 1000×1000 被非等比拉伸的，不锁笔宽会被拉成椭圆截面的粗线 */
+  vector-effect: non-scaling-stroke;
+}
+
+.sd-pen-mode .sd-paper > *:not(.sd-pen),
+.sd-pen-mode .sd-paper button {
+  pointer-events: none;
+}
+
+.sd-why-mark {
+  margin: 4px 0 2px;
+  color: #b91c1c;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
 @media (max-width: 380px) {
   .sd-sent { font-size: 16px; }
   .sd-keys { gap: 6px; }
   .sd-key { min-width: 48px; padding: 5px 6px; }
+  .sd-tool { min-height: 50px; padding: 4px 1px; font-size: 12px; }
+  .sd-tool .sd-sign { width: 32px; height: 22px; }
+  .sd-pentip { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

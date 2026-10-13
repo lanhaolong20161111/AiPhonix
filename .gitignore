@@ -418,6 +418,8 @@ web/_uc_shot.mjs
 web/_uc_shots/
 web/_uc_eg_shot.mjs
 web/_uc_eg_shots/
+# local _sd_* verification artifacts (句子小医生：红笔标记 / 提示语高亮 / 画笔 的逐卡截图)
+web/_sd_shots/
 # local _mo_* verification artifacts (multi-digit x 1-digit page: _mo_shot.mjs gate + _mo_probe.mjs)
 web/_mo_*.mjs
 web/_mo_shots/
