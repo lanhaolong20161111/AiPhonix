@@ -195,6 +195,15 @@ const videoModules: SkillModule[] = [
     tile: false,
     load: () => import("./daily_english/index").then((m) => ({ default: m.DailyEnglishPage })),
   },
+  {
+    id: "sentence_doctor",
+    route: "/module/sentence_doctor",
+    title: "句子小医生",
+    icon: "🩺",
+    subtitle: "提示语标点 · 修改病句，先找部件再下笔",
+    group: "textbook",
+    load: () => import("./sentence_doctor/index").then((m) => ({ default: m.SentenceDoctorPage })),
+  },
 ]
 
 // ════════════════════════ 动画学数学 ════════════════════════

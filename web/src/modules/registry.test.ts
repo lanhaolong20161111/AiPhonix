@@ -136,6 +136,7 @@ describe("模块注册表", () => {
       "/module/daily_practice",
       "/module/daily_chinese",
       "/module/daily_english",
+      "/module/sentence_doctor",
       "/module/math_compound_expr",
       "/module/math_equation_move",
       "/module/math_units",
@@ -173,7 +174,12 @@ describe("模块注册表", () => {
       HOME_SECTIONS.map((s) => [s.label, s.modules.map((m) => m.route)]),
       [
         ["拼音", ["/pinyin", "/module/pinyin-index"]],
-        ["课本字词", ["/module/recognition", "/module/dictation", "/module/word_practice"]],
+        ["课本字词", [
+          "/module/recognition",
+          "/module/dictation",
+          "/module/word_practice",
+          "/module/sentence_doctor",
+        ]],
         ["视频", ["/module/video_practice", "/module/subtitle_capture"]],
         ["动画学数学", [
           "/module/math_compound_expr",

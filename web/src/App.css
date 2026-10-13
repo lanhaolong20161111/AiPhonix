@@ -11648,3 +11648,624 @@ button.btn-mode-off {
   .rr-shake, .rr-mistake-right, .rr-fly-to-r, .rr-fly-to-l { animation: none; }
 }
 /* @skill:end */
+
+/* @skill: sentence_doctor */
+
+/* ══════════════ 句子小医生（提示语标点 + 修改病句） ══════════════
+ *
+ * 全站 button 默认 width:100%，这里所有按钮都要显式 width:auto（或 flex:1），
+ * 否则句子里的空位框会被拉成一整行。
+ *
+ * 空位框用「虚线 + 问号」表示还没填：不写「□」是因为中文方框字符在安卓
+ * 各种 ROM 字体里宽度不一致，会把句子挤得忽宽忽窄。
+ */
+
+.sd-page {
+  padding-bottom: 64px;
+}
+
+/* ── 两册切换 ── */
+.sd-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.sd-tab {
+  width: auto;
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sd-tab.sd-on {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+/* ── 关卡条（窄屏横向滚动，不折成两行）── */
+.sd-levels {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.sd-levels::-webkit-scrollbar {
+  display: none;
+}
+
+.sd-level {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid #d7dee8;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sd-level.sd-on {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+/* ── 口诀条 ── */
+.sd-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid #f5d79a;
+  border-radius: 12px;
+  background: #fff7e6;
+  color: #7c4a03;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.sd-rule-tag {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── 题卡 ── */
+.sd-card {
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.sd-card.sd-done {
+  border-color: #86efac;
+  background: #f8fffb;
+}
+
+.sd-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sd-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sd-badge {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  animation: sd-badge-pop 0.36s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes sd-badge-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ── 句子与空位 ── */
+.sd-sent {
+  margin-bottom: 12px;
+  color: #111827;
+  font-size: 17px;
+  line-height: 2.1;
+  word-break: break-word;
+}
+
+.sd-txt {
+  white-space: pre-wrap;
+}
+
+.sd-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 28px;
+  height: 30px;
+  padding: 0 5px;
+  margin: 0 2px;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.sd-slot.sd-on {
+  border-style: solid;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* 「还没写完」：填了但不是任何一个完整答案的前缀 —— 中性黄，别当错报红 */
+.sd-slot.st-typing {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.sd-slot.st-ok {
+  border-style: solid;
+  border-color: #22c55e;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.sd-slot.st-wrong {
+  border-style: solid;
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #b91c1c;
+  animation: sd-shake 0.36s ease-in-out;
+}
+
+@keyframes sd-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* ── 操作按钮行 ── */
+.sd-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 四个按钮要在一行里放下（窄屏 360px 的机器上也不换行）——
+ * 宁可字号小一点，也不要让「重来」掉到第二行：那会让每张题卡都多出一行空。 */
+.sd-act {
+  width: auto;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #1f2937;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sd-act.sd-on {
+  border-color: #f0d68a;
+  background: #fef3c7;
+}
+
+.sd-act.sd-ghost {
+  background: #fff;
+  color: #64748b;
+}
+
+.sd-act:disabled {
+  opacity: 0.55;
+}
+
+/* ── ✨ 提示卡：滑下来，不是突然出现 ── */
+.sd-pop {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  background: #eef2ff;
+  animation: sd-pop-in 0.34s cubic-bezier(.34, 1.4, .64, 1);
+}
+
+@keyframes sd-pop-in {
+  from { transform: translateY(-8px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.sd-pop-tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sd-pop-main {
+  margin: 0 0 8px;
+  color: #312e81;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.sd-pop-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #3730a3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ── 标点牌 ── */
+.sd-palette {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+  background: #f8fafc;
+  animation: sd-pop-in 0.3s cubic-bezier(.34, 1.4, .64, 1);
+}
+
+.sd-palette-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.sd-palette-head > span {
+  flex: 1 1 auto;
+}
+
+.sd-mini {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.sd-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sd-key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: auto;
+  min-width: 54px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+}
+
+.sd-key-c {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.sd-key-l {
+  color: #64748b;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.sd-key-fn {
+  background: #eef2f7;
+}
+
+/* ── 看答案 / 理由 ── */
+.sd-answer {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fbfdff;
+  animation: sd-pop-in 0.3s ease-out;
+}
+
+.sd-answer-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.sd-answer-head > span {
+  flex: 1 1 auto;
+}
+
+.sd-why {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.sd-why li {
+  margin-bottom: 6px;
+  color: #334155;
+}
+
+.sd-why-a {
+  display: inline-block;
+  min-width: 30px;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sd-why-t {
+  color: #475569;
+}
+
+/* ── 病句模式 ── */
+.sd-case {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-left: 3px solid #fca5a5;
+  border-radius: 0 10px 10px 0;
+  background: #fffbfb;
+  color: #1f2937;
+  font-size: 15.5px;
+  line-height: 1.95;
+}
+
+.sd-spot {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid #e8eef6;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+
+.sd-spot.sd-ok {
+  border-color: #86efac;
+  background: #f6fef9;
+}
+
+.sd-spot-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sd-spot-no {
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.sd-spot-ok {
+  margin-left: auto;
+  color: #15803d;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+/* 三把手术刀 */
+.sd-tools {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sd-tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: auto;
+  flex: 1 1 0;
+  min-height: 42px;
+  padding: 6px 4px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sd-tool.sd-on {
+  border-color: #2563eb;
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+
+.sd-tool.sd-bad {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.sd-tool-sign {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sd-tool-name {
+  font-size: 12.5px;
+}
+
+/* 诊断选项 */
+.sd-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sd-opt {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.sd-opt.sd-on {
+  border-color: #2563eb;
+  background: #eef2ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.sd-opt.sd-bad {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+/* 单处病灶的理由卡 */
+.sd-why-box {
+  margin-top: 8px;
+  padding: 9px 11px;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #eef2ff;
+  font-size: 13px;
+  line-height: 1.7;
+  animation: sd-pop-in 0.3s ease-out;
+}
+
+.sd-why-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  color: #312e81;
+}
+
+.sd-why-tool {
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sd-why-first {
+  margin-bottom: 4px;
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+.sd-fixed {
+  margin: 0;
+  color: #14532d;
+  font-size: 15px;
+  line-height: 1.95;
+}
+
+/* ── 页脚 ── */
+.sd-foot {
+  margin-top: 18px;
+}
+
+.sd-alldone {
+  margin: 10px 0 0;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sd-note {
+  margin: 12px 0 6px;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.75;
+}
+
+.sd-credit {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+@media (max-width: 380px) {
+  .sd-sent { font-size: 16px; }
+  .sd-keys { gap: 6px; }
+  .sd-key { min-width: 48px; padding: 5px 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sd-badge, .sd-pop, .sd-palette, .sd-slot.st-wrong, .sd-why-box, .sd-answer { animation: none; }
+}
+/* @skill:end */
