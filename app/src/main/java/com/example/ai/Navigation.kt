@@ -114,6 +114,8 @@ import com.example.ai.ui.dailyenglish.DailyEnglishScreen
 import com.example.ai.ui.dailyenglish.DailyEnglishViewModel
 import com.example.ai.ui.sentencecompose.SentenceComposeScreen
 import com.example.ai.ui.sentencecompose.SentenceComposeViewModel
+import com.example.ai.ui.sentencedoctor.SentenceDoctorScreen
+import com.example.ai.ui.sentencedoctor.SentenceDoctorViewModel
 import com.example.ai.ui.speechcompose.SpeechComposeScreen
 import com.example.ai.ui.speechcompose.SpeechComposeViewModel
 import com.example.ai.ui.englishtalk.EnglishTalkScreen
@@ -204,6 +206,7 @@ fun MainNavigation(container: AppContainer) {
             onOpenMathMulOne = { backStack.add(MathMulOne) },
             onOpenMathRelations = { backStack.add(MathRelations) },
             onOpenSubtitleCapture = { backStack.add(SubtitleCapture) },
+            onOpenSentenceDoctor = { backStack.add(SentenceDoctor) },
             container = container,
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
           )
@@ -351,6 +354,19 @@ fun MainNavigation(container: AppContainer) {
             },
             onBack = { backStack.removeLastOrNull() },
             modifier = Modifier.safeDrawingPadding().padding(16.dp),
+          )
+        }
+        entry<SentenceDoctor> {
+          // 整页是单个 LazyColumn，内边距由 contentPadding 管，这里只给安全区
+          SentenceDoctorScreen(
+            viewModel = viewModel {
+              SentenceDoctorViewModel(
+                store = container.sentenceDoctorStore,
+                ttsCache = container.ttsCache,
+              )
+            },
+            onBack = { backStack.removeLastOrNull() },
+            modifier = Modifier.safeDrawingPadding(),
           )
         }
         entry<MathCompoundExpr> {

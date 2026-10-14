@@ -118,6 +118,7 @@ import kotlinx.serialization.Serializable
 @Serializable data object SentenceCompose : NavKey                      // 造句练习（给词造句，AI 老师批改）
 @Serializable data object SpeechCompose : NavKey                        // AI 对话学语文（一问一答 / 古诗 / 文章背诵跟读）
 @Serializable data object AiEnglishTalk : NavKey                        // AI 英语对话（AI 给台词+回答 → 跟读阶梯 / 自己说 → ASR 判定）
+@Serializable data object SentenceDoctor : NavKey                       // 句子小医生（提示语标点 + 修改病句，两册合一页）
 
 // ── 动画学数学 ──
 @Serializable data object MathCompoundExpr : NavKey                     // 三年级上综合算式动画（找→换→查，带飞入/位移教学动画）

@@ -577,6 +577,11 @@ app：`EqMove.kt` 2100/40→**1211/8**、`CompoundExpr.kt` 696/17→**587/7**、
 
 ## 0.5 🆕 2026-09-22 Android 端重启：对齐 Web 功能（**21/21 全部完成 ✅**）
 
+> ⚠️ **「21/21」是 2026-09-22 的快照，此后 Web 又新增了两个模块，均已补齐 Android**：
+> `math_relations`（10-07）与 `sentence_doctor`（10-14，见下方「句子小医生」小节）。
+> **判 parity 缺口请以 `web/src/modules/catalog.ts` 的 id 清单为准**，别信本节这句计数——
+> 完整订正见 `docs/ANDROID_PARITY_PLAN.md` 的差距表 #20/#21/#22。
+
 ### 背景
 - Android `app/` 自 2026-09-10 起标注「停更存档」（`f7843b7`），期间 Web 端持续演进，新增大量模块。
 - 本轮任务：**把 Android 功能补全对齐 Web**。完整差距清单与实施批次见 **`docs/ANDROID_PARITY_PLAN.md`**（新增，必读）。
@@ -584,7 +589,7 @@ app：`EqMove.kt` 2100/40→**1211/8**、`CompoundExpr.kt` 696/17→**587/7**、
 - 🆕 **本轮再补齐：每日英语 phonics 音形着色 + 发音要领**（原 21/21 收官清单的遗留项 ①）：`data/phonics/` 三件套（`PhonicsSegmenter` 逐位移植 web `lib/phonics.ts` + `PhonicsExceptions` 66 条例外表 + `PhonemeTips` 44 条要领表与 `tipSpeechText` TTS 清洗）+ `data/audio/PhonicsColorStore`（SharedPreferences 开关，默认开）+ `ui/common/PhonicsText.kt`（`PhonicsText`/`PhonicsToggle`，配色对齐 web App.css）+ `DailyEnglishScreen` 接线（单词/例句/句子三处着色、顶栏开关、PhoneChips 对 bad 类音素出要领卡 + 🔈 朗读）。
 - 🆕 **本轮再补齐②：AI 英语对话流式 ASR 三项**（原遗留项 ②）：`data/asr/StreamingAsrClient`（OkHttp WS `/asr/stream`，START/FINISH + MID_TEXT/FIN_TEXT 契约，`awaitFinalText` 对齐 web `waitFinalText`）+ `data/audio/StreamingPcmRecorder`（200ms 块 + `energyLevel` 0-1 刻度逐位移植）+ `ui/englishtalk/EnglishTurnAsr`（web `useEnglishTurn` 等价物：start/pause/resume/stop + `PauseWatch` 静音判定 300ms 轮询/能量阈值 0.02/首静默 6s/停顿 2s，时钟可注入已单测）+ VM/Screen 接线（逐词实时上屏+电平条、停顿逐词提示、6s 挂引导阶梯复用 `EchoLadderState`、💡提示记录面板、点读/再读录音中自动暂停恢复 ASR）。单测 **+9 例**，全量门禁 **34 类 / 444 例 / 0 失败**，`assembleDebug` BUILD SUCCESSFUL。⚠️ **KDoc 里 `/asr/*` 的 `/*` 会开嵌套注释**（skill `aiphonix-android-parity` §5c 的又一实例）。
 - ⚠️ 码表 `v`=vowel-single、`V`=vowel-long（大小写敏感）；★ JVM 正则支持嵌套字符类，JS 正则照抄时类内 `[` 必须转义 `\[`（详见 `ANDROID_PARITY_PLAN.md`「批次 C 收官后补齐」小节）。
-- ✅ **21/21 个 web 模块全部移植完成**（差距表 #1–#19 全绿；#2 为有意的结构差异）。完整收官结论见 `docs/ANDROID_PARITY_PLAN.md` **§3.5**。
+- ✅ **21/21 个 web 模块全部移植完成**（差距表 #1–#19 全绿；#2 为有意的结构差异）。完整收官结论见 `docs/ANDROID_PARITY_PLAN.md` **§3.5**。（⚡ 此为 2026-09-22 快照；此后新增的 `math_relations` 与 `sentence_doctor` 见本节顶部警示与下方小节。）
 - **仍剩余**：① web 侧待修 `charImages.ts` 的 `type_` → `type`；② 用户实机验证。（~~AI 英语对话流式 ASR 三项~~ 已在本轮补齐，见下条。）
 - ★ **「拍照 OCR 自动填入」已全部落地**（详见下方「拍照 OCR 自动填入」小节）：每日语文（多图框选 + 拼音清洗）、每日英语（单图整页）、AI 英语对话（整页识词抽句 → 勾选导入）三处设置面板均已移植，对应 `OcrPickSheet` / `EnVocabPhotoSheet` 系 + `EnVocabExtract` 抽词规则。**唯一不做的是 AI 对话学语文**——web `SpeechComposePage` 本就没有 OCR，不是 parity gap。
 
@@ -961,6 +966,32 @@ APK ≈35.8MB。★ 本机**无设备/模拟器** ⇒ 止于「构建通过 + �
 - **`clickableNoRipple` 必须是包级 `internal`**：同包多个文件各写 `private fun Modifier.clickableNoRipple` 会与包级版**重名冲突**（`Conflicting overloads`）。抽到 `OcrImportButtons.kt` 包级一处即可。
 - ★ 相机走 `ActivityResultContracts.TakePicture` + `OcrPlatform.newCameraFile()`（FileProvider 要求的 `cache/import_photos/ocr_photo_<ts>.jpg`）；相册每日语文走 `GetMultipleContents("image/*")`（可多选）、每日英语/AI 英语对话走 `GetContent("image/*")`（单张）。
 - 删除按钮 Android 适配：web 把 ✕ 放框外（`right:-10`），Compose 超出父边界收不到手势 ⇒ 就地贴框内右上角并左移让开 `ne` 把手。
+
+### 句子小医生（`/module/sentence_doctor`｜web `50957d9` / Android 2026-10-14）✅（**21/21 之外的新增模块**）
+
+web 侧 2026-10-13/14 新加的第 22 个模块（**提示语标点** + **修改病句**，两册合一页），本轮一次性移植。**零后端**：内容与判对逻辑全在客户端。
+
+**数据规模（脚本会交叉校验，对不上就不写文件）**：标点册 **4 关 / 19 句 / 66 空位**；病句册 **6 关 / 30 句 / 35 处病灶**；标点牌 7 个、手术刀 5 把。
+
+| 层 | 文件 | 说明 |
+|---|---|---|
+| 内容（生成物） | `data/sentencedoctor/SentenceDoctorData.kt`（1315 行） | **由脚本生成，不要手改**；真源 = web `modules/sentence_doctor/data.ts` |
+| 生成脚本 | `web/tools/gen_sentence_doctor_data.ts`（`./web/node_modules/.bin/tsx web/tools/gen_sentence_doctor_data.ts`，须在**仓库根**跑） | 直接 `import` web 的 `data.ts` 再序列化 ⇒ **零转录误差**。★ 放 `web/tools/`（与 `cssSkillMark.py` 同处）—— **`scripts/` 被 `.gitignore:69` 当临时目录整体忽略**（放那儿 `git status` 都不显示，极易以为已加）、**`web/_*` 是一次性探针区** |
+| 纯函数引擎 | `data/sentencedoctor/SentenceDoctorLogic.kt`（304 行） | 判对四态 / 拼句 / 病灶坐标 / 标记切分 / 提示语位置反推 |
+| 持久化 | `data/sentencedoctor/SentenceDoctorStore.kt` | SharedPreferences `aiphonix_sentence_doctor_prefs` / key `sd_solved_v1`（沿用 web storage key 名），存 `Set<String>` |
+| 状态 | `ui/sentencedoctor/SentenceDoctorViewModel.kt`（358 行） | UDF；派生量（关卡进度 / 当前关卡 / 有无笔迹）全在 UiState 算好；`syncSolved()` 只对「已有作答状态」的题自动记账、**记上不撤销** |
+| 页面 | `ui/sentencedoctor/SentenceDoctorScreen.kt`（1559 行） | 两册 Tab / 关卡条折行 / 五个修改符号 / 原句红笔标记 / 画笔层 / 标点牌 |
+| 单测 | `test/.../data/sentencedoctor/SentenceDoctorLogicTest.kt` | **20 例**，移植自 web `marks.test.ts` + `data.test.ts` |
+
+- ★ **最狠的一条测试：重建 == 订正句**。`sdApplyMarks` 把一句话的每处 mark 依次作用到原句上，结果必须**逐字等于 `fixed`** —— 一次挡住三类错（cut 抄错字 / 插补位置选错 / 顺序错位）。修改符号要**画在原句上**，位置错了比不画更坏（孩子会照着错的框去改）。web 与 Android 两侧都跑，**30 句全绿**。
+- ★ **坐标不靠 diff 猜，由内容显式声明**：`SdSpotMark`（`cut`/`put`/`at`/`with`）直接写出病灶在原句的位置，运行时**不跑字符级 diff** —— 遇到「对调/移动」时 LCS 有并列最优路径，机器猜出来的会「看起来对、其实错」。
+- ★ **判对四态**（`EMPTY`/`TYPING`/`OK`/`WRONG`）的关键是「**前缀算待续**」：点第一下不能报红，只有「填满且不等于答案」才是 `WRONG`。
+- ★ **红笔标记是「贴在字上方生长」的 Compose 版，不是 DOM 绝对定位照抄**：web 用 `position:absolute` 让引线/方框从被框的字上「长」出去；Compose 改成「每个被框的字是一列：上方固定高度装饰区（Canvas，**允许画到自身边界外**）+ 下方带框的字」，**同样不必量坐标**。代价与 web 一致：**跨行长引线画不出来** ⇒ 对调/移动仍用 ① ② 编号配对。
+- 有意差异②：**画笔层关着时不装 `pointerInput`**（而不是装个 `enabled=false` 的）—— 装了就会吃掉手指事件、孩子没法滚页面（对应 web 的 `.sd-pen { pointer-events:none }`）；手势 key 用**固定字符串** `"sd-pen"`（带每帧变化的值会让拖一下就重启检测器）。
+- 🔴 关卡条（FlowRow）**必须折行**，不许改回一行横滑（4 关 564px / 病句 6 关 876px，容器仅 328~361px）。
+- 本轮踩坑：① 生成脚本的计数会把 `data class SdXxx(` 也算进去 ⇒ 假失败，需 ``new RegExp("(?<!data class )"+name+"\\(")``；② `quadraticBezierTo` 已弃用 ⇒ 用 `Path.quadraticTo`；③ public composable 暴露 internal 参数类型直接编译失败 ⇒ Screen 写 `internal fun`；④ `Modifier.matchParentSize()` 只在 `BoxScope` 可用 ⇒ 画笔层写 `private fun BoxScope.SdPenOverlay(...)`；⑤ ★ **web `data.ts` 头部注释早已过期**（写「下半册 4 关 28 句」，实际 6 关 30 句）⇒ **别拿注释当台账，跑脚本看真实计数**；⑥ ★★ **`.gitignore:69` 把整个 `scripts/` 当「Temp scripts」忽略** —— 生成脚本初版放 `scripts/` 后 `git status` **根本不显示**（极易以为已入库、提交时静默漏掉）。本仓「脚本放哪」的三条线：**永久工具 → `web/tools/`**（先例 `cssSkillMark.py`）、`scripts/` = 临时、`web/_*` = 探针；自查用 **`git check-ignore -v <path>`（退出码 0 = 被忽略）**。
+- 接线四处：`NavigationKeys.kt`（`data object SentenceDoctor`）+ `Navigation.kt`（`entry<SentenceDoctor>` + `onOpenSentenceDoctor`）+ `AppContainer.kt`（`sentenceDoctorStore`）+ `HomeScreen.kt`（「🩺 句子小医生」ToolCard，置于「每日英语」之后，对齐 web 的 textbook 分组顺序）。
+- 门禁：单测 **20 例全绿**；全量 **40 测试类 / 583 例 / 0 失败**（基线 564 例）；`assembleDebug` BUILD SUCCESSFUL；APK `app-debug.apk` ≈39MB（versionCode 2 / versionName 1.1，本轮**未**改版本号）。
 
 ### 批次B 顺手修掉的真实 bug（生产影响，重要）
 - ✅ **`type` vs `type_` 参数名不一致 ⇒ 过滤曾被静默忽略（已全链路闭环，2026-09-22 复核）**：服务端 `char_images.ts`（`server_cf` 与 `server_ts`）读的是 `c.req.query("type")`。生产实测：`type=认` → **816** 条，`type_=认` → **3028** 条（全量）；`三年级上&type=认` → **173**。Android 侧已修（`CharImageViewModel` 两处 `type_=` → `type=`，带 ⚠️ 注释）；**web 侧也已生效**——`web/src/services/charImages.ts` 实际一直是 `qs.set("type", params.type_)`（自 `64c6899` 入库起即如此，此前「web 侧未修」是过时记录），且修复已随 `index-PBqBgbjv.js` 构建上线（线上 charImages chunk 与本地 dist 字节一致、生产 entry 哈希相同）。

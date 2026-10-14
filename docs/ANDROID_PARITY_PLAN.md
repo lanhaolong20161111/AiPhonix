@@ -67,6 +67,9 @@
 | 17 | `/module/parent_report`（**家长周报**） | ✅ ParentReportScreen（入口在评测历史页，对齐 web） | `/soe/records`(200) + `/char-images/feedback` 的 **`stats`** + `/wordbook/list` | 中 |
 | 18 | `/register`（注册页） | ✅ LoginScreen 已含注册（登录/注册 `FilterChip` 切换 + 注册额外字段 + `viewModel.register()`） | auth | 低（已结案） |
 | 19 | `/module/sentence_practice`（造句练习） | ✅ SentenceComposeScreen | `AiChatRepository.ask("chinese")` + 每日语文句型 | 中 |
+| 20 | `/module/sentence_doctor`（句子小医生） | ✅ SentenceDoctorScreen（2026-10-14） | **零后端**：内容由脚本从 web `data.ts` 生成 + 纯函数引擎 | 高 |
+| 21 | `/module/math_relations`（数量关系与交换） | ✅ RelationsScreen（2026-10-07，零后端） | 本地规则引擎 | 中 |
+| 22 | `/module/math_units` 的「尺子上看例子」增量 | ✅（2026-10-09，零后端） | — | 低 |
 
 ## 3. 实施批次（每批可独立构建验证）
 
@@ -76,7 +79,12 @@
 > 已完成：拼音表、AI 历史、AI 英语、评测历史（A）；生词本、记忆快乐本、汉字地图、成长日记、偏旁魔法屋（B）；
 > 课件库、每日语文、每日英语、造句练习（C 前半）+ 生词本「点读自动收录」接线（B 遗留）；
 > **AI 对话学语文、AI 英语对话、综合算式动画、字幕采集（C 后半 4 个）**；**家长周报**。
-> ✅ **21/21 个 web 模块全部移植完成**，收官核对结论见下方 §3.5。
+> ✅ **当时（2026-09-22）核对：web 侧全部模块 21/21 已移植完成**，收官结论见下方 §3.5。
+>
+> ⚠️ **这句话此后已过期** —— 后面 web 又新增了两个模块：
+> `math_relations`（2026-10-07 已补，见 §3.5）与 **`sentence_doctor`（2026-10-14 已补，见 §3.5）**。
+> 判「还有没有缺口」**别信这句话**，跑一遍：从 `web/src/modules/catalog.ts` 抽 `id:` 清单，
+> 逐个在 `app/src/main/java/**/ui/` 里找对应 Screen/功能。
 
 ### 批次 A（本次会话）✅ 全部完成
 1. **拼音表** ✅：`PinyinIndexScreen` + `PinyinDetailScreen`；数据由脚本从 `pinyinTable.ts`/`pinyinMnemonic.ts` 生成 `data/pinyin/PinyinTableData.kt`（449 行，含 23 声母/26 韵母/16 整体认读，无转录误差）；符号音频走 `/api/v1/pinyin-audio`（`PinyinAudioPlayer`），例字走中文百度 TTS；首页新增固定入口卡片。
@@ -279,6 +287,10 @@
 **已移植 21 / 21 个 web 模块 —— 全部完成** ✅。差距表 #1–#19 全部 ✅；#2 是结构差异（Android 输入+结果同屏，能力已覆盖）。
 
 > **2026-09-29 追加**：web 侧后来又新增了「等式变变变」（路由键 `module/math_equation_move`，见 `web/src/routes.tsx:120`），Android 已同步移植（见下方「批次 C 收官后新增：等式变变变」）。此后若 web 再新增模块，需先 `grep -n 'path: "module/' web/src/routes.tsx` 对一遍清单（⚠️ 路由键**不带前导斜杠**、且新页未必按序追加），不要只看本文档的旧表。
+>
+> **🆕 2026-10-14 追加**：「21/21」至此已彻底成为历史快照。**21/21 之后新增并已补齐 Android 的模块，以 §2 差距表的 `#20`–`#22` 行为准**：`math_relations`（10-07，数量关系与交换）、`math_units` 的「尺子上看例子」增量（10-09）、`sentence_doctor`（10-14，句子小医生，见下方「批次 C 收官后新增：句子小医生」）。
+>
+> **判缺口的正确姿势（2026-10-14 复核）**：抽 `web/src/modules/catalog.ts` 的 id 清单（现为 **50 条**）逐个对 Android 落地页，**比 `routes.tsx` 更全**（catalog 才是「有哪些功能」的唯一真源）。50 条里有 3 条**不是** parity 目标 / 已按结构差异覆盖，别为它们返工：`placeholder`（web 侧占位脚手架）与 `soe_demo`（web 侧调试演示页）**本就不是产品功能**；`ai_parse_result` 是**有意结构差异**（Android 输入+结果同屏，无独立结果页）。另有映射关系不是同名要注意：`phoneme_detail` → `ui/phonics/PhonicsScreen`（`NavKey.Phonics(phonemeIndex)`）。
 
 ### ✅ 家长周报（`/module/parent_report`）—— 已补齐（原本是唯一真缺口）
 
@@ -514,7 +526,70 @@ web 侧本轮把「长度与质量单位」页的**尺子段落重做**并给全
 - ⚠️ **仍有的一处显示差异**：web 在量感提示旁有一条「看看 1厘米(cm) 有多大」锚点跳转到参照物墙，
   Android 的 `CutStage` 没有这条跳转（LazyColumn 定位需额外接线）—— 文字标注已对齐，跳转动作未移植。
 
-### 有意保留的能力降级（非遗漏，别当 bug 修）
+### 批次 C 收官后新增：句子小医生（`/module/sentence_doctor`｜2026-10-14）
+
+web 侧 2026-10-13/14 新加的第 22 个模块（提示语标点 + 修改病句，两册合一页），本轮一次性移植。
+**零后端**：全部内容与判对逻辑都在客户端。
+
+| 层 | 文件 | 说明 |
+|---|---|---|
+| 内容（生成物） | `data/sentencedoctor/SentenceDoctorData.kt`（1315 行） | **由脚本生成，不要手改**。真源 = web `modules/sentence_doctor/data.ts` |
+| 生成脚本 | `web/tools/gen_sentence_doctor_data.ts`（`./web/node_modules/.bin/tsx web/tools/gen_sentence_doctor_data.ts`，在**仓库根**跑） | 直接 `import` web 的 `data.ts` 再序列化 ⇒ **零转录误差**。★ 放 `web/tools/`（本仓「与源码同维护的构建期工具」目录，先例 `cssSkillMark.py`）：**`scripts/` 被 `.gitignore:69` 当临时目录整体忽略**（放那儿 `git status` 都不显示）、**`web/_*` 是一次性探针的命名区** |
+| 纯函数引擎 | `data/sentencedoctor/SentenceDoctorLogic.kt` | 判对四态 / 拼句 / 病灶坐标 / 标记切分 / 提示语位置反推 |
+| 持久化 | `data/sentencedoctor/SentenceDoctorStore.kt` | SharedPreferences `sd_solved_v1`（沿用 web 的 storage key 名） |
+| 状态 | `ui/sentencedoctor/SentenceDoctorViewModel.kt` | UDF；派生量（关卡进度 / 当前关卡 / 有无笔迹）全在 UiState 里算好 |
+| 页面 | `ui/sentencedoctor/SentenceDoctorScreen.kt` | 两册 Tab / 关卡条折行 / 五个修改符号 / 原句红笔标记 / 画笔层 / 标点牌 |
+| 单测 | `data/sentencedoctor/SentenceDoctorLogicTest.kt` | **20 例**，移植自 web 的 `marks.test.ts` + `data.test.ts` |
+
+数据规模（脚本会交叉校验，数目对不上就不写文件）：标点册 **4 关 19 句 66 空位**、
+病句册 **6 关 30 句 35 处病灶**、标点牌 7 个、手术刀 5 把。
+
+#### ★ 这个模块最狠的一条测试：**重建 == 订正句**
+
+`applyMarks` 把一句话的每一处 mark 依次作用到原句上，结果必须**逐字等于** `fixed`。
+它一次挡住三类错：cut 抄错一个字（定位不到→抛错）、插补位置选错（重建出另一句）、
+顺序错位（病灶与答案对不上）。为什么值得写：修改符号要**画在原句上**，位置错了比不画更坏
+—— 孩子会照着错的框去改。web 与 Android 两侧都跑这条，**30 句全绿**。
+
+配套还有：cut/with/at 在原句里必须唯一、五种刀的字段组合正确、对调刀两处必须紧挨、
+同一句两处病灶的框不能重叠；19 句的提示语原文与「前/中/后」位置逐句钉死。
+
+#### ★ 坐标不靠 diff 猜，由内容显式声明
+
+`SdSpotMark`（`cut` / `put` / `at` / `with`）直接写出病灶在原句里的位置，运行时**不跑字符级 diff**：
+一遇到「对调 / 移动」，LCS 会有并列最优路径，机器猜出来的位置会**看起来对、其实错**
+（web `data.ts` 里有详细论证，本轮原样保留这段结论）。
+
+#### 有意与 web 的两处差异（非遗漏）
+
+1. **红笔标记是「贴在字上方生长」的 Compose 版，不是 DOM 绝对定位的照抄**：
+   web 用 `position:absolute` 让引线/方框从被框的字上「长」出去（所以折行也不会画歪）；
+   Compose 里改成「每个被框的字是一列：上面一个固定高度的装饰区 + 下面带框的字」，
+   装饰画在 Canvas 上、允许画到自身边界外，于是**同样不需要量坐标**。
+   代价与 web 一致：**跨行的长引线画不出来** ⇒「对调 / 移动」仍用 ① ② 编号配对，不硬拉跨行线。
+2. **画笔层关着时不装 `pointerInput`**（而不是装一个 `enabled=false` 的）：
+   装了就会吃掉手指事件、孩子没法滚页面（对应 web 的 `.sd-pen { pointer-events: none }`）。
+   手势 key 用固定字符串 `"sd-pen"` —— 带每帧变化的值会让拖一下就重启检测器。
+
+#### 本轮踩的坑
+
+- 🔴 **生成脚本里的计数会把 `data class SdXxx(` 也算进去**：第一次跑出「文件 20 句 vs 源 19 句」的
+  假失败，因为声明行与被调用的构造长得一样。改成 ``new RegExp("(?<!data class )" + name + "\\(")`` 才对。
+- 🔴 **`QuadraticBezierTo` 已弃用** ⇒ Compose 的 `Path` 用 `quadraticTo(...)`（否则两条 deprecation 警告）。
+- 🔴 **public composable 暴露 internal 参数类型**会直接编译失败
+  （`'public' function exposes its 'internal' parameter type`）⇒ Screen 写成 `internal fun`。
+- 🔴 **`Modifier.matchParentSize()` 只在 `BoxScope` 里可用** ⇒ 画笔层必须写成 `private fun BoxScope.SdPenOverlay(...)`，
+  写成普通 `Modifier` 扩展会报 `Unresolved reference 'matchParentSize'`。
+- 🔴 **web 的 `data.ts` 头部注释早已过期**：写「下半册 4 关 28 句」，实际是 **6 关 30 句**
+  （关卡按「哪把刀」命名，6 关；`FIX_LEVELS.length === 6`，与「病句册 6 关 876px」的排版记录一致）。
+  ⇒ 移植时**别拿注释当台账**，跑一遍脚本看真实计数。
+- 🔴 **`.gitignore:69` 把整个 `scripts/` 当「Temp scripts」忽略掉**：生成脚本初版放 `scripts/`
+  后，`git status` 里**根本不显示**（很容易以为已经加进去了，实际提交时会被静默漏掉）。
+  本仓三个「脚本该放哪」的规矩：**永久工具 → `web/tools/`**（先例 `cssSkillMark.py`）；
+  `scripts/` = 临时/一次性；`web/_*` = 探针（`.gitignore` 里逐条列举）。
+  判断办法：`git check-ignore -v <path>`，**退出码 0 就是被忽略了**。
+
+
 
 - ~~**每日英语缺 2 项**~~ **已补齐**（本轮）：phonics 音形着色（`data/phonics/` 规则引擎逐位移植 web `lib/phonics.ts` + 66 条例外表）、「发音要领」（44 条本地 `phonicsTips` 表 + `tipSpeechText` TTS 清洗）；每日英语三处文本着色 + 顶栏开关 + 评测明细低分音素要领卡均已接线。
 - ~~**AI 英语对话缺流式 ASR 相关 3 项**~~ **已补齐**（本轮）：逐词实时上屏 / 6 秒静音自动挂阶梯 / 提示记录面板（见「批次 C 后半 · AI 英语对话」小节）。

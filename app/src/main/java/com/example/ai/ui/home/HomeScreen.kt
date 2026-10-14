@@ -67,6 +67,7 @@ fun HomeScreen(
     onOpenMathMulOne: () -> Unit = {},
     onOpenMathRelations: () -> Unit = {},
     onOpenSubtitleCapture: () -> Unit = {},
+    onOpenSentenceDoctor: () -> Unit = {},
     container: AppContainer,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel<HomeViewModel> { HomeViewModel(container.contentRepository) },
@@ -291,6 +292,17 @@ fun HomeScreen(
             containerColor = Color(0xFFE3F2FD),
             arrowColor = Color(0xFF1565C0),
             onClick = onOpenDailyEnglish,
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // 句子小医生（提示语标点 + 修改病句：先找部件再下笔；web 的 textbook 分组里排在每日英语之后）
+        ToolCard(
+            emoji = "🩺",
+            title = "句子小医生",
+            subtitle = "提示语标点 · 修改病句，先找部件再下笔",
+            containerColor = Color(0xFFFDE8E8),
+            arrowColor = Color(0xFFB91C1C),
+            onClick = onOpenSentenceDoctor,
         )
         Spacer(Modifier.height(12.dp))
 
