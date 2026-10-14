@@ -11690,19 +11690,16 @@ button.btn-mode-off {
   color: #fff;
 }
 
-/* ── 关卡条（窄屏横向滚动，不折成两行）── */
+/* ── 关卡条（窄屏折行，每一关都看得见）──
+   原来是一行横滑、换关时把当前关滚到正中间。2026-10-14 实测（手机宽度）：
+   标点册 4 关要 564px、病句册 6 关要 876px，而容器只有 361px —— 横滑条又隐藏了滚动条、
+   没有任何「还能往右滑」的提示，于是任何时刻都有 2~4 关在屏幕外，孩子/家长看到的就是
+   「文字被切了、关卡少了」。折行让所有关卡始终可见，代价是窄屏多占 1~2 行。 */
 .sd-levels {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 6px;
   margin-bottom: 10px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.sd-levels::-webkit-scrollbar {
-  display: none;
 }
 
 .sd-level {

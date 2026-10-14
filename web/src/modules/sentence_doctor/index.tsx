@@ -414,17 +414,6 @@ export function SentenceDoctorPage() {
   /** ✏️ 画笔总开关（两册共用）；笔迹按卡片 key 分开存，换关回来还在 */
   const [penOn, setPenOn] = useState(false)
   const [strokes, setStrokes] = useState<Record<string, Pt[][]>>({})
-  const levelBarRef = useRef<HTMLDivElement | null>(null)
-
-  /* 关卡条在手机上是要横滑的（病句那边有 6 关），当前关可能整个滚在屏幕外——
-     孩子点了「下一关」却没看到哪一关被选中。每次换关把当前项滚到中间。
-     只动这个容器的 scrollLeft，不调 scrollIntoView：后者会把整个页面一起纵向拽动。 */
-  useEffect(() => {
-    const bar = levelBarRef.current
-    const el = bar?.children[lvIdx[mode]] as HTMLElement | undefined
-    if (!bar || !el) return
-    bar.scrollLeft = el.offsetLeft - (bar.clientWidth - el.clientWidth) / 2
-  }, [mode, lvIdx])
 
   const pLevel = PUNCT_LEVELS[lvIdx.punct]
   const fLevel = FIX_LEVELS[lvIdx.fix]
@@ -604,7 +593,7 @@ export function SentenceDoctorPage() {
         </span>
       </div>
 
-      <div className="sd-levels" ref={levelBarRef}>
+      <div className="sd-levels">
         {levels.map((l, i) => (
           <button
             key={l.key}
