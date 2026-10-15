@@ -156,22 +156,27 @@
   .refcard .u { font-size: 22px; font-weight: 900; margin-top: 8px; }
   .refcard .d { font-size: 17px; opacity: .72; margin-top: 3px; }
 
-  /* ── ×10 楼梯链 ── */
+  /* ── ×10 楼梯链（双向：上排 ×10 去，下排 ÷10 回）── */
   #chain {
     margin-top: 30px; background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
     padding: 18px 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-    gap: 6px; row-gap: 12px;
+    gap: 6px; row-gap: 14px;
   }
   #chain .node {
-    font-size: 20px; font-weight: 900; padding: 8px 14px; border-radius: 12px; color: #fff;
-    cursor: pointer;
+    padding: 7px 14px; border-radius: 14px; color: #fff; cursor: pointer;
+    display: inline-flex; flex-direction: column; align-items: center; line-height: 1.2;
   }
-  #chain .step {
-    font-size: 18px; font-weight: 900; padding: 4px 10px; border-radius: 999px; cursor: pointer;
-    background: #f2ecff; color: #6043e0; border: 2px dashed #b7a4ff;
+  #chain .node .cn { font-size: 20px; font-weight: 900; }
+  #chain .node .en { font-size: 13px; font-weight: 700; opacity: .85; }
+  #chain .step { display: inline-flex; flex-direction: column; gap: 5px; }
+  #chain .pill {
+    font-size: 15px; font-weight: 900; padding: 3px 10px; border-radius: 999px;
+    cursor: pointer; white-space: nowrap;
   }
-  #chain .step.gold { background: #fff3d6; color: #9a6b00; border-color: var(--gold); }
-  #chain .step:active { transform: scale(.94); }
+  #chain .pill.down { background: #d9f5e7; color: var(--down); border: 2px dashed #8fd7b8; }
+  #chain .pill.up   { background: #ffe3e3; color: var(--up);   border: 2px dashed #f3a7a7; }
+  #chain .pill.gold { background: #fff3d6; color: #9a6b00;     border-color: var(--gold); }
+  #chain .pill:active { transform: scale(.94); }
 
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: .01s !important; transition-duration: .01s !important; }
@@ -199,7 +204,7 @@
 <h2 class="sec">👀 1 个单位有多长？</h2>
 <div id="refs"></div>
 
-<h2 class="sec">🪜 楼梯：每步 ×10（千米到米是 ×1000）</h2>
+<h2 class="sec">🪜 楼梯：下去 ×10，上来 ÷10（千米↔米是 1000）</h2>
 <div id="chain"></div>
 
 <script>
@@ -262,22 +267,30 @@
     refs.appendChild(c);
   });
 
-  /* ── ×10 楼梯链 ── */
+  /* ── 楼梯链：节点 = 中文+符号；每步 = 上「×10 →」下「← ÷10」，各播对应方向 ── */
   var chain = document.getElementById("chain");
   UNITS.forEach(function (u, i) {
     var n = document.createElement("span");
     n.className = "node";
     n.style.background = getComputedStyle(bands[i]).background;
-    n.textContent = u.sym;
+    n.innerHTML = '<span class="cn">' + u.name + '</span><span class="en">' + u.sym + "</span>";
     n.addEventListener("click", function () { touched = true; onBand(i); });
     chain.appendChild(n);
     if (i < UNITS.length - 1) {
-      var s = document.createElement("span");
-      var gold = (i === 0);              // km→m 那步
-      s.className = "step" + (gold ? " gold" : "");
-      s.textContent = gold ? "×1000 →" : "×10 →";
-      s.addEventListener("click", function () { touched = true; reset(); animate(i, i + 1); });
-      chain.appendChild(s);
+      var gold = (i === 0);              // km↔m 那步
+      var wrap = document.createElement("span");
+      wrap.className = "step";
+      var dn = document.createElement("span");   // 金字塔往下 = 单位变小 = 数字变大 = ×
+      dn.className = "pill down" + (gold ? " gold" : "");
+      dn.textContent = gold ? "×1000 →" : "×10 →";
+      dn.addEventListener("click", function () { touched = true; reset(); animate(i, i + 1); });
+      var up = document.createElement("span");   // 往上 = ÷
+      up.className = "pill up" + (gold ? " gold" : "");
+      up.textContent = gold ? "← ÷1000" : "← ÷10";
+      up.addEventListener("click", function () { touched = true; reset(); animate(i + 1, i); });
+      wrap.appendChild(dn);
+      wrap.appendChild(up);
+      chain.appendChild(wrap);
     }
   });
 
