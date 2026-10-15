@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>长度金字塔</title>
+<style>
+  :root {
+    --ink: #2b2340;
+    --paper: #fdf9f1;
+    --card: #ffffff;
+    --gold: #f5a623;
+    --up: #e05656;
+    --down: #2f9e6e;
+    --shadow: 0 6px 24px rgba(43, 35, 64, .10);
+    --r: 22px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 50% -100px, #ffefcf 0%, transparent 60%),
+      var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 20px 14px 60px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* ── 标题：一个大字 + 一个图标，不放长句 ── */
+  header { text-align: center; margin-bottom: 8px; }
+  h1 { font-size: clamp(30px, 8vw, 44px); margin: 0; letter-spacing: 2px; }
+  .hint { font-size: 19px; opacity: .75; margin-top: 6px; }
+  .hint b { color: var(--gold); }
+
+  /* ── 选择状态条 ── */
+  #status {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 52px; margin: 10px auto 14px;
+    background: var(--card); border-radius: 999px; box-shadow: var(--shadow);
+    padding: 8px 20px; font-size: 22px; font-weight: 700; width: fit-content;
+  }
+  #status .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  #status .arrow { font-size: 24px; opacity: .6; }
+
+  /* ── 金字塔 ── */
+  #pyramid {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; margin: 0 auto; width: 100%;
+  }
+  .band {
+    --w: 100%;
+    width: var(--w);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 13px 8px;
+    border: 4px solid transparent;
+    border-radius: 16px;
+    font-size: clamp(22px, 6vw, 30px);
+    font-weight: 800;
+    cursor: pointer;
+    user-select: none;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,.22);
+    transition: transform .25s, border-color .25s, filter .25s;
+    position: relative;
+    opacity: 0;
+    animation: bandIn .9s ease forwards;
+  }
+  .band:nth-child(1) { animation-delay: .15s; }
+  .band:nth-child(2) { animation-delay: .45s; }
+  .band:nth-child(3) { animation-delay: .75s; }
+  .band:nth-child(4) { animation-delay: 1.05s; }
+  .band:nth-child(5) { animation-delay: 1.35s; }
+  @keyframes bandIn { from { opacity: 0; transform: translateY(26px) } to { opacity: 1; transform: none } }
+
+  .band .sym { font-size: .72em; opacity: .85; font-weight: 700; }
+  .band .ref { font-size: clamp(26px, 7vw, 34px); filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+  .band.picked { border-color: #fff; transform: scale(1.04); filter: brightness(1.08); }
+  .band.pulse { animation: pulse 1s ease 2; }
+  @keyframes pulse { 50% { transform: scale(1.07); filter: brightness(1.2) } }
+
+  /* 宽度做出金字塔轮廓 */
+  .band[data-i="0"] { --w: 42%;  background: linear-gradient(180deg,#7b5cff,#6043e0); }
+  .band[data-i="1"] { --w: 56%;  background: linear-gradient(180deg,#3f8cff,#2f6fdd); }
+  .band[data-i="2"] { --w: 70%;  background: linear-gradient(180deg,#22b07d,#128a61); }
+  .band[data-i="3"] { --w: 84%;  background: linear-gradient(180deg,#f0932b,#d97b06); }
+  .band[data-i="4"] { --w: 100%; background: linear-gradient(180deg,#e05656,#c23a3a); }
+
+  /* ── 移动小球（转换动画主角）── */
+  #ball {
+    position: fixed; z-index: 30; font-size: 34px; pointer-events: none;
+    left: 0; top: 0; opacity: 0;
+    transition: transform 1.4s cubic-bezier(.45,.05,.35,1), opacity .3s;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.3));
+  }
+  #ball.show { opacity: 1; }
+
+  /* ── ÷10 / ×10 徽章 ── */
+  .badge {
+    position: fixed; z-index: 31; pointer-events: none;
+    font-size: clamp(24px, 6.5vw, 32px); font-weight: 900;
+    padding: 8px 16px; border-radius: 999px;
+    box-shadow: var(--shadow); opacity: 0;
+    animation: badgePop 2.6s ease forwards;
+    white-space: nowrap;
+  }
+  .badge.up   { background: #ffe3e3; color: var(--up);   border: 3px solid var(--up); }
+  .badge.down { background: #d9f5e7; color: var(--down); border: 3px solid var(--down); }
+  .badge.gold { background: #fff3d6; color: #9a6b00;     border: 3px solid var(--gold); }
+  @keyframes badgePop {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+    12%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+    20%  { transform: translate(-50%, -50%) scale(1); }
+    78%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+  }
+
+  /* ── 结果卡 ── */
+  #result {
+    margin: 22px auto 0; width: 100%;
+    background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
+    padding: 22px 16px; text-align: center;
+    display: none;
+  }
+  #result.show { display: block; animation: cardIn .8s ease; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: none } }
+
+  #rulePill {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 24px; font-weight: 900; padding: 8px 20px; border-radius: 999px; margin-bottom: 12px;
+  }
+  #rulePill.up   { background: #ffe3e3; color: var(--up); }
+  #rulePill.down { background: #d9f5e7; color: var(--down); }
+  #rulePill.same { background: #eee9ff; color: #6043e0; }
+
+  #resultMain { font-size: clamp(26px, 7.5vw, 38px); font-weight: 900; line-height: 1.5; }
+  #resultMain .emo { font-size: 1.25em; }
+  #resultSub { margin-top: 10px; font-size: 20px; opacity: .7; }
+
+  /* ── 参照物卡片 ── */
+  h2.sec { text-align: center; font-size: 24px; margin: 34px 0 14px; letter-spacing: 1px; }
+  #refs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .refcard {
+    background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
+    padding: 16px 10px; text-align: center; cursor: pointer;
+    transition: transform .25s;
+  }
+  .refcard:active { transform: scale(.96); }
+  .refcard .emo { font-size: 46px; line-height: 1; filter: drop-shadow(0 3px 4px rgba(0,0,0,.18)); }
+  .refcard .u { font-size: 22px; font-weight: 900; margin-top: 8px; }
+  .refcard .d { font-size: 17px; opacity: .72; margin-top: 3px; }
+
+  /* ── ×10 楼梯链 ── */
+  #chain {
+    margin-top: 30px; background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
+    padding: 18px 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 6px; row-gap: 12px;
+  }
+  #chain .node {
+    font-size: 20px; font-weight: 900; padding: 8px 14px; border-radius: 12px; color: #fff;
+    cursor: pointer;
+  }
+  #chain .step {
+    font-size: 18px; font-weight: 900; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+    background: #f2ecff; color: #6043e0; border: 2px dashed #b7a4ff;
+  }
+  #chain .step.gold { background: #fff3d6; color: #9a6b00; border-color: var(--gold); }
+  #chain .step:active { transform: scale(.94); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01s !important; transition-duration: .01s !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📏 长度金字塔</h1>
+  <div class="hint">点 <b>两个</b> 单位，看怎么变</div>
+</header>
+
+<div id="status"><span style="opacity:.55">👆 点上面选单位</span></div>
+
+<div id="pyramid" aria-label="长度单位金字塔"></div>
+<div id="ball">⚽</div>
+
+<div id="result">
+  <div id="rulePill"></div>
+  <div id="resultMain"></div>
+  <div id="resultSub"></div>
+</div>
+
+<h2 class="sec">👀 1 个单位有多长？</h2>
+<div id="refs"></div>
+
+<h2 class="sec">🪜 楼梯：每步 ×10（千米到米是 ×1000）</h2>
+<div id="chain"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* 数据：单位 / 符号 / 参照 emoji / 参照短句 / 颜色索引由 CSS 管 */
+  var UNITS = [
+    { name: "千米", sym: "km", ref: "🏟️", label: "跑道 2 圈半" },
+    { name: "米",   sym: "m",  ref: "🚪", label: "门把手高"   },
+    { name: "分米", sym: "dm", ref: "🖍️", label: "粉笔长"     },
+    { name: "厘米", sym: "cm", ref: "👍", label: "指甲宽"     },
+    { name: "毫米", sym: "mm", ref: "💳", label: "卡片厚"     },
+  ];
+  /* 相邻两级的倍数：km↔m 是 1000，其余 10 */
+  function stepRatio(i, j) {           // i, j 为相邻索引
+    var lo = Math.min(i, j), hi = Math.max(i, j);
+    return (lo === 0 && hi === 1) ? 1000 : 10;
+  }
+
+  var pyramid = document.getElementById("pyramid");
+  var statusEl = document.getElementById("status");
+  var ball = document.getElementById("ball");
+  var result = document.getElementById("result");
+  var rulePill = document.getElementById("rulePill");
+  var resultMain = document.getElementById("resultMain");
+  var resultSub = document.getElementById("resultSub");
+
+  var pick = [];        // 已选单位索引
+  var busy = false;     // 动画中禁止再点
+  var touched = false;  // 用户点过任何东西 ⇒ 开场演示不再自动跑
+
+  /* ── 建金字塔 ── */
+  UNITS.forEach(function (u, i) {
+    var b = document.createElement("div");
+    b.className = "band";
+    b.dataset.i = i;
+    b.innerHTML =
+      '<span class="ref">' + u.ref + "</span>" +
+      "<span>" + u.name + '</span><span class="sym">' + u.sym + "</span>";
+    b.addEventListener("click", function () { onBand(i); });
+    pyramid.appendChild(b);
+  });
+  var bands = pyramid.querySelectorAll(".band");
+
+  /* ── 参照物卡片 ── */
+  var refs = document.getElementById("refs");
+  UNITS.slice().reverse().forEach(function (u) {   // 从小到大排：mm → km
+    var i = UNITS.indexOf(u);
+    var c = document.createElement("div");
+    c.className = "refcard";
+    c.innerHTML = '<div class="emo">' + u.ref + '</div><div class="u">1' + u.name +
+                  '</div><div class="d">' + u.label + "</div>";
+    c.addEventListener("click", function () {
+      touched = true;
+      var b = bands[i];
+      b.classList.remove("pulse"); void b.offsetWidth; b.classList.add("pulse");
+      b.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    refs.appendChild(c);
+  });
+
+  /* ── ×10 楼梯链 ── */
+  var chain = document.getElementById("chain");
+  UNITS.forEach(function (u, i) {
+    var n = document.createElement("span");
+    n.className = "node";
+    n.style.background = getComputedStyle(bands[i]).background;
+    n.textContent = u.sym;
+    n.addEventListener("click", function () { touched = true; onBand(i); });
+    chain.appendChild(n);
+    if (i < UNITS.length - 1) {
+      var s = document.createElement("span");
+      var gold = (i === 0);              // km→m 那步
+      s.className = "step" + (gold ? " gold" : "");
+      s.textContent = gold ? "×1000 →" : "×10 →";
+      s.addEventListener("click", function () { touched = true; reset(); animate(i, i + 1); });
+      chain.appendChild(s);
+    }
+  });
+
+  /* ── 选择逻辑：点 1 个 = 选中起点；点第 2 个 = 开始动画 ── */
+  function onBand(i) {
+    if (busy) return;
+    touched = true;
+    if (pick.length === 0) {
+      pick = [i];
+      bands[i].classList.add("picked");
+      showPick();
+    } else if (pick.length === 1) {
+      if (pick[0] === i) { reset(); return; }   // 再点自己 = 取消
+      pick.push(i);
+      bands[i].classList.add("picked");
+      showPick();
+      animate(pick[0], pick[1]);
+    } else {
+      reset();
+      pick = [i];
+      bands[i].classList.add("picked");
+      showPick();
+    }
+  }
+
+  function showPick() {
+    if (pick.length === 1) {
+      var u = UNITS[pick[0]];
+      statusEl.innerHTML = '<span class="chip" style="background:#eee9ff">' +
+        u.ref + " " + u.name + "</span><span class='arrow'>→ ?</span>";
+    } else if (pick.length === 2) {
+      var a = UNITS[pick[0]], b = UNITS[pick[1]];
+      statusEl.innerHTML =
+        '<span class="chip" style="background:#eee9ff">' + a.ref + " " + a.name + "</span>" +
+        '<span class="arrow">→</span>' +
+        '<span class="chip" style="background:#ffe9c7">' + b.ref + " " + b.name + "</span>";
+    }
+  }
+
+  function reset() {
+    pick = [];
+    bands.forEach(function (b) { b.classList.remove("picked"); });
+    result.classList.remove("show");
+    statusEl.innerHTML = '<span style="opacity:.55">👆 点上面选单位</span>';
+  }
+
+  /* ── 主动画：从 i 走到 j ── */
+  function animate(from, to) {
+    busy = true;
+    var goingUp = to < from;             // 往金字塔上面 = 单位变大 = 数字变小 = 除法
+    var stepIdxs = [];
+    if (goingUp) { for (var k = from; k > to; k--) stepIdxs.push(k); }
+    else { for (var k2 = from; k2 < to; k2++) stepIdxs.push(k2); }
+
+    var ratio = 1;
+    for (var s = 0; s < stepIdxs.length; s++) {
+      ratio *= stepRatio.apply(null,
+        goingUp ? [stepIdxs[s], stepIdxs[s] - 1] : [stepIdxs[s], stepIdxs[s] + 1]);
+    }
+
+    /* 1) 小球逐级走：每 1.5s 走一级，与徽章同节奏 */
+    ball.textContent = goingUp ? "🚀" : "⚽";
+    ball.style.transition = "none";
+    var first = centerOf(bands[from]);
+    ball.style.transform = "translate(" + (first.x - 17) + "px," + (first.y - 17) + "px)";
+    ball.classList.add("show");
+    void ball.offsetWidth;
+    ball.style.transition = "";
+    stepIdxs.forEach(function (idx, n) {
+      var dest = centerOf(bands[goingUp ? idx - 1 : idx + 1]);
+      setTimeout(function () {
+        ball.style.transform = "translate(" + (dest.x - 17) + "px," + (dest.y - 17) + "px)";
+      }, 200 + n * 1500);
+    });
+
+    /* 2) 每级弹一个徽章（1.5s 一个，慢） */
+    stepIdxs.forEach(function (idx, n) {
+      setTimeout(function () {
+        var c = centerOf(bands[goingUp ? idx - 1 : idx + 1]);
+        spawnBadge(idx, c, goingUp,
+          stepRatio(idx, goingUp ? idx - 1 : idx + 1) === 1000);
+      }, 350 + n * 1500);
+    });
+
+    /* 3) 落地出结果卡 */
+    var totalMs = 350 + stepIdxs.length * 1500 + 500;
+    setTimeout(function () {
+      ball.classList.remove("show");
+      showResult(from, to, goingUp, ratio);
+      busy = false;
+    }, totalMs);
+  }
+
+  function spawnBadge(i, c, goingUp, gold) {
+    var el = document.createElement("div");
+    var r = stepRatio(i, goingUp ? i - 1 : i + 1);
+    el.className = "badge " + (gold ? "gold" : (goingUp ? "up" : "down"));
+    el.textContent = goingUp ? ("÷" + r) : ("×" + r);
+    el.style.left = c.x + "px";
+    el.style.top = (c.y - 46) + "px";
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 2700);
+  }
+
+  function showResult(from, to, goingUp, ratio) {
+    var big = goingUp ? to : from;       // 金字塔上层 = 大单位
+    var small = goingUp ? from : to;
+    var bu = UNITS[big], su = UNITS[small];
+    var ratioStr = ratio >= 10000 ? ratio.toLocaleString("en-US") : String(ratio);
+
+    rulePill.className = goingUp ? "up" : "down";
+    rulePill.textContent = goingUp
+      ? "⬆️ 向上 ÷" + ratioStr
+      : "⬇️ 向下 ×" + ratioStr;
+
+    if (goingUp) {
+      resultMain.innerHTML = ratioStr + " " + su.sym + " <span class='emo'>" + su.ref +
+        "</span> → 1 " + bu.sym + " <span class='emo'>" + bu.ref + "</span>";
+      resultSub.textContent = su.name + "变小，除 " + ratioStr + " 次 → " + bu.name;
+    } else {
+      resultMain.innerHTML = "1 " + bu.sym + " <span class='emo'>" + bu.ref +
+        "</span> → " + ratioStr + " " + su.sym + " <span class='emo'>" + su.ref + "</span>";
+      resultSub.textContent = bu.name + "变大，乘 " + ratioStr + " → " + su.name;
+    }
+
+    result.classList.add("show");
+    result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    countUp(resultMain, ratioStr);
+  }
+
+  /* 结果里的数字慢慢数上去（把「×1000」数出来，孩子看得见「多」） */
+  function countUp(container, targetStr) {
+    var target = parseInt(targetStr.replace(/,/g, ""), 10);
+    if (isNaN(target) || target <= 1) return;
+    /* 找到含目标数字的文本节点（向上时在开头，向下时在箭头后面） */
+    var node = null;
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      if (walker.currentNode.textContent.indexOf(targetStr) !== -1) { node = walker.currentNode; break; }
+    }
+    if (!node) return;
+    var t0 = null, dur = 1400;
+    function frame(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      p = 1 - Math.pow(1 - p, 3);        // easeOutCubic
+      node.textContent = node.textContent.replace(
+        /[\d,]{3,}/, Math.round(target * p).toLocaleString("en-US"));
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ── 工具 ── */
+  function centerOf(el) {
+    var r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  /* 开场自动演示一次：毫米 → 米（向上 ÷10 三次），不用孩子读字就能看懂玩法 */
+  setTimeout(function () {
+    if (!touched && !busy) { pick = [4]; bands[4].classList.add("picked"); showPick(); }
+  }, 2600);
+  setTimeout(function () {
+    if (!touched && pick.length === 1 && pick[0] === 4 && !busy) {
+      pick.push(1); bands[1].classList.add("picked"); showPick(); animate(4, 1);
+    }
+  }, 4000);
+})();
+</script>
+</body>
+</html>
