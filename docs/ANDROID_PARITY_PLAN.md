@@ -290,6 +290,8 @@
 >
 > **🆕 2026-10-14 追加**：「21/21」至此已彻底成为历史快照。**21/21 之后新增并已补齐 Android 的模块，以 §2 差距表的 `#20`–`#22` 行为准**：`math_relations`（10-07，数量关系与交换）、`math_units` 的「尺子上看例子」增量（10-09）、`sentence_doctor`（10-14，句子小医生，见下方「批次 C 收官后新增：句子小医生」）。
 >
+> **⚠️ 2026-10-15 变更**：**web 侧已删除 `math_units` 模块**（catalog 50→49；CSS 段同步移除，`cssSkillMark --check` 的 203 处 math_units 存量不一致一并消失）——用户要求把「尺子上看例子」以**去文字、纯动画高亮**的形式并入 `server_cf/static_assets/units.html`（独立教具页 `/units`），整模块随之下线。**Android 端保留 `ui/units/` 不动**（它有切开/拼合、练习等 web 没有的内容），自本日起这是**有意分歧**，别当缺口回填。
+>
 > **判缺口的正确姿势（2026-10-14 复核）**：抽 `web/src/modules/catalog.ts` 的 id 清单（现为 **50 条**）逐个对 Android 落地页，**比 `routes.tsx` 更全**（catalog 才是「有哪些功能」的唯一真源）。50 条里有 3 条**不是** parity 目标 / 已按结构差异覆盖，别为它们返工：`placeholder`（web 侧占位脚手架）与 `soe_demo`（web 侧调试演示页）**本就不是产品功能**；`ai_parse_result` 是**有意结构差异**（Android 输入+结果同屏，无独立结果页）。另有映射关系不是同名要注意：`phoneme_detail` → `ui/phonics/PhonicsScreen`（`NavKey.Phonics(phonemeIndex)`）。
 
 ### ✅ 家长周报（`/module/parent_report`）—— 已补齐（原本是唯一真缺口）

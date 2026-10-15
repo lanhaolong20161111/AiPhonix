@@ -22,7 +22,6 @@ describe("skillsCss（样式裁剪）", () => {
   it("样式重头的页面都标了归属（否则说明归属判定漏了）", () => {
     const tagged = new Set(TAGGED)
     for (const id of [
-      "math_units",
       "math_mul_one",
       "math_equation_move",
       "math_compound_expr",
@@ -74,7 +73,7 @@ describe("skillsCss（样式裁剪）", () => {
 
   it("安全网本身有效：坏标记必须被抓出来", () => {
     const bad = [
-      ["未闭合", "a { color: red }\n/* @skill: math_units */\nb { color: blue }\n"],
+      ["未闭合", "a { color: red }\n/* @skill: math_mul_one */\nb { color: blue }\n"],
       ["无开标记", "a { color: red }\n/* @skill:end */\n"],
       ["嵌套", "/* @skill: a */\n/* @skill: b */\nx { }\n/* @skill:end */\n/* @skill:end */\n"],
     ] as const

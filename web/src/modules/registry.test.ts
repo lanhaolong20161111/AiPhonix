@@ -139,7 +139,6 @@ describe("模块注册表", () => {
       "/module/sentence_doctor",
       "/module/math_compound_expr",
       "/module/math_equation_move",
-      "/module/math_units",
       "/module/math_mul_one",
       "/module/math_relations",
       "/module/murmur",
@@ -184,7 +183,6 @@ describe("模块注册表", () => {
         ["动画学数学", [
           "/module/math_compound_expr",
           "/module/math_equation_move",
-          "/module/math_units",
           "/module/math_mul_one",
           "/module/math_relations",
         ]],

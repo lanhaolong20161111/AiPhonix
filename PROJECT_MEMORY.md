@@ -579,7 +579,9 @@ app：`EqMove.kt` 2100/40→**1211/8**、`CompoundExpr.kt` 696/17→**587/7**、
 
 > ⚠️ **「21/21」是 2026-09-22 的快照，此后 Web 又新增了两个模块，均已补齐 Android**：
 > `math_relations`（10-07）与 `sentence_doctor`（10-14，见下方「句子小医生」小节）。
-> **判 parity 缺口请以 `web/src/modules/catalog.ts` 的 id 清单为准**，别信本节这句计数——
+> **判 parity 缺口请以 `web/src/modules/catalog.ts` 的 id 清单为准**（10-15 起 **50→49**：
+> web 删除了 `math_units`，其「尺子上看例子」以去文字动画版并入独立教具页 `server_cf/static_assets/units.html`
+>（线上 `/units`）；**Android 保留 `ui/units/`，属有意分歧**，别当缺口回填）——
 > 完整订正见 `docs/ANDROID_PARITY_PLAN.md` 的差距表 #20/#21/#22。
 
 ### 背景

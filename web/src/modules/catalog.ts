@@ -228,15 +228,6 @@ const mathModules: SkillModule[] = [
     load: () => import("./math_equation_move/index").then((m) => ({ default: m.EquationMovePage })),
   },
   {
-    id: "math_units",
-    route: "/module/math_units",
-    title: "长度与质量单位",
-    icon: "📏",
-    subtitle: "毫米/厘米/分米/米/千米 · 克/千克/吨 —— 切开拼合看懂方向，参照物建立量感",
-    group: "math",
-    load: () => import("./math_units/index").then((m) => ({ default: m.MathUnitsPage })),
-  },
-  {
     id: "math_mul_one",
     route: "/module/math_mul_one",
     title: "多位数乘一位数",
